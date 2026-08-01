@@ -96,11 +96,20 @@ assert.equal(typeof object.span, "function", "every block must expose span(x, y)
 assert.equal(object.span(2, 1), object, "span must remain chainable");
 assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2", "span x must set whole column units");
 assert.equal(object.element.style.getPropertyValue("--block-span-rows"), "1", "span y must set whole row units");
+assert.equal(object.place(2, 2), object, "place must remain chainable");
+assert.equal(object.element.style.getPropertyValue("--block-column"), "2", "place x must set a one-based column");
+assert.equal(object.element.style.getPropertyValue("--block-row"), "2", "place y must set a one-based row");
 assert.throws(function () { object.span(0, 1); }, /positieve gehele/, "invalid spans must fail early");
 assert.throws(function () { object.span(5, 1); }, /past niet/, "a block cannot span beyond its grid");
-assert.throws(function () { local.setGrid(1, 4); }, /te klein/, "a grid cannot shrink below an existing span");
+assert.throws(function () { object.place(0, 1); }, /positieve gehele/, "invalid positions must fail early");
+assert.throws(function () { object.place(4, 2); }, /past niet/, "a placed span cannot exceed the grid edge");
+const neighbour = local.add("<p>neighbour</p>", { id: "place-test" });
+assert.throws(function () { neighbour.place(2, 2); }, /overlapt/, "explicitly placed blocks cannot overlap");
+neighbour.place(1, 1);
+assert.throws(function () { local.setGrid(2, 4); }, /past niet/, "a grid cannot shrink below an existing placed span");
 object.remove();
 assert.doesNotThrow(function () { local.setGrid(1, 1); }, "removed blocks must release their span constraint");
 assert.throws(function () { object.span(1, 1); }, /verwijderd/, "removed blocks cannot re-enter span state");
+assert.throws(function () { object.place(1, 1); }, /verwijderd/, "removed blocks cannot re-enter position state");
 
 console.log("blocks.system contract — ok");

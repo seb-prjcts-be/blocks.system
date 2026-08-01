@@ -4,9 +4,8 @@ body { margin: 0; padding: 1rem; background: #d9d8d2; color: #14140f; font: 13px
 h1 { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 600; }
 p { margin: 0 0 0.8rem; color: #666; }
 a { color: inherit; }
-.field { min-height: 210px; border: 1px solid #14140f; background: #e7e6e0; }
-.blocks-system-object { --block-color: #000; min-height: 100px; background: #efeee8; }
-.blocks-system-content { height: calc(100% - 22px); padding: 7px; }
+.field { min-height: 210px; }
+.blocks-system-object { min-height: 100px; }
 .center { display: grid; width: 100%; height: 100%; place-content: center; text-align: center; }
 .center strong { display: block; font-size: 1.1rem; }
 .center small { color: #777; }

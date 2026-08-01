@@ -38,7 +38,7 @@ export function createBlocksSystem(options = {}) {
     const adapters = new Map();
     const mounts = new WeakMap();
     const objects = new Map();
-    const objectSpans = new Map();
+    const objectLayouts = new Map();
     const catalogUrl = options.catalogUrl ? new URL(options.catalogUrl) : null;
     let surface = null;
     let columns = 1;
@@ -190,6 +190,27 @@ export function createBlocksSystem(options = {}) {
         return api;
     }
 
+    function assertLayoutFits(id, layout, gridColumns = columns, gridRows = rows) {
+        const lastColumn = layout.column === null
+            ? layout.columns
+            : layout.column + layout.columns - 1;
+        const lastRow = layout.row === null
+            ? layout.rows
+            : layout.row + layout.rows - 1;
+        if (lastColumn > gridColumns || lastRow > gridRows) {
+            throw new RangeError(`Layout van ${id} past niet in raster ${gridColumns}×${gridRows}.`);
+        }
+        if (layout.column === null || layout.row === null) return;
+        for (const [otherId, other] of objectLayouts) {
+            if (otherId === id || other.column === null || other.row === null) continue;
+            const overlaps = layout.column < other.column + other.columns &&
+                layout.column + layout.columns > other.column &&
+                layout.row < other.row + other.rows &&
+                layout.row + layout.rows > other.row;
+            if (overlaps) throw new RangeError(`Plaats van ${id} overlapt ${otherId}.`);
+        }
+    }
+
     function setGrid(x, y) {
         const nextColumns = Number(x);
         const nextRows = Number(y);
@@ -197,11 +218,7 @@ export function createBlocksSystem(options = {}) {
             !Number.isInteger(nextRows) || nextRows < 1) {
             throw new TypeError("setGrid(x, y) verwacht positieve gehele aantallen kolommen en rijen.");
         }
-        for (const [id, span] of objectSpans) {
-            if (span.columns > nextColumns || span.rows > nextRows) {
-                throw new RangeError(`Raster ${nextColumns}×${nextRows} is te klein voor ${id} met span ${span.columns}×${span.rows}.`);
-            }
-        }
+        for (const [id, layout] of objectLayouts) assertLayoutFits(id, layout, nextColumns, nextRows);
         columns = nextColumns;
         rows = nextRows;
         applySurfaceState();
@@ -242,12 +259,14 @@ export function createBlocksSystem(options = {}) {
         let colorValue = "";
         let spanColumns = 1;
         let spanRows = 1;
+        let placeColumn = null;
+        let placeRow = null;
         let block;
 
         function remove() {
             if (dragState?.shell === shell) stopDragging();
             objects.delete(id);
-            objectSpans.delete(id);
+            objectLayouts.delete(id);
             shell.remove();
             return true;
         }
@@ -260,14 +279,41 @@ export function createBlocksSystem(options = {}) {
                 !Number.isInteger(nextRows) || nextRows < 1) {
                 throw new TypeError("block.span(x, y) verwacht positieve gehele rastereenheden.");
             }
-            if (nextColumns > columns || nextRows > rows) {
-                throw new RangeError(`Span ${nextColumns}×${nextRows} past niet in raster ${columns}×${rows}.`);
-            }
+            const nextLayout = {
+                columns: nextColumns,
+                rows: nextRows,
+                column: placeColumn,
+                row: placeRow
+            };
+            assertLayoutFits(id, nextLayout);
             spanColumns = nextColumns;
             spanRows = nextRows;
-            objectSpans.set(id, { columns: spanColumns, rows: spanRows });
+            objectLayouts.set(id, nextLayout);
             shell.style.setProperty("--block-span-columns", String(spanColumns));
             shell.style.setProperty("--block-span-rows", String(spanRows));
+            return block;
+        }
+
+        function place(x, y) {
+            if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            const nextColumn = Number(x);
+            const nextRow = Number(y);
+            if (!Number.isInteger(nextColumn) || nextColumn < 1 ||
+                !Number.isInteger(nextRow) || nextRow < 1) {
+                throw new TypeError("block.place(x, y) verwacht positieve gehele rastercoördinaten.");
+            }
+            const nextLayout = {
+                columns: spanColumns,
+                rows: spanRows,
+                column: nextColumn,
+                row: nextRow
+            };
+            assertLayoutFits(id, nextLayout);
+            placeColumn = nextColumn;
+            placeRow = nextRow;
+            objectLayouts.set(id, nextLayout);
+            shell.style.setProperty("--block-column", String(placeColumn));
+            shell.style.setProperty("--block-row", String(placeRow));
             return block;
         }
 
@@ -302,6 +348,7 @@ export function createBlocksSystem(options = {}) {
             content: contentNode,
             menu,
             span,
+            place,
             remove
         };
         Object.defineProperty(controller, "color", {
@@ -315,7 +362,12 @@ export function createBlocksSystem(options = {}) {
         });
         block = Object.freeze(controller);
         objects.set(id, block);
-        objectSpans.set(id, { columns: spanColumns, rows: spanRows });
+        objectLayouts.set(id, {
+            columns: spanColumns,
+            rows: spanRows,
+            column: placeColumn,
+            row: placeRow
+        });
         return block;
     }
 

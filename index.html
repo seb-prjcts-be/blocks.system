@@ -44,23 +44,25 @@
     <section class="section section-muted" id="live-system">
       <div class="section-heading">
         <span class="section-tag">live system</span>
-        <h2>one field, four kinds of object</h2>
-        <p>The field is one div. On this site black is the easy default; pure RGB/CMY colours mark only a few exceptions.</p>
+        <h2>objects need empty space</h2>
+        <p>The visible grid and its empty cells carry as much weight as the four objects. Black stays the default; pure RGB/CMY colours mark only a few exceptions.</p>
       </div>
 
       <div class="demo-layout">
         <aside class="control-panel" aria-label="demo controls">
-          <label>columns <output id="columns-value">4</output>
-            <input id="columns" type="range" min="2" max="4" value="4">
+          <label>columns <output id="columns-value">8</output>
+            <input id="columns" type="range" min="8" max="12" value="8">
           </label>
           <label>rows <output id="rows-value">4</output>
-            <input id="rows" type="range" min="2" max="4" value="4">
+            <input id="rows" type="range" min="4" max="8" value="4">
           </label>
           <label class="check-row"><input id="snap" type="checkbox" checked> snap to grid</label>
           <pre><code>blocks.system.attach("#field");
-blocks.system.setGrid(4, 4);
+blocks.system.setGrid(8, 4);
 blocks.system.snap = true;
-blocks.system.draggable = true;</code></pre>
+
+const block = blocks.system.add(content);
+block.place(3, 2);</code></pre>
         </aside>
         <div id="field" aria-label="interactive blocks.system field"></div>
       </div>
@@ -83,7 +85,8 @@ blocks.system.draggable = true;
 const block = blocks.system.add(content);
 block.menu("test", true);
 block.color = "red";
-block.span(2, 1);</code></pre>
+block.span(2, 1);
+block.place(2, 2);</code></pre>
         <div class="principles">
           <article><span>01</span><h3>generic core</h3><p>No knowledge of p5.js, waves, frameworks or renderers.</p></article>
           <article><span>02</span><h3>real dom</h3><p>Add a string, node, canvas, svg, custom element or factory function.</p></article>

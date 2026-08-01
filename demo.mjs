@@ -10,9 +10,8 @@ const colors = [
 ];
 
 system.attach("#field");
-system.setGrid(4, 4);
+system.setGrid(8, 4);
 system.snap = true;
-system.draggable = true;
 
 const htmlBlock = system.add(`
   <div class="demo-copy">
@@ -21,6 +20,7 @@ const htmlBlock = system.add(`
   </div>
 `, { id: "html" });
 htmlBlock.menu("html", true);
+htmlBlock.place(1, 1);
 
 const canvas = document.createElement("canvas");
 canvas.className = "demo-canvas";
@@ -42,6 +42,7 @@ const canvasBlock = system.add(canvas, { id: "canvas" });
 canvasBlock.menu("canvas", true);
 canvasBlock.color = `rgb(${colors[2].join(", ")})`;
 canvasBlock.span(2, 1);
+canvasBlock.place(3, 2);
 
 if (!customElements.get("system-badge")) {
   customElements.define("system-badge", class extends HTMLElement {
@@ -53,7 +54,8 @@ if (!customElements.get("system-badge")) {
 const customBlock = system.add(document.createElement("system-badge"), { id: "custom-element" });
 customBlock.menu("custom element", true);
 customBlock.color = `rgb(${colors[4].join(", ")})`;
-customBlock.span(1, 2);
+customBlock.span(2, 2);
+customBlock.place(7, 1);
 
 const controls = document.createElement("div");
 controls.className = "native-controls";
@@ -64,6 +66,8 @@ controls.innerHTML = `
 `;
 const controlsBlock = system.add(controls, { id: "controls" });
 controlsBlock.menu("native controls", true);
+controlsBlock.span(2, 1);
+controlsBlock.place(5, 4);
 
 const columns = document.querySelector("#columns");
 const rows = document.querySelector("#rows");

@@ -2,8 +2,17 @@
     --blocks-columns: 1;
     --blocks-rows: 1;
     --blocks-gap: 6px;
+    --blocks-field-color: #e7e6e0;
+    --blocks-paper-color: #efeee8;
+    --blocks-ink-color: #000;
+    --blocks-text-color: #14140f;
+    --blocks-content-padding: 7px;
+    box-sizing: border-box;
     position: relative;
     min-width: 0;
+    border: 1px solid var(--blocks-ink-color);
+    background-color: var(--blocks-field-color);
+    color: var(--blocks-text-color);
     gap: var(--blocks-gap);
 }
 
@@ -37,18 +46,23 @@
 }
 
 .blocks-system-object {
-    --block-color: currentColor;
+    --block-color: var(--blocks-ink-color);
     --block-span-columns: 1;
     --block-span-rows: 1;
+    --block-column: auto;
+    --block-row: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
     position: relative;
-    grid-column: span var(--block-span-columns);
-    grid-row: span var(--block-span-rows);
+    grid-column: var(--block-column) / span var(--block-span-columns);
+    grid-row: var(--block-row) / span var(--block-span-rows);
     min-width: 0;
     min-height: 0;
     overflow: hidden;
     border: 1px solid var(--block-color);
-    background: Canvas;
-    color: CanvasText;
+    background: var(--blocks-paper-color);
+    color: var(--blocks-text-color);
 }
 
 .blocks-system-menu {
@@ -61,7 +75,7 @@
     min-height: 22px;
     border-bottom: 1px solid var(--block-color);
     background: var(--block-color);
-    color: Canvas;
+    color: var(--blocks-paper-color);
     padding: 3px 7px;
     font: 600 13px/1 sans-serif;
 }
@@ -94,8 +108,11 @@
 }
 
 .blocks-system-content {
+    box-sizing: border-box;
+    flex: 1 1 auto;
     min-width: 0;
     min-height: 0;
+    padding: var(--blocks-content-padding);
 }
 
 .blocks-system-content > canvas,

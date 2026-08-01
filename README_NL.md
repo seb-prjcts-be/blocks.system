@@ -39,6 +39,7 @@ belangrijk is.
   block.menu("test", true);
   block.color = "red";
   block.span(2, 1);
+  block.place(3, 2);
 </script>
 ```
 
@@ -65,8 +66,18 @@ CSS-selector of DOM-element en neemt nooit stilzwijgend `document.body` over.
 `block.span(x, y)` laat één object hele rastereenheden innemen. De standaard is
 `1, 1`; een span moet binnen het huidige raster passen.
 
+`block.place(x, y)` gebruikt kolom- en rijcoördinaten vanaf één. Blocks zonder
+plaats behouden de automatische gridflow; expliciet geplaatste blocks mogen
+niet overlappen. Laat een block ongeplaatst wanneer de versleepbare volgorde
+zijn positie moet bepalen.
+
 Blocks behouden standaard de oorspronkelijke tussenruimte van `6px`. Stel
 `--blocks-gap` op het gekoppelde veld in wanneer een compositie wil afwijken.
+
+De stylesheet levert de volledige out-of-the-box-compositie: zwarte blocks,
+warme papier- en veldkleuren, een menu van `22px` en `7px` inhoudsruimte. Iedere
+afwijking is de verantwoordelijkheid van de gebruiker via CSS-variabelen of
+specifiekere CSS.
 
 ```js
 blocks.system.attach("#veld");
@@ -114,7 +125,7 @@ blocks.system.register({
 - `blocks.system.list()` / `get()` / `listAdapters()`
 - `blocks.system.mount()` / `unmount()` / `remount()`
 - `blocks.system.snippet()` / `address()`
-- `block.menu(name, close)` / `block.span(x, y)` / `block.color` / `block.remove()`
+- `block.menu(name, close)` / `block.span(x, y)` / `block.place(x, y)` / `block.color` / `block.remove()`
 
 ## Ontwikkelen
 

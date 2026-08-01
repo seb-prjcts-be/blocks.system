@@ -38,6 +38,7 @@ Pin a release tag instead of `@main` when you need reproducible behaviour.
   block.menu("test", true);
   block.color = "red";
   block.span(2, 1);
+  block.place(3, 2);
 </script>
 ```
 
@@ -64,8 +65,16 @@ a DOM element and never silently takes over `document.body`.
 `block.span(x, y)` makes one object occupy whole grid units. The default is
 `1, 1`; a span must fit inside the current grid.
 
+`block.place(x, y)` uses one-based column and row coordinates. Unplaced blocks
+keep normal grid auto-flow; explicitly placed blocks may not overlap. Leave a
+block unplaced when draggable ordering should determine its position.
+
 Blocks keep the original `6px` breathing room. Override `--blocks-gap` on the
 attached field when a composition needs a different interval.
+
+The stylesheet provides the complete out-of-the-box composition: black blocks,
+warm paper and field colours, a `22px` menu and `7px` content inset. Consumers
+own every deviation through CSS variables or more specific CSS.
 
 ```js
 blocks.system.attach("#field");
@@ -113,7 +122,7 @@ blocks.system.register({
 - `blocks.system.list()` / `get()` / `listAdapters()`
 - `blocks.system.mount()` / `unmount()` / `remount()`
 - `blocks.system.snippet()` / `address()`
-- `block.menu(name, close)` / `block.span(x, y)` / `block.color` / `block.remove()`
+- `block.menu(name, close)` / `block.span(x, y)` / `block.place(x, y)` / `block.color` / `block.remove()`
 
 ## Develop
 
