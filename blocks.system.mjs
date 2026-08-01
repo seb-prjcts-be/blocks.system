@@ -33,6 +33,51 @@ function resolveHost(target) {
     return host;
 }
 
+function normalizeFont(value) {
+    if (value === null || value === undefined) return null;
+    if (!value || typeof value !== "object") {
+        throw new TypeError("blocks.system.font verwacht null of een object met minstens family.");
+    }
+    const family = String(value.family || "").trim();
+    if (!family) throw new TypeError("blocks.system.font.family mag niet leeg zijn.");
+
+    const href = value.href === undefined || value.href === null
+        ? null
+        : String(value.href).trim();
+    if (href) {
+        let url;
+        try {
+            url = new URL(href);
+        } catch {
+            throw new TypeError("blocks.system.font.href verwacht een geldige absolute URL.");
+        }
+        if (url.protocol !== "https:" && url.protocol !== "http:") {
+            throw new TypeError("blocks.system.font.href ondersteunt alleen http- en https-URL's.");
+        }
+    }
+
+    return Object.freeze({ href: href || null, family });
+}
+
+function quoteFontFamily(family) {
+    return `"${family.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/[\n\r\f]/g, " ")}"`;
+}
+
+function loadFontStylesheet(href) {
+    if (!href || typeof document === "undefined" || !document.head) return;
+    const links = document.head.querySelectorAll?.('link[rel="stylesheet"]') || [];
+    const exists = Array.from(links).some((link) =>
+        link.getAttribute?.("href") === href || link.href === href
+    );
+    if (exists) return;
+
+    const link = document.createElement("link");
+    link.setAttribute("rel", "stylesheet");
+    link.setAttribute("href", href);
+    link.setAttribute("data-blocks-system-font", "");
+    document.head.appendChild(link);
+}
+
 export function createBlocksSystem(options = {}) {
     const definitions = new Map();
     const adapters = new Map();
@@ -45,6 +90,7 @@ export function createBlocksSystem(options = {}) {
     let rows = 1;
     let snapEnabled = false;
     let draggableEnabled = false;
+    let fontState = normalizeFont(options.font);
     let dragState = null;
     let objectIndex = 0;
     let api;
@@ -92,6 +138,16 @@ export function createBlocksSystem(options = {}) {
         });
     }
 
+    function applyFontState() {
+        loadFontStylesheet(fontState?.href);
+        if (!surface) return;
+        if (fontState) {
+            surface.style.setProperty("--blocks-font-family", quoteFontFamily(fontState.family));
+        } else {
+            surface.style.removeProperty("--blocks-font-family");
+        }
+    }
+
     function applySurfaceState() {
         if (!surface) return;
         surface.classList.add("blocks-system-surface");
@@ -100,6 +156,7 @@ export function createBlocksSystem(options = {}) {
         surface.setAttribute("data-draggable", String(draggableEnabled));
         surface.style.setProperty("--blocks-columns", String(columns));
         surface.style.setProperty("--blocks-rows", String(rows));
+        applyFontState();
     }
 
     function stopDragging(pointerId) {
@@ -462,6 +519,14 @@ export function createBlocksSystem(options = {}) {
                 draggableEnabled = Boolean(value);
                 if (!draggableEnabled) stopDragging();
                 applySurfaceState();
+            }
+        },
+        font: {
+            enumerable: true,
+            get: () => fontState,
+            set(value) {
+                fontState = normalizeFont(value);
+                applyFontState();
             }
         },
         field: {

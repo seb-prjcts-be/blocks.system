@@ -47,6 +47,12 @@
 blocks.system.snap = true;
 blocks.system.draggable = true;</code></pre>
     <p>Drag a block by its menu bar. The stylesheet supplies the agreed composition by default: 6px intervals, black blocks, warm paper, a 22px menu and 7px content inset. Override its CSS variables only when your own composition deliberately differs.</p>
+    <h3>optional font</h3>
+    <p>The CSS defaults to Oswald with a system fallback. Loading an external font stays an explicit choice:</p>
+    <pre class="code-block"><code>blocks.system.font = {
+  href: "https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&amp;display=swap",
+  family: "Oswald"
+};</code></pre>
 
     <h2 id="content">4. add content</h2>
     <p>A block accepts a trusted HTML string, a DOM node, or a factory function returning either form.</p>

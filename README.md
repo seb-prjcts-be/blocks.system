@@ -86,6 +86,17 @@ blocks.system.draggable = true;
 With dragging enabled, the menu bar is the drag handle. Content controls keep
 their normal pointer behaviour.
 
+External fonts remain opt-in. Assign a stylesheet URL and its family; the same
+URL is inserted only once. Set `font` back to `null` to use the CSS default and
+system fallback again.
+
+```js
+blocks.system.font = {
+  href: "https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap",
+  family: "Oswald"
+};
+```
+
 ## Adapters
 
 An adapter needs a `mount()` function. `unmount()`, `ready()` and `snippet()`
@@ -116,6 +127,7 @@ blocks.system.register({
 - `blocks.system.setGrid(columns, rows)`
 - `blocks.system.snap`
 - `blocks.system.draggable`
+- `blocks.system.font`
 - `blocks.system.add(content, options)`
 - `blocks.system.register(definition)`
 - `blocks.system.registerAdapter(id, adapter)`

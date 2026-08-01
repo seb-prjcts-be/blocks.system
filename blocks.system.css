@@ -6,6 +6,7 @@
     --blocks-paper-color: #efeee8;
     --blocks-ink-color: #000;
     --blocks-text-color: #14140f;
+    --blocks-font-family: "Oswald";
     --blocks-content-padding: 7px;
     box-sizing: border-box;
     position: relative;
@@ -77,7 +78,7 @@
     background: var(--block-color);
     color: var(--blocks-paper-color);
     padding: 3px 7px;
-    font: 600 13px/1 sans-serif;
+    font: 600 13px/1 var(--blocks-font-family), "Arial Narrow", sans-serif;
 }
 
 .blocks-system-title {
@@ -109,6 +110,8 @@
 
 .blocks-system-content {
     box-sizing: border-box;
+    display: grid;
+    place-items: center;
     flex: 1 1 auto;
     min-width: 0;
     min-height: 0;

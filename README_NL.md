@@ -89,6 +89,17 @@ blocks.system.draggable = true;
 Met verslepen ingeschakeld is de menubalk het handvat. Controls in de inhoud
 behouden hun normale pointergedrag.
 
+Externe fonts blijven opt-in. Geef een stylesheet-URL en de bijbehorende
+fontfamilie op; dezelfde URL wordt maar één keer toegevoegd. Zet `font` opnieuw
+op `null` om de CSS-standaard en systeemfallback te gebruiken.
+
+```js
+blocks.system.font = {
+  href: "https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap",
+  family: "Oswald"
+};
+```
+
 ## Adapters
 
 Een adapter heeft minstens `mount()` nodig. `unmount()`, `ready()` en
@@ -119,6 +130,7 @@ blocks.system.register({
 - `blocks.system.setGrid(columns, rows)`
 - `blocks.system.snap`
 - `blocks.system.draggable`
+- `blocks.system.font`
 - `blocks.system.add(content, options)`
 - `blocks.system.register(definition)`
 - `blocks.system.registerAdapter(id, adapter)`

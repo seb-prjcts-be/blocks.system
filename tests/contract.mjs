@@ -16,6 +16,7 @@ assert.ok(["attach", "setGrid", "add", "register", "registerAdapter", "mount", "
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
 assert.equal(singleton.snap, false, "snap must be disabled by default");
 assert.equal(singleton.draggable, false, "dragging must be disabled by default");
+assert.equal(singleton.font, null, "external fonts must remain opt-in");
 
 const minUrl = pathToFileURL(minPath);
 minUrl.searchParams.set("parity", Date.now());
@@ -60,7 +61,12 @@ class TestElement {
   addEventListener() {}
   removeEventListener() {}
   setAttribute(name, value) { this.attributes.set(name, String(value)); }
+  getAttribute(name) { return this.attributes.get(name) ?? null; }
   removeAttribute(name) { this.attributes.delete(name); }
+  querySelectorAll(selector) {
+    if (selector !== 'link[rel="stylesheet"]') return [];
+    return this.children.filter((child) => child.getAttribute("rel") === "stylesheet");
+  }
   appendChild(child) {
     child.parentElement = this;
     this.children.push(child);
@@ -84,12 +90,26 @@ class TestElement {
 
 globalThis.Element = TestElement;
 globalThis.document = {
+  head: new TestElement(),
   createElement() { return new TestElement(); },
   querySelector() { return null; }
 };
 
 const field = new TestElement();
+const font = {
+  href: "https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap",
+  family: "Oswald"
+};
+local.font = font;
+local.font = font;
+assert.deepEqual(local.font, font, "font configuration must remain readable");
+assert.equal(document.head.children.length, 1, "the same font stylesheet must load only once");
+assert.equal(document.head.children[0].getAttribute("data-blocks-system-font"), "", "injected font links must be identifiable");
+assert.throws(function () { local.font = { family: "" }; }, /family mag niet leeg/, "empty font families must fail early");
 local.attach(field);
+assert.equal(field.style.getPropertyValue("--blocks-font-family"), '"Oswald"', "the configured font must reach the attached field");
+local.font = null;
+assert.equal(field.style.getPropertyValue("--blocks-font-family"), "", "resetting font must restore the CSS default");
 local.setGrid(4, 4);
 const object = local.add("<p>span</p>", { id: "span-test" });
 assert.equal(typeof object.span, "function", "every block must expose span(x, y)");
