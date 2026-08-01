@@ -1,0 +1,40 @@
+{
+  "name": "blocks.system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A small, dependency-free browser system for individually addressable HTML, canvas and custom objects.",
+  "type": "module",
+  "exports": {
+    ".": "./blocks.system.mjs",
+    "./min": "./blocks.system.min.mjs",
+    "./style": "./blocks.system.css"
+  },
+  "files": [
+    "blocks.system.mjs",
+    "blocks.system.min.mjs",
+    "blocks.system.css"
+  ],
+  "scripts": {
+    "build:min": "terser blocks.system.mjs --module --compress --mangle --output blocks.system.min.mjs",
+    "manifest": "node tools/gen-manifest.mjs",
+    "test": "node tests/contract.mjs && node tests/site.mjs",
+    "check": "npm run build:min && npm run manifest && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/seb-prjcts-be/blocks.system.git"
+  },
+  "homepage": "https://seb-prjcts-be.github.io/blocks.system/",
+  "keywords": [
+    "blocks",
+    "canvas",
+    "custom-elements",
+    "dom",
+    "esm",
+    "grid"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "terser": "5.49.0"
+  }
+}

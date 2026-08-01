@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>api · blocks.system</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="navbar" aria-label="main navigation">
+    <a class="nav-logo" href="../index.html">blocks.system</a>
+    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="../index.html">showcase</a></li><li><a href="examples.html">examples</a></li><li><a class="active" href="api.html">api</a></li><li><a href="guide.html">guide</a></li><li><a href="about.html">about</a></li><li><a href="https://github.com/seb-prjcts-be/blocks.system">github</a></li>
+    </ul>
+  </nav>
+
+  <main class="page docs">
+    <header class="page-header">
+      <span class="section-tag">api</span>
+      <h1>small surface, clear ownership</h1>
+      <p>General state is available on <code>blocks.system</code>. Object state is available on the controller returned by <code>add()</code>.</p>
+    </header>
+
+    <h2>system layout</h2>
+    <table class="api-table">
+      <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
+      <tbody>
+        <tr><td>attach(target)</td><td>system</td><td>Attach to a selector or DOM element.</td></tr>
+        <tr><td>setGrid(x, y)</td><td>system</td><td>Set positive integer column and row counts.</td></tr>
+        <tr><td>snap</td><td>boolean</td><td>Read or change grid snapping.</td></tr>
+        <tr><td>field</td><td>element|null</td><td>Read the currently attached field.</td></tr>
+        <tr><td>add(content, options)</td><td>block</td><td>Add HTML, a DOM node or a content factory.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>block object</h2>
+    <table class="api-table">
+      <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
+      <tbody>
+        <tr><td>id</td><td>string</td><td>Stable lowercase kebab-case object id.</td></tr>
+        <tr><td>element</td><td>section</td><td>Outer block element.</td></tr>
+        <tr><td>content</td><td>div</td><td>Content host inside the block.</td></tr>
+        <tr><td>menu(name, close)</td><td>block</td><td>Add or update a title bar and optional close button.</td></tr>
+        <tr><td>color</td><td>string</td><td>Read or set the object colour CSS value.</td></tr>
+        <tr><td>remove()</td><td>true</td><td>Remove the object from its field.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>definitions and adapters</h2>
+    <table class="api-table">
+      <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
+      <tbody>
+        <tr><td>register(definition)</td><td>system</td><td>Register a reusable lowercase kebab-case definition.</td></tr>
+        <tr><td>registerAdapter(id, adapter)</td><td>system</td><td>Register a lifecycle adapter with at least <code>mount()</code>.</td></tr>
+        <tr><td>list(filters)</td><td>array</td><td>List definitions by query, adapter, medium or category.</td></tr>
+        <tr><td>get(id)</td><td>definition|null</td><td>Read one registered definition.</td></tr>
+        <tr><td>listAdapters()</td><td>array</td><td>List registered adapter ids.</td></tr>
+        <tr><td>mount(id, target, overrides)</td><td>promise&lt;element&gt;</td><td>Mount one definition through its adapter.</td></tr>
+        <tr><td>unmount(target)</td><td>boolean</td><td>Run optional cleanup and remove mounted content.</td></tr>
+        <tr><td>remount(id, target, overrides)</td><td>promise&lt;element&gt;</td><td>Mount again with new settings.</td></tr>
+        <tr><td>snippet(id, overrides)</td><td>string</td><td>Ask an adapter for a reusable snippet.</td></tr>
+        <tr><td>address(id)</td><td>url</td><td>Create a catalog URL using <code>?block=id</code>.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>definition shape</h2>
+    <pre class="code-block"><code>{
+  id: "welcome",
+  label: "welcome",
+  adapter: "note",
+  medium: "html",
+  category: "text",
+  description: "a small note",
+  defaults: { text: "hello" },
+  attributes: [],
+  requires: []
+}</code></pre>
+
+    <h2>errors</h2>
+    <p>The library throws early for invalid ids, missing fields, invalid grid values, duplicate registrations, unknown blocks and incomplete adapters. Catch only errors you can recover from.</p>
+  </main>
+
+  <footer><a href="https://github.com/seb-prjcts-be/blocks.system">blocks.system</a> · mit license · <span data-year></span></footer>
+  <script type="module" src="nav.mjs"></script>
+</body>
+</html>

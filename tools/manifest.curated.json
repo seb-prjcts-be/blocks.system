@@ -1,0 +1,31 @@
+{
+  "_comment": "Curated fields for docs/blocks.system.manifest.json. Mechanical fields come from package.json, the ESM export and examples/.",
+  "status": "early development",
+  "module_format": "esm",
+  "runtime_dependencies": 0,
+  "content_types": [
+    "trusted html string",
+    "dom node",
+    "canvas",
+    "svg",
+    "iframe",
+    "custom element",
+    "content factory",
+    "adapter-driven object"
+  ],
+  "block_api": [
+    "block.id",
+    "block.element",
+    "block.content",
+    "block.menu(name, close)",
+    "block.color",
+    "block.remove()"
+  ],
+  "design_rules": [
+    "public naming stays lowercase",
+    "the core has no renderer-specific knowledge",
+    "system properties live under blocks.system",
+    "individual properties live under block",
+    "attach() always receives an explicit field"
+  ]
+}

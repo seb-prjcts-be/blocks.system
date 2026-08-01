@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>guide · blocks.system</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="navbar" aria-label="main navigation">
+    <a class="nav-logo" href="../index.html">blocks.system</a>
+    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="../index.html">showcase</a></li><li><a href="examples.html">examples</a></li><li><a href="api.html">api</a></li><li><a class="active" href="guide.html">guide</a></li><li><a href="about.html">about</a></li><li><a href="https://github.com/seb-prjcts-be/blocks.system">github</a></li>
+    </ul>
+  </nav>
+
+  <main class="page docs">
+    <header class="page-header">
+      <span class="section-tag">guide</span>
+      <h1>build with blocks</h1>
+      <p>Start with a field, add ordinary DOM content, then introduce adapters only where another runtime needs a lifecycle.</p>
+    </header>
+
+    <h2 id="install">1. install</h2>
+    <p>Load the layout stylesheet and import the native ESM module. The named export and <code>window.blocks.system</code> point to the same singleton.</p>
+    <pre class="code-block"><code>&lt;link rel="stylesheet" href="./blocks.system.css"&gt;
+
+&lt;script type="module"&gt;
+  import { system } from "./blocks.system.mjs";
+&lt;/script&gt;</code></pre>
+
+    <h2 id="field">2. attach a field</h2>
+    <p>The system never claims the entire page. Give it one explicit selector or DOM element.</p>
+    <pre class="code-block"><code>&lt;div id="field"&gt;&lt;/div&gt;
+
+&lt;script type="module"&gt;
+  import { system } from "./blocks.system.mjs";
+  blocks.system.attach("#field");
+&lt;/script&gt;</code></pre>
+    <div class="callout"><p><code>attach()</code> fails early when the target does not exist. This keeps integration mistakes visible.</p></div>
+
+    <h2 id="grid">3. define the grid</h2>
+    <p><code>setGrid(x, y)</code> means columns and rows. Snapping can be changed at runtime.</p>
+    <pre class="code-block"><code>blocks.system.setGrid(4, 2);
+blocks.system.snap = true;</code></pre>
+    <p>With snapping disabled the field becomes a wrapping flex surface. The core only supplies layout primitives; your site controls dimensions and appearance through CSS.</p>
+
+    <h2 id="content">4. add content</h2>
+    <p>A block accepts a trusted HTML string, a DOM node, or a factory function returning either form.</p>
+    <pre class="code-block"><code>const html = blocks.system.add("&lt;p&gt;hello&lt;/p&gt;");
+
+const canvas = document.createElement("canvas");
+const drawing = blocks.system.add(canvas);
+
+const lazy = blocks.system.add(function () {
+  const node = document.createElement("button");
+  node.textContent = "native control";
+  return node;
+});</code></pre>
+    <div class="callout"><p>HTML strings are interpreted as markup. Never pass untrusted user input; build a DOM node and assign <code>textContent</code> instead.</p></div>
+
+    <h2 id="object">5. configure one object</h2>
+    <p><code>add()</code> returns the controller for that object. A menu, close button and colour belong to the object, not to the system.</p>
+    <pre class="code-block"><code>const block = blocks.system.add(content, { id: "preview" });
+block.menu("preview", true);
+block.color = "#ef3e36";
+
+// later
+block.remove();</code></pre>
+
+    <h2 id="adapter">6. connect a runtime</h2>
+    <p>Use an adapter when content needs mounting, cleanup, readiness or a reusable snippet. The runtime remains outside the core.</p>
+    <ol class="steps">
+      <li><div><strong>register an adapter</strong><p>Give it a lowercase kebab-case id and a <code>mount()</code> function.</p></div></li>
+      <li><div><strong>register a definition</strong><p>Describe the object and its default settings.</p></div></li>
+      <li><div><strong>mount into a host</strong><p>The adapter returns the root element it placed inside the host.</p></div></li>
+    </ol>
+    <pre class="code-block"><code>blocks.system.registerAdapter("counter", {
+  mount({ host, settings }) {
+    const node = document.createElement("button");
+    let value = settings.start;
+    node.textContent = value;
+    node.addEventListener("click", function () {
+      value += 1;
+      node.textContent = value;
+    });
+    host.appendChild(node);
+    return node;
+  }
+});
+
+blocks.system.register({
+  id: "click-counter",
+  label: "click counter",
+  adapter: "counter",
+  medium: "html",
+  defaults: { start: 0 }
+});
+
+await blocks.system.mount("click-counter", "#host");</code></pre>
+
+    <h2 id="structure">how to extend the project</h2>
+    <p>Keep the core small. Put reusable demonstrations in <code>examples/name/</code>, API explanation in the two READMEs and docs, and lifecycle integrations in separate adapter packages or project-local files.</p>
+    <div class="callout"><p>An API change is complete only when source, minified source, tests, examples, English README, Dutch README, guide, API reference and manifest agree.</p></div>
+
+    <p><a href="api.html">open the complete api reference →</a></p>
+  </main>
+
+  <footer><a href="https://github.com/seb-prjcts-be/blocks.system">blocks.system</a> · mit license · <span data-year></span></footer>
+  <script type="module" src="nav.mjs"></script>
+</body>
+</html>

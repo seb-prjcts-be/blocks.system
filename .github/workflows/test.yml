@@ -1,0 +1,33 @@
+name: tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "codex/**"
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: setup node
+        uses: actions/setup-node@1e60f620b9541d2b31cbe8c7a0b92d26f6bd0b5b # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: install development tools
+        run: npm ci
+
+      - name: build, manifest and test
+        run: npm run check
+
+      - name: generated files are current
+        run: git diff --exit-code

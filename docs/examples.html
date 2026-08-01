@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>examples · blocks.system</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="navbar" aria-label="main navigation">
+    <a class="nav-logo" href="../index.html">blocks.system</a>
+    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="../index.html">showcase</a></li><li><a class="active" href="examples.html">examples</a></li><li><a href="api.html">api</a></li><li><a href="guide.html">guide</a></li><li><a href="about.html">about</a></li><li><a href="https://github.com/seb-prjcts-be/blocks.system">github</a></li>
+    </ul>
+  </nav>
+
+  <main class="page page-wide">
+    <header class="page-header">
+      <span class="section-tag">examples</span>
+      <h1>small complete systems</h1>
+      <p>Every example is a standalone page with its own module. Copy one, change the content, and keep the same object contract.</p>
+    </header>
+
+    <div class="examples-grid">
+      <article class="example-card">
+        <iframe src="../examples/basic-grid/" title="basic grid example" loading="lazy"></iframe>
+        <div><h2>basic grid</h2><p>Four ordinary HTML blocks, each with its own menu and colour.</p><a href="../examples/basic-grid/">open standalone →</a></div>
+      </article>
+      <article class="example-card">
+        <iframe src="../examples/mixed-content/" title="mixed content example" loading="lazy"></iframe>
+        <div><h2>mixed content</h2><p>HTML, canvas and a custom element in the same field.</p><a href="../examples/mixed-content/">open standalone →</a></div>
+      </article>
+      <article class="example-card">
+        <iframe src="../examples/custom-adapter/" title="custom adapter example" loading="lazy"></iframe>
+        <div><h2>custom adapter</h2><p>A registered counter definition mounted through a project-local adapter.</p><a href="../examples/custom-adapter/">open standalone →</a></div>
+      </article>
+    </div>
+  </main>
+
+  <footer><a href="https://github.com/seb-prjcts-be/blocks.system">blocks.system</a> · mit license · <span data-year></span></footer>
+  <script type="module" src="nav.mjs"></script>
+</body>
+</html>
