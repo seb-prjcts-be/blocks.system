@@ -33,6 +33,7 @@ belangrijk is.
   blocks.system.attach("#veld");
   blocks.system.setGrid(4, 2);
   blocks.system.snap = true;
+  blocks.system.draggable = true;
 
   const block = blocks.system.add("<p>hallo</p>");
   block.menu("test", true);
@@ -64,7 +65,11 @@ CSS-selector of DOM-element en neemt nooit stilzwijgend `document.body` over.
 blocks.system.attach("#veld");
 blocks.system.setGrid(3, 2);
 blocks.system.snap = true;
+blocks.system.draggable = true;
 ```
+
+Met verslepen ingeschakeld is de menubalk het handvat. Controls in de inhoud
+behouden hun normale pointergedrag.
 
 ## Adapters
 
@@ -95,6 +100,7 @@ blocks.system.register({
 - `blocks.system.attach(target)`
 - `blocks.system.setGrid(columns, rows)`
 - `blocks.system.snap`
+- `blocks.system.draggable`
 - `blocks.system.add(content, options)`
 - `blocks.system.register(definition)`
 - `blocks.system.registerAdapter(id, adapter)`

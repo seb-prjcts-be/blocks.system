@@ -36,7 +36,7 @@ for (const page of pages) {
 
 const readme = await readFile(resolve(root, "README.md"), "utf8");
 const readmeNl = await readFile(resolve(root, "README_NL.md"), "utf8");
-for (const apiName of ["attach", "setGrid", "snap", "add", "registerAdapter", "menu", "color"]) {
+for (const apiName of ["attach", "setGrid", "snap", "draggable", "add", "registerAdapter", "menu", "color"]) {
   assert.ok(readme.includes(apiName), `README.md misses ${apiName}`);
   assert.ok(readmeNl.includes(apiName), `README_NL.md misses ${apiName}`);
 }
@@ -58,7 +58,7 @@ const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileT
 
 assert.equal(manifest.version, packageData.version, "manifest and package version must match");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
-assert.ok(["attach", "setGrid", "snap", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
+assert.ok(["attach", "setGrid", "snap", "draggable", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
 
 assert.match(siteCss, /#field \.blocks-system-object\s*\{[^}]*--block-color:\s*#000;/s, "showcase blocks must default to black");
 assert.match(exampleCss, /\.blocks-system-object\s*\{[^}]*--block-color:\s*#000;/s, "example blocks must default to black");

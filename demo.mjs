@@ -12,6 +12,7 @@ const colors = [
 system.attach("#field");
 system.setGrid(4, 1);
 system.snap = true;
+system.draggable = true;
 
 const htmlBlock = system.add(`
   <div class="demo-copy">

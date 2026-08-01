@@ -32,6 +32,7 @@ Pin a release tag instead of `@main` when you need reproducible behaviour.
   blocks.system.attach("#field");
   blocks.system.setGrid(4, 2);
   blocks.system.snap = true;
+  blocks.system.draggable = true;
 
   const block = blocks.system.add("<p>hello</p>");
   block.menu("test", true);
@@ -63,7 +64,11 @@ a DOM element and never silently takes over `document.body`.
 blocks.system.attach("#field");
 blocks.system.setGrid(3, 2);
 blocks.system.snap = true;
+blocks.system.draggable = true;
 ```
+
+With dragging enabled, the menu bar is the drag handle. Content controls keep
+their normal pointer behaviour.
 
 ## Adapters
 
@@ -94,6 +99,7 @@ blocks.system.register({
 - `blocks.system.attach(target)`
 - `blocks.system.setGrid(columns, rows)`
 - `blocks.system.snap`
+- `blocks.system.draggable`
 - `blocks.system.add(content, options)`
 - `blocks.system.register(definition)`
 - `blocks.system.registerAdapter(id, adapter)`

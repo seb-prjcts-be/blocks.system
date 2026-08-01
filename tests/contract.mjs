@@ -15,6 +15,7 @@ assert.doesNotMatch(source, /vanilla\.waves|p5\.waves|VanillaWaves|WavesLoader|P
 assert.ok(["attach", "setGrid", "add", "register", "registerAdapter", "mount", "unmount"]
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
 assert.equal(singleton.snap, false, "snap must be disabled by default");
+assert.equal(singleton.draggable, false, "dragging must be disabled by default");
 
 const minUrl = pathToFileURL(minPath);
 minUrl.searchParams.set("parity", Date.now());

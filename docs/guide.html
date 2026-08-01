@@ -42,10 +42,11 @@
     <div class="callout"><p><code>attach()</code> fails early when the target does not exist. This keeps integration mistakes visible.</p></div>
 
     <h2 id="grid">3. define the grid</h2>
-    <p><code>setGrid(x, y)</code> means columns and rows. Snapping can be changed at runtime.</p>
+    <p><code>setGrid(x, y)</code> means columns and rows. Snapping and dragging can be changed at runtime.</p>
     <pre class="code-block"><code>blocks.system.setGrid(4, 2);
-blocks.system.snap = true;</code></pre>
-    <p>With snapping disabled the field becomes a wrapping flex surface. The core only supplies layout primitives; your site controls dimensions and appearance through CSS.</p>
+blocks.system.snap = true;
+blocks.system.draggable = true;</code></pre>
+    <p>Drag a block by its menu bar. With snapping disabled the field becomes a wrapping flex surface. The core only supplies layout primitives; your site controls dimensions and appearance through CSS.</p>
 
     <h2 id="content">4. add content</h2>
     <p>A block accepts a trusted HTML string, a DOM node, or a factory function returning either form.</p>

@@ -59,7 +59,8 @@
           <label class="check-row"><input id="snap" type="checkbox" checked> snap to grid</label>
           <pre><code>blocks.system.attach("#field");
 blocks.system.setGrid(4, 1);
-blocks.system.snap = true;</code></pre>
+blocks.system.snap = true;
+blocks.system.draggable = true;</code></pre>
         </aside>
         <div id="field" aria-label="interactive blocks.system field"></div>
       </div>
@@ -77,6 +78,7 @@ blocks.system.snap = true;</code></pre>
 blocks.system.attach("#field");
 blocks.system.setGrid(3, 2);
 blocks.system.snap = true;
+blocks.system.draggable = true;
 
 const block = blocks.system.add(content);
 block.menu("test", true);

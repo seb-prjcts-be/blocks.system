@@ -12,6 +12,7 @@ const colors = [
 system.attach("#field");
 system.setGrid(2, 2);
 system.snap = true;
+system.draggable = true;
 
 for (let index = 0; index < 4; index += 1) {
   const number = index + 1;

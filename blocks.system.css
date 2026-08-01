@@ -18,6 +18,22 @@
     grid-template-rows: repeat(var(--blocks-rows), minmax(0, 1fr));
 }
 
+.blocks-system-surface[data-draggable="true"] .blocks-system-menu {
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.blocks-system-surface[data-draggable="true"] .blocks-system-menu:active {
+    cursor: grabbing;
+}
+
+.blocks-system-object.is-dragging {
+    z-index: 1;
+    opacity: 0.55;
+    pointer-events: none;
+}
+
 .blocks-system-object {
     --block-color: currentColor;
     position: relative;

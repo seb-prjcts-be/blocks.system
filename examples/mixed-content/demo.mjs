@@ -12,6 +12,7 @@ const colors = [
 system.attach("#field");
 system.setGrid(3, 1);
 system.snap = true;
+system.draggable = true;
 
 const html = system.add("<div class=\"center\"><strong>html</strong><small>trusted string</small></div>", { id: "html" });
 html.menu("html", true);

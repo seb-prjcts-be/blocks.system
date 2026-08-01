@@ -3,6 +3,7 @@ import { system } from "../../blocks.system.mjs";
 system.attach("#field");
 system.setGrid(1, 1);
 system.snap = true;
+system.draggable = true;
 
 system.registerAdapter("counter", {
   mount({ host, settings }) {

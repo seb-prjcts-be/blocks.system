@@ -43,6 +43,8 @@ export function createBlocksSystem(options = {}) {
     let columns = 1;
     let rows = 1;
     let snapEnabled = false;
+    let draggableEnabled = false;
+    let dragState = null;
     let objectIndex = 0;
     let api;
 
@@ -94,8 +96,76 @@ export function createBlocksSystem(options = {}) {
         surface.classList.add("blocks-system-surface");
         surface.setAttribute("data-blocks-system", "");
         surface.setAttribute("data-snap", String(snapEnabled));
+        surface.setAttribute("data-draggable", String(draggableEnabled));
         surface.style.setProperty("--blocks-columns", String(columns));
         surface.style.setProperty("--blocks-rows", String(rows));
+    }
+
+    function stopDragging(pointerId) {
+        if (!dragState || (pointerId !== undefined && dragState.pointerId !== pointerId)) return;
+        const current = dragState;
+        dragState = null;
+        current.shell.classList.remove("is-dragging");
+        if (surface) surface.removeAttribute("data-dragging");
+        if (current.handle.hasPointerCapture?.(current.pointerId)) {
+            current.handle.releasePointerCapture(current.pointerId);
+        }
+    }
+
+    function startDragging(event) {
+        if (!draggableEnabled || event.button !== 0 || !surface) return;
+        if (!(event.target instanceof Element)) return;
+        if (event.target.closest("button, a, input, select, textarea")) return;
+        const handle = event.target.closest(".blocks-system-menu");
+        const shell = handle?.closest(".blocks-system-object");
+        if (!handle || !shell || shell.parentElement !== surface) return;
+
+        stopDragging();
+        dragState = { pointerId: event.pointerId, shell, handle };
+        shell.classList.add("is-dragging");
+        surface.setAttribute("data-dragging", shell.getAttribute("data-block-object") || "");
+        handle.setPointerCapture?.(event.pointerId);
+        event.preventDefault();
+    }
+
+    function moveDragging(event) {
+        if (!dragState || dragState.pointerId !== event.pointerId || !surface) return;
+        event.preventDefault();
+        const pointedElement = document.elementFromPoint(event.clientX, event.clientY);
+        const target = pointedElement?.closest?.(".blocks-system-object");
+        if (!target || target === dragState.shell || target.parentElement !== surface) return;
+
+        const bounds = target.getBoundingClientRect();
+        const neighbours = [target.previousElementSibling, target.nextElementSibling].filter(Boolean);
+        const horizontalFlow = neighbours.some((neighbour) => {
+            const neighbourBounds = neighbour.getBoundingClientRect();
+            return Math.abs(neighbourBounds.top - bounds.top) < Math.min(neighbourBounds.height, bounds.height) / 2;
+        });
+        const beforeTarget = horizontalFlow
+            ? event.clientX < bounds.left + bounds.width / 2
+            : event.clientY < bounds.top + bounds.height / 2;
+        const reference = beforeTarget ? target : target.nextElementSibling;
+        if (reference !== dragState.shell) surface.insertBefore(dragState.shell, reference);
+    }
+
+    function finishDragging(event) {
+        stopDragging(event.pointerId);
+    }
+
+    function bindSurfaceEvents(target) {
+        target.addEventListener("pointerdown", startDragging);
+        target.addEventListener("pointermove", moveDragging);
+        target.addEventListener("pointerup", finishDragging);
+        target.addEventListener("pointercancel", finishDragging);
+        target.addEventListener("lostpointercapture", finishDragging);
+    }
+
+    function unbindSurfaceEvents(target) {
+        target.removeEventListener("pointerdown", startDragging);
+        target.removeEventListener("pointermove", moveDragging);
+        target.removeEventListener("pointerup", finishDragging);
+        target.removeEventListener("pointercancel", finishDragging);
+        target.removeEventListener("lostpointercapture", finishDragging);
     }
 
     function attach(target) {
@@ -104,12 +174,16 @@ export function createBlocksSystem(options = {}) {
             throw new Error("Verwijder de bestaande blokken voordat blocks.system aan een ander veld wordt gekoppeld.");
         }
         if (surface && surface !== nextSurface) {
+            stopDragging();
+            unbindSurfaceEvents(surface);
             surface.classList.remove("blocks-system-surface");
             surface.removeAttribute("data-blocks-system");
             surface.removeAttribute("data-snap");
+            surface.removeAttribute("data-draggable");
             surface.style.removeProperty("--blocks-columns");
             surface.style.removeProperty("--blocks-rows");
         }
+        if (surface !== nextSurface) bindSurfaceEvents(nextSurface);
         surface = nextSurface;
         applySurfaceState();
         return api;
@@ -163,6 +237,7 @@ export function createBlocksSystem(options = {}) {
         let block;
 
         function remove() {
+            if (dragState?.shell === shell) stopDragging();
             objects.delete(id);
             shell.remove();
             return true;
@@ -295,6 +370,15 @@ export function createBlocksSystem(options = {}) {
             get: () => snapEnabled,
             set(value) {
                 snapEnabled = Boolean(value);
+                applySurfaceState();
+            }
+        },
+        draggable: {
+            enumerable: true,
+            get: () => draggableEnabled,
+            set(value) {
+                draggableEnabled = Boolean(value);
+                if (!draggableEnabled) stopDragging();
                 applySurfaceState();
             }
         },
