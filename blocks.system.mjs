@@ -38,6 +38,7 @@ export function createBlocksSystem(options = {}) {
     const adapters = new Map();
     const mounts = new WeakMap();
     const objects = new Map();
+    const objectSpans = new Map();
     const catalogUrl = options.catalogUrl ? new URL(options.catalogUrl) : null;
     let surface = null;
     let columns = 1;
@@ -196,6 +197,11 @@ export function createBlocksSystem(options = {}) {
             !Number.isInteger(nextRows) || nextRows < 1) {
             throw new TypeError("setGrid(x, y) verwacht positieve gehele aantallen kolommen en rijen.");
         }
+        for (const [id, span] of objectSpans) {
+            if (span.columns > nextColumns || span.rows > nextRows) {
+                throw new RangeError(`Raster ${nextColumns}×${nextRows} is te klein voor ${id} met span ${span.columns}×${span.rows}.`);
+            }
+        }
         columns = nextColumns;
         rows = nextRows;
         applySurfaceState();
@@ -234,13 +240,35 @@ export function createBlocksSystem(options = {}) {
         let titleNode = null;
         let closeNode = null;
         let colorValue = "";
+        let spanColumns = 1;
+        let spanRows = 1;
         let block;
 
         function remove() {
             if (dragState?.shell === shell) stopDragging();
             objects.delete(id);
+            objectSpans.delete(id);
             shell.remove();
             return true;
+        }
+
+        function span(x, y) {
+            if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            const nextColumns = Number(x);
+            const nextRows = Number(y);
+            if (!Number.isInteger(nextColumns) || nextColumns < 1 ||
+                !Number.isInteger(nextRows) || nextRows < 1) {
+                throw new TypeError("block.span(x, y) verwacht positieve gehele rastereenheden.");
+            }
+            if (nextColumns > columns || nextRows > rows) {
+                throw new RangeError(`Span ${nextColumns}×${nextRows} past niet in raster ${columns}×${rows}.`);
+            }
+            spanColumns = nextColumns;
+            spanRows = nextRows;
+            objectSpans.set(id, { columns: spanColumns, rows: spanRows });
+            shell.style.setProperty("--block-span-columns", String(spanColumns));
+            shell.style.setProperty("--block-span-rows", String(spanRows));
+            return block;
         }
 
         function menu(name, close = false) {
@@ -273,6 +301,7 @@ export function createBlocksSystem(options = {}) {
             element: shell,
             content: contentNode,
             menu,
+            span,
             remove
         };
         Object.defineProperty(controller, "color", {
@@ -286,6 +315,7 @@ export function createBlocksSystem(options = {}) {
         });
         block = Object.freeze(controller);
         objects.set(id, block);
+        objectSpans.set(id, { columns: spanColumns, rows: spanRows });
         return block;
     }
 

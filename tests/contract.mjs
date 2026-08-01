@@ -42,4 +42,65 @@ assert.equal(local.list({ medium: "html" }).length, 1, "content type must be fil
 assert.equal(local.address("plain-html"), "https://example.test/catalog.html?block=plain-html", "addresses use the block parameter");
 assert.throws(function () { local.setGrid(0, 2); }, /positieve gehele/, "invalid grids must fail early");
 
+class TestStyle {
+  constructor() { this.values = new Map(); }
+  setProperty(name, value) { this.values.set(name, String(value)); }
+  removeProperty(name) { this.values.delete(name); }
+  getPropertyValue(name) { return this.values.get(name) || ""; }
+}
+
+class TestElement {
+  constructor() {
+    this.attributes = new Map();
+    this.children = [];
+    this.classList = { add() {}, remove() {} };
+    this.parentElement = null;
+    this.style = new TestStyle();
+  }
+  addEventListener() {}
+  removeEventListener() {}
+  setAttribute(name, value) { this.attributes.set(name, String(value)); }
+  removeAttribute(name) { this.attributes.delete(name); }
+  appendChild(child) {
+    child.parentElement = this;
+    this.children.push(child);
+    return child;
+  }
+  insertBefore(child, reference) {
+    const currentIndex = this.children.indexOf(child);
+    if (currentIndex >= 0) this.children.splice(currentIndex, 1);
+    const referenceIndex = reference ? this.children.indexOf(reference) : -1;
+    child.parentElement = this;
+    this.children.splice(referenceIndex >= 0 ? referenceIndex : this.children.length, 0, child);
+    return child;
+  }
+  remove() {
+    if (!this.parentElement) return;
+    const index = this.parentElement.children.indexOf(this);
+    if (index >= 0) this.parentElement.children.splice(index, 1);
+    this.parentElement = null;
+  }
+}
+
+globalThis.Element = TestElement;
+globalThis.document = {
+  createElement() { return new TestElement(); },
+  querySelector() { return null; }
+};
+
+const field = new TestElement();
+local.attach(field);
+local.setGrid(4, 4);
+const object = local.add("<p>span</p>", { id: "span-test" });
+assert.equal(typeof object.span, "function", "every block must expose span(x, y)");
+assert.equal(object.span(2, 1), object, "span must remain chainable");
+assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2", "span x must set whole column units");
+assert.equal(object.element.style.getPropertyValue("--block-span-rows"), "1", "span y must set whole row units");
+assert.throws(function () { object.span(0, 1); }, /positieve gehele/, "invalid spans must fail early");
+assert.throws(function () { object.span(5, 1); }, /past niet/, "a block cannot span beyond its grid");
+assert.throws(function () { local.setGrid(1, 4); }, /te klein/, "a grid cannot shrink below an existing span");
+object.remove();
+assert.doesNotThrow(function () { local.setGrid(1, 1); }, "removed blocks must release their span constraint");
+assert.throws(function () { object.span(1, 1); }, /verwijderd/, "removed blocks cannot re-enter span state");
+
 console.log("blocks.system contract — ok");

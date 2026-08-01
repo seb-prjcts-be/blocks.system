@@ -10,7 +10,7 @@ const colors = [
 ];
 
 system.attach("#field");
-system.setGrid(4, 1);
+system.setGrid(4, 4);
 system.snap = true;
 system.draggable = true;
 
@@ -41,6 +41,7 @@ context.stroke();
 const canvasBlock = system.add(canvas, { id: "canvas" });
 canvasBlock.menu("canvas", true);
 canvasBlock.color = `rgb(${colors[2].join(", ")})`;
+canvasBlock.span(2, 1);
 
 if (!customElements.get("system-badge")) {
   customElements.define("system-badge", class extends HTMLElement {
@@ -52,6 +53,7 @@ if (!customElements.get("system-badge")) {
 const customBlock = system.add(document.createElement("system-badge"), { id: "custom-element" });
 customBlock.menu("custom element", true);
 customBlock.color = `rgb(${colors[4].join(", ")})`;
+customBlock.span(1, 2);
 
 const controls = document.createElement("div");
 controls.className = "native-controls";

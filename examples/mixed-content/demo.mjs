@@ -10,7 +10,7 @@ const colors = [
 ];
 
 system.attach("#field");
-system.setGrid(3, 1);
+system.setGrid(3, 2);
 system.snap = true;
 system.draggable = true;
 

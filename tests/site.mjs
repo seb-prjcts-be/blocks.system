@@ -36,7 +36,7 @@ for (const page of pages) {
 
 const readme = await readFile(resolve(root, "README.md"), "utf8");
 const readmeNl = await readFile(resolve(root, "README_NL.md"), "utf8");
-for (const apiName of ["attach", "setGrid", "snap", "draggable", "add", "registerAdapter", "menu", "color"]) {
+for (const apiName of ["attach", "setGrid", "snap", "draggable", "add", "registerAdapter", "menu", "span", "color"]) {
   assert.ok(readme.includes(apiName), `README.md misses ${apiName}`);
   assert.ok(readmeNl.includes(apiName), `README_NL.md misses ${apiName}`);
 }
@@ -45,6 +45,7 @@ const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
 const exampleCss = await readFile(resolve(root, "examples", "example.css"), "utf8");
+const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
 const siteDemos = await Promise.all([
   "demo.mjs",
   "examples/basic-grid/demo.mjs",
@@ -62,6 +63,16 @@ assert.ok(["attach", "setGrid", "snap", "draggable", "add"].every(function (name
 
 assert.match(siteCss, /#field \.blocks-system-object\s*\{[^}]*--block-color:\s*#000;/s, "showcase blocks must default to black");
 assert.match(exampleCss, /\.blocks-system-object\s*\{[^}]*--block-color:\s*#000;/s, "example blocks must default to black");
+assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*min-height:\s*22px;[^}]*padding:\s*3px 7px;/s, "the menu must preserve the compact original proportions");
+assert.match(libraryCss, /\.blocks-system-surface\s*\{[^}]*--blocks-gap:\s*6px;[^}]*gap:\s*var\(--blocks-gap\);/s, "blocks must preserve the original six pixel interval");
+assert.match(libraryCss, /\.blocks-system-object\s*\{[^}]*grid-column:\s*span var\(--block-span-columns\);[^}]*grid-row:\s*span var\(--block-span-rows\);/s, "blocks must span whole grid units");
+assert.match(siteCss, /#field \.blocks-system-content\s*\{[^}]*height:\s*calc\(100% - 22px\);[^}]*padding:\s*7px;/s, "the showcase must preserve the compact original inset");
+assert.match(siteCss, /\.demo-layout\s*\{[^}]*746px[^}]*max-width:\s*1020px;/s, "the showcase field must preserve the original compact width rhythm");
+assert.match(siteCss, /#field\s*\{[^}]*height:\s*370px;/s, "the showcase field must preserve four compact rows");
+assert.match(siteCss, /@media \(max-width: 560px\)[\s\S]*--block-span-columns:\s*1 !important;[\s\S]*--block-span-rows:\s*1 !important;/, "the mobile showcase must return blocks to single grid units");
+assert.ok(siteDemos[0].includes("system.setGrid(4, 4)"), "the showcase must preserve the original compact grid rhythm");
+assert.ok(siteDemos[0].includes("canvasBlock.span(2, 1)"), "the showcase must demonstrate a wider block");
+assert.ok(siteDemos[0].includes("customBlock.span(1, 2)"), "the showcase must demonstrate a taller block");
 
 const combinedDemos = siteDemos.join("\n");
 for (const color of [

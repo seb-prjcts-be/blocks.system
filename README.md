@@ -37,6 +37,7 @@ Pin a release tag instead of `@main` when you need reproducible behaviour.
   const block = blocks.system.add("<p>hello</p>");
   block.menu("test", true);
   block.color = "red";
+  block.span(2, 1);
 </script>
 ```
 
@@ -59,6 +60,12 @@ or construct a DOM node yourself.
 
 `setGrid(x, y)` uses column and row counts. `attach()` accepts a CSS selector or
 a DOM element and never silently takes over `document.body`.
+
+`block.span(x, y)` makes one object occupy whole grid units. The default is
+`1, 1`; a span must fit inside the current grid.
+
+Blocks keep the original `6px` breathing room. Override `--blocks-gap` on the
+attached field when a composition needs a different interval.
 
 ```js
 blocks.system.attach("#field");
@@ -106,7 +113,7 @@ blocks.system.register({
 - `blocks.system.list()` / `get()` / `listAdapters()`
 - `blocks.system.mount()` / `unmount()` / `remount()`
 - `blocks.system.snippet()` / `address()`
-- `block.menu(name, close)` / `block.color` / `block.remove()`
+- `block.menu(name, close)` / `block.span(x, y)` / `block.color` / `block.remove()`
 
 ## Develop
 

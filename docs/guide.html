@@ -46,7 +46,7 @@
     <pre class="code-block"><code>blocks.system.setGrid(4, 2);
 blocks.system.snap = true;
 blocks.system.draggable = true;</code></pre>
-    <p>Drag a block by its menu bar. With snapping disabled the field becomes a wrapping flex surface. The core only supplies layout primitives; your site controls dimensions and appearance through CSS.</p>
+    <p>Drag a block by its menu bar. Blocks keep a 6px interval in both grid and wrapping flex layouts. Override <code>--blocks-gap</code> on the field when needed. The core only supplies layout primitives; your site controls dimensions and appearance through CSS.</p>
 
     <h2 id="content">4. add content</h2>
     <p>A block accepts a trusted HTML string, a DOM node, or a factory function returning either form.</p>
@@ -63,10 +63,11 @@ const lazy = blocks.system.add(function () {
     <div class="callout"><p>HTML strings are interpreted as markup. Never pass untrusted user input; build a DOM node and assign <code>textContent</code> instead.</p></div>
 
     <h2 id="object">5. configure one object</h2>
-    <p><code>add()</code> returns the controller for that object. A menu, close button and colour belong to the object, not to the system.</p>
+    <p><code>add()</code> returns the controller for that object. A menu, close button, span and colour belong to the object, not to the system.</p>
     <pre class="code-block"><code>const block = blocks.system.add(content, { id: "preview" });
 block.menu("preview", true);
 block.color = "#ef3e36";
+block.span(2, 1);
 
 // later
 block.remove();</code></pre>

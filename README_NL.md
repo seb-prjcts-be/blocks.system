@@ -38,6 +38,7 @@ belangrijk is.
   const block = blocks.system.add("<p>hallo</p>");
   block.menu("test", true);
   block.color = "red";
+  block.span(2, 1);
 </script>
 ```
 
@@ -60,6 +61,12 @@ inhoud of bouw zelf een DOM-node.
 
 `setGrid(x, y)` gebruikt aantallen kolommen en rijen. `attach()` aanvaardt een
 CSS-selector of DOM-element en neemt nooit stilzwijgend `document.body` over.
+
+`block.span(x, y)` laat één object hele rastereenheden innemen. De standaard is
+`1, 1`; een span moet binnen het huidige raster passen.
+
+Blocks behouden standaard de oorspronkelijke tussenruimte van `6px`. Stel
+`--blocks-gap` op het gekoppelde veld in wanneer een compositie wil afwijken.
 
 ```js
 blocks.system.attach("#veld");
@@ -107,7 +114,7 @@ blocks.system.register({
 - `blocks.system.list()` / `get()` / `listAdapters()`
 - `blocks.system.mount()` / `unmount()` / `remount()`
 - `blocks.system.snippet()` / `address()`
-- `block.menu(name, close)` / `block.color` / `block.remove()`
+- `block.menu(name, close)` / `block.span(x, y)` / `block.color` / `block.remove()`
 
 ## Ontwikkelen
 
