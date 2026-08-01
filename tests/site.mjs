@@ -43,6 +43,14 @@ for (const apiName of ["attach", "setGrid", "snap", "add", "registerAdapter", "m
 
 const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
+const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
+const exampleCss = await readFile(resolve(root, "examples", "example.css"), "utf8");
+const siteDemos = await Promise.all([
+  "demo.mjs",
+  "examples/basic-grid/demo.mjs",
+  "examples/mixed-content/demo.mjs",
+  "examples/custom-adapter/demo.mjs"
+].map(function (file) { return readFile(resolve(root, file), "utf8"); }));
 const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileTypes: true }))
   .filter(function (entry) { return entry.isDirectory(); })
   .map(function (entry) { return entry.name; })
@@ -51,5 +59,21 @@ const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileT
 assert.equal(manifest.version, packageData.version, "manifest and package version must match");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
 assert.ok(["attach", "setGrid", "snap", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
+
+assert.match(siteCss, /#field \.blocks-system-object\s*\{[^}]*--block-color:\s*#000;/s, "showcase blocks must default to black");
+assert.match(exampleCss, /\.blocks-system-object\s*\{[^}]*--block-color:\s*#000;/s, "example blocks must default to black");
+
+const combinedDemos = siteDemos.join("\n");
+for (const color of [
+  "[255, 0, 0]",
+  "[0, 255, 0]",
+  "[0, 0, 255]",
+  "[0, 255, 255]",
+  "[255, 0, 255]",
+  "[255, 255, 0]"
+]) {
+  assert.ok(combinedDemos.includes(color), `site palette misses ${color}`);
+}
+assert.doesNotMatch(combinedDemos, /#(?:ef3e36|2155ff|d600bc|008c55)\b/i, "site demos must use the pure RGB/CMY palette");
 
 console.log(`blocks.system site — ok (${pages.length} pages, ${exampleDirectories.length} examples)`);

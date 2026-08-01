@@ -34,7 +34,6 @@ const host = document.createElement("div");
 host.className = "center";
 const block = system.add(host, { id: "counter" });
 block.menu("click counter", true);
-block.color = "#008c55";
 await system.mount("click-counter", host, { start: 3 });
 
 document.querySelector("#field").setAttribute("data-example-ready", "true");

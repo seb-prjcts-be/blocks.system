@@ -1,5 +1,14 @@
 import { system } from "./blocks.system.mjs";
 
+const colors = [
+  [255, 0, 0],
+  [0, 255, 0],
+  [0, 0, 255],
+  [0, 255, 255],
+  [255, 0, 255],
+  [255, 255, 0]
+];
+
 system.attach("#field");
 system.setGrid(4, 1);
 system.snap = true;
@@ -11,7 +20,6 @@ const htmlBlock = system.add(`
   </div>
 `, { id: "html" });
 htmlBlock.menu("html", true);
-htmlBlock.color = "#ef3e36";
 
 const canvas = document.createElement("canvas");
 canvas.className = "demo-canvas";
@@ -20,7 +28,7 @@ canvas.height = 260;
 const context = canvas.getContext("2d");
 context.fillStyle = "#f7f7f4";
 context.fillRect(0, 0, canvas.width, canvas.height);
-context.strokeStyle = "#2155ff";
+context.strokeStyle = `rgb(${colors[2].join(", ")})`;
 context.lineWidth = 4;
 context.beginPath();
 for (let x = 0; x <= canvas.width; x += 4) {
@@ -31,7 +39,7 @@ for (let x = 0; x <= canvas.width; x += 4) {
 context.stroke();
 const canvasBlock = system.add(canvas, { id: "canvas" });
 canvasBlock.menu("canvas", true);
-canvasBlock.color = "#2155ff";
+canvasBlock.color = `rgb(${colors[2].join(", ")})`;
 
 if (!customElements.get("system-badge")) {
   customElements.define("system-badge", class extends HTMLElement {
@@ -42,7 +50,7 @@ if (!customElements.get("system-badge")) {
 }
 const customBlock = system.add(document.createElement("system-badge"), { id: "custom-element" });
 customBlock.menu("custom element", true);
-customBlock.color = "#d600bc";
+customBlock.color = `rgb(${colors[4].join(", ")})`;
 
 const controls = document.createElement("div");
 controls.className = "native-controls";
@@ -53,7 +61,6 @@ controls.innerHTML = `
 `;
 const controlsBlock = system.add(controls, { id: "controls" });
 controlsBlock.menu("native controls", true);
-controlsBlock.color = "#008c55";
 
 const columns = document.querySelector("#columns");
 const rows = document.querySelector("#rows");
