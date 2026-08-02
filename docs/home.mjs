@@ -85,6 +85,7 @@ function drawCanvas() {
 }
 
 new ResizeObserver(drawCanvas).observe(blockCanvas.content);
+window.addEventListener("resize", drawCanvas, { passive: true });
 
 addHome({
   id: "home-principles",

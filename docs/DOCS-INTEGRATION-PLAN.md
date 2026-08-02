@@ -509,7 +509,11 @@ toetsenbordgedrag voor vrije cellen even sterk bewezen zijn.
 - inhoudsdekking, rust, snelheid, foutstates en directe links vergelijken;
 - screenshots alleen als regressiebewijs, niet als ontwerpproces op zich.
 
-**Gate:** de nieuwe structuur is aantoonbaar duidelijker en rustiger.
+**Gate: geslaagd op 2 augustus 2026.** `docs/VISUAL-ACCEPTANCE.md` legt de
+herhaalbare matrix vast. Home, manual en reference slagen op 1440, 1280, 1024,
+800, 390 en 320 CSS-pixels, telkens bij DPR 1 en 2. De matrix controleert
+overflow, hele-pixelgeometrie, directe blocks, lokale overflow, anchors,
+canvasbitmap en natuurlijke paginascroll.
 
 ### Fase 6 — Publieke omschakeling
 

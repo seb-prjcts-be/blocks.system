@@ -161,6 +161,7 @@ function drawCanvas() {
 
 const canvasObserver = new ResizeObserver(drawCanvas);
 canvasObserver.observe(blockCanvas.content);
+window.addEventListener("resize", drawCanvas, { passive: true });
 
 addBlock({
   id: "manual-compose",

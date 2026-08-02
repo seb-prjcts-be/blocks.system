@@ -123,17 +123,18 @@ class Protocol {
   }
 }
 
-async function measureHome(width, height) {
+async function measureHome(width, height, dpr = 1) {
   await protocol.send("Emulation.setDeviceMetricsOverride", {
     width,
     height,
-    deviceScaleFactor: 1,
+    deviceScaleFactor: dpr,
     mobile: false
   });
   const expression = `(async function () {
     for (let attempt = 0; attempt < 60 && !document.querySelector("#home-board")?.dataset.homeReady; attempt += 1) {
       await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
     }
+    window.dispatchEvent(new Event("resize"));
     await new Promise(function (resolveFrame) {
       requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
     });
@@ -151,6 +152,7 @@ async function measureHome(width, height) {
       quantized: field.dataset.quantized,
       trackWidth: Number(field.dataset.trackWidth),
       draggable: field.dataset.draggable,
+      devicePixelRatio: window.devicePixelRatio,
       nestedSurfaces: field.querySelectorAll(".blocks-system-surface").length,
       outsideBoard: objects.filter(function (block) {
         const rect = block.getBoundingClientRect();
@@ -341,11 +343,11 @@ async function exerciseExamples() {
   return result.result.value;
 }
 
-async function measureManual(width, height) {
+async function measureManual(width, height, dpr = 1) {
   await protocol.send("Emulation.setDeviceMetricsOverride", {
     width,
     height,
-    deviceScaleFactor: 1,
+    deviceScaleFactor: dpr,
     mobile: false
   });
   const result = await protocol.send("Runtime.evaluate", {
@@ -353,6 +355,7 @@ async function measureManual(width, height) {
       for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
         await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
       }
+      window.dispatchEvent(new Event("resize"));
       await new Promise(function (resolveFrame) {
         requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
       });
@@ -406,6 +409,7 @@ async function measureManual(width, height) {
         }).map(function (block) { return block.dataset.blockObject; }),
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
         draggable: board.dataset.draggable,
+        devicePixelRatio: window.devicePixelRatio,
         codeOverflow: getComputedStyle(code).overflowX,
         scrollbarWidth: rootStyle.scrollbarWidth,
         scrollbarColor: rootStyle.scrollbarColor,
@@ -423,6 +427,59 @@ async function measureManual(width, height) {
           fit: getComputedStyle(video).objectFit,
           preload: video.preload
         }
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function measureReference(width, height, dpr = 1) {
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width,
+    height,
+    deviceScaleFactor: dpr,
+    mobile: false
+  });
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#reference-board")?.dataset.referenceReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
+      window.scrollTo(0, 0);
+      const board = document.querySelector("#reference-board");
+      const boardRect = board.getBoundingClientRect();
+      const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
+      return {
+        blockCount: objects.length,
+        columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        pageScrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight,
+        boardBackgroundImage: getComputedStyle(board).backgroundImage,
+        quantized: board.dataset.quantized,
+        trackWidth: Number(board.dataset.trackWidth),
+        draggable: board.dataset.draggable,
+        devicePixelRatio: window.devicePixelRatio,
+        nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
+        outsideBoard: objects.filter(function (block) {
+          const rect = block.getBoundingClientRect();
+          return rect.left < boardRect.left - 0.5 || rect.right > boardRect.right + 0.5;
+        }).map(function (block) { return block.dataset.blockObject; }),
+        nonIntegerHorizontalGeometry: objects.filter(function (block) {
+          const rect = block.getBoundingClientRect();
+          return [rect.left - boardRect.left, rect.right - boardRect.left, rect.width].some(function (value) {
+            return Math.abs(value - Math.round(value)) > 0.01;
+          });
+        }).map(function (block) { return block.dataset.blockObject; }),
+        missingAnchors: ["shared-system", "block-controller", "adapters", "definition", "css-hooks", "errors"].filter(function (id) {
+          return !document.getElementById(id);
+        }),
+        overflowModes: Array.from(board.querySelectorAll(".reference-table-wrap, .reference-code, .reference-hooks"))
+          .map(function (node) { return getComputedStyle(node).overflow; })
       };
     })()`,
     awaitPromise: true,
@@ -547,25 +604,29 @@ try {
   await protocol.send("Page.navigate", { url: pageUrl });
   await loaded;
 
-  const homeWidths = [[1280, 900, 6], [800, 900, 3], [390, 844, 1]];
+  const viewportMatrix = [[1440, 1000, 6], [1280, 900, 6], [1024, 900, 6], [800, 900, 3], [390, 844, 1], [320, 720, 1]];
   const homeMeasurements = [];
-  for (const [width, height, columns] of homeWidths) {
-    const home = await measureHome(width, height);
-    homeMeasurements.push(home);
-    assert.equal(home.blockCount, 5, `home toont ${home.blockCount} in plaats van vijf directe blocks op ${width}px`);
-    assert.equal(home.columnCount, columns, `home gebruikt ${home.columnCount} in plaats van ${columns} kolommen op ${width}px`);
-    assert.ok(home.horizontalOverflow <= 0.5, `home heeft ${home.horizontalOverflow}px horizontale overflow op ${width}px`);
-    assert.equal(home.backgroundImage, "none", `home tekent nog een achtergrondgrid op ${width}px`);
-    assert.equal(home.quantized, "true", `home quantiseert het grid niet op ${width}px`);
-    assert.ok(Number.isInteger(home.trackWidth) && home.trackWidth > 0, `home gebruikt geen hele trackbreedte op ${width}px`);
-    assert.equal(home.draggable, "true", `home start niet versleepbaar op ${width}px`);
-    assert.equal(home.nestedSurfaces, 0, `home bevat ${home.nestedSurfaces} geneste blocks-grids op ${width}px`);
-    assert.deepEqual(home.outsideBoard, [], `home plaatst blocks buiten het board op ${width}px: ${home.outsideBoard.join(", ")}`);
-    assert.deepEqual(home.nonIntegerHorizontalGeometry, [], `home laat fractionele geometrie achter op ${width}px: ${home.nonIntegerHorizontalGeometry.join(", ")}`);
-    assert.deepEqual(home.clippedContent, [], `home knipt inhoud af op ${width}px: ${home.clippedContent.join(", ")}`);
-    assert.ok(home.canvas.cssWidth > 0 && home.canvas.cssHeight > 0 && home.canvas.bitmapWidth > 0 && home.canvas.bitmapHeight > 0, `home canvas herschaalt niet op ${width}px`);
+  for (const [width, height, columns] of viewportMatrix) {
+    for (const dpr of [1, 2]) {
+      const home = await measureHome(width, height, dpr);
+      homeMeasurements.push(home);
+      assert.equal(home.blockCount, 5, `home toont ${home.blockCount} in plaats van vijf directe blocks op ${width}px @${dpr}x`);
+      assert.equal(home.columnCount, columns, `home gebruikt ${home.columnCount} in plaats van ${columns} kolommen op ${width}px @${dpr}x`);
+      assert.equal(home.devicePixelRatio, dpr, `home test niet werkelijk op DPR ${dpr}`);
+      assert.ok(home.horizontalOverflow <= 0.5, `home heeft ${home.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
+      assert.equal(home.backgroundImage, "none", `home tekent nog een achtergrondgrid op ${width}px @${dpr}x`);
+      assert.equal(home.quantized, "true", `home quantiseert het grid niet op ${width}px @${dpr}x`);
+      assert.ok(Number.isInteger(home.trackWidth) && home.trackWidth > 0, `home gebruikt geen hele trackbreedte op ${width}px @${dpr}x`);
+      assert.equal(home.draggable, "true", `home start niet versleepbaar op ${width}px @${dpr}x`);
+      assert.equal(home.nestedSurfaces, 0, `home bevat ${home.nestedSurfaces} geneste blocks-grids op ${width}px @${dpr}x`);
+      assert.deepEqual(home.outsideBoard, [], `home plaatst blocks buiten het board op ${width}px @${dpr}x: ${home.outsideBoard.join(", ")}`);
+      assert.deepEqual(home.nonIntegerHorizontalGeometry, [], `home laat fractionele geometrie achter op ${width}px @${dpr}x: ${home.nonIntegerHorizontalGeometry.join(", ")}`);
+      assert.deepEqual(home.clippedContent, [], `home knipt inhoud af op ${width}px @${dpr}x: ${home.clippedContent.join(", ")}`);
+      assert.ok(home.canvas.cssWidth > 0 && home.canvas.cssHeight > 0 && home.canvas.bitmapWidth > 0 && home.canvas.bitmapHeight > 0, `home canvas herschaalt niet op ${width}px @${dpr}x`);
+      assert.ok(Math.abs(home.canvas.bitmapWidth - Math.round(home.canvas.cssWidth * dpr)) <= 2, `home canvas gebruikt geen scherpe ${dpr}x bitmap op ${width}px: ${home.canvas.bitmapWidth} versus ${home.canvas.cssWidth * dpr}`);
+    }
   }
-  assert.notEqual(homeMeasurements[0].canvas.cssWidth, homeMeasurements[2].canvas.cssWidth, "home canvas reageert niet op viewportbreedte");
+  assert.notEqual(homeMeasurements[0].canvas.cssWidth, homeMeasurements.at(-1).canvas.cssWidth, "home canvas reageert niet op viewportbreedte");
 
   await measureHome(1280, 900);
   const beforeHover = await hoverSignature();
@@ -623,12 +684,13 @@ try {
   assert.deepEqual(examplesInteraction.restoredOrder.slice(0, 5), ["learning-path", "basic-1", "basic-2", "basic-3", "basic-4"], "reset herstelt de canonieke examples leesvolgorde niet");
 
   await navigateTo(`${pageUrl}docs/manual.html`);
-  const manualWidths = [[1280, 720, 6], [800, 900, 3], [390, 844, 1]];
   const manualMeasurements = [];
-  for (const [width, height, columns] of manualWidths) {
-    const manual = await measureManual(width, height);
+  for (const [width, height, columns] of viewportMatrix) {
+    for (const dpr of [1, 2]) {
+    const manual = await measureManual(width, height, dpr);
     manualMeasurements.push(manual);
-    assert.equal(manual.blockCount, 15, `manual mist directe blocks op ${width}px`);
+    assert.equal(manual.blockCount, 15, `manual mist directe blocks op ${width}px @${dpr}x`);
+    assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
     assert.equal(manual.columnCount, columns, `manual gebruikt ${manual.columnCount} in plaats van ${columns} kolommen op ${width}px`);
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
     assert.deepEqual(manual.outsideBoard, [], `manual plaatst blocks buiten het board op ${width}px: ${manual.outsideBoard.join(", ")}`);
@@ -656,8 +718,9 @@ try {
     assert.equal(manual.video.controls, true, `manual video mist controls op ${width}px`);
     assert.equal(manual.video.fit, "contain", `manual video gebruikt geen contain op ${width}px`);
     assert.equal(manual.video.preload, "none", `manual video preload is niet terughoudend op ${width}px`);
+    }
   }
-  assert.notEqual(manualMeasurements[0].canvas.cssWidth, manualMeasurements[2].canvas.cssWidth, "manual canvas reageert niet op viewportbreedte");
+  assert.notEqual(manualMeasurements[0].canvas.cssWidth, manualMeasurements.at(-1).canvas.cssWidth, "manual canvas reageert niet op viewportbreedte");
   await measureManual(1280, 720);
   const manualInteraction = await exerciseManual();
   assert.notEqual(manualInteraction.draggedOrder[0], "manual-cycle", "manual drag herschikt de directe blocks niet");
@@ -672,7 +735,28 @@ try {
   assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
   assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");
 
-  console.log("browser-layout: home, examples en levende manual op desktop/tablet/mobiel — OK");
+  await navigateTo(`${pageUrl}docs/api.html`);
+  for (const [width, height, columns] of viewportMatrix) {
+    for (const dpr of [1, 2]) {
+      const reference = await measureReference(width, height, dpr);
+      assert.equal(reference.blockCount, 6, `reference mist directe blocks op ${width}px @${dpr}x`);
+      assert.equal(reference.columnCount, columns, `reference gebruikt ${reference.columnCount} in plaats van ${columns} kolommen op ${width}px @${dpr}x`);
+      assert.equal(reference.devicePixelRatio, dpr, `reference test niet werkelijk op DPR ${dpr}`);
+      assert.ok(reference.horizontalOverflow <= 0.5, `reference heeft ${reference.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
+      assert.equal(reference.boardBackgroundImage, "none", `reference tekent nog een achtergrondgrid op ${width}px @${dpr}x`);
+      assert.equal(reference.quantized, "true", `reference quantiseert het grid niet op ${width}px @${dpr}x`);
+      assert.ok(Number.isInteger(reference.trackWidth) && reference.trackWidth > 0, `reference gebruikt geen hele trackbreedte op ${width}px @${dpr}x`);
+      assert.equal(reference.draggable, "false", `reference bewaart zijn leesvolgorde niet op ${width}px @${dpr}x`);
+      assert.equal(reference.nestedSurfaces, 0, `reference bevat ${reference.nestedSurfaces} geneste grids op ${width}px @${dpr}x`);
+      assert.deepEqual(reference.outsideBoard, [], `reference plaatst blocks buiten het board op ${width}px @${dpr}x: ${reference.outsideBoard.join(", ")}`);
+      assert.deepEqual(reference.nonIntegerHorizontalGeometry, [], `reference laat fractionele geometrie achter op ${width}px @${dpr}x: ${reference.nonIntegerHorizontalGeometry.join(", ")}`);
+      assert.deepEqual(reference.missingAnchors, [], `reference mist anchors op ${width}px @${dpr}x: ${reference.missingAnchors.join(", ")}`);
+      assert.ok(reference.overflowModes.every((mode) => mode === "auto"), `reference gebruikt geen lokale overflow op ${width}px @${dpr}x`);
+      assert.equal(reference.pageScrollable, true, `reference gebruikt geen natuurlijke paginascroll op ${width}px @${dpr}x`);
+    }
+  }
+
+  console.log("browser-layout: home, manual en reference op 1440–320px @1x/@2x — OK");
 } finally {
   if (protocol) {
     try { await protocol.send("Browser.close"); } catch {}

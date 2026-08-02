@@ -190,6 +190,7 @@
   .reference-masthead { grid-template-columns: 1fr; }
   .reference-board { --blocks-columns: 3 !important; }
   .reference-board.blocks-system-surface[data-snap="true"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .reference-board > [data-block-object="reference-adapters"] { --block-span-columns: 3 !important; }
 }
 
 @media (max-width: 560px) {
