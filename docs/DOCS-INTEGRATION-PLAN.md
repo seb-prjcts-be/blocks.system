@@ -456,7 +456,10 @@ autonome uitvoering expliciet goed.
 - huidige URL en toekomstig anker worden vastgelegd;
 - README en README_NL krijgen een eigen migratieregel.
 
-**Gate:** niets unieks is eigenaarloos en niets heeft twee canonieke eigenaars.
+**Gate: geslaagd op 2 augustus 2026.** `docs/CONTENT-MANIFEST.md` kent iedere
+inhoudseenheid, legacy route en README-verwijzing exact één canonieke eigenaar
+toe; alleen duplicaten, verouderde topologie en ingetrokken presentatie worden
+geschrapt.
 
 ### Fase 2 — Gedeelde shell en onzichtbaar raster
 
