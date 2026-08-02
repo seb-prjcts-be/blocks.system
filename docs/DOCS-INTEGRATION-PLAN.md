@@ -469,7 +469,9 @@ geschrapt.
 - globale en lokale navigatie vereenvoudigen;
 - corebestanden blijven ongemoeid.
 
-**Gate:** visueel rustiger op alle testbreedtes, nul functionele regressie.
+**Gate: geslaagd op 2 augustus 2026.** De manual gebruikt de gedeelde
+vierdelige navigatie, tekent geen achtergrondgrid meer en quantiseert haar
+docs-only tracks tot hele CSS-pixels; de core blijft ongewijzigd.
 
 ### Fase 3 — Inhoud samenvoegen
 

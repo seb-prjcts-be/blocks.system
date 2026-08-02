@@ -377,6 +377,14 @@ async function measureManual(width, height) {
         documentHeight: document.documentElement.scrollHeight,
         pageScrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight,
         boardOverflowY: getComputedStyle(board).overflowY,
+        boardBackgroundImage: getComputedStyle(board).backgroundImage,
+        quantized: board.dataset.quantized,
+        trackWidth: Number(board.dataset.trackWidth),
+        nonIntegerHorizontalGeometry: objects.filter(function (block) {
+          const rect = block.getBoundingClientRect();
+          const values = [rect.left - boardRect.left, rect.right - boardRect.left, rect.width];
+          return values.some(function (value) { return Math.abs(value - Math.round(value)) > 0.01; });
+        }).map(function (block) { return block.dataset.blockObject; }),
         outsideBoard: objects.filter(function (block) {
           const rect = block.getBoundingClientRect();
           return rect.left < boardRect.left - 0.5 || rect.right > boardRect.right + 0.5;
@@ -589,6 +597,10 @@ try {
     assert.deepEqual(manual.clippedContent, [], `manual knipt inhoud af op ${width}px: ${manual.clippedContent.join(", ")}`);
     assert.equal(manual.nestedSurfaces, 0, `manual bevat ${manual.nestedSurfaces} geneste blocks-grids op ${width}px`);
     assert.equal(manual.draggable, "true", `manual start niet versleepbaar op ${width}px`);
+    assert.equal(manual.boardBackgroundImage, "none", `manual tekent nog een achtergrondgrid op ${width}px`);
+    assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
+    assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
+    assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
     assert.deepEqual(manual.formBlocks.map(function (form) { return form.id; }), ["manual-cycle", "manual-rectangle", "manual-direction"], `manual verliest de vormvolgorde op ${width}px`);
     assert.deepEqual(manual.formBlocks.map(function (form) { return form.color; }), ["rgb(255, 0, 255)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual verliest magenta als enige vormaccent op ${width}px`);

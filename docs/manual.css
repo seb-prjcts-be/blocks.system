@@ -11,6 +11,7 @@
   background: rgba(245, 245, 242, 0.96);
 }
 
+.manual-commandbar,
 .manual-toolbar {
   display: flex;
   align-items: center;
@@ -18,6 +19,14 @@
   font: 400 9px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.manual-commandbar {
+  justify-content: space-between;
+  width: min(100%, 1440px);
+  margin: 0 auto 6px;
+  padding: 0 0 6px;
+  border-bottom: 1px solid var(--ink);
 }
 
 .manual-toolbar button {
@@ -84,12 +93,7 @@
   margin: 0 auto;
   border-color: var(--ink);
   background-color: var(--manual-field);
-  background-image:
-    linear-gradient(to right, rgba(0, 0, 0, 0.18) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.18) 1px, transparent 1px);
-  background-size:
-    calc((100% + var(--blocks-gap)) / var(--blocks-columns))
-    calc(var(--manual-row) + var(--blocks-gap));
+  background-image: none;
 }
 
 .manual-board.blocks-system-surface[data-snap="true"] {
@@ -394,6 +398,7 @@
   .manual-page { --manual-row: 150px; }
   .manual-toolbar > span { display: none; }
   .manual-masthead { grid-template-columns: 1fr; }
+  .manual-commandbar { align-items: flex-start; }
   .manual-board { --blocks-columns: 3 !important; }
   .manual-board.blocks-system-surface[data-snap="true"] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -408,6 +413,7 @@
 @media (max-width: 560px) {
   .manual-page { --manual-row: 170px; }
   .manual-page #navbar { align-items: flex-start; gap: 8px; padding-inline: 14px; }
+  .manual-commandbar { align-items: stretch; flex-direction: column; }
   .manual-toolbar { align-items: stretch; }
   .manual-toolbar button { padding-inline: 6px; }
   .manual-main { padding: 104px 8px 18px; }

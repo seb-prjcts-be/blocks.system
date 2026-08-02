@@ -83,6 +83,7 @@ const siteDemoFiles = [
   "docs/system.mjs",
   "docs/examples.mjs",
   "docs/manual.mjs",
+  "docs/shell.mjs",
   "examples/basic-grid/demo.mjs",
   "examples/mixed-content/demo.mjs",
   "examples/custom-adapter/demo.mjs"
@@ -192,10 +193,13 @@ assert.equal((siteDemos["docs/examples.mjs"].match(/demo\.mjs" download/g) || []
 assert.match(manualHtml, /<body class="manual-page">/, "the experimental manual needs an isolated page scope");
 assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one shared board");
 assert.match(manualHtml, /href="DOCS-COMPOSITION\.md"/, "the experimental manual must expose its durable composition contract");
+assert.match(manualHtml, /<li><a href="\.\.\/index\.html">home<\/a><\/li>[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item shared navigation");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.equal((siteDemos["docs/manual.mjs"].match(/^(?:addBlock|const blockCanvas = addBlock)\(\{/gm) || []).length, 14, "the experimental manual must keep its complete direct-block composition");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;/, "the experimental manual must start with dragging enabled");
 assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "the experimental manual must demonstrate responsive runtime content");
+assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");
+assert.match(siteDemos["docs/shell.mjs"], /Math\.floor\(\(available - borders - gap \* \(columns - 1\)\) \/ columns\)/, "the docs shell must quantize tracks to whole CSS pixels");
 assert.match(siteDemos["docs/manual.mjs"], /<video controls muted preload="none"/, "the experimental manual must make the pending video contract visible");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createBlocksSystem\([\s\S]*createBlocksSystem\(/, "the experimental manual must not create a nested blocks system");
 const manualFormPositions = [
@@ -210,6 +214,7 @@ for (const formClass of ["manual-circle", "manual-rectangle", "manual-triangle"]
   assert.match(siteDemos["docs/manual.mjs"], new RegExp(`class="${formClass}"`), `the manual misses ${formClass}`);
 }
 assert.match(manualCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;/s, "long code must scroll inside its own block");
+assert.match(manualCss, /\.manual-board\s*\{[^}]*background-image:\s*none;/s, "the canonical manual must not draw a background grid");
 assert.match(manualCss, /\.manual-rectangle\s*\{[^}]*background:\s*#000;/s, "the Munari rectangle must remain black");
 assert.match(manualCss, /--manual-accent:\s*rgb\(255, 0, 255\);/, "the manual must define magenta as its one accent");
 assert.match(manualCss, /\.manual-circle\s*\{[^}]*background:\s*var\(--manual-accent\);/s, "the Munari circle must carry the isolated magenta accent");

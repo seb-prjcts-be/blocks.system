@@ -1,5 +1,6 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
 import { nodeFromHtml } from "./board.mjs?v=0.1.1";
+import { quantizeSurface } from "./shell.mjs?v=0.1.0";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");
@@ -13,6 +14,7 @@ blocks.attach(board);
 blocks.setGrid(6, 24);
 blocks.snap = true;
 blocks.draggable = true;
+quantizeSurface(board);
 
 function addBlock({ id, title, content, span = [1, 1], variant = "regular", minimized = false }) {
   const block = blocks.add(content, { id, variant, minimized });
