@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
-import { createDocsBoard, nodeFromHtml } from "./board.mjs";
+import { createDocsBoard, nodeFromHtml } from "./board.mjs?v=0.1.0";
 
 const examplesSystem = createBlocksSystem({ variant: "regular" });
 const examplesBoard = createDocsBoard({ system: examplesSystem });
@@ -15,7 +15,6 @@ addBlock({
     <div class="examples-intro">
       <small>three examples · three decisions</small>
       <strong>start → combine → extend</strong>
-      <span>Every preview runs on the real library. Run it or keep its short module.</span>
     </div>
   `)
 });

@@ -7,13 +7,16 @@
 .example-route,
 .examples-next {
   width: 100%;
+}
+
+.example-live {
   height: 100%;
 }
 
 .examples-intro {
   display: grid;
   align-content: center;
-  gap: 3px;
+  gap: 1px;
 }
 
 .examples-intro strong {
@@ -73,7 +76,7 @@
   grid-template-rows: auto auto;
   align-content: center;
   align-items: center;
-  gap: 3px;
+  gap: 1px 3px;
 }
 
 .example-route strong,
@@ -99,7 +102,7 @@
   align-self: stretch;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: 2px;
   margin-left: 3px;
 }
 
@@ -107,9 +110,11 @@
 .examples-next a {
   display: inline-block;
   width: max-content;
-  padding: 2px 5px;
+  padding: 1px 4px;
   border: 1px solid currentColor;
   color: inherit;
+  font-size: 9px;
+  line-height: 1.1;
   text-decoration: none;
   text-transform: uppercase;
 }

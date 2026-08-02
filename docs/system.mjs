@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
-import { createDocsBoard, nodeFromHtml } from "./board.mjs";
+import { createDocsBoard, nodeFromHtml } from "./board.mjs?v=0.1.0";
 
 const docsSystem = createBlocksSystem({ variant: "random" });
 const docsBoard = createDocsBoard({ system: docsSystem });
@@ -153,7 +153,7 @@ addBlock({
 });
 
 const adapterHost = document.createElement("div");
-adapterHost.className = "prototype-adapter";
+adapterHost.className = "prototype-adapter-host";
 addBlock({
   id: "adapter",
   title: "custom adapter",
@@ -169,7 +169,6 @@ docsSystem.registerAdapter("counter", {
       <div class="prototype-adapter">
         <span>adapter mount()</span>
         <output>${settings.start}</output>
-        <small>individually addressable</small>
         <button type="button" aria-label="increase counter">+</button>
       </div>
     `);

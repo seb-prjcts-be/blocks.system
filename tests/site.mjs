@@ -109,8 +109,11 @@ assert.ok(siteDemos["docs/system.mjs"].includes("await docsSystem.mount"), "the 
 assert.match(boardCss, /\.docs-board-surface/, "one-screen docs pages must share one isolated board stylesheet");
 assert.match(boardCss, /@media \(max-width: 560px\)[\s\S]*--blocks-columns:\s*1 !important;[\s\S]*grid-template-columns:\s*1fr;/, "shared docs boards must collapse to one narrow column");
 assert.match(systemCss, /\.system-board/, "the system page must keep only its page-specific board rules");
+assert.match(systemCss, /\.prototype-link\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto;[^}]*align-content:\s*center;/s, "short system links must center a compact horizontal layout");
+assert.match(systemCss, /\.prototype-canvas,\s*\.prototype-reference\s*\{[^}]*min-height:\s*0;[^}]*max-height:\s*100%;/s, "intrinsic system media must be allowed to shrink and center inside its cell");
 assert.match(examplesCss, /\.examples-board/, "the examples page must keep only its page-specific board rules");
 assert.match(examplesCss, /\.example-actions\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1 \/ span 2;/s, "example actions must remain visible beside compact route content");
+assert.doesNotMatch(examplesCss, /\.examples-intro,\s*\.example-live,\s*\.example-route,\s*\.examples-next\s*\{[^}]*height:\s*100%;/s, "short example content must not be forced taller than its grid cell");
 assert.doesNotMatch(libraryCss, /\.docs-board-surface|\.system-board|\.examples-board/, "the reusable library stylesheet must not absorb docs page composition");
 assert.doesNotMatch(examplesHtml, /<iframe\b/i, "the examples index must use live systems instead of passive iframe cards");
 assert.ok(siteDemos["docs/examples.mjs"].includes("basicSystem.setGrid(2, 2)"), "the examples board must include a real basic grid");
