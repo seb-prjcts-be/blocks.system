@@ -23,38 +23,34 @@ function addBlock({ id, title, content, span = [1, 1], variant = "regular", mini
 }
 
 addBlock({
-  id: "manual-thesis",
-  title: "00 / thesis",
-  span: [3, 2],
+  id: "manual-cycle",
+  title: "form / circle",
+  span: [2, 2],
   content: nodeFromHtml(`
-    <div class="manual-copy">
-      <small>one field / direct blocks / no nested systems</small>
-      <strong>small objects. one clear relation.</strong>
-      <p>The documentation explains the system by being its most complete composition.</p>
+    <div class="manual-form-stage" role="img" aria-label="Red circle: live state, cycle and interaction">
+      <div class="manual-circle" aria-hidden="true"></div>
     </div>
   `)
 });
 
 addBlock({
-  id: "manual-cycle",
-  title: "shape / circle",
+  id: "manual-rectangle",
+  title: "form / rectangle",
   span: [2, 2],
-  variant: "inverse",
   content: nodeFromHtml(`
-    <div class="manual-shape">
-      <div class="manual-circle">live</div>
+    <div class="manual-form-stage" role="img" aria-label="Black rectangle: information, code and content">
+      <div class="manual-rectangle" aria-hidden="true"></div>
     </div>
   `)
 });
 
 addBlock({
   id: "manual-direction",
-  title: "shape / triangle",
-  span: [1, 2],
-  variant: "red",
+  title: "form / triangle",
+  span: [2, 2],
   content: nodeFromHtml(`
-    <div class="manual-shape">
-      <div class="manual-triangle"><span>next</span></div>
+    <div class="manual-form-stage" role="img" aria-label="Blue triangle: direction, action and next step">
+      <div class="manual-triangle" aria-hidden="true"></div>
     </div>
   `)
 });

@@ -120,7 +120,7 @@ assert.match(libraryCss, /\.blocks-system-content\s*\{[^}]*display:\s*grid;[^}]*
 assert.match(libraryCss, /data-block-minimized="true"[^}]*align-self:\s*start;[^}]*min-height:\s*0;/s, "a minimized block must override consumer minimum heights while keeping its grid area");
 assert.match(libraryCss, /data-block-minimized="true"\]\s+\.blocks-system-content\s*\{[^}]*display:\s*none;/s, "a minimized block must show only its menu");
 assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "the base block stylesheet must remain separate from motion");
-assert.doesNotMatch(libraryCss, /\.blocks-system-object:hover\s*\{/, "hover must not alter a block or the visible grid");
+assert.match(libraryCss, /\.blocks-system-surface\[data-draggable="true"\]\s+\.blocks-system-object:hover\s*\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*-3px;/s, "draggable blocks must expose a full non-layout-shifting hover frame");
 for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "yellow"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
@@ -187,7 +187,21 @@ assert.match(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;/, "the exp
 assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "the experimental manual must demonstrate responsive runtime content");
 assert.match(siteDemos["docs/manual.mjs"], /<video controls muted preload="none"/, "the experimental manual must make the pending video contract visible");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createBlocksSystem\([\s\S]*createBlocksSystem\(/, "the experimental manual must not create a nested blocks system");
+const manualFormPositions = [
+  'id: "manual-cycle"',
+  'id: "manual-rectangle"',
+  'id: "manual-direction"'
+].map(function (marker) { return siteDemos["docs/manual.mjs"].indexOf(marker); });
+assert.ok(manualFormPositions.every(function (position) { return position >= 0; }) &&
+  manualFormPositions[0] < manualFormPositions[1] && manualFormPositions[1] < manualFormPositions[2],
+"the manual must open with circle, rectangle and triangle in that order");
+for (const formClass of ["manual-circle", "manual-rectangle", "manual-triangle"]) {
+  assert.match(siteDemos["docs/manual.mjs"], new RegExp(`class="${formClass}"`), `the manual misses ${formClass}`);
+}
 assert.match(manualCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;/s, "long code must scroll inside its own block");
+assert.match(manualCss, /\.manual-rectangle\s*\{[^}]*background:\s*#000;/s, "the Munari rectangle must remain black");
+assert.match(manualCss, /\.manual-circle\s*\{[^}]*background:\s*rgb\(255, 0, 0\);/s, "the Munari circle must remain red");
+assert.match(manualCss, /\.manual-triangle\s*\{[^}]*background:\s*rgb\(0, 0, 255\);/s, "the Munari triangle must remain blue");
 assert.match(manualCss, /\.manual-media video\s*\{[^}]*object-fit:\s*contain;/s, "video must use an explicit contain prototype");
 assert.match(manualCss, /@media \(max-width: 900px\)[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/, "the experimental manual must collapse to three tablet columns");
 assert.match(manualCss, /@media \(max-width: 560px\)[\s\S]*grid-template-columns:\s*1fr;/, "the experimental manual must collapse to one mobile column");

@@ -42,6 +42,11 @@ Instrument Sans draagt de grote typografie. Inter blijft leesschrift en de
 monospace blijft code en systeeminformatie. Zwart en papier domineren; primaire
 RGB/CMY-kleuren markeren alleen een functie of uitzondering.
 
+De opening zet cirkel, rechthoek en driehoek als drie gelijkwaardige tekens op
+één rij: optisch in balans, met één rustige papierkleur en zonder illustratieve
+vulling. De Munari-referentie zit in de elementaire helderheid en speelse
+precisie, niet in het nabouwen van één bestaand werk.
+
 ## Interactiecontract
 
 - Alle informatieblocks staan direct op één surface; geen geneste grids.

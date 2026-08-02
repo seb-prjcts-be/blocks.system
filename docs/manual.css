@@ -101,11 +101,6 @@
   transition: opacity 120ms linear;
 }
 
-.manual-board[data-draggable="true"] > .blocks-system-object:hover > .blocks-system-menu {
-  outline: 1px solid currentColor;
-  outline-offset: -3px;
-}
-
 .manual-board > .blocks-system-object > .blocks-system-content {
   place-items: stretch;
   overflow: hidden;
@@ -116,7 +111,6 @@
   text-transform: lowercase;
 }
 
-.manual-copy,
 .manual-statement,
 .manual-api,
 .manual-hooks,
@@ -131,14 +125,6 @@
   min-height: 0;
 }
 
-.manual-copy {
-  display: grid;
-  align-content: space-between;
-  gap: 14px;
-  padding: clamp(14px, 2vw, 28px);
-}
-
-.manual-copy small,
 .manual-statement small,
 .manual-api small,
 .manual-hooks small,
@@ -150,14 +136,6 @@
   text-transform: uppercase;
 }
 
-.manual-copy strong {
-  max-width: 12ch;
-  font: 600 clamp(2.35rem, 5vw, 5.6rem)/0.78 "Instrument Sans", sans-serif;
-  letter-spacing: -0.06em;
-  text-transform: lowercase;
-}
-
-.manual-copy p,
 .manual-statement p,
 .manual-media p,
 .manual-about p {
@@ -166,40 +144,44 @@
   line-height: 1.45;
 }
 
-.manual-shape {
+.manual-form-stage {
   display: grid;
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
   place-items: center;
   overflow: hidden;
+  padding: clamp(16px, 1.5vw, 24px);
+  background: var(--manual-paper);
+}
+
+.manual-rectangle,
+.manual-circle,
+.manual-triangle {
+  display: block;
+  flex: none;
+}
+
+.manual-rectangle {
+  height: min(48%, 118px);
+  aspect-ratio: 1.45;
+  background: #000;
 }
 
 .manual-circle {
-  display: grid;
-  width: min(72%, 220px);
+  height: min(65%, 160px);
   aspect-ratio: 1;
-  place-items: center;
-  border: 2px solid currentColor;
   border-radius: 50%;
-  font: 600 clamp(1.3rem, 2.8vw, 3rem)/1 "Instrument Sans", sans-serif;
-  text-transform: lowercase;
+  background: rgb(255, 0, 0);
 }
 
 .manual-triangle {
-  display: grid;
-  width: min(82%, 150px);
+  height: min(78%, 190px);
   aspect-ratio: 1;
-  place-items: center;
-  background: currentColor;
+  background: rgb(0, 0, 255);
   clip-path: polygon(50% 3%, 97% 93%, 3% 93%);
-}
-
-.manual-triangle span {
-  transform: translateY(18%);
-  color: rgb(255, 0, 0);
-  font: 600 0.72rem/1 "Consolas", monospace;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .manual-code {
@@ -414,6 +396,11 @@
   .manual-board { --blocks-columns: 3 !important; }
   .manual-board.blocks-system-surface[data-snap="true"] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .manual-board > [data-block-object="manual-cycle"],
+  .manual-board > [data-block-object="manual-rectangle"],
+  .manual-board > [data-block-object="manual-direction"] {
+    --block-span-columns: 1 !important;
   }
 }
 

@@ -188,6 +188,7 @@ async function hoverSignature() {
           return [item.dataset.blockObject, rect.left, rect.top, rect.width, rect.height];
         }),
         canvasVisual: {
+          outlineColor: style.outlineColor,
           outlineStyle: style.outlineStyle,
           outlineWidth: style.outlineWidth,
           outlineOffset: style.outlineOffset,
@@ -329,6 +330,19 @@ async function measureManual(width, height) {
       const video = board.querySelector(".manual-media video");
       const videoRect = video.getBoundingClientRect();
       const code = board.querySelector(".manual-code");
+      const formBlocks = ["manual-cycle", "manual-rectangle", "manual-direction"].map(function (id) {
+        const block = board.querySelector('[data-block-object="' + id + '"]');
+        const blockRect = block.getBoundingClientRect();
+        const shape = block.querySelector(".manual-circle, .manual-rectangle, .manual-triangle");
+        const shapeRect = shape.getBoundingClientRect();
+        return {
+          id,
+          blockTop: blockRect.top,
+          blockWidth: blockRect.width,
+          shapeCenterY: shapeRect.top + shapeRect.height / 2,
+          color: getComputedStyle(shape).backgroundColor
+        };
+      });
       return {
         blockCount: objects.length,
         columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
@@ -349,6 +363,7 @@ async function measureManual(width, height) {
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
         draggable: board.dataset.draggable,
         codeOverflow: getComputedStyle(code).overflowX,
+        formBlocks,
         canvas: {
           cssWidth: canvasRect.width,
           cssHeight: canvasRect.height,
@@ -378,8 +393,8 @@ async function exerciseManual() {
         return { x: rect.left + rect.width * xFactor, y: rect.top + rect.height / 2 };
       };
       return {
-        start: center(document.querySelector('[data-block-object="manual-thesis"] > .blocks-system-menu'), 0.5),
-        target: center(document.querySelector('[data-block-object="manual-cycle"] > .blocks-system-menu'), 0.8)
+        start: center(document.querySelector('[data-block-object="manual-cycle"] > .blocks-system-menu'), 0.5),
+        target: center(document.querySelector('[data-block-object="manual-rectangle"] > .blocks-system-menu'), 0.8)
       };
     })()`,
     returnByValue: true
@@ -489,7 +504,15 @@ try {
     forcedPseudoClasses: ["hover"]
   });
   const afterHover = await hoverSignature();
-  assert.deepEqual(afterHover, beforeHover, "hover mag het block of het zichtbare grid niet veranderen");
+  assert.equal(afterHover.fieldHeight, beforeHover.fieldHeight, "hover mag de veldhoogte niet veranderen");
+  assert.equal(afterHover.gridTemplateRows, beforeHover.gridTemplateRows, "hover mag het zichtbare grid niet veranderen");
+  assert.deepEqual(afterHover.blocks, beforeHover.blocks, "hover mag blockmaten of -posities niet veranderen");
+  assert.equal(afterHover.canvasVisual.outlineColor, "rgb(0, 0, 0)", "hover gebruikt niet het zwarte volledige kader");
+  assert.equal(afterHover.canvasVisual.outlineStyle, "solid", "hover toont geen volledig kader");
+  assert.equal(afterHover.canvasVisual.outlineWidth, "3px", "hoverkader heeft niet dezelfde kracht als het referentievoorbeeld");
+  assert.equal(afterHover.canvasVisual.outlineOffset, "-3px", "hoverkader moet binnen het block blijven");
+  assert.equal(afterHover.canvasVisual.boxShadow, beforeHover.canvasVisual.boxShadow, "hover mag geen onverwachte schaduw toevoegen");
+  assert.equal(afterHover.canvasVisual.transform, beforeHover.canvasVisual.transform, "hover mag het block niet verplaatsen");
 
   await navigateTo(`${pageUrl}docs/examples.html`);
   for (const [width, height] of [[1280, 720], [800, 900], [390, 844]]) {
@@ -529,6 +552,13 @@ try {
     assert.equal(manual.nestedSurfaces, 0, `manual bevat ${manual.nestedSurfaces} geneste blocks-grids op ${width}px`);
     assert.equal(manual.draggable, "true", `manual start niet versleepbaar op ${width}px`);
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
+    assert.deepEqual(manual.formBlocks.map(function (form) { return form.id; }), ["manual-cycle", "manual-rectangle", "manual-direction"], `manual verliest de vormvolgorde op ${width}px`);
+    assert.deepEqual(manual.formBlocks.map(function (form) { return form.color; }), ["rgb(255, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 255)"], `manual verliest de primaire vormkleuren op ${width}px`);
+    if (width > 560) {
+      assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockTop; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockTop; })) <= 0.5, `manual zet de drie vormen niet op één rij op ${width}px`);
+      assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockWidth; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockWidth; })) <= 0.5, `manual geeft de drie vormvelden geen gelijke breedte op ${width}px`);
+      assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.shapeCenterY; })) - Math.min(...manual.formBlocks.map(function (form) { return form.shapeCenterY; })) <= 0.5, `manual centreert de drie vormen niet op één optische lijn op ${width}px`);
+    }
     assert.ok(manual.pageScrollable && manual.documentHeight > height, `manual gebruikt geen natuurlijke paginascroll op ${width}px`);
     assert.notEqual(manual.boardOverflowY, "scroll", `manual maakt het volledige board scrollbaar op ${width}px`);
     assert.ok(manual.canvas.cssWidth > 0 && manual.canvas.cssHeight > 0 && manual.canvas.bitmapWidth > 0 && manual.canvas.bitmapHeight > 0, `manual canvas herschaalt niet op ${width}px`);
@@ -540,10 +570,10 @@ try {
   assert.notEqual(manualMeasurements[0].canvas.cssWidth, manualMeasurements[2].canvas.cssWidth, "manual canvas reageert niet op viewportbreedte");
   await measureManual(1280, 720);
   const manualInteraction = await exerciseManual();
-  assert.notEqual(manualInteraction.draggedOrder[0], "manual-thesis", "manual drag herschikt de directe blocks niet");
+  assert.notEqual(manualInteraction.draggedOrder[0], "manual-cycle", "manual drag herschikt de directe blocks niet");
   assert.equal(manualInteraction.dragCleanedUp, true, "manual drag laat een pointer/dragtoestand hangen");
   assert.equal(manualInteraction.locked, true, "manual layout lock schakelt dragging niet uit");
-  assert.equal(manualInteraction.resetOrder[0], "manual-thesis", "manual reset herstelt de oorspronkelijke volgorde niet");
+  assert.equal(manualInteraction.resetOrder[0], "manual-cycle", "manual reset herstelt de oorspronkelijke volgorde niet");
   assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
   assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");
 
