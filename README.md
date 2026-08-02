@@ -89,8 +89,10 @@ blocks.register({
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
 - One block: `menu`, `minimized`, `span`, `place`, `variant`, `color`, `remove`.
 
-Dragging by a block's menu bar is enabled by default. Set
-`blocks.draggable = false` to lock the layout.
+Dragging by a block's menu bar is enabled by default. Focus that same header and
+use the arrow keys to reorder without a pointer; the surface emits
+`blocks:reorder` after each keyboard move. Set `blocks.draggable = false` to
+lock the layout.
 
 See the [complete API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
 for arguments and return values.

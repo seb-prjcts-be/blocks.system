@@ -131,6 +131,8 @@ assert.equal(object.element.style.getPropertyValue("--block-column"), "2", "plac
 assert.equal(object.element.style.getPropertyValue("--block-row"), "2", "place y must set a one-based row");
 object.menu("span", true);
 assert.equal(object.element.children[0].children[1].children.length, 2, "a menu must expose minimize and optional close controls together");
+assert.equal(object.element.children[0].tabIndex, 0, "a draggable menu must be keyboard-focusable");
+assert.match(object.element.children[0].getAttribute("aria-label"), /pijltjestoetsen/, "a draggable menu must explain its keyboard handle");
 object.minimized = true;
 assert.equal(object.element.getAttribute("data-block-minimized"), "true", "minimize state must be exposed to CSS");
 assert.equal(object.content.getAttribute("aria-hidden"), "true", "minimized content must leave the accessibility tree");

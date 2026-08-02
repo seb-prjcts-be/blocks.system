@@ -76,6 +76,7 @@ const manualCss = await readFile(resolve(root, "docs", "manual.css"), "utf8");
 const referenceCss = await readFile(resolve(root, "docs", "reference.css"), "utf8");
 const exampleCss = await readFile(resolve(root, "examples", "example.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
+const librarySource = await readFile(resolve(root, "blocks.system.mjs"), "utf8");
 const systemHtml = await readFile(resolve(root, "docs", "system.html"), "utf8");
 const examplesHtml = await readFile(resolve(root, "docs", "examples.html"), "utf8");
 const apiHtml = await readFile(resolve(root, "docs", "api.html"), "utf8");
@@ -143,6 +144,8 @@ assert.match(libraryCss, /data-block-minimized="true"[^}]*align-self:\s*start;[^
 assert.match(libraryCss, /data-block-minimized="true"\]\s+\.blocks-system-content\s*\{[^}]*display:\s*none;/s, "a minimized block must show only its menu");
 assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "the base block stylesheet must remain separate from motion");
 assert.match(libraryCss, /\.blocks-system-surface\[data-draggable="true"\]\s+\.blocks-system-object:hover\s*\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*-3px;/s, "draggable blocks must expose a full non-layout-shifting hover frame");
+assert.match(libraryCss, /\.blocks-system-object:has\(> \.blocks-system-menu:focus-visible\)\s*\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*-3px;/s, "keyboard handles must expose the same full-block frame");
+assert.match(librarySource, /new CustomEvent\("blocks:reorder"/, "keyboard reordering must expose one stable event for docs status and consumers");
 for (const [name, css] of [["docs", siteCss], ["standalone examples", exampleCss]]) {
   assert.match(css, /scrollbar-color:\s*rgba\(17, 17, 17, 0\.58\) transparent;/, `${name} must use the shared neutral OS-like scrollbar`);
   assert.match(css, /scrollbar-width:\s*thin;/, `${name} must keep vertical scrollbars thin`);

@@ -245,12 +245,35 @@ export function createBlocksSystem(options = {}) {
         stopDragging(event.pointerId);
     }
 
+    function moveWithKeyboard(event) {
+        if (!draggableEnabled || !surface || !(event.target instanceof Element)) return;
+        if (!new Set(["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"]).has(event.key)) return;
+        const handle = event.target.closest(".blocks-system-menu");
+        const shell = handle?.closest(".blocks-system-object");
+        if (!handle || event.target !== handle || !shell || shell.parentElement !== surface) return;
+
+        const previous = shell.previousElementSibling;
+        const next = shell.nextElementSibling;
+        if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+            if (!previous) return;
+            surface.insertBefore(shell, previous);
+        } else {
+            if (!next) return;
+            surface.insertBefore(shell, next.nextElementSibling);
+        }
+        event.preventDefault();
+        surface.dispatchEvent(new CustomEvent("blocks:reorder", {
+            detail: { id: shell.getAttribute("data-block-object"), key: event.key }
+        }));
+    }
+
     function bindSurfaceEvents(target) {
         target.addEventListener("pointerdown", startDragging);
         target.addEventListener("pointermove", moveDragging);
         target.addEventListener("pointerup", finishDragging);
         target.addEventListener("pointercancel", finishDragging);
         target.addEventListener("lostpointercapture", finishDragging);
+        target.addEventListener("keydown", moveWithKeyboard);
     }
 
     function unbindSurfaceEvents(target) {
@@ -259,6 +282,7 @@ export function createBlocksSystem(options = {}) {
         target.removeEventListener("pointerup", finishDragging);
         target.removeEventListener("pointercancel", finishDragging);
         target.removeEventListener("lostpointercapture", finishDragging);
+        target.removeEventListener("keydown", moveWithKeyboard);
     }
 
     function attach(target) {
@@ -437,6 +461,7 @@ export function createBlocksSystem(options = {}) {
             if (!menuNode) {
                 menuNode = document.createElement("header");
                 menuNode.className = "blocks-system-menu";
+                menuNode.tabIndex = 0;
                 titleNode = document.createElement("span");
                 titleNode.className = "blocks-system-title";
                 actionsNode = document.createElement("span");
@@ -446,6 +471,7 @@ export function createBlocksSystem(options = {}) {
                 shell.insertBefore(menuNode, contentNode);
             }
             titleNode.textContent = String(name || "");
+            menuNode.setAttribute("aria-label", `${titleNode.textContent || id} verplaatsen met de pijltjestoetsen`);
             if (menuOptions.minimize && !minimizeNode) {
                 minimizeNode = document.createElement("button");
                 minimizeNode.type = "button";

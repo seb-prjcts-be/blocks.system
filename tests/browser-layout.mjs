@@ -476,10 +476,19 @@ async function exerciseManual() {
       document.querySelector("#manual-lock").click();
       const locked = board.dataset.draggable === "false" && document.querySelector("#manual-lock").getAttribute("aria-pressed") === "true";
       document.querySelector("#manual-reset").click();
+      const keyboardHandle = board.querySelector(":scope > .blocks-system-object > .blocks-system-menu");
+      keyboardHandle.focus();
+      const keyboardEvent = new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, cancelable: true });
+      keyboardHandle.dispatchEvent(keyboardEvent);
+      const keyboardOrder = order();
+      document.querySelector("#manual-reset").click();
       return {
         draggedOrder,
         dragCleanedUp,
         locked,
+        keyboardOrder,
+        keyboardPrevented: keyboardEvent.defaultPrevented,
+        keyboardHandleLabel: keyboardHandle.getAttribute("aria-label"),
         resetOrder: order(),
         resetDraggable: board.dataset.draggable,
         resetStatus: document.querySelector("#manual-status").textContent
@@ -642,6 +651,9 @@ try {
   assert.notEqual(manualInteraction.draggedOrder[0], "manual-cycle", "manual drag herschikt de directe blocks niet");
   assert.equal(manualInteraction.dragCleanedUp, true, "manual drag laat een pointer/dragtoestand hangen");
   assert.equal(manualInteraction.locked, true, "manual layout lock schakelt dragging niet uit");
+  assert.deepEqual(manualInteraction.keyboardOrder.slice(0, 2), ["manual-rectangle", "manual-cycle"], "manual pijltjestoetsen herschikken de blocks niet");
+  assert.equal(manualInteraction.keyboardPrevented, true, "manual keyboard drag laat de pagina meescrollen");
+  assert.match(manualInteraction.keyboardHandleLabel, /pijltjestoetsen/, "manual keyboard handle legt zijn bediening niet uit");
   assert.equal(manualInteraction.resetOrder[0], "manual-cycle", "manual reset herstelt de oorspronkelijke volgorde niet");
   assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
   assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");

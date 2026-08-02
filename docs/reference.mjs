@@ -40,7 +40,7 @@ addReference({
     <tr id="api-attach"><td>attach(target)</td><td>blocks</td><td>Attach to a selector or DOM element.</td></tr>
     <tr id="api-set-grid"><td>setGrid(x, y)</td><td>blocks</td><td>Set positive integer columns and rows.</td></tr>
     <tr id="api-snap"><td>snap</td><td>boolean</td><td>Read or change grid snapping.</td></tr>
-    <tr id="api-draggable"><td>draggable</td><td>boolean</td><td>Reorder by menu header; enabled by default.</td></tr>
+    <tr id="api-draggable"><td>draggable</td><td>boolean</td><td>Reorder by pointer or arrow keys on the menu header; enabled by default.</td></tr>
     <tr id="api-font"><td>font</td><td>object|null</td><td>Load one font stylesheet and set its family.</td></tr>
     <tr id="api-variant"><td>variant</td><td>string</td><td>Variant for new blocks; default <code>random</code>.</td></tr>
     <tr id="api-variants"><td>variants</td><td>array</td><td>Built-in regular, inverse and RGB/CMY names.</td></tr>
@@ -122,6 +122,7 @@ addReference({
       <p><code>[data-block-variant]</code><span>resolved visual variant</span></p>
       <p><code>[data-block-minimized]</code><span>restored or minimized state</span></p>
       <p><code>[data-draggable]</code><span>surface drag state</span></p>
+      <p><code>blocks:reorder</code><span>keyboard reorder event on the surface</span></p>
     </div>
   `)
 });

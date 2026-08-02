@@ -45,6 +45,15 @@
     outline-offset: -3px;
 }
 
+.blocks-system-surface[data-draggable="true"] .blocks-system-object:has(> .blocks-system-menu:focus-visible) {
+    outline: 3px solid var(--blocks-ink-color);
+    outline-offset: -3px;
+}
+
+.blocks-system-menu:focus-visible {
+    outline: 0;
+}
+
 .blocks-system-object.is-dragging {
     z-index: 1;
     opacity: 0.55;
