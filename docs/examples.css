@@ -1,5 +1,152 @@
+.examples-page {
+  --stijl-red: rgb(255, 0, 0);
+  --stijl-blue: rgb(0, 0, 255);
+  --stijl-yellow: rgb(255, 255, 0);
+  --stijl-paper: #f4f1e7;
+  --stijl-grey: #d8d7d0;
+  background: var(--stijl-grey);
+}
+
+.examples-page #navbar {
+  border-bottom: 3px solid #000;
+  background: rgba(244, 241, 231, 0.96);
+}
+
+.examples-page .docs-board-shell {
+  gap: 0;
+  padding: 0 10px 8px;
+}
+
+.examples-page .docs-board-toolbar {
+  display: grid;
+  grid-template-columns: minmax(450px, 1.35fr) minmax(190px, 0.55fr) minmax(300px, 0.8fr);
+  align-items: end;
+  gap: 18px;
+  padding: 12px 0 10px;
+  border-bottom: 8px solid #000;
+}
+
+.examples-page .docs-board-heading {
+  display: grid;
+  align-items: end;
+  gap: 3px;
+}
+
+.examples-page .docs-board-kicker {
+  width: max-content;
+  padding: 2px 5px;
+  background: #000;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.examples-page .docs-board-heading h1 {
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  white-space: nowrap;
+}
+
+.examples-page .docs-board-heading h1 > span {
+  font: 600 clamp(3.6rem, 6.6vw, 6.4rem)/0.72 "Oswald", sans-serif;
+  letter-spacing: -0.065em;
+}
+
+.examples-page .docs-board-heading h1 > em {
+  position: relative;
+  bottom: -2px;
+  margin-left: -0.45rem;
+  padding: 5px 8px 4px;
+  background: var(--stijl-blue);
+  color: #fff;
+  font: normal 600 clamp(0.75rem, 1.25vw, 1.05rem)/1 "Inter", sans-serif;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.examples-manifesto {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 8px 0 7px 12px;
+  border-left: 8px solid var(--stijl-red);
+  font: 600 clamp(0.78rem, 1.1vw, 1rem)/1.05 "Inter", sans-serif;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+.examples-manifesto span:nth-child(2) { color: var(--stijl-blue); }
+
+.examples-page .docs-board-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.examples-page .docs-board-controls label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 5px;
+  min-width: 0;
+  padding-left: 5px;
+  border-left: 5px solid #000;
+  background: var(--stijl-paper);
+}
+
+.examples-page .docs-board-controls button,
+.examples-page .docs-board-controls select {
+  width: 100%;
+  min-height: 26px;
+  border: 2px solid #000;
+  background: var(--stijl-paper);
+  font-weight: 600;
+}
+
+.examples-page .docs-board-controls button:nth-child(2) {
+  background: var(--stijl-yellow);
+}
+
+.examples-page .docs-board-controls button:hover,
+.examples-page .docs-board-controls button:focus-visible,
+.examples-page .docs-board-controls select:hover,
+.examples-page .docs-board-controls select:focus-visible {
+  background: var(--stijl-red);
+  color: #fff;
+}
+
+.examples-board {
+  --blocks-gap: 8px;
+  --blocks-content-padding: 0;
+  border: 4px solid #000;
+  background-color: var(--stijl-paper);
+  background-image:
+    linear-gradient(to right, #000 0 3px, transparent 3px),
+    linear-gradient(to bottom, #000 0 3px, transparent 3px);
+}
+
+.examples-board > .blocks-system-object {
+  border: 3px solid #000;
+}
+
+.examples-board > .blocks-system-object > .blocks-system-menu {
+  height: 26px;
+  min-height: 26px;
+  border-bottom: 3px solid #000;
+  background: #000;
+  color: #fff;
+  padding: 4px 7px;
+  font: 600 12px/1 "Inter", sans-serif;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
 .examples-board > .blocks-system-object > .blocks-system-content {
-  padding: 5px;
+  place-items: stretch;
+  overflow: hidden;
+  padding: 0;
+  background: var(--block-paper-color);
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
 }
 
 .examples-intro,
@@ -7,49 +154,83 @@
 .example-route,
 .examples-next {
   width: 100%;
-}
-
-.example-live {
-  height: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .examples-intro {
   display: grid;
-  align-content: center;
-  gap: 1px;
-}
-
-.examples-intro strong {
-  font: 500 clamp(1.15rem, 2.1vw, 1.75rem)/0.95 "Oswald", sans-serif;
-  text-transform: uppercase;
+  height: 100%;
+  align-content: space-between;
+  gap: 5px;
+  padding: 10px;
 }
 
 .examples-intro small,
 .example-route small,
 .example-live > small,
 .examples-next small {
-  opacity: 0.68;
+  opacity: 1;
+  font: 400 8px/1.15 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.examples-intro strong {
+  display: grid;
+  font: 600 clamp(1.65rem, 2.35vw, 2.5rem)/0.77 "Oswald", sans-serif;
+  letter-spacing: -0.055em;
+  text-transform: uppercase;
+}
+
+.examples-intro strong span:nth-child(2) { padding-left: 0.55em; }
+.examples-intro strong span:nth-child(3) { color: var(--stijl-red); }
+
+.examples-intro p {
+  margin: 0;
+  color: var(--stijl-yellow);
+  font: 600 9px/1.15 "Inter", sans-serif;
+  text-transform: uppercase;
 }
 
 .example-live {
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 4px;
-  min-width: 0;
-  min-height: 0;
+  gap: 0;
+  height: 100%;
+}
+
+.example-live > small {
+  padding: 4px 6px 3px;
+  border-top: 3px solid #000;
+  background: var(--stijl-paper);
+  color: #000;
 }
 
 .example-live-board {
-  --blocks-gap: 3px;
-  --blocks-content-padding: 3px;
+  --blocks-gap: 5px;
+  --blocks-content-padding: 4px;
   width: 100%;
   height: 100%;
   min-height: 0;
+  border: 0;
+  background: #000;
+}
+
+.example-live-board .blocks-system-object {
+  border: 2px solid #000;
+}
+
+.example-live-board .blocks-system-menu {
+  height: 20px;
+  min-height: 20px;
+  padding: 3px 5px;
+  font-size: 10px;
 }
 
 .example-live-board .blocks-system-content {
   overflow: hidden;
-  font: 400 9px/1.1 "Consolas", "Courier New", monospace;
+  font: 400 8px/1 "Consolas", "Courier New", monospace;
   text-align: center;
 }
 
@@ -59,7 +240,8 @@
 }
 
 .example-live-board .blocks-system-content strong {
-  font: 500 clamp(0.8rem, 1.8vw, 1.25rem)/1 "Oswald", sans-serif;
+  font: 600 clamp(0.9rem, 1.7vw, 1.35rem)/0.9 "Oswald", sans-serif;
+  letter-spacing: -0.04em;
   text-transform: uppercase;
 }
 
@@ -74,16 +256,20 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: auto auto;
+  height: 100%;
   align-content: center;
   align-items: center;
-  gap: 1px 3px;
+  gap: 1px 6px;
+  padding: 5px 7px;
 }
 
 .example-route strong,
 .examples-next strong {
   grid-column: 1;
-  font: 500 clamp(1rem, 1.9vw, 1.55rem)/0.95 "Oswald", sans-serif;
+  font: 600 clamp(1rem, 1.65vw, 1.45rem)/0.88 "Oswald", sans-serif;
+  letter-spacing: -0.04em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .example-route > small,
@@ -102,19 +288,19 @@
   align-self: stretch;
   flex-direction: column;
   justify-content: center;
-  gap: 2px;
-  margin-left: 3px;
+  gap: 3px;
 }
 
 .example-actions a,
 .examples-next a {
-  display: inline-block;
-  width: max-content;
-  padding: 1px 4px;
-  border: 1px solid currentColor;
+  display: inline-grid;
+  min-height: 16px;
+  place-items: center;
+  padding: 2px 5px;
+  border: 2px solid currentColor;
   color: inherit;
-  font-size: 9px;
-  line-height: 1.1;
+  font: 600 8px/1 "Inter", sans-serif;
+  letter-spacing: 0.04em;
   text-decoration: none;
   text-transform: uppercase;
 }
@@ -128,8 +314,40 @@
 .example-actions a:focus-visible,
 .examples-next a:hover,
 .examples-next a:focus-visible {
-  background: currentColor;
-  box-shadow: inset 0 0 0 20px var(--block-paper-color);
+  background: #000;
+  color: #fff;
+  box-shadow: none;
+}
+
+.examples-board > [data-block-object="basic-route"] > .blocks-system-content {
+  background: var(--stijl-red);
+  color: #fff;
+}
+
+.examples-board > [data-block-object="mixed-route"] > .blocks-system-content {
+  background: var(--stijl-yellow);
+  color: #000;
+}
+
+.examples-board > [data-block-object="adapter-route"] > .blocks-system-content {
+  background: var(--stijl-blue);
+  color: #fff;
+}
+
+.examples-board > [data-block-object="adapter-route"] .example-route {
+  align-content: end;
+  padding: 12px;
+}
+
+.examples-board > [data-block-object="adapter-route"] .example-route strong {
+  max-width: 9ch;
+  font-size: clamp(1.7rem, 3vw, 3.1rem);
+  line-height: 0.82;
+  white-space: normal;
+}
+
+.examples-board > [data-block-object="next-step"] > .blocks-system-content {
+  border-left: 12px solid var(--stijl-red);
 }
 
 .nested-center {
@@ -141,29 +359,121 @@
 
 .adapter-live-root {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   width: 100%;
+  height: 100%;
+  padding: 6px;
+}
+
+.example-live-board [data-block-object="adapter-counter"] .blocks-system-content {
+  padding: 0;
+}
+
+.adapter-live-root span {
+  font-weight: 600;
+  text-transform: uppercase;
 }
 
 .adapter-live-root output {
-  font: 500 clamp(1.8rem, 4vw, 3rem)/1 "Oswald", sans-serif;
+  color: var(--stijl-blue);
+  font: 600 clamp(2rem, 4vw, 3.75rem)/0.8 "Oswald", sans-serif;
 }
 
 .adapter-live-root button {
   grid-column: 1 / -1;
-  min-height: 24px;
-  border: 1px solid currentColor;
+  min-height: 26px;
+  border: 2px solid #000;
   border-radius: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
+  background: var(--stijl-yellow);
+  color: #000;
+  font: 600 9px/1 "Inter", sans-serif;
+  text-transform: uppercase;
   cursor: pointer;
 }
 
+.adapter-live-root button:hover,
+.adapter-live-root button:focus-visible {
+  background: var(--stijl-red);
+  color: #fff;
+}
+
+.examples-page .docs-board-foot {
+  min-height: 27px;
+  align-items: center;
+  margin-top: 8px;
+  padding: 5px 8px;
+  background: #000;
+  color: #fff;
+}
+
+.examples-page .docs-board-foot span:last-child {
+  color: var(--stijl-yellow);
+}
+
+@media (max-width: 1100px) {
+  .examples-page .docs-board-toolbar {
+    grid-template-columns: minmax(420px, 1.2fr) minmax(280px, 0.8fr);
+  }
+
+  .examples-manifesto { display: none; }
+}
+
 @media (max-width: 900px) {
-  .example-live-board {
-    min-height: 100px;
+  .examples-page .docs-board-shell { padding-inline: 8px; }
+  .examples-page .docs-board-toolbar {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    gap: 10px;
+    padding-block: 14px;
+  }
+  .examples-page .docs-board-controls { max-width: 520px; }
+  .examples-board.blocks-system-surface[data-snap="true"] {
+    min-height: 1120px;
+    grid-auto-rows: minmax(220px, auto);
+    background-size: calc((100% + var(--blocks-gap)) / 2) 220px;
+  }
+  .example-route strong,
+  .examples-next strong { white-space: normal; }
+}
+
+@media (max-width: 560px) {
+  .examples-page .docs-board-heading h1 {
+    display: grid;
+    justify-items: start;
+  }
+  .examples-page .docs-board-heading h1 > span {
+    font-size: clamp(3.7rem, 19vw, 5rem);
+  }
+  .examples-page .docs-board-heading h1 > em {
+    bottom: 0;
+    margin: -0.15rem 0 0 1.1rem;
+  }
+  .examples-page .docs-board-controls { grid-template-columns: 1fr 1fr; }
+  .examples-page .docs-board-controls label {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .examples-board.blocks-system-surface[data-snap="true"] {
+    min-height: 0;
+    grid-auto-rows: auto;
+    background-size: 100% 180px;
+  }
+  .examples-board > .blocks-system-object { min-height: 160px; }
+  .examples-board > [data-block-object="learning-path"] { min-height: 250px; }
+  .examples-board > [data-block-object="basic-live"] { min-height: 330px; }
+  .examples-board > [data-block-object="mixed-live"],
+  .examples-board > [data-block-object="adapter-live"] { min-height: 260px; }
+  .examples-board > [data-block-object="adapter-route"] { min-height: 230px; }
+  .examples-intro { padding: 16px; }
+  .examples-intro strong { font-size: clamp(2.75rem, 15vw, 4rem); }
+  .example-route,
+  .examples-next { padding: 12px; }
+  .example-route strong,
+  .examples-next strong { font-size: clamp(1.55rem, 8vw, 2.25rem); }
+  .examples-page .docs-board-foot {
+    align-items: flex-start;
+    gap: 4px;
   }
 }

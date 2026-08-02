@@ -7,14 +7,15 @@ const { addBlock } = examplesBoard;
 
 addBlock({
   id: "learning-path",
-  title: "start here",
-  span: [3, 1],
+  title: "00 / thesis",
+  span: [2, 2],
   place: [1, 1],
   variant: "inverse",
   content: nodeFromHtml(`
     <div class="examples-intro">
-      <small>three examples · three decisions</small>
-      <strong>start → combine → extend</strong>
+      <small>three examples / three decisions</small>
+      <strong><span>form</span><span>follows</span><span>relation.</span></strong>
+      <p>start small.<br>combine freely.<br>extend cleanly.</p>
     </div>
   `)
 });
@@ -22,14 +23,14 @@ addBlock({
 const basicPreview = nodeFromHtml(`
   <div class="example-live">
     <div class="example-live-board" data-live-example="basic" aria-label="live basic grid preview"></div>
-    <small>drag a header · restore block 2 · one explicit red exception</small>
+    <small>drag the header / restore 02 / find the red exception</small>
   </div>
 `);
 addBlock({
   id: "basic-live",
-  title: "01 · basic grid · live",
-  span: [3, 2],
-  place: [1, 2],
+  title: "01 / the grid",
+  span: [3, 3],
+  place: [3, 1],
   content: basicPreview
 });
 
@@ -48,13 +49,14 @@ for (let index = 0; index < 4; index += 1) {
 
 addBlock({
   id: "basic-route",
-  title: "01 · start small",
+  title: "principle / 01",
   span: [2, 1],
-  place: [2, 4],
+  place: [1, 3],
+  variant: "red",
   content: nodeFromHtml(`
     <div class="example-route">
-      <small>attach · grid · menu · drag · variant</small>
-      <strong>basic grid</strong>
+      <small>attach / grid / place</small>
+      <strong>the grid is a decision.</strong>
       <nav class="example-actions" aria-label="basic grid links">
         <a href="../examples/basic-grid/">run</a>
         <a href="../examples/basic-grid/demo.mjs" download>module ↓</a>
@@ -66,14 +68,14 @@ addBlock({
 const mixedPreview = nodeFromHtml(`
   <div class="example-live">
     <div class="example-live-board" data-live-example="mixed" aria-label="live mixed content preview"></div>
-    <small>one object contract · html + canvas + custom element</small>
+    <small>html / canvas / element / one object contract</small>
   </div>
 `);
 addBlock({
   id: "mixed-live",
-  title: "02 · mixed content · live",
+  title: "02 / any content",
   span: [3, 2],
-  place: [5, 1],
+  place: [6, 1],
   content: mixedPreview
 });
 
@@ -109,18 +111,19 @@ if (!customElements.get("example-signal")) {
     }
   });
 }
-const blockCustom = blocksMixed.add(document.createElement("example-signal"), { id: "mixed-custom", variant: "magenta" });
+const blockCustom = blocksMixed.add(document.createElement("example-signal"), { id: "mixed-custom", variant: "yellow" });
 blockCustom.menu("element");
 
 addBlock({
   id: "mixed-route",
-  title: "02 · combine content",
-  span: [2, 1],
+  title: "principle / 02",
+  span: [3, 1],
   place: [6, 3],
+  variant: "yellow",
   content: nodeFromHtml(`
     <div class="example-route">
-      <small>one API · html · canvas · custom element</small>
-      <strong>mixed content</strong>
+      <small>one API / no hierarchy</small>
+      <strong>content is content.</strong>
       <nav class="example-actions" aria-label="mixed content links">
         <a href="../examples/mixed-content/">run</a>
         <a href="../examples/mixed-content/demo.mjs" download>module ↓</a>
@@ -132,14 +135,14 @@ addBlock({
 const adapterPreview = nodeFromHtml(`
   <div class="example-live">
     <div class="example-live-board" data-live-example="adapter" aria-label="live custom adapter preview"></div>
-    <small>the outer board does not know how the counter renders</small>
+    <small>the system knows the contract / not the renderer</small>
   </div>
 `);
 addBlock({
   id: "adapter-live",
-  title: "03 · custom adapter · live",
-  span: [3, 2],
-  place: [3, 5],
+  title: "03 / outside the core",
+  span: [4, 2],
+  place: [1, 5],
   content: adapterPreview
 });
 
@@ -174,14 +177,14 @@ await blocksAdapter.mount("example-counter", blockAdapterHost);
 
 addBlock({
   id: "adapter-route",
-  title: "03 · extend cleanly",
-  span: [2, 1],
-  place: [6, 5],
-  variant: "cyan",
+  title: "principle / 03",
+  span: [2, 2],
+  place: [5, 5],
+  variant: "blue",
   content: nodeFromHtml(`
     <div class="example-route">
-      <small>register · mount · settings</small>
-      <strong>custom adapter</strong>
+      <small>register / mount / settings</small>
+      <strong>extend the contract. not the core.</strong>
       <nav class="example-actions" aria-label="custom adapter links">
         <a href="../examples/custom-adapter/">run</a>
         <a href="../examples/custom-adapter/demo.mjs" download>module ↓</a>
@@ -192,14 +195,14 @@ addBlock({
 
 addBlock({
   id: "next-step",
-  title: "next",
+  title: "continue / 04",
   span: [2, 1],
   place: [7, 6],
   content: nodeFromHtml(`
     <div class="examples-next">
-      <small>after the example</small>
-      <strong>guide + api</strong>
-      <a href="guide.html">open guide →</a>
+      <small>the fourth statement is yours</small>
+      <strong>build the next block.</strong>
+      <a href="guide.html">guide →</a>
     </div>
   `)
 });

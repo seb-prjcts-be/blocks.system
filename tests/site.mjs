@@ -144,6 +144,21 @@ assert.match(systemCss, /\.prototype-canvas,\s*\.prototype-reference\s*\{[^}]*mi
 assert.match(examplesCss, /\.examples-board/, "the examples page must keep only its page-specific board rules");
 assert.match(examplesCss, /\.example-actions\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1 \/ span 2;/s, "example actions must remain visible beside compact route content");
 assert.doesNotMatch(examplesCss, /\.examples-intro,\s*\.example-live,\s*\.example-route,\s*\.examples-next\s*\{[^}]*height:\s*100%;/s, "short example content must not be forced taller than its grid cell");
+assert.match(examplesHtml, /<body class="docs-board-body examples-page">/, "the examples composition needs an isolated page scope");
+assert.match(examplesHtml, /<h1 id="examples-title"><span>examples<\/span><em>are evidence\.<\/em><\/h1>/, "the De Stijl masthead must remain a typographic statement");
+assert.match(examplesHtml, /three proofs \/ ten cells held open as a pause/, "the examples footer must name the deliberate empty grid space");
+for (const color of ["rgb(255, 0, 0)", "rgb(0, 0, 255)", "rgb(255, 255, 0)"]) {
+  assert.ok(examplesCss.includes(color), `the De Stijl composition misses ${color}`);
+}
+assert.match(examplesCss, /\.examples-page \.docs-board-toolbar\s*\{[^}]*grid-template-columns:[^}]*border-bottom:\s*8px solid #000;/s, "the examples masthead must use an asymmetric black construction line");
+assert.match(examplesCss, /\.examples-board\s*\{[^}]*--blocks-gap:\s*8px;[^}]*border:\s*4px solid #000;/s, "the examples board must read as a De Stijl grid");
+assert.ok(["the grid is a decision.", "content is content.", "extend the contract. not the core."].every(function (statement) {
+  return siteDemos["docs/examples.mjs"].includes(statement);
+}), "each learning path must carry its own statement");
+assert.ok(['variant: "red"', 'variant: "yellow"', 'variant: "blue"'].every(function (variant) {
+  return siteDemos["docs/examples.mjs"].includes(variant);
+}), "the outer examples statements must use only primary De Stijl accents");
+assert.doesNotMatch(siteDemos["docs/examples.mjs"], /variant:\s*"(?:cyan|magenta)"/, "the De Stijl examples composition must avoid secondary color accents");
 assert.doesNotMatch(libraryCss, /\.docs-board-surface|\.system-board|\.examples-board/, "the reusable library stylesheet must not absorb docs page composition");
 assert.doesNotMatch(examplesHtml, /<iframe\b/i, "the examples index must use live systems instead of passive iframe cards");
 assert.ok(siteDemos["docs/examples.mjs"].includes("blocksBasic.setGrid(2, 2)"), "the examples board must include a real basic grid");

@@ -201,6 +201,109 @@ async function hoverSignature() {
   return result.result.value;
 }
 
+async function navigateTo(url) {
+  const loaded = protocol.once("Page.loadEventFired");
+  await protocol.send("Page.navigate", { url });
+  await loaded;
+}
+
+async function measureExamples(width, height) {
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width,
+    height,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#docs-board")?.dataset.docsBoardReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
+      window.scrollTo(0, 0);
+      const board = document.querySelector("#docs-board");
+      const boardRect = board.getBoundingClientRect();
+      const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
+      const statements = objects.map(function (block) {
+        return { block, content: block.querySelector(":scope > .blocks-system-content"), statement: block.querySelector(":scope > .blocks-system-content > *") };
+      });
+      const nestedContents = Array.from(board.querySelectorAll(".example-live-board .blocks-system-content"));
+      const links = Array.from(board.querySelectorAll(".example-actions a, .examples-next a"));
+      return {
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        documentHeight: document.documentElement.scrollHeight,
+        boardBottom: boardRect.bottom,
+        outsideBoard: objects.filter(function (block) {
+          const rect = block.getBoundingClientRect();
+          return rect.left < boardRect.left - 0.5 || rect.right > boardRect.right + 0.5;
+        }).map(function (block) { return block.dataset.blockObject; }),
+        clippedStatements: statements.filter(function ({ content, statement }) {
+          return content.scrollWidth > content.clientWidth + 1 || content.scrollHeight > content.clientHeight + 1 ||
+            statement.scrollWidth > statement.clientWidth + 1 || statement.scrollHeight > statement.clientHeight + 1;
+        }).map(function ({ block }) { return block.dataset.blockObject; }),
+        clippedNestedContent: nestedContents.filter(function (content) {
+          return getComputedStyle(content).display !== "none" &&
+            (content.scrollWidth > content.clientWidth + 3 || content.scrollHeight > content.clientHeight + 3);
+        }).map(function (content) {
+          const id = content.closest(".blocks-system-object").dataset.blockObject;
+          return id + ":" + content.scrollWidth + "×" + content.scrollHeight + "/" + content.clientWidth + "×" + content.clientHeight;
+        }),
+        hiddenActions: links.filter(function (link) {
+          const rect = link.getBoundingClientRect();
+          return rect.width < 1 || rect.height < 1 || getComputedStyle(link).visibility === "hidden";
+        }).map(function (link) { return link.textContent.trim(); }),
+        routeColors: ["basic-route", "mixed-route", "adapter-route"].map(function (id) {
+          return getComputedStyle(board.querySelector('[data-block-object="' + id + '"] > .blocks-system-content')).backgroundColor;
+        })
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function exerciseExamples() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const board = document.querySelector("#docs-board");
+      const toggle = document.querySelector("#toggle-minimized");
+      const density = document.querySelector("#density");
+      const boardSize = document.querySelector("#board-size");
+      const counter = board.querySelector(".adapter-live-root output");
+      board.querySelector(".adapter-live-root button").click();
+      const incremented = counter.value;
+      toggle.click();
+      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      const allMinimized = Array.from(board.querySelectorAll(":scope > .blocks-system-object")).every(function (block) {
+        return block.dataset.blockMinimized === "true";
+      });
+      toggle.click();
+      density.value = "roomy";
+      density.dispatchEvent(new Event("change", { bubbles: true }));
+      boardSize.value = "12,6";
+      boardSize.dispatchEvent(new Event("change", { bubbles: true }));
+      const changedStatus = document.querySelector("#board-status").textContent;
+      document.querySelector("#reset-board").click();
+      return {
+        incremented,
+        allMinimized,
+        allRestored: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).every(function (block) {
+          return block.dataset.blockMinimized === "false";
+        }),
+        changedStatus,
+        resetDensity: density.value,
+        resetBoard: boardSize.value
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
 try {
   chrome = spawn(chromePath, [
     "--headless=new",
@@ -262,7 +365,29 @@ try {
   const afterHover = await hoverSignature();
   assert.deepEqual(afterHover, beforeHover, "hover mag het block of het zichtbare grid niet veranderen");
 
-  console.log("browser-layout: uitlijning, overflow en hover op 1280/800/390px × 4/8 rijen — OK");
+  await navigateTo(`${pageUrl}docs/examples.html`);
+  for (const [width, height] of [[1280, 720], [800, 900], [390, 844]]) {
+    const examples = await measureExamples(width, height);
+    assert.ok(examples.horizontalOverflow <= 0.5, `examples heeft ${examples.horizontalOverflow}px horizontale overflow op ${width}px`);
+    assert.deepEqual(examples.outsideBoard, [], `examples plaatst blocks buiten het board op ${width}px: ${examples.outsideBoard.join(", ")}`);
+    assert.deepEqual(examples.clippedStatements, [], `examples knipt statements af op ${width}px: ${examples.clippedStatements.join(", ")}`);
+    assert.deepEqual(examples.clippedNestedContent, [], `examples knipt live inhoud af op ${width}px: ${examples.clippedNestedContent.join(", ")}`);
+    assert.deepEqual(examples.hiddenActions, [], `examples verbergt acties op ${width}px: ${examples.hiddenActions.join(", ")}`);
+    assert.deepEqual(examples.routeColors, ["rgb(255, 0, 0)", "rgb(255, 255, 0)", "rgb(0, 0, 255)"], `examples verliest de primaire De Stijl-kleuren op ${width}px`);
+    if (width === 1280) {
+      assert.ok(examples.boardBottom <= height, `examples-board past niet in het desktopscherm: ${examples.boardBottom}px > ${height}px`);
+      assert.ok(examples.documentHeight <= height, `examples is niet langer één scherm op desktop: ${examples.documentHeight}px > ${height}px`);
+    }
+  }
+  const examplesInteraction = await exerciseExamples();
+  assert.equal(examplesInteraction.incremented, "4", "examples adapter increment werkt niet meer");
+  assert.equal(examplesInteraction.allMinimized, true, "examples kan niet alle blocks minimaliseren");
+  assert.equal(examplesInteraction.allRestored, true, "examples kan de blocks niet herstellen");
+  assert.match(examplesInteraction.changedStatus, /12 × 6 · roomy/, "examples status volgt density/board niet");
+  assert.equal(examplesInteraction.resetDensity, "normal", "examples reset herstelt density niet");
+  assert.equal(examplesInteraction.resetBoard, "8,6", "examples reset herstelt board niet");
+
+  console.log("browser-layout: showcase-uitlijning/hover en De Stijl-examples op desktop/tablet/mobiel — OK");
 } finally {
   if (protocol) {
     try { await protocol.send("Browser.close"); } catch {}
