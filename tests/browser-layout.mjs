@@ -590,7 +590,7 @@ try {
   for (const [width, height, columns] of manualWidths) {
     const manual = await measureManual(width, height);
     manualMeasurements.push(manual);
-    assert.equal(manual.blockCount, 14, `manual mist directe blocks op ${width}px`);
+    assert.equal(manual.blockCount, 15, `manual mist directe blocks op ${width}px`);
     assert.equal(manual.columnCount, columns, `manual gebruikt ${manual.columnCount} in plaats van ${columns} kolommen op ${width}px`);
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
     assert.deepEqual(manual.outsideBoard, [], `manual plaatst blocks buiten het board op ${width}px: ${manual.outsideBoard.join(", ")}`);

@@ -192,10 +192,18 @@ assert.equal((siteDemos["docs/examples.mjs"].match(/demo\.mjs" download/g) || []
 
 assert.match(manualHtml, /<body class="manual-page">/, "the experimental manual needs an isolated page scope");
 assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one shared board");
-assert.match(manualHtml, /href="DOCS-COMPOSITION\.md"/, "the experimental manual must expose its durable composition contract");
+assert.match(manualHtml, /href="api\.html">open the complete reference/, "the manual must lead to its complete reference owner");
 assert.match(manualHtml, /<li><a href="\.\.\/index\.html">home<\/a><\/li>[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item shared navigation");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
-assert.equal((siteDemos["docs/manual.mjs"].match(/^(?:addBlock|const blockCanvas = addBlock)\(\{/gm) || []).length, 14, "the experimental manual must keep its complete direct-block composition");
+assert.equal((siteDemos["docs/manual.mjs"].match(/^(?:addBlock|const blockCanvas = addBlock)\(\{/gm) || []).length, 15, "the canonical manual must keep its complete direct-block composition");
+for (const anchor of ["start", "compose", "arrange", "connect", "examples", "reference", "boundary"]) {
+  assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
+}
+for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
+  assert.ok(siteDemos["docs/manual.mjs"].includes(`../examples/${example}/`), `the manual misses the ${example} route`);
+  assert.ok(siteDemos["docs/manual.mjs"].includes(`../examples/${example}/demo.mjs`), `the manual misses the ${example} module download`);
+}
+assert.match(siteDemos["docs/manual.mjs"], /textContent/, "the manual must preserve the untrusted-text safety note");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;/, "the experimental manual must start with dragging enabled");
 assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "the experimental manual must demonstrate responsive runtime content");
 assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");

@@ -29,6 +29,18 @@
   border-bottom: 1px solid var(--ink);
 }
 
+.manual-index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px 12px;
+}
+
+.manual-index a {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 .manual-toolbar button {
   min-height: 24px;
   padding: 3px 8px;
@@ -116,6 +128,8 @@
   text-transform: lowercase;
 }
 
+.manual-anchor { scroll-margin-top: 68px; }
+
 .manual-statement,
 .manual-api,
 .manual-hooks,
@@ -128,6 +142,59 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
+}
+
+.manual-examples {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  height: 100%;
+}
+
+.manual-examples > div {
+  display: grid;
+  align-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border-right: 1px solid currentColor;
+}
+
+.manual-examples > div:last-child { border-right: 0; }
+
+.manual-examples small,
+.manual-examples span {
+  font: 400 9px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.manual-examples strong {
+  max-width: 10ch;
+  font: 600 clamp(1.2rem, 2.5vw, 2.6rem)/0.86 "Instrument Sans", sans-serif;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+}
+
+.manual-examples nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.manual-examples a {
+  padding: 3px 5px;
+  border: 1px solid currentColor;
+  color: inherit;
+  font: 500 8px/1 "Inter", sans-serif;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.manual-examples a:hover,
+.manual-examples a:focus-visible {
+  background: var(--ink);
+  color: var(--manual-paper);
 }
 
 .manual-statement small,
@@ -324,6 +391,14 @@
   font: 400 10px/1.35 "Consolas", "Courier New", monospace;
 }
 
+.manual-api a {
+  justify-self: start;
+  color: inherit;
+  font: 500 9px/1.2 "Consolas", "Courier New", monospace;
+  text-transform: uppercase;
+  text-underline-offset: 3px;
+}
+
 .manual-hooks pre {
   min-height: 0;
   margin: 0;
@@ -431,5 +506,9 @@
   .manual-media { grid-template-columns: 1fr; }
   .manual-media video { min-height: 190px; }
   .manual-grid-language { grid-template-columns: 1fr; }
+  .manual-examples { grid-template-columns: 1fr; }
+  .manual-examples > div { min-height: 130px; border-right: 0; border-bottom: 1px solid currentColor; }
+  .manual-examples > div:last-child { border-bottom: 0; }
+  .manual-board > [data-block-object="manual-examples"] { min-height: 420px; }
   .manual-foot { flex-direction: column; padding-inline: 8px; }
 }

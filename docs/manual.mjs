@@ -16,10 +16,14 @@ blocks.snap = true;
 blocks.draggable = true;
 quantizeSurface(board);
 
-function addBlock({ id, title, content, span = [1, 1], variant = "regular", minimized = false }) {
+function addBlock({ id, title, content, span = [1, 1], variant = "regular", minimized = false, anchor = "" }) {
   const block = blocks.add(content, { id, variant, minimized });
   block.menu(title, { minimize: true });
   block.span(...span);
+  if (anchor) {
+    block.element.id = anchor;
+    block.element.classList.add("manual-anchor");
+  }
   controllers.push({ block, minimized });
   return block;
 }
@@ -61,7 +65,12 @@ addBlock({
   id: "manual-start",
   title: "01 / start",
   span: [3, 2],
-  content: nodeFromHtml(`<pre class="manual-code"><code>import { system as blocks } from
+  anchor: "start",
+  content: nodeFromHtml(`<pre class="manual-code"><code>&lt;link rel="stylesheet" href="./blocks.system.css"&gt;
+&lt;div id="blocks-field"&gt;&lt;/div&gt;
+
+&lt;script type="module"&gt;
+import { system as blocks } from
 "./blocks.system.mjs";
 
 blocks.attach("#blocks-field");
@@ -73,19 +82,22 @@ const blockHello = blocks.add("&lt;p&gt;hello&lt;/p&gt;", {
   id: "block-hello"
 });
 
-blockHello.menu("hello");
-blockHello.span(2, 1);</code></pre>`)
+blockHello.menu("hello", { close: true });
+blockHello.span(2, 1);
+blockHello.place(1, 1);
+&lt;/script&gt;</code></pre>`)
 });
 
 addBlock({
   id: "manual-content-contract",
   title: "02 / content",
   span: [3, 1],
+  anchor: "compose",
   content: nodeFromHtml(`
     <div class="manual-statement">
       <small>trusted html / dom node / content factory</small>
       <strong>content is content.</strong>
-      <p>One host contract; renderer knowledge stays outside the core.</p>
+      <p>Use <code>textContent</code> for untrusted text. One host contract keeps renderer knowledge outside the core.</p>
       <b>3</b>
     </div>
   `)
@@ -152,13 +164,17 @@ canvasObserver.observe(blockCanvas.content);
 
 addBlock({
   id: "manual-compose",
-  title: "03 / compose",
+  title: "03 / arrange",
   span: [2, 2],
+  anchor: "arrange",
   content: nodeFromHtml(`
     <div class="manual-grid-language">
       <div><small>size</small><strong>span</strong><code>block.span(x, y)</code></div>
       <div><small>place</small><strong>grid</strong><code>block.place(x, y)</code></div>
+      <div><small>state</small><strong>menu</strong><code>close / minimize</code></div>
       <div><small>tone</small><strong>variant</strong><code>block.variant</code></div>
+      <div><small>move</small><strong>drag</strong><code>header / keyboard</code></div>
+      <div><small>remove</small><strong>close</strong><code>block.remove()</code></div>
     </div>
   `)
 });
@@ -188,6 +204,7 @@ addBlock({
   id: "manual-connect",
   title: "04 / connect",
   span: [2, 2],
+  anchor: "connect",
   content: adapterHost
 });
 await blocks.mount("manual-live-counter", adapterHost);
@@ -196,6 +213,7 @@ addBlock({
   id: "manual-reference",
   title: "05 / reference",
   span: [2, 2],
+  anchor: "reference",
   content: nodeFromHtml(`
     <div class="manual-api">
       <small>shared system / one controller</small>
@@ -208,6 +226,7 @@ addBlock({
         <li>blocks.register()</li><li>block.color</li>
         <li>blocks.mount()</li><li>block.remove()</li>
       </ul>
+      <a href="api.html">complete signatures →</a>
     </div>
   `)
 });
@@ -249,14 +268,29 @@ addBlock({
 });
 
 addBlock({
+  id: "manual-examples",
+  title: "examples / run the source",
+  span: [3, 2],
+  anchor: "examples",
+  content: nodeFromHtml(`
+    <div class="manual-examples">
+      <div><small>01 / start</small><strong>basic grid</strong><nav><a href="../examples/basic-grid/">run</a><a href="../examples/basic-grid/demo.mjs" download>module ↓</a></nav></div>
+      <div><small>02 / compose</small><strong>mixed content</strong><nav><a href="../examples/mixed-content/">run</a><a href="../examples/mixed-content/demo.mjs" download>module ↓</a></nav></div>
+      <div><small>03 / connect</small><strong>custom adapter</strong><nav><a href="../examples/custom-adapter/">run</a><a href="../examples/custom-adapter/demo.mjs" download>module ↓</a></nav></div>
+    </div>
+  `)
+});
+
+addBlock({
   id: "manual-about",
   title: "about / boundary",
   span: [2, 2],
+  anchor: "boundary",
   content: nodeFromHtml(`
     <div class="manual-about">
-      <small>zero runtime dependencies</small>
+      <small>from visual elements to one object model</small>
       <strong>the core knows blocks, not renderers.</strong>
-      <p>HTML, canvas, video and future runtimes keep their own lifecycle.</p>
+      <p>HTML, canvas, video and future runtimes keep their own lifecycle. Concept and direction by Sebastien Vanblaere.</p>
     </div>
   `)
 });
