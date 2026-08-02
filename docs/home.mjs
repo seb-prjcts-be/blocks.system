@@ -132,6 +132,7 @@ reset.addEventListener("click", () => {
 for (const eventName of ["pointerup", "pointercancel", "lostpointercapture"]) {
   board.addEventListener(eventName, () => requestAnimationFrame(() => updateStatus()));
 }
+board.addEventListener("blocks:reorder", () => updateStatus("keyboard reorder · drag on"));
 
 updateStatus();
 board.dataset.homeReady = "true";

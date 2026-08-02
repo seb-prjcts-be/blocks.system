@@ -41,6 +41,12 @@
   text-underline-offset: 3px;
 }
 
+.manual-index a.active,
+.manual-index a[aria-current="location"] {
+  font-weight: 700;
+  text-decoration-thickness: 2px;
+}
+
 .manual-toolbar button {
   min-height: 24px;
   padding: 3px 8px;

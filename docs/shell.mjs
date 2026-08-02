@@ -20,6 +20,38 @@ function initNavigation() {
   }
 }
 
+export function initSectionNavigation() {
+  const navigation = document.querySelector(".manual-index");
+  if (!navigation) return;
+  const links = Array.from(navigation.querySelectorAll('a[href^="#"]'));
+  const sections = links.map((link) => ({
+    link,
+    section: document.querySelector(link.getAttribute("href"))
+  })).filter(({ section }) => section);
+
+  function activate(id) {
+    for (const { link, section } of sections) {
+      const current = section.id === id;
+      link.classList.toggle("active", current);
+      if (current) link.setAttribute("aria-current", "location");
+      else link.removeAttribute("aria-current");
+    }
+  }
+
+  for (const { link, section } of sections) {
+    link.addEventListener("click", () => activate(section.id));
+  }
+  window.addEventListener("hashchange", () => activate(location.hash.slice(1)));
+  if (location.hash) activate(location.hash.slice(1));
+
+  const observer = new IntersectionObserver((entries) => {
+    const visible = entries.filter((entry) => entry.isIntersecting)
+      .sort((a, b) => Math.abs(a.boundingClientRect.top) - Math.abs(b.boundingClientRect.top));
+    if (visible[0]) activate(visible[0].target.id);
+  }, { rootMargin: "-18% 0px -68% 0px", threshold: 0 });
+  sections.forEach(({ section }) => observer.observe(section));
+}
+
 export function quantizeSurface(surface, { maxWidth = 1440 } = {}) {
   const container = surface.parentElement;
   if (!container) throw new TypeError("quantizeSurface verwacht een surface met een parent.");
@@ -46,3 +78,4 @@ export function quantizeSurface(surface, { maxWidth = 1440 } = {}) {
 }
 
 initNavigation();
+initSectionNavigation();

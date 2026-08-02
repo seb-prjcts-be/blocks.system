@@ -471,6 +471,16 @@ async function exerciseManual() {
           return block.dataset.blockObject;
         });
       };
+      const media = board.querySelector('[data-block-object="manual-media"]');
+      const video = media.querySelector("video");
+      video.dataset.pauseCalls = "0";
+      video.pause = function () { video.dataset.pauseCalls = String(Number(video.dataset.pauseCalls) + 1); };
+      media.querySelector(".blocks-system-minimize").click();
+      await Promise.resolve();
+      const mediaPauseCalls = Number(video.dataset.pauseCalls);
+      media.querySelector(".blocks-system-minimize").click();
+      document.querySelector('.manual-index a[href="#connect"]').click();
+      const activeAnchor = document.querySelector('.manual-index a[aria-current="location"]')?.getAttribute("href");
       const draggedOrder = order();
       const dragCleanedUp = !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging");
       document.querySelector("#manual-lock").click();
@@ -489,6 +499,8 @@ async function exerciseManual() {
         keyboardOrder,
         keyboardPrevented: keyboardEvent.defaultPrevented,
         keyboardHandleLabel: keyboardHandle.getAttribute("aria-label"),
+        mediaPauseCalls,
+        activeAnchor,
         resetOrder: order(),
         resetDraggable: board.dataset.draggable,
         resetStatus: document.querySelector("#manual-status").textContent
@@ -654,6 +666,8 @@ try {
   assert.deepEqual(manualInteraction.keyboardOrder.slice(0, 2), ["manual-rectangle", "manual-cycle"], "manual pijltjestoetsen herschikken de blocks niet");
   assert.equal(manualInteraction.keyboardPrevented, true, "manual keyboard drag laat de pagina meescrollen");
   assert.match(manualInteraction.keyboardHandleLabel, /pijltjestoetsen/, "manual keyboard handle legt zijn bediening niet uit");
+  assert.ok(manualInteraction.mediaPauseCalls >= 1, "manual video pauzeert niet bij minimaliseren");
+  assert.equal(manualInteraction.activeAnchor, "#connect", "manual sectienavigatie markeert de gekozen anchor niet");
   assert.equal(manualInteraction.resetOrder[0], "manual-cycle", "manual reset herstelt de oorspronkelijke volgorde niet");
   assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
   assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");

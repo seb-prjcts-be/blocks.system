@@ -1,6 +1,6 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
 import { nodeFromHtml } from "./board.mjs?v=0.1.1";
-import { quantizeSurface } from "./shell.mjs?v=0.1.0";
+import { initSectionNavigation, quantizeSurface } from "./shell.mjs?v=0.1.0";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");
@@ -251,17 +251,17 @@ addBlock({
   `)
 });
 
-addBlock({
+const blockMedia = addBlock({
   id: "manual-media",
-  title: "media / contract pending",
+  title: "media / bounded lifecycle",
   span: [3, 2],
   content: nodeFromHtml(`
     <div class="manual-media">
-      <video controls muted preload="none" poster="references/micrographic-drag-snap-reference.png" aria-label="Video content sizing prototype"></video>
+      <video controls muted preload="none" poster="references/micrographic-drag-snap-reference.png" aria-label="Video content sizing prototype" data-video-lifecycle="pause-on-minimize-remove-pagehide"></video>
       <div>
         <small>natural / contain / cover</small>
-        <strong>media needs a contract.</strong>
-        <p>The DOM node already mounts. Source, captions, pause, cleanup and fit behaviour still need one tested convention.</p>
+        <strong>media keeps its lifecycle.</strong>
+        <p>The consumer owns source and captions. The manual proves contain sizing and pauses on minimize, removal and page exit.</p>
       </div>
     </div>
   `)
@@ -310,6 +310,17 @@ addBlock({
 });
 
 const initialOrder = controllers.map(({ block }) => block.element);
+const mediaVideo = blockMedia.content.querySelector("video");
+
+function pauseMedia() {
+  mediaVideo?.pause();
+}
+
+const mediaLifecycle = new MutationObserver(() => {
+  if (!blockMedia.element.isConnected || blockMedia.minimized) pauseMedia();
+});
+mediaLifecycle.observe(board, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-block-minimized"] });
+window.addEventListener("pagehide", pauseMedia);
 
 function updateLock() {
   const locked = !blocks.draggable;
@@ -341,7 +352,9 @@ reset.addEventListener("click", () => {
 for (const eventName of ["pointerup", "pointercancel", "lostpointercapture"]) {
   board.addEventListener(eventName, () => requestAnimationFrame(() => updateStatus()));
 }
+board.addEventListener("blocks:reorder", () => updateStatus("keyboard reorder · drag on"));
 
 updateLock();
 updateStatus();
+initSectionNavigation();
 board.dataset.manualReady = "true";

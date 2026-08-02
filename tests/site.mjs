@@ -127,6 +127,7 @@ assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).l
 assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must preserve deliberate empty cells in a six-column field");
 assert.match(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must be draggable by default");
 assert.match(siteDemos["docs/home.mjs"], /new ResizeObserver\(drawCanvas\)/, "home must prove responsive canvas content");
+assert.match(siteDemos["docs/home.mjs"], /blocks:reorder/, "home status must follow keyboard reordering");
 assert.match(siteDemos["docs/home.mjs"], /quantizeSurface\(board\)/, "home must use whole-pixel grid geometry");
 assert.doesNotMatch(homeCss, /background-image\s*:/, "home must not draw grid lines");
 assert.match(homeCss, /--blocks-columns:\s*6/, "home must start from six columns");
@@ -219,7 +220,7 @@ assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one
 assert.match(manualHtml, /href="api\.html">open the complete reference/, "the manual must lead to its complete reference owner");
 assert.match(manualHtml, /<li><a href="\.\.\/index\.html">home<\/a><\/li>[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item shared navigation");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
-assert.equal((siteDemos["docs/manual.mjs"].match(/^(?:addBlock|const blockCanvas = addBlock)\(\{/gm) || []).length, 15, "the canonical manual must keep its complete direct-block composition");
+assert.equal((siteDemos["docs/manual.mjs"].match(/^(?:addBlock|const block(?:Canvas|Media) = addBlock)\(\{/gm) || []).length, 15, "the canonical manual must keep its complete direct-block composition");
 for (const anchor of ["start", "compose", "arrange", "connect", "examples", "reference", "boundary"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
 }
@@ -233,6 +234,11 @@ assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "
 assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");
 assert.match(siteDemos["docs/shell.mjs"], /Math\.floor\(\(available - borders - gap \* \(columns - 1\)\) \/ columns\)/, "the docs shell must quantize tracks to whole CSS pixels");
 assert.match(siteDemos["docs/manual.mjs"], /<video controls muted preload="none"/, "the experimental manual must make the pending video contract visible");
+assert.match(siteDemos["docs/manual.mjs"], /data-video-lifecycle="pause-on-minimize-remove-pagehide"/, "manual video must publish its tested lifecycle convention");
+assert.match(siteDemos["docs/manual.mjs"], /new MutationObserver\([\s\S]*blockMedia\.minimized\) pauseMedia\(\)/, "manual video must pause when minimized or removed");
+assert.match(siteDemos["docs/manual.mjs"], /addEventListener\("pagehide", pauseMedia\)/, "manual video must pause when the document exits");
+assert.match(siteDemos["docs/shell.mjs"], /aria-current", "location"/, "manual anchors must expose their active location");
+assert.match(siteCss, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*scroll-behavior:\s*auto/, "smooth anchor scrolling must respect reduced motion");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createBlocksSystem\([\s\S]*createBlocksSystem\(/, "the experimental manual must not create a nested blocks system");
 const manualFormPositions = [
   'id: "manual-cycle"',

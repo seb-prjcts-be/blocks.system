@@ -494,7 +494,13 @@ van de drie canonieke surfaces bevat een genest of getekend grid.
 - vrije celplaatsing alleen als de donor veilig in echte blockcontrollers kan
   landen.
 
-**Gate:** alle interactiecontracten slagen in echte Chrome en zonder muis.
+**Gate: geslaagd op 2 augustus 2026.** Pointerdrag en touch blijven het
+bestaande headercontract gebruiken; gefocuste headers herschikken met de vier
+pijltjestoetsen en krijgen hetzelfde volledige kader. Lock/reset, actieve
+anchors, canvas-resize en pause-on-minimize/remove/page-exit zijn in echte
+Chrome getest. Een vrije-celmodus wordt bewust niet publiek beloofd: expliciete
+`place(x, y)`-coordinaten blijven de deterministische laag tot collision- en
+toetsenbordgedrag voor vrije cellen even sterk bewezen zijn.
 
 ### Fase 5 — Parallelle vergelijking
 
