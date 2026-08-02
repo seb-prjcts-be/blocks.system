@@ -1,10 +1,5 @@
 .examples-page {
-  --accent-red: rgb(255, 0, 0);
-  --accent-green: rgb(0, 255, 0);
-  --accent-blue: rgb(0, 0, 255);
-  --accent-cyan: rgb(0, 255, 255);
   --accent-magenta: rgb(255, 0, 255);
-  --accent-yellow: rgb(255, 255, 0);
   --examples-paper: #efeee8;
   --examples-field: #d9d8d2;
   background: var(--examples-field);
@@ -34,22 +29,6 @@
   display: flex;
   align-items: baseline;
   gap: 12px;
-}
-
-.examples-page .docs-board-heading::after {
-  position: absolute;
-  bottom: -7px;
-  left: 0;
-  width: 84px;
-  height: 3px;
-  background: linear-gradient(90deg,
-    var(--accent-red) 0 16.66%,
-    var(--accent-green) 16.66% 33.32%,
-    var(--accent-blue) 33.32% 49.98%,
-    var(--accent-cyan) 49.98% 66.64%,
-    var(--accent-magenta) 66.64% 83.3%,
-    var(--accent-yellow) 83.3% 100%);
-  content: "";
 }
 
 .examples-page .docs-board-kicker {
@@ -88,10 +67,6 @@
   text-transform: uppercase;
 }
 
-.examples-manifesto span:nth-child(1)::first-letter { color: var(--accent-red); }
-.examples-manifesto span:nth-child(2)::first-letter { color: var(--accent-blue); }
-.examples-manifesto span:nth-child(3)::first-letter { color: var(--accent-cyan); }
-
 .examples-page .docs-board-controls {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -113,10 +88,6 @@
   background: var(--examples-paper);
   font-weight: 500;
 }
-
-.examples-page .docs-board-controls button:nth-child(2) { border-bottom: 3px solid var(--accent-yellow); }
-.examples-page .docs-board-controls label:nth-child(3) { border-bottom: 3px solid var(--accent-green); }
-.examples-page .docs-board-controls label:nth-child(4) { border-bottom: 3px solid var(--accent-cyan); }
 
 .examples-page .docs-board-controls button:hover,
 .examples-page .docs-board-controls button:focus-visible,
@@ -161,7 +132,6 @@ example-signal {
   align-content: space-between;
   gap: 5px;
   padding: 11px;
-  border-top: 3px solid var(--accent-yellow);
 }
 
 .examples-intro small,
@@ -321,7 +291,7 @@ example-signal {
 }
 
 .adapter-live-root output {
-  color: var(--accent-blue);
+  color: var(--ink);
   font: 600 clamp(1.8rem, 3.5vw, 3.25rem)/0.85 "Instrument Sans", sans-serif;
 }
 
@@ -329,7 +299,6 @@ example-signal {
   grid-column: 1 / -1;
   min-height: 25px;
   border: 1px solid var(--ink);
-  border-bottom: 3px solid var(--accent-green);
   border-radius: 0;
   background: var(--examples-paper);
   color: var(--ink);

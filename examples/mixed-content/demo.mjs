@@ -1,13 +1,6 @@
 import { system as blocks } from "../../blocks.system.mjs";
 
-const colors = [
-  [255, 0, 0],
-  [0, 255, 0],
-  [0, 0, 255],
-  [0, 255, 255],
-  [255, 0, 255],
-  [255, 255, 0]
-];
+const accent = [255, 0, 255];
 
 blocks.attach("#field");
 blocks.setGrid(3, 2);
@@ -23,7 +16,7 @@ blockCanvasNode.height = 180;
 const context = blockCanvasNode.getContext("2d");
 context.fillStyle = "#f5f5f2";
 context.fillRect(0, 0, blockCanvasNode.width, blockCanvasNode.height);
-context.strokeStyle = `rgb(${colors[2].join(", ")})`;
+context.strokeStyle = `rgb(${accent.join(", ")})`;
 context.lineWidth = 4;
 context.beginPath();
 for (let x = 0; x <= blockCanvasNode.width; x += 3) {
@@ -34,7 +27,6 @@ for (let x = 0; x <= blockCanvasNode.width; x += 3) {
 context.stroke();
 const blockCanvas = blocks.add(blockCanvasNode, { id: "canvas" });
 blockCanvas.menu("canvas", true);
-blockCanvas.color = `rgb(${colors[2].join(", ")})`;
 
 if (!customElements.get("example-dot")) {
   customElements.define("example-dot", class extends HTMLElement {
@@ -45,6 +37,5 @@ if (!customElements.get("example-dot")) {
 }
 const blockCustom = blocks.add(document.createElement("example-dot"), { id: "custom-element" });
 blockCustom.menu("custom element", true);
-blockCustom.color = `rgb(${colors[4].join(", ")})`;
 
 document.querySelector("#field").setAttribute("data-example-ready", "true");

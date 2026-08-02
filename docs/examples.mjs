@@ -1,8 +1,8 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
-import { createDocsBoard, nodeFromHtml } from "./board.mjs?v=0.1.0";
+import { createDocsBoard, nodeFromHtml } from "./board.mjs?v=0.1.1";
 
 const examplesSystem = createBlocksSystem({ variant: "regular" });
-const examplesBoard = createDocsBoard({ system: examplesSystem });
+const examplesBoard = createDocsBoard({ system: examplesSystem, closeable: true });
 const { addBlock } = examplesBoard;
 
 addBlock({
@@ -23,7 +23,7 @@ for (const spec of [
   { id: "basic-1", title: "01.1 / html", place: [3, 1] },
   { id: "basic-2", title: "01.2 / minimized", place: [4, 1], minimized: true },
   { id: "basic-3", title: "01.3 / movable", place: [3, 2] },
-  { id: "basic-4", title: "01.4 / variant", place: [4, 2], variant: "red" }
+  { id: "basic-4", title: "01.4 / variant", place: [4, 2], variant: "magenta" }
 ]) {
   const number = spec.id.at(-1);
   addBlock({
@@ -61,9 +61,9 @@ const canvas = document.createElement("canvas");
 canvas.width = 240;
 canvas.height = 140;
 const context = canvas.getContext("2d");
-context.fillStyle = "rgb(0, 0, 255)";
+context.fillStyle = "#efeee8";
 context.fillRect(0, 0, canvas.width, canvas.height);
-context.strokeStyle = "#fff";
+context.strokeStyle = "rgb(255, 0, 255)";
 context.lineWidth = 3;
 context.beginPath();
 for (let x = 0; x <= canvas.width; x += 3) {
@@ -77,7 +77,6 @@ addBlock({
   title: "02.2 / canvas",
   span: [2, 2],
   place: [6, 1],
-  variant: "blue",
   content: canvas
 });
 
@@ -93,7 +92,6 @@ addBlock({
   title: "02.3 / element",
   span: [1, 2],
   place: [8, 1],
-  variant: "magenta",
   content: document.createElement("example-signal")
 });
 

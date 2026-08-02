@@ -11,9 +11,23 @@
   --muted: #666;
   --line: rgba(0, 0, 0, 0.2);
   --line-hard: rgba(0, 0, 0, 0.72);
+  color-scheme: light;
+  scrollbar-color: rgba(17, 17, 17, 0.58) transparent;
+  scrollbar-width: thin;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
+* { scrollbar-color: rgba(17, 17, 17, 0.58) transparent; scrollbar-width: thin; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  min-height: 28px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.58);
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background-color: rgba(17, 17, 17, 0.82); }
 html { scroll-behavior: smooth; }
 body {
   margin: 0;
@@ -109,6 +123,10 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Instrumen
 .button:hover { background: #333; }
 .button-light { border-color: white; background: white; color: var(--ink); }
 .button-light:hover { background: var(--paper-2); }
+
+@media (forced-colors: active) {
+  :root, * { scrollbar-color: auto; }
+}
 .text-link { text-underline-offset: 0.25em; }
 
 .section { padding: 6rem 2rem; scroll-margin-top: 56px; }

@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
-import { nodeFromHtml } from "./board.mjs?v=0.1.0";
+import { nodeFromHtml } from "./board.mjs?v=0.1.1";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");
@@ -27,7 +27,7 @@ addBlock({
   title: "form / circle",
   span: [2, 2],
   content: nodeFromHtml(`
-    <div class="manual-form-stage" role="img" aria-label="Red circle: live state, cycle and interaction">
+    <div class="manual-form-stage" role="img" aria-label="Magenta circle: live state, cycle and interaction">
       <div class="manual-circle" aria-hidden="true"></div>
     </div>
   `)
@@ -49,7 +49,7 @@ addBlock({
   title: "form / triangle",
   span: [2, 2],
   content: nodeFromHtml(`
-    <div class="manual-form-stage" role="img" aria-label="Blue triangle: direction, action and next step">
+    <div class="manual-form-stage" role="img" aria-label="Black triangle: direction, action and next step">
       <div class="manual-triangle" aria-hidden="true"></div>
     </div>
   `)
@@ -113,7 +113,6 @@ const blockCanvas = addBlock({
   id: "manual-canvas",
   title: "canvas / resize observer",
   span: [2, 1],
-  variant: "blue",
   content: canvas
 });
 
@@ -126,16 +125,18 @@ function drawCanvas() {
   canvas.height = Math.round(height * scale);
   const context = canvas.getContext("2d");
   context.setTransform(scale, 0, 0, scale, 0, 0);
-  context.fillStyle = "rgb(0, 0, 255)";
+  context.fillStyle = "#efeee8";
   context.fillRect(0, 0, width, height);
-  context.strokeStyle = "#fff";
-  context.fillStyle = "#fff";
+  context.strokeStyle = "#000";
+  context.fillStyle = "#000";
   context.lineWidth = 2;
   const size = Math.min(width, height) * 0.36;
   context.strokeRect(width * 0.08, height * 0.24, size, size);
   context.beginPath();
   context.arc(width * 0.58, height * 0.5, size * 0.5, 0, Math.PI * 2);
-  context.stroke();
+  context.fillStyle = "rgb(255, 0, 255)";
+  context.fill();
+  context.fillStyle = "#000";
   context.beginPath();
   context.moveTo(width * 0.82, height * 0.22);
   context.lineTo(width * 0.95, height * 0.78);
@@ -151,7 +152,6 @@ addBlock({
   id: "manual-compose",
   title: "03 / compose",
   span: [2, 2],
-  variant: "yellow",
   content: nodeFromHtml(`
     <div class="manual-grid-language">
       <div><small>size</small><strong>span</strong><code>block.span(x, y)</code></div>
@@ -186,7 +186,6 @@ addBlock({
   id: "manual-connect",
   title: "04 / connect",
   span: [2, 2],
-  variant: "cyan",
   content: adapterHost
 });
 await blocks.mount("manual-live-counter", adapterHost);
@@ -224,7 +223,7 @@ addBlock({
 .blocks-system-content
 
 [data-block-object="block-id"]
-[data-block-variant="blue"]
+[data-block-variant="magenta"]
 [data-block-minimized="true"]
 [data-draggable="true"]</code></pre>
     </div>

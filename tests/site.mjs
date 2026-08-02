@@ -121,6 +121,13 @@ assert.match(libraryCss, /data-block-minimized="true"[^}]*align-self:\s*start;[^
 assert.match(libraryCss, /data-block-minimized="true"\]\s+\.blocks-system-content\s*\{[^}]*display:\s*none;/s, "a minimized block must show only its menu");
 assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "the base block stylesheet must remain separate from motion");
 assert.match(libraryCss, /\.blocks-system-surface\[data-draggable="true"\]\s+\.blocks-system-object:hover\s*\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*-3px;/s, "draggable blocks must expose a full non-layout-shifting hover frame");
+for (const [name, css] of [["docs", siteCss], ["standalone examples", exampleCss]]) {
+  assert.match(css, /scrollbar-color:\s*rgba\(17, 17, 17, 0\.58\) transparent;/, `${name} must use the shared neutral OS-like scrollbar`);
+  assert.match(css, /scrollbar-width:\s*thin;/, `${name} must keep vertical scrollbars thin`);
+  assert.match(css, /::-webkit-scrollbar-thumb\s*\{[^}]*border-radius:\s*999px;[^}]*background-clip:\s*content-box;/s, `${name} must expose the rounded overlay thumb in Chromium`);
+  assert.match(css, /@media \(forced-colors:\s*active\)[\s\S]*scrollbar-color:\s*auto;/, `${name} must restore native forced-colors scrollbars`);
+  assert.doesNotMatch(css, /scrollbar-(?:color|thumb)[^;}]*magenta|::-webkit-scrollbar-thumb\s*\{[^}]*255, 0, 255/s, `${name} must keep scrollbars neutral`);
+}
 for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "yellow"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
@@ -134,7 +141,7 @@ assert.match(siteCss, /@media \(max-width: 560px\)[\s\S]*--block-column:\s*auto 
 assert.ok(siteDemos["demo.mjs"].includes("blocks.setGrid(8, 4)"), "the showcase must expose the original eight-column rhythm");
 assert.ok(siteDemos["demo.mjs"].includes("blockCanvas.span(2, 1)"), "the showcase must demonstrate a wider block");
 assert.ok(siteDemos["demo.mjs"].includes("blockCustom.span(2, 2)"), "the showcase must demonstrate a taller block");
-assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes('blockItem.variant = "red"'), "the basic grid must demonstrate an explicit built-in variant");
+assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes('blockItem.variant = "magenta"'), "the basic grid must demonstrate magenta as its single explicit variant");
 assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes("blockItem.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
 assert.ok(["blockHtml.place(1, 1)", "blockCanvas.place(3, 2)", "blockCustom.place(7, 1)", "blockControls.place(5, 4)"].every(function (line) { return siteDemos["demo.mjs"].includes(line); }), "the showcase must preserve deliberate empty grid cells");
 assert.match(systemHtml, /<option value="8,6" selected>8 × 6<\/option>/, "the docs prototype must start from the reference eight-by-six board");
@@ -152,15 +159,19 @@ assert.match(examplesHtml, /<body class="docs-board-body examples-page">/, "the 
 assert.match(examplesHtml, /<h1 id="examples-title"><span>examples<\/span><em>small systems, clearly seen\.<\/em><\/h1>/, "the examples masthead must remain a restrained typographic statement");
 assert.match(examplesHtml, /13 blocks · 1 minimized/, "the flat examples board must expose all direct blocks in its initial status");
 assert.match(examplesHtml, /start → combine → extend \/ 13 grid cells intentionally empty/, "the examples footer must name the deliberate empty grid space");
-for (const color of ["rgb(255, 0, 0)", "rgb(0, 255, 0)", "rgb(0, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)"]) {
-  assert.ok(examplesCss.includes(color), `the agreed RGB/CMY composition misses ${color}`);
+assert.match(examplesCss, /--accent-magenta:\s*rgb\(255, 0, 255\);/, "the examples composition must expose magenta as its one accent");
+for (const color of ["rgb(255, 0, 0)", "rgb(0, 255, 0)", "rgb(0, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"]) {
+  assert.ok(!examplesCss.includes(color) && !siteDemos["docs/examples.mjs"].includes(color), `the examples composition combines magenta with ${color}`);
 }
 assert.match(examplesCss, /\.examples-page \.docs-board-toolbar\s*\{[^}]*grid-template-columns:[^}]*border-bottom:\s*1px solid var\(--ink\);/s, "the examples masthead must keep its quiet asymmetric construction line");
 assert.match(examplesCss, /\.examples-board\s*\{[^}]*--blocks-gap:\s*6px;[^}]*border:\s*1px solid var\(--ink\);/s, "the examples board must keep the restrained system grid");
 assert.ok(["the grid is a decision.", "content is content.", "extend the contract. not the core."].every(function (statement) {
   return siteDemos["docs/examples.mjs"].includes(statement);
 }), "each learning path must carry its own statement");
-assert.match(siteDemos["docs/examples.mjs"], /id:\s*"mixed-custom"[\s\S]*?variant:\s*"magenta"/, "the mixed example must retain the agreed magenta content variant");
+assert.match(siteDemos["docs/examples.mjs"], /id:\s*"basic-4"[\s\S]*?variant:\s*"magenta"/, "the examples page must use magenta for its single variant proof");
+assert.match(siteDemos["docs/examples.mjs"], /createDocsBoard\(\{ system: examplesSystem, closeable: true \}\)/, "the examples page must expose the real close control on every block");
+assert.match(siteDemos["docs/board.mjs"], /if \(!blocks\[index\]\?\.element\.isConnected\) mountBlock\(spec, index\);/, "docs reset must remount a block removed by its close control");
+assert.match(siteDemos["docs/board.mjs"], /blocks\.forEach\(\(block\) => board\.appendChild\(block\.element\)\);/, "docs reset must restore the canonical DOM reading order after close");
 assert.doesNotMatch(examplesCss, /--statement-accent|border-left:\s*5px/, "example blocks must not contain vertical color strips");
 assert.doesNotMatch(libraryCss, /\.docs-board-surface|\.system-board|\.examples-board/, "the reusable library stylesheet must not absorb docs page composition");
 assert.doesNotMatch(examplesHtml, /<iframe\b/i, "the examples index must use live systems instead of passive iframe cards");
@@ -200,8 +211,12 @@ for (const formClass of ["manual-circle", "manual-rectangle", "manual-triangle"]
 }
 assert.match(manualCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;/s, "long code must scroll inside its own block");
 assert.match(manualCss, /\.manual-rectangle\s*\{[^}]*background:\s*#000;/s, "the Munari rectangle must remain black");
-assert.match(manualCss, /\.manual-circle\s*\{[^}]*background:\s*rgb\(255, 0, 0\);/s, "the Munari circle must remain red");
-assert.match(manualCss, /\.manual-triangle\s*\{[^}]*background:\s*rgb\(0, 0, 255\);/s, "the Munari triangle must remain blue");
+assert.match(manualCss, /--manual-accent:\s*rgb\(255, 0, 255\);/, "the manual must define magenta as its one accent");
+assert.match(manualCss, /\.manual-circle\s*\{[^}]*background:\s*var\(--manual-accent\);/s, "the Munari circle must carry the isolated magenta accent");
+assert.match(manualCss, /\.manual-triangle\s*\{[^}]*background:\s*#000;/s, "the Munari triangle must remain neutral black");
+for (const color of ["rgb(255, 0, 0)", "rgb(0, 255, 0)", "rgb(0, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"]) {
+  assert.ok(!manualCss.includes(color) && !siteDemos["docs/manual.mjs"].includes(color), `the manual combines magenta with ${color}`);
+}
 assert.match(manualCss, /\.manual-media video\s*\{[^}]*object-fit:\s*contain;/s, "video must use an explicit contain prototype");
 assert.match(manualCss, /@media \(max-width: 900px\)[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/, "the experimental manual must collapse to three tablet columns");
 assert.match(manualCss, /@media \(max-width: 560px\)[\s\S]*grid-template-columns:\s*1fr;/, "the experimental manual must collapse to one mobile column");

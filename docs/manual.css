@@ -1,6 +1,7 @@
 .manual-page {
   --manual-field: #d9d8d2;
   --manual-paper: #efeee8;
+  --manual-accent: rgb(255, 0, 255);
   --manual-row: 132px;
   background: var(--manual-field);
 }
@@ -174,13 +175,13 @@
   height: min(65%, 160px);
   aspect-ratio: 1;
   border-radius: 50%;
-  background: rgb(255, 0, 0);
+  background: var(--manual-accent);
 }
 
 .manual-triangle {
   height: min(78%, 190px);
   aspect-ratio: 1;
-  background: rgb(0, 0, 255);
+  background: #000;
   clip-path: polygon(50% 3%, 97% 93%, 3% 93%);
 }
 

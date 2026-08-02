@@ -232,6 +232,7 @@ async function measureExamples(width, height) {
       });
       const links = Array.from(board.querySelectorAll(".example-actions a, .examples-next a"));
       const controls = Array.from(document.querySelectorAll(".docs-board-controls button, .docs-board-controls label, .docs-board-controls select"));
+      const rootStyle = getComputedStyle(document.documentElement);
       return {
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         documentHeight: document.documentElement.scrollHeight,
@@ -245,6 +246,9 @@ async function measureExamples(width, height) {
             statement.scrollWidth > statement.clientWidth + 1 || statement.scrollHeight > statement.clientHeight + 1;
         }).map(function ({ block }) { return block.dataset.blockObject; }),
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
+        closeButtons: board.querySelectorAll(":scope > .blocks-system-object .blocks-system-close").length,
+        scrollbarWidth: rootStyle.scrollbarWidth,
+        scrollbarColor: rootStyle.scrollbarColor,
         hiddenActions: links.filter(function (link) {
           const rect = link.getBoundingClientRect();
           return rect.width < 1 || rect.height < 1 || getComputedStyle(link).visibility === "hidden";
@@ -288,6 +292,20 @@ async function exerciseExamples() {
       boardSize.dispatchEvent(new Event("change", { bubbles: true }));
       const changedStatus = document.querySelector("#board-status").textContent;
       document.querySelector("#reset-board").click();
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
+      const close = board.querySelector('[data-block-object="basic-1"] .blocks-system-close');
+      close.click();
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
+      const closedCount = board.querySelectorAll(":scope > .blocks-system-object").length;
+      const closedStatus = document.querySelector("#board-status").textContent;
+      document.querySelector("#reset-board").click();
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
       return {
         incremented,
         allMinimized,
@@ -295,6 +313,14 @@ async function exerciseExamples() {
         changedStatus,
         resetDensity: density.value,
         resetBoard: boardSize.value,
+        closedCount,
+        closedStatus,
+        restoredCount: board.querySelectorAll(":scope > .blocks-system-object").length,
+        restoredCloseButtons: board.querySelectorAll(":scope > .blocks-system-object .blocks-system-close").length,
+        restoredStatus: document.querySelector("#board-status").textContent,
+        restoredOrder: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
+          return block.dataset.blockObject;
+        }),
         resetMinimized: Array.from(board.querySelectorAll(':scope > .blocks-system-object[data-block-minimized="true"]')).map(function (block) {
           return block.dataset.blockObject;
         })
@@ -330,6 +356,7 @@ async function measureManual(width, height) {
       const video = board.querySelector(".manual-media video");
       const videoRect = video.getBoundingClientRect();
       const code = board.querySelector(".manual-code");
+      const rootStyle = getComputedStyle(document.documentElement);
       const formBlocks = ["manual-cycle", "manual-rectangle", "manual-direction"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         const blockRect = block.getBoundingClientRect();
@@ -363,6 +390,8 @@ async function measureManual(width, height) {
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
         draggable: board.dataset.draggable,
         codeOverflow: getComputedStyle(code).overflowX,
+        scrollbarWidth: rootStyle.scrollbarWidth,
+        scrollbarColor: rootStyle.scrollbarColor,
         formBlocks,
         canvas: {
           cssWidth: canvasRect.width,
@@ -521,6 +550,9 @@ try {
     assert.deepEqual(examples.outsideBoard, [], `examples plaatst blocks buiten het board op ${width}px: ${examples.outsideBoard.join(", ")}`);
     assert.deepEqual(examples.clippedStatements, [], `examples knipt statements af op ${width}px: ${examples.clippedStatements.join(", ")}`);
     assert.equal(examples.nestedSurfaces, 0, `examples bevat opnieuw ${examples.nestedSurfaces} geneste blocks-grids op ${width}px`);
+    assert.equal(examples.closeButtons, 13, `examples toont ${examples.closeButtons} in plaats van 13 ×-sluitknoppen op ${width}px`);
+    assert.equal(examples.scrollbarWidth, "thin", `examples gebruikt geen dunne OS-scrollbar op ${width}px`);
+    assert.match(examples.scrollbarColor, /rgba\(17, 17, 17, 0\.58\)/, `examples gebruikt geen neutrale scrollbar op ${width}px`);
     assert.deepEqual(examples.hiddenActions, [], `examples verbergt acties op ${width}px: ${examples.hiddenActions.join(", ")}`);
     assert.deepEqual(examples.clippedControls, [], `examples knipt controls af op ${width}px: ${examples.clippedControls.join(", ")}`);
     assert.deepEqual(examples.routeBorderWidths, ["0px", "0px", "0px", "0px"], `examples toont opnieuw verticale kleurstroken op ${width}px`);
@@ -537,6 +569,12 @@ try {
   assert.equal(examplesInteraction.resetDensity, "normal", "examples reset herstelt density niet");
   assert.equal(examplesInteraction.resetBoard, "8,6", "examples reset herstelt board niet");
   assert.deepEqual(examplesInteraction.resetMinimized, ["basic-2"], "examples reset herstelt de directe minimized-demo niet");
+  assert.equal(examplesInteraction.closedCount, 12, "de ×-sluitknop verwijdert het gekozen voorbeeldblock niet");
+  assert.match(examplesInteraction.closedStatus, /12 blocks/, "examples status volgt een gesloten block niet");
+  assert.equal(examplesInteraction.restoredCount, 13, "reset bouwt een gesloten voorbeeldblock niet opnieuw op");
+  assert.equal(examplesInteraction.restoredCloseButtons, 13, "een hersteld voorbeeldblock verliest zijn ×-sluitknop");
+  assert.match(examplesInteraction.restoredStatus, /13 blocks · 1 minimized/, "reset herstelt de oorspronkelijke examples status niet");
+  assert.deepEqual(examplesInteraction.restoredOrder.slice(0, 5), ["learning-path", "basic-1", "basic-2", "basic-3", "basic-4"], "reset herstelt de canonieke examples leesvolgorde niet");
 
   await navigateTo(`${pageUrl}docs/manual.html`);
   const manualWidths = [[1280, 720, 6], [800, 900, 3], [390, 844, 1]];
@@ -553,7 +591,9 @@ try {
     assert.equal(manual.draggable, "true", `manual start niet versleepbaar op ${width}px`);
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
     assert.deepEqual(manual.formBlocks.map(function (form) { return form.id; }), ["manual-cycle", "manual-rectangle", "manual-direction"], `manual verliest de vormvolgorde op ${width}px`);
-    assert.deepEqual(manual.formBlocks.map(function (form) { return form.color; }), ["rgb(255, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 255)"], `manual verliest de primaire vormkleuren op ${width}px`);
+    assert.deepEqual(manual.formBlocks.map(function (form) { return form.color; }), ["rgb(255, 0, 255)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual verliest magenta als enige vormaccent op ${width}px`);
+    assert.equal(manual.scrollbarWidth, "thin", `manual gebruikt geen dunne OS-scrollbar op ${width}px`);
+    assert.match(manual.scrollbarColor, /rgba\(17, 17, 17, 0\.58\)/, `manual gebruikt geen neutrale scrollbar op ${width}px`);
     if (width > 560) {
       assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockTop; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockTop; })) <= 0.5, `manual zet de drie vormen niet op één rij op ${width}px`);
       assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockWidth; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockWidth; })) <= 0.5, `manual geeft de drie vormvelden geen gelijke breedte op ${width}px`);

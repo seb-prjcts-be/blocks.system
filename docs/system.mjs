@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
-import { createDocsBoard, nodeFromHtml } from "./board.mjs?v=0.1.0";
+import { createDocsBoard, nodeFromHtml } from "./board.mjs?v=0.1.1";
 
 const docsSystem = createBlocksSystem({ variant: "random" });
 const docsBoard = createDocsBoard({ system: docsSystem });

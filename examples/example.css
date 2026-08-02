@@ -1,7 +1,24 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Oswald:wght@400;500;600&display=swap");
 
 * { box-sizing: border-box; }
-html, body { min-height: 100%; }
+html {
+  min-height: 100%;
+  color-scheme: light;
+  scrollbar-color: rgba(17, 17, 17, 0.58) transparent;
+  scrollbar-width: thin;
+}
+body { min-height: 100%; }
+* { scrollbar-color: rgba(17, 17, 17, 0.58) transparent; scrollbar-width: thin; }
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  min-height: 28px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.58);
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-thumb:hover { background-color: rgba(17, 17, 17, 0.82); }
 body {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -47,6 +64,10 @@ canvas { width: 100%; height: 100%; }
 example-dot { display: grid; width: 100%; height: 100%; place-content: center; border: 1px dashed currentColor; }
 button { border: 1px solid #111; border-radius: 0; background: #111; color: white; padding: 0.7rem 1rem; cursor: pointer; }
 .example-note { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid #14140f; padding-top: 7px; }
+
+@media (forced-colors: active) {
+  html, * { scrollbar-color: auto; }
+}
 
 @media (max-width: 560px) {
   .example-topbar { align-items: flex-start; flex-direction: column; }
