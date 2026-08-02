@@ -1,6 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
-import { nodeFromHtml } from "./board.mjs?v=0.1.1";
-import { initSectionNavigation, quantizeSurface } from "./shell.mjs?v=0.1.0";
+import { initSectionNavigation, nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.0";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");
@@ -258,7 +257,7 @@ const blockMedia = addBlock({
   span: [3, 2],
   content: nodeFromHtml(`
     <div class="manual-media">
-      <video controls muted preload="none" poster="references/micrographic-drag-snap-reference.png" aria-label="Video content sizing prototype" data-video-lifecycle="pause-on-minimize-remove-pagehide"></video>
+      <video controls muted preload="none" poster="references/media-contract-poster.svg" aria-label="Video content sizing prototype" data-video-lifecycle="pause-on-minimize-remove-pagehide"></video>
       <div>
         <small>natural / contain / cover</small>
         <strong>media keeps its lifecycle.</strong>

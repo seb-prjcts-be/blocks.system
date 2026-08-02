@@ -1,9 +1,7 @@
 # Canoniek inhoudsmanifest
 
-Status: fase 1 voltooid op 2 augustus 2026. Dit bestand bepaalt vóór de
-migratie waar iedere publieke inhoudseenheid thuishoort. Een inhoudseenheid
-heeft exact één canonieke eigenaar; andere routes linken ernaar of worden een
-alias.
+Status: uitgevoerd en geverifieerd op 2 augustus 2026. Een inhoudseenheid heeft
+exact één canonieke eigenaar; andere routes linken ernaar of zijn een alias.
 
 ## Canonieke oppervlakken
 
@@ -205,4 +203,5 @@ HTTP 200 op statische hosting.
 - Verwijderde inhoud is uitsluitend duplicaat, verouderde topologie of een
   ingetrokken kleur-/gridpresentatie.
 
-Daarmee is niets unieks eigenaarloos en heeft niets twee canonieke eigenaars.
+**Gate: geslaagd op 2 augustus 2026.** Niets unieks is eigenaarloos en niets
+heeft twee canonieke eigenaars.

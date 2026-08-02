@@ -1,12 +1,4 @@
-@font-face {
-  font-family: "Instrument Sans";
-  src: url("fonts/InstrumentSans-Variable.woff2") format("woff2");
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-:root { color-scheme: light; font-family: "Instrument Sans", Arial, sans-serif; }
+:root { color-scheme: light; font-family: Arial, sans-serif; }
 * { box-sizing: border-box; }
 body {
   display: grid;

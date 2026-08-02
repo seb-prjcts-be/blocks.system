@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Circle, rectangle and triangle</title>
+  <desc id="desc">Three elementary forms on warm paper, used as a restrained video poster.</desc>
+  <rect width="1600" height="900" fill="#efeee8"/>
+  <rect x="0" y="0" width="1600" height="54" fill="#000"/>
+  <circle cx="390" cy="475" r="150" fill="#ff00ff"/>
+  <rect x="650" y="325" width="300" height="300" fill="#000"/>
+  <path d="M1210 300 1390 625H1030Z" fill="#000"/>
+</svg>

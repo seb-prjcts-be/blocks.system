@@ -1,3 +1,9 @@
+export function nodeFromHtml(html) {
+  const template = document.createElement("template");
+  template.innerHTML = html.trim();
+  return template.content.firstElementChild;
+}
+
 function initNavigation() {
   const navbar = document.querySelector("#navbar");
   const toggle = navbar?.querySelector(".nav-hamburger");

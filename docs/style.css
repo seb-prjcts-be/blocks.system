@@ -1,16 +1,13 @@
 /* Vorige displayfont, bewaard voor een snelle vergelijking of terugkeer:
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@400;500;600&display=swap");
 */
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Inter:wght@400;500;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap");
 
 :root {
   --paper: #f5f5f2;
-  --paper-2: #e9e9e4;
-  --surface: #fff;
   --ink: #111;
   --muted: #666;
   --line: rgba(0, 0, 0, 0.2);
-  --line-hard: rgba(0, 0, 0, 0.72);
   color-scheme: light;
   scrollbar-color: rgba(17, 17, 17, 0.58) transparent;
   scrollbar-width: thin;
@@ -19,7 +16,8 @@
 *, *::before, *::after { box-sizing: border-box; }
 * { scrollbar-color: rgba(17, 17, 17, 0.58) transparent; scrollbar-width: thin; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
-*::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: transparent; }
+*::-webkit-scrollbar-track,
+*::-webkit-scrollbar-corner { background: transparent; }
 *::-webkit-scrollbar-thumb {
   min-height: 28px;
   border: 3px solid transparent;
@@ -28,21 +26,17 @@
   background-clip: content-box;
 }
 *::-webkit-scrollbar-thumb:hover { background-color: rgba(17, 17, 17, 0.82); }
-html { scroll-behavior: smooth; }
 
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-}
+html { scroll-behavior: smooth; }
 body {
   margin: 0;
   overflow-x: hidden;
   background: var(--paper);
   color: var(--ink);
-  font: 400 16px/1.65 "Inter", "Segoe UI", sans-serif;
+  font: 400 16px/1.65 "Instrument Sans", "Segoe UI", sans-serif;
 }
 a { color: inherit; }
 code, pre { font-family: "Consolas", "Courier New", monospace; }
-h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Instrument Sans", sans-serif; }
 
 #navbar {
   position: fixed;
@@ -57,6 +51,7 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Instrumen
   background: rgba(245, 245, 242, 0.92);
   backdrop-filter: blur(10px);
 }
+
 .nav-logo {
   border-bottom: 2px solid transparent;
   font-size: 1.25rem;
@@ -70,215 +65,54 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Instrumen
 .nav-links a {
   border-bottom: 2px solid transparent;
   color: var(--muted);
-  font-family: "Instrument Sans", sans-serif;
   font-size: 0.86rem;
   font-weight: 500;
   letter-spacing: 0.05em;
   text-decoration: none;
 }
-.nav-links a:hover, .nav-links a.active { border-color: var(--ink); color: var(--ink); }
+.nav-links a:hover,
+.nav-links a.active { border-color: var(--ink); color: var(--ink); }
 .nav-hamburger { display: none; border: 0; background: transparent; padding: 0.35rem; }
-.nav-hamburger span { display: block; width: 22px; height: 2px; margin: 4px; background: var(--ink); transition: 0.2s; }
+.nav-hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  margin: 4px;
+  background: var(--ink);
+  transition: transform 0.2s, opacity 0.2s;
+}
 .nav-open .nav-hamburger span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 .nav-open .nav-hamburger span:nth-child(2) { opacity: 0; }
 .nav-open .nav-hamburger span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
-#hero {
-  position: relative;
-  display: grid;
-  min-height: 100vh;
-  place-items: center;
-  overflow: hidden;
-  padding: 7rem 2rem 4rem;
+footer {
+  border-top: 1px solid var(--line);
+  color: var(--muted);
 }
-.hero-grid {
-  position: absolute;
-  inset: 56px 0 0;
-  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
-  background-size: min(12.5vw, 150px) min(12.5vw, 150px);
-  mask-image: radial-gradient(circle, #000 5%, transparent 70%);
-}
-.hero-text { position: relative; width: 100%; min-width: 0; max-width: 980px; text-align: center; }
-.eyebrow, .section-tag {
-  display: inline-block;
-  margin: 0 0 1.1rem;
-  padding: 0.25rem 0.75rem;
-  border: 1px solid var(--line-hard);
-  font-size: 0.76rem;
-  letter-spacing: 0.09em;
-}
-.hero-text h1 { margin: 0; font-size: clamp(4rem, 13vw, 10rem); font-weight: 500; letter-spacing: -0.045em; line-height: 0.9; }
-.hero-sub { max-width: 760px; margin: 1.5rem auto 2rem; color: var(--muted); font-size: clamp(1rem, 2vw, 1.2rem); }
-.hero-stats { display: flex; justify-content: center; gap: clamp(1.4rem, 6vw, 4.5rem); margin: 2rem 0 2.5rem; }
-.hero-stats div { display: flex; flex-direction: column; }
-.hero-stats strong { font: 600 2rem/1 "Instrument Sans", sans-serif; }
-.hero-stats span { color: var(--muted); font-size: 0.7rem; }
-
-.button {
-  display: inline-block;
-  padding: 0.78rem 1.5rem;
-  border: 1px solid var(--ink);
-  background: var(--ink);
-  color: white;
-  font-size: 0.86rem;
-  letter-spacing: 0.05em;
-  text-decoration: none;
-}
-.button:hover { background: #333; }
-.button-light { border-color: white; background: white; color: var(--ink); }
-.button-light:hover { background: var(--paper-2); }
-
-@media (forced-colors: active) {
-  :root, * { scrollbar-color: auto; }
-}
-.text-link { text-underline-offset: 0.25em; }
-
-.section { padding: 6rem 2rem; scroll-margin-top: 56px; }
-.section-muted { border-block: 1px solid var(--line); background: var(--paper-2); }
-.section-ink { background: var(--ink); color: white; }
-.section-heading { max-width: 740px; margin: 0 auto 3rem; text-align: center; }
-.section-heading h1, .section-heading h2 { margin: 0 0 1rem; font-size: clamp(2.3rem, 6vw, 4rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
-.section-heading p { margin: 0; color: var(--muted); }
-.section-ink .section-heading p { color: #aaa; }
-.section-ink .section-tag { border-color: #777; color: #bbb; }
-
-.demo-layout { display: grid; grid-template-columns: 250px minmax(0, 746px); justify-content: center; gap: 1.5rem; max-width: 1020px; margin: 0 auto; }
-.control-panel { align-self: start; display: grid; gap: 1rem; padding: 1.25rem; border: 1px solid var(--line); background: var(--surface); }
-.control-panel label { display: grid; gap: 0.35rem; font-size: 0.78rem; }
-.control-panel output { justify-self: end; margin-top: -1.6rem; font-family: "Consolas", monospace; }
-.control-panel input[type="range"] { width: 100%; accent-color: var(--ink); }
-.control-panel .check-row { display: flex; align-items: center; }
-.control-panel pre { margin: 0; overflow-x: auto; padding: 0.8rem; background: #faf8f3; font-size: 0.68rem; line-height: 1.55; }
-#field {
-  /* Demo content needs 22px for its menu plus usable controls/content space. */
-  --blocks-demo-row-size: 110px;
-  height: auto;
-  min-height: 0;
-  background-image:
-    linear-gradient(to right, rgba(0, 0, 0, 0.16) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 1px, transparent 1px);
-  background-size:
-    calc((100% + var(--blocks-gap)) / var(--blocks-columns))
-    calc((100% + var(--blocks-gap)) / var(--blocks-rows));
-}
-#field.blocks-system-surface[data-snap="true"] {
-  grid-template-rows: repeat(var(--blocks-rows), var(--blocks-demo-row-size));
-}
-.demo-copy, system-badge { display: grid; width: 100%; height: 100%; place-content: center; text-align: center; }
-.demo-copy strong, system-badge strong { font: 600 1.25rem "Instrument Sans", sans-serif; }
-.demo-copy small, system-badge small { color: var(--muted); font-size: 0.7rem; }
-#field [data-block-object="canvas"] .blocks-system-content { position: relative; }
-.demo-canvas {
-  position: absolute;
-  inset: var(--blocks-content-padding);
-  width: calc(100% - 2 * var(--blocks-content-padding));
-  height: calc(100% - 2 * var(--blocks-content-padding));
-  max-width: none;
-  max-height: none;
-  object-fit: cover;
-}
-.native-controls { display: grid; gap: 3px; align-content: center; height: 100%; min-height: 0; max-height: 100%; }
-.native-controls label { display: grid; grid-template-columns: 2.5rem 1fr; gap: 3px; align-items: center; font-size: 9px; }
-.native-controls input, .native-controls button { width: 100%; }
-
-.split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr); gap: 2rem; max-width: 1100px; margin: auto; }
-.code-block { margin: 0; overflow-x: auto; padding: 1.5rem; border: 1px solid var(--line); background: #faf8f3; color: #111; font-size: 0.86rem; line-height: 1.7; }
-.principles { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
-.principles article { position: relative; padding: 1.25rem 1.25rem 1.25rem 4rem; background: var(--surface); }
-.principles span { position: absolute; left: 1.2rem; top: 1.35rem; color: var(--muted); font-family: "Consolas", monospace; }
-.principles h3 { margin: 0 0 0.35rem; font-size: 1.15rem; font-weight: 600; }
-.principles p { margin: 0; color: var(--muted); font-size: 0.9rem; }
-.link-row { display: flex; align-items: center; justify-content: center; gap: 2rem; }
-
-.page { max-width: 1000px; margin: auto; padding: 8rem 2rem 5rem; }
-.page-wide { max-width: 1200px; }
-.page-header { margin-bottom: 3rem; text-align: center; }
-.page-header h1 { margin: 0 0 0.8rem; font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 500; letter-spacing: -0.035em; line-height: 0.95; }
-.page-header p { max-width: 680px; margin: auto; color: var(--muted); }
-.docs h2 { margin: 3.5rem 0 0.8rem; padding-bottom: 0.35rem; border-bottom: 2px solid var(--ink); font-size: 1.65rem; font-weight: 600; }
-.docs h3 { margin: 2rem 0 0.5rem; font-size: 1.15rem; font-weight: 600; }
-.docs p { color: var(--muted); }
-.docs :not(pre) > code { padding: 0.08em 0.32em; background: #e7e5df; font-size: 0.9em; }
-.callout { margin: 1.2rem 0; padding: 1rem 1.2rem; border-left: 3px solid var(--ink); background: var(--paper-2); }
-.callout p { margin: 0; }
-.steps { counter-reset: step; padding: 0; list-style: none; }
-.steps li { counter-increment: step; display: grid; grid-template-columns: 2rem 1fr; gap: 0.8rem; margin: 1rem 0; }
-.steps li::before { content: counter(step); display: grid; width: 2rem; height: 2rem; place-items: center; background: var(--ink); color: white; font-family: "Instrument Sans", sans-serif; }
-
-.docs-pagination {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  margin: 0 0 3rem;
-  border: 1px solid var(--line-hard);
-}
-.docs-pagination a {
-  display: grid;
-  gap: 0.1rem;
-  padding: 0.8rem 1rem;
-  border-right: 1px solid var(--line-hard);
-  text-decoration: none;
-}
-.docs-pagination a:last-child { border-right: 0; }
-.docs-pagination a:hover, .docs-pagination a.active { background: var(--ink); color: white; }
-.docs-pagination small { font: 400 0.68rem/1 "Consolas", monospace; }
-.docs-pagination strong { font: 600 1rem/1.2 "Instrument Sans", sans-serif; }
-.docs-next {
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 0.8rem;
-  margin-top: 3.5rem;
-  padding-top: 1rem;
-  border-top: 2px solid var(--ink);
-  font-family: "Instrument Sans", sans-serif;
-  font-weight: 500;
-}
-.docs-next span { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
-.docs-next a { font-size: 1.2rem; text-underline-offset: 0.25em; }
-.docs-next-split { justify-content: space-between; }
-.docs-checklist { padding-left: 1.2rem; }
-.docs-checklist li { margin: 0.65rem 0; }
-
-.api-table { width: 100%; margin: 1rem 0 2rem; border-collapse: collapse; font-size: 0.88rem; }
-.api-table th { padding: 0.55rem 0.75rem; background: var(--ink); color: white; font: 600 0.8rem "Instrument Sans", sans-serif; text-align: left; }
-.api-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
-.api-table td:first-child { font-family: "Consolas", monospace; white-space: nowrap; }
-
-footer { padding: 3rem 2rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8rem; text-align: center; }
 footer a { color: var(--ink); }
 
 @media (max-width: 900px) {
   #navbar { padding-inline: 1.2rem; }
   .nav-hamburger { display: block; }
-  .nav-links { position: fixed; inset: 56px 0 auto; display: none; gap: 0; padding: 0.6rem 0 1rem; border-bottom: 1px solid var(--line); background: rgba(245, 245, 242, 0.98); flex-direction: column; }
+  .nav-links {
+    position: fixed;
+    inset: 56px 0 auto;
+    display: none;
+    gap: 0;
+    padding: 0.6rem 0 1rem;
+    border-bottom: 1px solid var(--line);
+    background: rgba(245, 245, 242, 0.98);
+    flex-direction: column;
+  }
   .nav-open .nav-links { display: flex; }
   .nav-links a { display: block; padding: 0.6rem 1.3rem; border: 0; }
-  .demo-layout, .split { grid-template-columns: 1fr; }
-  #field.blocks-system-surface[data-snap="true"] { --blocks-columns: 2 !important; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  #field .blocks-system-object {
-    --block-column: auto !important;
-    --block-row: auto !important;
-  }
-  #field [data-block-object="custom-element"],
-  #field [data-block-object="controls"] { --block-span-columns: 1 !important; }
-  .hero-stats { gap: 1.3rem; }
 }
 
-@media (max-width: 560px) {
-  .section, .page { padding-inline: 1rem; }
-  .hero-text h1 { font-size: 15vw; white-space: nowrap; }
-  .hero-sub { font-size: 0.94rem; }
-  .hero-stats { flex-direction: column; }
-  #field.blocks-system-surface[data-snap="true"] { --blocks-columns: 1 !important; grid-template-columns: 1fr; }
-  #field .blocks-system-object {
-    --block-column: auto !important;
-    --block-row: auto !important;
-    --block-span-columns: 1 !important;
-    --block-span-rows: 1 !important;
-  }
-  .link-row { align-items: flex-start; flex-direction: column; }
-  .api-table { display: block; overflow-x: auto; }
-  .docs-pagination a { padding: 0.7rem 0.6rem; }
-  .docs-next { align-items: flex-start; flex-direction: column; }
-  .docs-next-split { gap: 1rem; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .nav-hamburger span { transition: none; }
+}
+
+@media (forced-colors: active) {
+  :root, * { scrollbar-color: auto; }
 }

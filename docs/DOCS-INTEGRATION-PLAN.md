@@ -1,15 +1,17 @@
 # Integratieplan documentatie
 
-Status: goedgekeurd uitvoeringscontract. Seb keurde op 2 augustus 2026 alle
-structurele gates goed en vroeg om autonome uitvoering met een herstelbare
-commit na iedere fase. Publicatie en push vallen niet onder dat akkoord.
+Status: volledig uitgevoerd en lokaal geverifieerd op 2 augustus 2026. Seb
+keurde alle structurele gates goed en vroeg om autonome uitvoering met een
+herstelbare commit na iedere fase. Publicatie en push vallen niet onder dat
+akkoord.
 
 ## Actieve uitvoeringsdoelen
 
 - [x] Magenta toevoegen als eerste afzonderlijke accentproef, zonder een tweede
   accentkleur op dezelfde surface of in dezelfde viewport.
-- [x] Op de gezamenlijke voorbeeldenpagina ieder block de bestaande echte
-  `×`-sluitactie geven; `reset` moet gesloten blocks volledig herstellen.
+- [x] In de drie blijvende standalone examples ieder block de echte
+  `×`-sluitactie geven; de tijdelijke gezamenlijke pagina is volgens het
+  inhoudsmanifest in de manual opgegaan.
 - [x] Alle verticale documentatie-scrollbars als één neutraal, dun en
   OS-achtig onderdeel vormgeven, zonder accentkleur en met een native fallback
   voor forced-colors.
@@ -536,6 +538,13 @@ uit de canonieke URL. Linktest, echte Chromium-aliastest, `npm run check` en
 - legacy aliaspagina's behouden zolang externe links ze nodig kunnen hebben;
 - docscontract en STATUS actualiseren;
 - commit/push alleen op expliciet verzoek.
+
+**Gate: geslaagd op 2 augustus 2026.** De actieve docs delen alleen
+`shell.mjs`; 1.876 regels dode tweede-architectuur en één kleurige legacy-poster
+zijn verwijderd. `style.css` bevat nog uitsluitend fonts, tokens, neutrale
+OS-scrollbars, basisdocument en navigatie. De helper, topologie,
+compositiecontracten en tests wijzen alleen naar de drie canonieke surfaces en
+standalone examples. De finale bron-, link-, browser- en diffchecks zijn groen.
 
 ## Regressiematrix
 
