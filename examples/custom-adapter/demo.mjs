@@ -1,11 +1,11 @@
-import { system } from "../../blocks.system.mjs";
+import { system as blocks } from "../../blocks.system.mjs";
 
-system.attach("#field");
-system.setGrid(1, 1);
-system.snap = true;
-system.draggable = true;
+blocks.attach("#field");
+blocks.setGrid(1, 1);
+blocks.snap = true;
+blocks.draggable = true;
 
-system.registerAdapter("counter", {
+blocks.registerAdapter("counter", {
   mount({ host, settings }) {
     const button = document.createElement("button");
     let value = settings.start;
@@ -22,7 +22,7 @@ system.registerAdapter("counter", {
   }
 });
 
-system.register({
+blocks.register({
   id: "click-counter",
   label: "click counter",
   adapter: "counter",
@@ -31,10 +31,10 @@ system.register({
   defaults: { start: 0 }
 });
 
-const host = document.createElement("div");
-host.className = "center";
-const block = system.add(host, { id: "counter" });
-block.menu("click counter", true);
-await system.mount("click-counter", host, { start: 3 });
+const blockCounterHost = document.createElement("div");
+blockCounterHost.className = "center";
+const blockCounter = blocks.add(blockCounterHost, { id: "counter" });
+blockCounter.menu("click counter", true);
+await blocks.mount("click-counter", blockCounterHost, { start: 3 });
 
 document.querySelector("#field").setAttribute("data-example-ready", "true");

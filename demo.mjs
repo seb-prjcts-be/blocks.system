@@ -1,4 +1,4 @@
-import { system } from "./blocks.system.mjs";
+import { system as blocks } from "./blocks.system.mjs";
 
 const colors = [
   [255, 0, 0],
@@ -9,18 +9,18 @@ const colors = [
   [255, 255, 0]
 ];
 
-system.attach("#field");
-system.setGrid(8, 4);
-system.snap = true;
+blocks.attach("#field");
+blocks.setGrid(8, 4);
+blocks.snap = true;
 
-const htmlBlock = system.add(`
+const blockHtml = blocks.add(`
   <div class="demo-copy">
     <strong>html</strong>
     <small>string → dom</small>
   </div>
 `, { id: "html" });
-htmlBlock.menu("html", true);
-htmlBlock.place(1, 1);
+blockHtml.menu("html", true);
+blockHtml.place(1, 1);
 
 const canvas = document.createElement("canvas");
 canvas.className = "demo-canvas";
@@ -38,11 +38,11 @@ for (let x = 0; x <= canvas.width; x += 4) {
   else context.lineTo(x, y);
 }
 context.stroke();
-const canvasBlock = system.add(canvas, { id: "canvas" });
-canvasBlock.menu("canvas", true);
-canvasBlock.variant = "blue";
-canvasBlock.span(2, 1);
-canvasBlock.place(3, 2);
+const blockCanvas = blocks.add(canvas, { id: "canvas" });
+blockCanvas.menu("canvas", true);
+blockCanvas.variant = "blue";
+blockCanvas.span(2, 1);
+blockCanvas.place(3, 2);
 
 if (!customElements.get("system-badge")) {
   customElements.define("system-badge", class extends HTMLElement {
@@ -51,11 +51,11 @@ if (!customElements.get("system-badge")) {
     }
   });
 }
-const customBlock = system.add(document.createElement("system-badge"), { id: "custom-element" });
-customBlock.menu("custom element", true);
-customBlock.variant = "magenta";
-customBlock.span(2, 2);
-customBlock.place(7, 1);
+const blockCustom = blocks.add(document.createElement("system-badge"), { id: "custom-element" });
+blockCustom.menu("custom element", true);
+blockCustom.variant = "magenta";
+blockCustom.span(2, 2);
+blockCustom.place(7, 1);
 
 const controls = document.createElement("div");
 controls.className = "native-controls";
@@ -64,10 +64,10 @@ controls.innerHTML = `
   <label>range <input type="range" value="68"></label>
   <button type="button">native button</button>
 `;
-const controlsBlock = system.add(controls, { id: "controls" });
-controlsBlock.menu("native controls", true);
-controlsBlock.span(2, 1);
-controlsBlock.place(5, 4);
+const blockControls = blocks.add(controls, { id: "controls" });
+blockControls.menu("native controls", true);
+blockControls.span(2, 1);
+blockControls.place(5, 4);
 
 const columns = document.querySelector("#columns");
 const rows = document.querySelector("#rows");
@@ -76,8 +76,8 @@ const snap = document.querySelector("#snap");
 function updateGrid() {
   const x = Number(columns.value);
   const y = Number(rows.value);
-  system.setGrid(x, y);
-  system.snap = snap.checked;
+  blocks.setGrid(x, y);
+  blocks.snap = snap.checked;
   document.querySelector("#columns-value").value = x;
   document.querySelector("#rows-value").value = y;
 }

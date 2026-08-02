@@ -33,17 +33,17 @@ addBlock({
   content: basicPreview
 });
 
-const basicSystem = createBlocksSystem({ variant: "random" });
-basicSystem.attach(basicPreview.querySelector("[data-live-example]"));
-basicSystem.setGrid(2, 2);
-basicSystem.snap = true;
-basicSystem.draggable = true;
+const blocksBasic = createBlocksSystem({ variant: "random" });
+blocksBasic.attach(basicPreview.querySelector("[data-live-example]"));
+blocksBasic.setGrid(2, 2);
+blocksBasic.snap = true;
+blocksBasic.draggable = true;
 for (let index = 0; index < 4; index += 1) {
   const number = index + 1;
-  const block = basicSystem.add(`<div class="nested-center"><strong>${number}</strong><small>html</small></div>`, { id: `basic-${number}` });
-  block.menu(`block ${number}`);
-  block.minimized = index === 1;
-  if (index === 3) block.variant = "red";
+  const blockBasic = blocksBasic.add(`<div class="nested-center"><strong>${number}</strong><small>html</small></div>`, { id: `basic-${number}` });
+  blockBasic.menu(`block ${number}`);
+  blockBasic.minimized = index === 1;
+  if (index === 3) blockBasic.variant = "red";
 }
 
 addBlock({
@@ -77,12 +77,12 @@ addBlock({
   content: mixedPreview
 });
 
-const mixedSystem = createBlocksSystem({ variant: "regular" });
-mixedSystem.attach(mixedPreview.querySelector("[data-live-example]"));
-mixedSystem.setGrid(3, 1);
-mixedSystem.snap = true;
-const htmlBlock = mixedSystem.add(`<div class="nested-center"><strong>html</strong><small>string</small></div>`, { id: "mixed-html" });
-htmlBlock.menu("html");
+const blocksMixed = createBlocksSystem({ variant: "regular" });
+blocksMixed.attach(mixedPreview.querySelector("[data-live-example]"));
+blocksMixed.setGrid(3, 1);
+blocksMixed.snap = true;
+const blockHtml = blocksMixed.add(`<div class="nested-center"><strong>html</strong><small>string</small></div>`, { id: "mixed-html" });
+blockHtml.menu("html");
 
 const canvas = document.createElement("canvas");
 canvas.width = 240;
@@ -99,8 +99,8 @@ for (let x = 0; x <= canvas.width; x += 3) {
   else context.lineTo(x, y);
 }
 context.stroke();
-const canvasBlock = mixedSystem.add(canvas, { id: "mixed-canvas", variant: "blue" });
-canvasBlock.menu("canvas");
+const blockCanvas = blocksMixed.add(canvas, { id: "mixed-canvas", variant: "blue" });
+blockCanvas.menu("canvas");
 
 if (!customElements.get("example-signal")) {
   customElements.define("example-signal", class extends HTMLElement {
@@ -109,8 +109,8 @@ if (!customElements.get("example-signal")) {
     }
   });
 }
-const customBlock = mixedSystem.add(document.createElement("example-signal"), { id: "mixed-custom", variant: "magenta" });
-customBlock.menu("element");
+const blockCustom = blocksMixed.add(document.createElement("example-signal"), { id: "mixed-custom", variant: "magenta" });
+blockCustom.menu("element");
 
 addBlock({
   id: "mixed-route",
@@ -143,12 +143,12 @@ addBlock({
   content: adapterPreview
 });
 
-const adapterSystem = createBlocksSystem({ variant: "regular" });
-const adapterField = adapterPreview.querySelector("[data-live-example]");
-adapterSystem.attach(adapterField);
-adapterSystem.setGrid(1, 1);
-adapterSystem.snap = true;
-adapterSystem.registerAdapter("counter", {
+const blocksAdapter = createBlocksSystem({ variant: "regular" });
+const blocksAdapterField = adapterPreview.querySelector("[data-live-example]");
+blocksAdapter.attach(blocksAdapterField);
+blocksAdapter.setGrid(1, 1);
+blocksAdapter.snap = true;
+blocksAdapter.registerAdapter("counter", {
   mount({ host, settings }) {
     const root = nodeFromHtml(`
       <div class="adapter-live-root">
@@ -165,12 +165,12 @@ adapterSystem.registerAdapter("counter", {
     return root;
   }
 });
-adapterSystem.register({ id: "example-counter", adapter: "counter", defaults: { start: 3 } });
-const adapterHost = document.createElement("div");
-adapterHost.className = "nested-center";
-const adapterBlock = adapterSystem.add(adapterHost, { id: "adapter-counter" });
-adapterBlock.menu("counter");
-await adapterSystem.mount("example-counter", adapterHost);
+blocksAdapter.register({ id: "example-counter", adapter: "counter", defaults: { start: 3 } });
+const blockAdapterHost = document.createElement("div");
+blockAdapterHost.className = "nested-center";
+const blockAdapter = blocksAdapter.add(blockAdapterHost, { id: "adapter-counter" });
+blockAdapter.menu("counter");
+await blocksAdapter.mount("example-counter", blockAdapterHost);
 
 addBlock({
   id: "adapter-route",

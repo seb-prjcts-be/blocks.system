@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Finish a blocks.system integration with an optional lifecycle adapter.">
+  <title>finish · blocks.system guide</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="navbar" aria-label="main navigation">
+    <a class="nav-logo" href="../index.html">blocks.system</a>
+    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="../index.html">showcase</a></li><li><a href="system.html">system</a></li><li><a href="examples.html">examples</a></li><li><a href="api.html">api</a></li><li><a class="active" href="guide.html">guide</a></li><li><a href="about.html">about</a></li><li><a href="https://github.com/seb-prjcts-be/blocks.system">github</a></li>
+    </ul>
+  </nav>
+
+  <main class="page docs">
+    <header class="page-header">
+      <span class="section-tag">guide 03 · end</span>
+      <h1>connect a runtime</h1>
+      <p>Stop after page two unless content needs mounting, cleanup or reusable definitions.</p>
+    </header>
+
+    <nav class="docs-pagination" aria-label="guide pages">
+      <a href="guide.html"><small>01</small><strong>start</strong></a>
+      <a href="guide-blocks.html"><small>02</small><strong>blocks</strong></a>
+      <a class="active" href="guide-finish.html" aria-current="page"><small>03</small><strong>finish</strong></a>
+    </nav>
+
+    <h2>add one adapter</h2>
+    <pre class="code-block"><code>blocks.registerAdapter("block-counter", {
+  mount({ host, settings }) {
+    const blockCounterButton = document.createElement("button");
+    blockCounterButton.textContent = settings.start;
+    host.appendChild(blockCounterButton);
+    return blockCounterButton;
+  }
+});
+
+blocks.register({
+  id: "block-click-counter",
+  label: "click counter",
+  adapter: "block-counter",
+  medium: "html",
+  defaults: { start: 0 }
+});
+
+const blockCounterHost = document.createElement("div");
+const blockCounter = blocks.add(blockCounterHost, {
+  id: "block-counter"
+});
+blockCounter.menu("counter");
+
+await blocks.mount(
+  "block-click-counter",
+  blockCounterHost,
+  { start: 3 }
+);</code></pre>
+
+    <h2>finish</h2>
+    <ul class="docs-checklist">
+      <li>Keep renderer-specific code in the adapter, outside the core.</li>
+      <li>Run <code>npm run check</code>.</li>
+      <li>Use the <a href="api.html">API reference</a> only when you need more detail.</li>
+    </ul>
+
+    <nav class="docs-next docs-next-split" aria-label="guide navigation">
+      <a href="guide-blocks.html">← blocks</a><a href="examples.html">run the examples →</a>
+    </nav>
+  </main>
+
+  <footer><a href="https://github.com/seb-prjcts-be/blocks.system">blocks.system</a> · mit license · <span data-year></span></footer>
+  <script type="module" src="nav.mjs"></script>
+</body>
+</html>

@@ -62,8 +62,8 @@
 blocks.system.setGrid(8, 4);
 blocks.system.snap = true;
 
-const block = blocks.system.add(content);
-block.place(3, 2);</code></pre>
+const blockDemo = blocks.system.add(content);
+blockDemo.place(3, 2);</code></pre>
         </aside>
         <div id="field" aria-label="interactive blocks.system field"></div>
       </div>
@@ -73,23 +73,23 @@ block.place(3, 2);</code></pre>
       <div class="section-heading">
         <span class="section-tag">quick start</span>
         <h2>the object is the interface</h2>
-        <p>System-wide choices stay under <code>blocks.system</code>. Individual choices stay under the returned <code>block</code>.</p>
+        <p>Use <code>blocks</code> for the shared system and a <code>block…</code> name for every returned controller.</p>
       </div>
       <div class="split">
-        <pre class="code-block"><code>import { system } from "./blocks.system.mjs";
+        <pre class="code-block"><code>import { system as blocks } from "./blocks.system.mjs";
 
-blocks.system.attach("#field");
-blocks.system.setGrid(3, 2);
-blocks.system.snap = true;
-blocks.system.draggable = true;
-blocks.system.variant = "random";
+blocks.attach("#field");
+blocks.setGrid(3, 2);
+blocks.snap = true;
+blocks.draggable = true;
+blocks.variant = "random";
 
-const block = blocks.system.add(content);
-block.menu("test", { close: true, minimize: true });
-block.minimized = false;
-block.variant = "red";
-block.span(2, 1);
-block.place(2, 2);</code></pre>
+const blockDemo = blocks.add(content);
+blockDemo.menu("test", { close: true, minimize: true });
+blockDemo.minimized = false;
+blockDemo.variant = "red";
+blockDemo.span(2, 1);
+blockDemo.place(2, 2);</code></pre>
         <div class="principles">
           <article><span>01</span><h3>generic core</h3><p>No knowledge of p5.js, waves, frameworks or renderers.</p></article>
           <article><span>02</span><h3>real dom</h3><p>Add a string, node, canvas, svg, custom element or factory function.</p></article>

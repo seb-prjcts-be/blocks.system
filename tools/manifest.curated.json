@@ -28,6 +28,7 @@
     "the core has no renderer-specific knowledge",
     "system properties live under blocks.system",
     "individual properties live under block",
+    "module examples alias the shared system to blocks and prefix returned controllers with block",
     "automatic variants stay monochrome while RGB/CMY variants require explicit selection",
     "hover uses the original two-pixel inset outline without changing layout",
     "minimized blocks keep their configured grid area reserved for conflict-free restore",

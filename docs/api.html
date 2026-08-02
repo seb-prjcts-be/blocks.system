@@ -19,16 +19,16 @@
   <main class="page docs">
     <header class="page-header">
       <span class="section-tag">api</span>
-      <h1>small surface, clear ownership</h1>
-      <p>General state is available on <code>blocks.system</code>. Object state is available on the controller returned by <code>add()</code>.</p>
+      <h1>blocks and block</h1>
+      <p>Module examples call the shared system <code>blocks</code>. Every controller returned by <code>add()</code> starts with <code>block</code>.</p>
     </header>
 
-    <h2>system layout</h2>
+    <h2>blocks · shared system</h2>
     <table class="api-table">
       <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
       <tbody>
-        <tr><td>attach(target)</td><td>system</td><td>Attach to a selector or DOM element.</td></tr>
-        <tr><td>setGrid(x, y)</td><td>system</td><td>Set positive integer column and row counts.</td></tr>
+        <tr><td>attach(target)</td><td>blocks</td><td>Attach to a selector or DOM element.</td></tr>
+        <tr><td>setGrid(x, y)</td><td>blocks</td><td>Set positive integer column and row counts.</td></tr>
         <tr><td>snap</td><td>boolean</td><td>Read or change grid snapping.</td></tr>
         <tr><td>draggable</td><td>boolean</td><td>Enable reordering blocks by dragging their menu bars.</td></tr>
         <tr><td>font</td><td>object|null</td><td>Optionally load one font stylesheet and set its family on the field.</td></tr>
@@ -39,7 +39,7 @@
       </tbody>
     </table>
 
-    <h2>block object</h2>
+    <h2>block… · one controller</h2>
     <table class="api-table">
       <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
       <tbody>
@@ -60,8 +60,8 @@
     <table class="api-table">
       <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
       <tbody>
-        <tr><td>register(definition)</td><td>system</td><td>Register a reusable lowercase kebab-case definition.</td></tr>
-        <tr><td>registerAdapter(id, adapter)</td><td>system</td><td>Register a lifecycle adapter with at least <code>mount()</code>.</td></tr>
+        <tr><td>register(definition)</td><td>blocks</td><td>Register a reusable lowercase kebab-case definition.</td></tr>
+        <tr><td>registerAdapter(id, adapter)</td><td>blocks</td><td>Register a lifecycle adapter with at least <code>mount()</code>.</td></tr>
         <tr><td>list(filters)</td><td>array</td><td>List definitions by query, adapter, medium or category.</td></tr>
         <tr><td>get(id)</td><td>definition|null</td><td>Read one registered definition.</td></tr>
         <tr><td>listAdapters()</td><td>array</td><td>List registered adapter ids.</td></tr>
@@ -75,9 +75,9 @@
 
     <h2>definition shape</h2>
     <pre class="code-block"><code>{
-  id: "welcome",
+  id: "block-welcome",
   label: "welcome",
-  adapter: "note",
+  adapter: "block-note",
   medium: "html",
   category: "text",
   description: "a small note",

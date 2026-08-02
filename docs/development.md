@@ -28,7 +28,8 @@ Each public page has one distinct job:
 3. `docs/examples.html` provides three working learning paths: start with a
    grid, combine content types, then extend through an adapter.
 4. `examples/<name>/` is the isolated, copyable execution of one path.
-5. `docs/guide.html` and `docs/api.html` explain and reference the contract.
+5. `docs/guide.html`, `docs/guide-blocks.html` and `docs/guide-finish.html`
+   form the short start-middle-end path; `docs/api.html` is the reference.
 
 The examples index deliberately mounts real nested blocks.system instances. It
 does not use iframe thumbnails: every preview is interactive and each route
@@ -40,7 +41,7 @@ When public behaviour changes, update these layers in one commit:
 
 1. `README.md`
 2. `README_NL.md`
-3. `docs/guide.html`
+3. the three `docs/guide*.html` pages
 4. `docs/api.html`
 5. relevant standalone examples
 6. contract tests and generated manifest

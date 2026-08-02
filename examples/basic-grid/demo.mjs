@@ -1,16 +1,16 @@
-import { system } from "../../blocks.system.mjs";
+import { system as blocks } from "../../blocks.system.mjs";
 
-system.attach("#field");
-system.setGrid(2, 2);
-system.snap = true;
-system.draggable = true;
+blocks.attach("#field");
+blocks.setGrid(2, 2);
+blocks.snap = true;
+blocks.draggable = true;
 
 for (let index = 0; index < 4; index += 1) {
   const number = index + 1;
-  const block = system.add(`<div class="center"><strong>block ${number}</strong><small>plain html</small></div>`, { id: `block-${number}` });
-  block.menu(`block ${number}`, true);
-  block.minimized = index === 1;
-  if (index === 3) block.variant = "red";
+  const blockItem = blocks.add(`<div class="center"><strong>block ${number}</strong><small>plain html</small></div>`, { id: `block-${number}` });
+  blockItem.menu(`block ${number}`, true);
+  blockItem.minimized = index === 1;
+  if (index === 3) blockItem.variant = "red";
 }
 
 document.querySelector("#field").setAttribute("data-example-ready", "true");

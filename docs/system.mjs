@@ -25,17 +25,17 @@ addBlock({
   span: [2, 2],
   place: [4, 1],
   content: nodeFromHtml(`
-    <pre class="prototype-code"><code>import { system } from
+    <pre class="prototype-code"><code>import { system as blocks } from
 "./blocks.system.mjs";
 
-system.attach("#field");
-system.setGrid(8, 6);
-system.snap = true;
+blocks.attach("#blocks-field");
+blocks.setGrid(8, 6);
+blocks.snap = true;
 
-const block = system.add(content);
-block.menu("test");
-block.span(2, 1);
-block.place(3, 2);</code></pre>
+const blockDemo = blocks.add(content);
+blockDemo.menu("test");
+blockDemo.span(2, 1);
+blockDemo.place(3, 2);</code></pre>
   `)
 });
 

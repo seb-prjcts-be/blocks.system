@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Add content and position individual blocks with blocks.system.">
+  <title>blocks · blocks.system guide</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav id="navbar" aria-label="main navigation">
+    <a class="nav-logo" href="../index.html">blocks.system</a>
+    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
+    <ul class="nav-links">
+      <li><a href="../index.html">showcase</a></li><li><a href="system.html">system</a></li><li><a href="examples.html">examples</a></li><li><a href="api.html">api</a></li><li><a class="active" href="guide.html">guide</a></li><li><a href="about.html">about</a></li><li><a href="https://github.com/seb-prjcts-be/blocks.system">github</a></li>
+    </ul>
+  </nav>
+
+  <main class="page docs">
+    <header class="page-header">
+      <span class="section-tag">guide 02 · middle</span>
+      <h1>shape the blocks</h1>
+      <p>Add trusted HTML, a DOM node or a factory. Then configure each returned block.</p>
+    </header>
+
+    <nav class="docs-pagination" aria-label="guide pages">
+      <a href="guide.html"><small>01</small><strong>start</strong></a>
+      <a class="active" href="guide-blocks.html" aria-current="page"><small>02</small><strong>blocks</strong></a>
+      <a href="guide-finish.html"><small>03</small><strong>finish</strong></a>
+    </nav>
+
+    <h2>three content forms</h2>
+    <pre class="code-block"><code>const blockHtml = blocks.add("&lt;p&gt;trusted html&lt;/p&gt;", {
+  id: "block-html"
+});
+
+const blockCanvasNode = document.createElement("canvas");
+const blockCanvas = blocks.add(blockCanvasNode, {
+  id: "block-canvas"
+});
+
+const blockButton = blocks.add(function () {
+  const blockButtonNode = document.createElement("button");
+  blockButtonNode.textContent = "native control";
+  return blockButtonNode;
+}, { id: "block-button" });</code></pre>
+
+    <div class="callout"><p>HTML strings become markup. For untrusted text, create a DOM node and set <code>textContent</code>.</p></div>
+
+    <h2>one block, one controller</h2>
+    <pre class="code-block"><code>blockCanvas.menu("canvas", {
+  close: true,
+  minimize: true
+});
+blockCanvas.span(2, 1);
+blockCanvas.place(2, 1);
+blockCanvas.variant = "blue";
+blockCanvas.minimized = false;
+
+// later
+blockCanvas.remove();</code></pre>
+
+    <p><code>blocks</code> owns the field and grid. A <code>block…</code> controller owns its menu, span, place, variant, minimized state and removal.</p>
+
+    <nav class="docs-next docs-next-split" aria-label="guide navigation">
+      <a href="guide.html">← start</a><a href="guide-finish.html">connect a runtime →</a>
+    </nav>
+  </main>
+
+  <footer><a href="https://github.com/seb-prjcts-be/blocks.system">blocks.system</a> · mit license · <span data-year></span></footer>
+  <script type="module" src="nav.mjs"></script>
+</body>
+</html>
