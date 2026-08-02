@@ -8,9 +8,10 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="../blocks.system.css">
+  <link rel="stylesheet" href="board.css">
   <link rel="stylesheet" href="system.css">
 </head>
-<body class="prototype-body">
+<body class="docs-board-body">
   <nav id="navbar" aria-label="main navigation">
     <a class="nav-logo" href="../index.html">blocks.system</a>
     <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
@@ -19,15 +20,15 @@
     </ul>
   </nav>
 
-  <main class="prototype-main">
-    <section class="prototype-shell" aria-labelledby="prototype-title">
-      <header class="prototype-toolbar">
-        <div class="prototype-heading">
-          <span class="prototype-kicker">docs prototype 01</span>
+  <main class="docs-board-main">
+    <section class="docs-board-shell" aria-labelledby="prototype-title">
+      <header class="docs-board-toolbar">
+        <div class="docs-board-heading">
+          <span class="docs-board-kicker">docs prototype 01</span>
           <h1 id="prototype-title">one screen, one system</h1>
         </div>
-        <div class="prototype-controls" aria-label="prototype controls">
-          <button id="reset-system" type="button">reset</button>
+        <div class="docs-board-controls" aria-label="prototype controls">
+          <button id="reset-board" type="button">reset</button>
           <button id="toggle-minimized" type="button">minimize all</button>
           <label>density
             <select id="density">
@@ -46,10 +47,10 @@
         </div>
       </header>
 
-      <div id="docs-board" class="prototype-board" aria-label="blocks.system documentation board"></div>
+      <div id="docs-board" class="docs-board-surface system-board" aria-label="blocks.system documentation board"></div>
 
-      <footer class="prototype-foot">
-        <span id="prototype-status" role="status">8 × 6 · normal · 12 blocks</span>
+      <footer class="docs-board-foot">
+        <span id="board-status" role="status">8 × 6 · normal · 12 blocks</span>
         <span>the existing navigation stays available while this model is tested</span>
       </footer>
     </section>

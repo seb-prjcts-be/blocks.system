@@ -45,20 +45,32 @@ for (const apiName of ["attach", "setGrid", "snap", "draggable", "variant", "var
 const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
-const prototypeCss = await readFile(resolve(root, "docs", "system.css"), "utf8");
+const boardCss = await readFile(resolve(root, "docs", "board.css"), "utf8");
+const systemCss = await readFile(resolve(root, "docs", "system.css"), "utf8");
+const examplesCss = await readFile(resolve(root, "docs", "examples.css"), "utf8");
 const exampleCss = await readFile(resolve(root, "examples", "example.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
-const siteDemos = await Promise.all([
+const systemHtml = await readFile(resolve(root, "docs", "system.html"), "utf8");
+const examplesHtml = await readFile(resolve(root, "docs", "examples.html"), "utf8");
+const siteDemoFiles = [
   "demo.mjs",
+  "docs/board.mjs",
   "docs/system.mjs",
+  "docs/examples.mjs",
   "examples/basic-grid/demo.mjs",
   "examples/mixed-content/demo.mjs",
   "examples/custom-adapter/demo.mjs"
-].map(function (file) { return readFile(resolve(root, file), "utf8"); }));
+];
+const siteDemos = Object.fromEntries(await Promise.all(siteDemoFiles.map(async function (file) {
+  return [file, await readFile(resolve(root, file), "utf8")];
+})));
 const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileTypes: true }))
   .filter(function (entry) { return entry.isDirectory(); })
   .map(function (entry) { return entry.name; })
   .sort();
+const standaloneExamples = Object.fromEntries(await Promise.all(exampleDirectories.map(async function (example) {
+  return [example, await readFile(resolve(root, "examples", example, "index.html"), "utf8")];
+})));
 
 assert.equal(manifest.version, packageData.version, "manifest and package version must match");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
@@ -85,19 +97,34 @@ for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "ye
 assert.match(siteCss, /\.demo-layout\s*\{[^}]*746px[^}]*max-width:\s*1020px;/s, "the showcase field must preserve the original compact width rhythm");
 assert.match(siteCss, /#field\s*\{[^}]*height:\s*370px;/s, "the showcase field must preserve four compact rows");
 assert.match(siteCss, /@media \(max-width: 560px\)[\s\S]*--block-column:\s*auto !important;[\s\S]*--block-row:\s*auto !important;[\s\S]*--block-span-columns:\s*1 !important;[\s\S]*--block-span-rows:\s*1 !important;/, "the mobile showcase must return blocks to automatic single grid units");
-assert.ok(siteDemos[0].includes("system.setGrid(8, 4)"), "the showcase must expose the original eight-column rhythm");
-assert.ok(siteDemos[0].includes("canvasBlock.span(2, 1)"), "the showcase must demonstrate a wider block");
-assert.ok(siteDemos[0].includes("customBlock.span(2, 2)"), "the showcase must demonstrate a taller block");
-assert.ok(siteDemos[2].includes('block.variant = "red"'), "the basic grid must demonstrate an explicit built-in variant");
-assert.ok(siteDemos[2].includes("block.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
-assert.ok(["htmlBlock.place(1, 1)", "canvasBlock.place(3, 2)", "customBlock.place(7, 1)", "controlsBlock.place(5, 4)"].every(function (line) { return siteDemos[0].includes(line); }), "the showcase must preserve deliberate empty grid cells");
-assert.ok(siteDemos[1].includes("docsSystem.setGrid(8, 6)"), "the docs prototype must start from the reference eight-by-six board");
-assert.ok(siteDemos[1].includes('block.minimized = block.id === "api"'), "the docs prototype reset must preserve its minimized navigation experiment");
-assert.ok(siteDemos[1].includes("await docsSystem.mount"), "the docs prototype must demonstrate the adapter contract through the real system");
-assert.match(prototypeCss, /\.prototype-board/, "the one-screen prototype must keep its composition in its isolated stylesheet");
-assert.doesNotMatch(libraryCss, /\.prototype-board/, "the reusable library stylesheet must not absorb docs prototype composition");
+assert.ok(siteDemos["demo.mjs"].includes("system.setGrid(8, 4)"), "the showcase must expose the original eight-column rhythm");
+assert.ok(siteDemos["demo.mjs"].includes("canvasBlock.span(2, 1)"), "the showcase must demonstrate a wider block");
+assert.ok(siteDemos["demo.mjs"].includes("customBlock.span(2, 2)"), "the showcase must demonstrate a taller block");
+assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes('block.variant = "red"'), "the basic grid must demonstrate an explicit built-in variant");
+assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes("block.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
+assert.ok(["htmlBlock.place(1, 1)", "canvasBlock.place(3, 2)", "customBlock.place(7, 1)", "controlsBlock.place(5, 4)"].every(function (line) { return siteDemos["demo.mjs"].includes(line); }), "the showcase must preserve deliberate empty grid cells");
+assert.match(systemHtml, /<option value="8,6" selected>8 × 6<\/option>/, "the docs prototype must start from the reference eight-by-six board");
+assert.ok(siteDemos["docs/system.mjs"].includes("minimized: true"), "the docs prototype must keep its minimized navigation experiment");
+assert.ok(siteDemos["docs/system.mjs"].includes("await docsSystem.mount"), "the docs prototype must demonstrate the adapter contract through the real system");
+assert.match(boardCss, /\.docs-board-surface/, "one-screen docs pages must share one isolated board stylesheet");
+assert.match(boardCss, /@media \(max-width: 560px\)[\s\S]*--blocks-columns:\s*1 !important;[\s\S]*grid-template-columns:\s*1fr;/, "shared docs boards must collapse to one narrow column");
+assert.match(systemCss, /\.system-board/, "the system page must keep only its page-specific board rules");
+assert.match(examplesCss, /\.examples-board/, "the examples page must keep only its page-specific board rules");
+assert.match(examplesCss, /\.example-actions\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1 \/ span 2;/s, "example actions must remain visible beside compact route content");
+assert.doesNotMatch(libraryCss, /\.docs-board-surface|\.system-board|\.examples-board/, "the reusable library stylesheet must not absorb docs page composition");
+assert.doesNotMatch(examplesHtml, /<iframe\b/i, "the examples index must use live systems instead of passive iframe cards");
+assert.ok(siteDemos["docs/examples.mjs"].includes("basicSystem.setGrid(2, 2)"), "the examples board must include a real basic grid");
+assert.ok(siteDemos["docs/examples.mjs"].includes("mixedSystem.setGrid(3, 1)"), "the examples board must include real mixed content");
+assert.ok(siteDemos["docs/examples.mjs"].includes('await adapterSystem.mount("example-counter"'), "the examples board must include a live adapter");
+for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
+  assert.ok(siteDemos["docs/examples.mjs"].includes(`../examples/${example}/`), `the examples board must link to the ${example} standalone page`);
+  assert.ok(siteDemos["docs/examples.mjs"].includes(`../examples/${example}/demo.mjs`), `the examples board must link to the ${example} source module`);
+  assert.match(standaloneExamples[example], /href="\.\.\/\.\.\/docs\/examples\.html"/, `${example} must return to the examples learning path`);
+  assert.match(standaloneExamples[example], /href="demo\.mjs" download/, `${example} must offer its copyable module explicitly`);
+}
+assert.equal((siteDemos["docs/examples.mjs"].match(/demo\.mjs" download/g) || []).length, 3, "each examples route must explicitly download its local source module");
 
-const combinedDemos = siteDemos.join("\n");
+const combinedDemos = Object.values(siteDemos).join("\n");
 for (const color of [
   "[255, 0, 0]",
   "[0, 255, 0]",

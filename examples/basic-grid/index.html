@@ -6,12 +6,22 @@
   <title>basic grid · blocks.system</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../blocks.system.css">
-  <link rel="stylesheet" href="../example.css">
+  <link rel="stylesheet" href="../example.css?v=0.1.0">
 </head>
 <body>
-  <h1>basic grid</h1>
-  <p>random monochrome blocks, one minimized, with one red exception</p>
-  <div id="field" class="field"></div>
+  <header class="example-topbar">
+    <div>
+      <span class="example-kicker">example 01 · start small</span>
+      <h1>basic grid</h1>
+      <p>random monochrome blocks, one minimized, with one red exception</p>
+    </div>
+    <nav class="example-actions" aria-label="example navigation">
+      <a href="../../docs/examples.html">← examples</a>
+      <a href="demo.mjs" download>module ↓</a>
+    </nav>
+  </header>
+  <main class="example-main"><div id="field" class="field"></div></main>
+  <footer class="example-note"><span><strong>try:</strong> restore block 2</span><span>then drag a header</span></footer>
   <script type="module" src="demo.mjs"></script>
 </body>
 </html>

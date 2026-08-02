@@ -1,10 +1,44 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Oswald:wght@400;500;600&display=swap");
+
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
-body { margin: 0; padding: 1rem; background: #d9d8d2; color: #14140f; font: 13px/1.45 "Segoe UI", sans-serif; }
-h1 { margin: 0 0 0.25rem; font-size: 1rem; font-weight: 600; }
-p { margin: 0 0 0.8rem; color: #666; }
+body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 100svh;
+  margin: 0;
+  padding: 10px;
+  background: #d9d8d2;
+  color: #14140f;
+  font: 400 12px/1.45 "Inter", "Segoe UI", sans-serif;
+}
+h1 { margin: 0; font: 500 clamp(1.8rem, 5vw, 3rem)/0.95 "Oswald", sans-serif; text-transform: uppercase; }
+p { margin: 2px 0 0; color: #555; }
 a { color: inherit; }
-.field { min-height: 210px; }
+.example-topbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #14140f;
+}
+.example-kicker,
+.example-note,
+.example-actions { font: 400 10px/1.2 "Consolas", "Courier New", monospace; text-transform: uppercase; }
+.example-kicker { display: block; margin-bottom: 3px; }
+.example-actions { display: flex; gap: 4px; }
+.example-actions a {
+  display: inline-block;
+  padding: 5px 8px;
+  border: 1px solid #14140f;
+  text-decoration: none;
+}
+.example-actions a:hover,
+.example-actions a:focus-visible { background: #14140f; color: #efeee8; }
+.example-main { display: grid; min-height: 0; place-items: center; }
+.field { width: min(100%, 780px); height: min(58svh, 480px); min-height: 260px; }
 .blocks-system-object { min-height: 100px; }
 .center { display: grid; width: 100%; height: 100%; place-content: center; text-align: center; }
 .center strong { display: block; font-size: 1.1rem; }
@@ -12,3 +46,13 @@ a { color: inherit; }
 canvas { width: 100%; height: 100%; }
 example-dot { display: grid; width: 100%; height: 100%; place-content: center; border: 1px dashed currentColor; }
 button { border: 1px solid #111; border-radius: 0; background: #111; color: white; padding: 0.7rem 1rem; cursor: pointer; }
+.example-note { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid #14140f; padding-top: 7px; }
+
+@media (max-width: 560px) {
+  .example-topbar { align-items: flex-start; flex-direction: column; }
+  .example-actions { width: 100%; }
+  .example-actions a { flex: 1; text-align: center; }
+  .field { height: auto; min-height: 520px; }
+  .field.blocks-system-surface[data-snap="true"] { --blocks-columns: 1 !important; grid-template-columns: 1fr; grid-template-rows: none; grid-auto-rows: minmax(110px, auto); }
+  .example-note { flex-direction: column; }
+}

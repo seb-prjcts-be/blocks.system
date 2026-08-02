@@ -3,11 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Three useful blocks.system learning paths with live examples and copyable standalone source.">
   <title>examples · blocks.system</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../blocks.system.css">
+  <link rel="stylesheet" href="board.css">
+  <link rel="stylesheet" href="examples.css">
 </head>
-<body>
+<body class="docs-board-body">
   <nav id="navbar" aria-label="main navigation">
     <a class="nav-logo" href="../index.html">blocks.system</a>
     <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
@@ -16,30 +20,43 @@
     </ul>
   </nav>
 
-  <main class="page page-wide">
-    <header class="page-header">
-      <span class="section-tag">examples</span>
-      <h1>small complete systems</h1>
-      <p>Every example is a standalone page with its own module. Copy one, change the content, and keep the same object contract.</p>
-    </header>
+  <main class="docs-board-main">
+    <section class="docs-board-shell" aria-labelledby="examples-title">
+      <header class="docs-board-toolbar">
+        <div class="docs-board-heading">
+          <span class="docs-board-kicker">learning path 01</span>
+          <h1 id="examples-title">examples that explain themselves</h1>
+        </div>
+        <div class="docs-board-controls" aria-label="examples board controls">
+          <button id="reset-board" type="button">reset</button>
+          <button id="toggle-minimized" type="button">minimize all</button>
+          <label>density
+            <select id="density">
+              <option value="compact">compact</option>
+              <option value="normal" selected>normal</option>
+              <option value="roomy">roomy</option>
+            </select>
+          </label>
+          <label>board
+            <select id="board-size">
+              <option value="8,6" selected>8 × 6</option>
+              <option value="10,6">10 × 6</option>
+              <option value="12,6">12 × 6</option>
+            </select>
+          </label>
+        </div>
+      </header>
 
-    <div class="examples-grid">
-      <article class="example-card">
-        <iframe src="../examples/basic-grid/" title="basic grid example" loading="lazy"></iframe>
-        <div><h2>basic grid</h2><p>Black is the default; one pure red block is the exception.</p><a href="../examples/basic-grid/">open standalone →</a></div>
-      </article>
-      <article class="example-card">
-        <iframe src="../examples/mixed-content/" title="mixed content example" loading="lazy"></iframe>
-        <div><h2>mixed content</h2><p>Black HTML with pure blue and magenta exceptions.</p><a href="../examples/mixed-content/">open standalone →</a></div>
-      </article>
-      <article class="example-card">
-        <iframe src="../examples/custom-adapter/" title="custom adapter example" loading="lazy"></iframe>
-        <div><h2>custom adapter</h2><p>A regular black block with a project-local counter adapter.</p><a href="../examples/custom-adapter/">open standalone →</a></div>
-      </article>
-    </div>
+      <div id="docs-board" class="docs-board-surface examples-board" aria-label="live blocks.system examples board"></div>
+
+      <footer class="docs-board-foot">
+        <span id="board-status" role="status">8 × 6 · normal · 8 blocks</span>
+        <span>start → combine → extend · 19 grid cells intentionally empty</span>
+      </footer>
+    </section>
   </main>
 
-  <footer><a href="https://github.com/seb-prjcts-be/blocks.system">blocks.system</a> · mit license · <span data-year></span></footer>
   <script type="module" src="nav.mjs"></script>
+  <script type="module" src="examples.mjs"></script>
 </body>
 </html>

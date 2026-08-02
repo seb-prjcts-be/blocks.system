@@ -1,32 +1,9 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
+import { createDocsBoard, nodeFromHtml } from "./board.mjs";
 
 const docsSystem = createBlocksSystem({ variant: "random" });
-const board = document.querySelector("#docs-board");
-const status = document.querySelector("#prototype-status");
-const boardSize = document.querySelector("#board-size");
-const density = document.querySelector("#density");
-const toggleMinimized = document.querySelector("#toggle-minimized");
-const blocks = [];
-
-docsSystem.attach(board);
-docsSystem.setGrid(8, 6);
-docsSystem.snap = true;
-board.dataset.density = "normal";
-
-function nodeFromHtml(html) {
-  const template = document.createElement("template");
-  template.innerHTML = html.trim();
-  return template.content.firstElementChild;
-}
-
-function addBlock({ id, title, content, span = [1, 1], place, variant, minimized = false }) {
-  const block = docsSystem.add(content, { id, variant, minimized });
-  block.menu(title, { minimize: true });
-  block.span(...span);
-  block.place(...place);
-  blocks.push(block);
-  return block;
-}
+const docsBoard = createDocsBoard({ system: docsSystem });
+const { addBlock } = docsBoard;
 
 addBlock({
   id: "identity",
@@ -247,36 +224,4 @@ try {
   manifestContent.querySelector("span").textContent = "manifest unavailable";
 }
 
-function updateStatus() {
-  const [columns, rows] = boardSize.value.split(",");
-  const minimized = blocks.filter((block) => block.minimized).length;
-  status.textContent = `${columns} × ${rows} · ${density.value} · ${blocks.length} blocks · ${minimized} minimized`;
-  toggleMinimized.textContent = blocks.every((block) => block.minimized) ? "restore all" : "minimize all";
-}
-
-function applyBoardSize() {
-  const [columns, rows] = boardSize.value.split(",").map(Number);
-  docsSystem.setGrid(columns, rows);
-  updateStatus();
-}
-
-boardSize.addEventListener("change", applyBoardSize);
-density.addEventListener("change", () => {
-  board.dataset.density = density.value;
-  updateStatus();
-});
-toggleMinimized.addEventListener("click", () => {
-  const nextState = !blocks.every((block) => block.minimized);
-  blocks.forEach((block) => { block.minimized = nextState; });
-  updateStatus();
-});
-document.querySelector("#reset-system").addEventListener("click", () => {
-  boardSize.value = "8,6";
-  density.value = "normal";
-  board.dataset.density = "normal";
-  blocks.forEach((block) => { block.minimized = block.id === "api"; });
-  applyBoardSize();
-});
-
-board.dataset.prototypeReady = "true";
-updateStatus();
+docsBoard.ready();

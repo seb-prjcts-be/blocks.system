@@ -6,12 +6,22 @@
   <title>custom adapter · blocks.system</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../../blocks.system.css">
-  <link rel="stylesheet" href="../example.css">
+  <link rel="stylesheet" href="../example.css?v=0.1.0">
 </head>
 <body>
-  <h1>custom adapter</h1>
-  <p>a regular black block mounted through one small adapter</p>
-  <div id="field" class="field"></div>
+  <header class="example-topbar">
+    <div>
+      <span class="example-kicker">example 03 · extend cleanly</span>
+      <h1>custom adapter</h1>
+      <p>a regular block mounted through one small renderer contract</p>
+    </div>
+    <nav class="example-actions" aria-label="example navigation">
+      <a href="../../docs/examples.html">← examples</a>
+      <a href="demo.mjs" download>module ↓</a>
+    </nav>
+  </header>
+  <main class="example-main"><div id="field" class="field"></div></main>
+  <footer class="example-note"><span><strong>try:</strong> increment the counter</span><span>the core never renders it itself</span></footer>
   <script type="module" src="demo.mjs"></script>
 </body>
 </html>
