@@ -72,10 +72,12 @@ const boardCss = await readFile(resolve(root, "docs", "board.css"), "utf8");
 const systemCss = await readFile(resolve(root, "docs", "system.css"), "utf8");
 const examplesCss = await readFile(resolve(root, "docs", "examples.css"), "utf8");
 const manualCss = await readFile(resolve(root, "docs", "manual.css"), "utf8");
+const referenceCss = await readFile(resolve(root, "docs", "reference.css"), "utf8");
 const exampleCss = await readFile(resolve(root, "examples", "example.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
 const systemHtml = await readFile(resolve(root, "docs", "system.html"), "utf8");
 const examplesHtml = await readFile(resolve(root, "docs", "examples.html"), "utf8");
+const apiHtml = await readFile(resolve(root, "docs", "api.html"), "utf8");
 const manualHtml = await readFile(resolve(root, "docs", "manual.html"), "utf8");
 const siteDemoFiles = [
   "demo.mjs",
@@ -83,6 +85,7 @@ const siteDemoFiles = [
   "docs/system.mjs",
   "docs/examples.mjs",
   "docs/manual.mjs",
+  "docs/reference.mjs",
   "docs/shell.mjs",
   "examples/basic-grid/demo.mjs",
   "examples/mixed-content/demo.mjs",
@@ -234,6 +237,25 @@ assert.match(manualCss, /\.manual-media video\s*\{[^}]*object-fit:\s*contain;/s,
 assert.match(manualCss, /@media \(max-width: 900px\)[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/, "the experimental manual must collapse to three tablet columns");
 assert.match(manualCss, /@media \(max-width: 560px\)[\s\S]*grid-template-columns:\s*1fr;/, "the experimental manual must collapse to one mobile column");
 assert.doesNotMatch(libraryCss, /\.manual-/, "the reusable library stylesheet must not absorb the experimental manual composition");
+
+assert.match(apiHtml, /<body class="reference-page">/, "the API route must use the canonical reference surface");
+assert.match(apiHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the reference must use the four-item shared navigation");
+assert.equal((siteDemos["docs/reference.mjs"].match(/^addReference\(\{/gm) || []).length, 6, "the reference must use six direct API blocks");
+assert.equal((siteDemos["docs/reference.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the reference must use one shared blocks system");
+assert.match(siteDemos["docs/reference.mjs"], /blocks\.draggable = false;/, "the lookup reference must preserve its canonical reading order");
+assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the reference must use the shared whole-pixel geometry");
+for (const anchor of ["shared-system", "block-controller", "adapters", "definition", "css-hooks", "errors"]) {
+  assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);
+}
+for (const apiName of ["attach(target)", "setGrid(x, y)", "draggable", "add(content, options)", "menu(name, options)", "span(x, y)", "place(x, y)", "registerAdapter(id, adapter)", "mount(id, target, overrides)", "unmount(target)", "address(id)"]) {
+  assert.ok(siteDemos["docs/reference.mjs"].includes(apiName), `the reference misses ${apiName}`);
+}
+for (const hook of [".blocks-system-surface", ".blocks-system-object", ".blocks-system-menu", ".blocks-system-content", "[data-block-object]", "[data-block-variant]", "[data-block-minimized]", "[data-draggable]"]) {
+  assert.ok(siteDemos["docs/reference.mjs"].includes(hook), `the reference misses stable hook ${hook}`);
+}
+assert.match(referenceCss, /\.reference-board\s*\{[^}]*background:\s*var\(--reference-field\);/s, "the reference must use an invisible editorial grid");
+assert.doesNotMatch(referenceCss, /background-image\s*:/, "the reference must not draw background grid lines");
+assert.doesNotMatch(libraryCss, /\.reference-/, "the reusable library stylesheet must not absorb reference composition");
 
 const combinedDemos = Object.values(siteDemos).join("\n");
 for (const color of [

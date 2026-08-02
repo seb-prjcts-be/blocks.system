@@ -3,94 +3,47 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>api · blocks.system</title>
+  <meta name="description" content="Complete blocks.system API reference: shared system, block controllers, adapters, errors and stable CSS hooks.">
+  <title>reference · blocks.system</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=0.1.2">
+  <link rel="stylesheet" href="../blocks.system.css?v=0.1.1">
+  <link rel="stylesheet" href="reference.css?v=0.1.0">
 </head>
-<body>
+<body class="reference-page">
   <nav id="navbar" aria-label="main navigation">
     <a class="nav-logo" href="../index.html">blocks.system</a>
     <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
     <ul class="nav-links">
-      <li><a href="../index.html">showcase</a></li><li><a href="system.html">system</a></li><li><a href="examples.html">examples</a></li><li><a class="active" href="api.html">api</a></li><li><a href="guide.html">guide</a></li><li><a href="about.html">about</a></li><li><a href="https://github.com/seb-prjcts-be/blocks.system">github</a></li>
+      <li><a href="../index.html">home</a></li>
+      <li><a href="manual.html">manual</a></li>
+      <li><a class="active" href="api.html" aria-current="page">reference</a></li>
+      <li><a href="https://github.com/seb-prjcts-be/blocks.system">source</a></li>
     </ul>
   </nav>
 
-  <main class="page docs">
-    <header class="page-header">
-      <span class="section-tag">api</span>
-      <h1>blocks and block</h1>
-      <p>Module examples call the shared system <code>blocks</code>. Every controller returned by <code>add()</code> starts with <code>block</code>.</p>
+  <main class="reference-main">
+    <header class="reference-masthead">
+      <span>reference / exact contracts</span>
+      <h1>blocks<br>and block.</h1>
+      <p>Use <code>blocks</code> for the shared system. Every controller returned by <code>add()</code> starts with <code>block</code>. Learn the sequence in the <a href="manual.html#start">manual</a>; look up exact members here.</p>
     </header>
 
-    <h2>blocks · shared system</h2>
-    <table class="api-table">
-      <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
-      <tbody>
-        <tr><td>attach(target)</td><td>blocks</td><td>Attach to a selector or DOM element.</td></tr>
-        <tr><td>setGrid(x, y)</td><td>blocks</td><td>Set positive integer column and row counts.</td></tr>
-        <tr><td>snap</td><td>boolean</td><td>Read or change grid snapping.</td></tr>
-        <tr><td>draggable</td><td>boolean</td><td>Reorder blocks by dragging their menu bars; enabled by default.</td></tr>
-        <tr><td>font</td><td>object|null</td><td>Optionally load one font stylesheet and set its family on the field.</td></tr>
-        <tr><td>variant</td><td>string</td><td>Variant used for new blocks; defaults to <code>random</code>.</td></tr>
-        <tr><td>variants</td><td>array</td><td>Read the built-in regular, inverse and RGB/CMY variant names.</td></tr>
-        <tr><td>field</td><td>element|null</td><td>Read the currently attached field.</td></tr>
-        <tr><td>add(content, options)</td><td>block</td><td>Add HTML, a DOM node or a content factory.</td></tr>
-      </tbody>
-    </table>
+    <nav class="reference-index" aria-label="reference sections">
+      <a href="#shared-system">shared system</a><a href="#block-controller">block controller</a><a href="#adapters">adapters</a><a href="#definition">definition</a><a href="#css-hooks">css hooks</a><a href="#errors">errors</a>
+    </nav>
 
-    <h2>block… · one controller</h2>
-    <table class="api-table">
-      <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
-      <tbody>
-        <tr><td>id</td><td>string</td><td>Stable lowercase kebab-case object id.</td></tr>
-        <tr><td>element</td><td>section</td><td>Outer block element.</td></tr>
-        <tr><td>content</td><td>div</td><td>Content host inside the block.</td></tr>
-        <tr><td>menu(name, options)</td><td>block</td><td>Add or update a title bar with minimize and optional close controls.</td></tr>
-        <tr><td>span(x, y)</td><td>block</td><td>Occupy whole column and row units within the current grid.</td></tr>
-        <tr><td>place(x, y)</td><td>block</td><td>Use one-based column and row coordinates without overlapping another placed block.</td></tr>
-        <tr><td>minimized</td><td>boolean</td><td>Show only the menu while preserving the configured span and position.</td></tr>
-        <tr><td>variant</td><td>string</td><td>Read or set this object's resolved visual variant.</td></tr>
-        <tr><td>color</td><td>string</td><td>Read or set the object colour CSS value.</td></tr>
-        <tr><td>remove()</td><td>true</td><td>Remove the object from its field.</td></tr>
-      </tbody>
-    </table>
-
-    <h2>definitions and adapters</h2>
-    <table class="api-table">
-      <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
-      <tbody>
-        <tr><td>register(definition)</td><td>blocks</td><td>Register a reusable lowercase kebab-case definition.</td></tr>
-        <tr><td>registerAdapter(id, adapter)</td><td>blocks</td><td>Register a lifecycle adapter with at least <code>mount()</code>.</td></tr>
-        <tr><td>list(filters)</td><td>array</td><td>List definitions by query, adapter, medium or category.</td></tr>
-        <tr><td>get(id)</td><td>definition|null</td><td>Read one registered definition.</td></tr>
-        <tr><td>listAdapters()</td><td>array</td><td>List registered adapter ids.</td></tr>
-        <tr><td>mount(id, target, overrides)</td><td>promise&lt;element&gt;</td><td>Mount one definition through its adapter.</td></tr>
-        <tr><td>unmount(target)</td><td>boolean</td><td>Run optional cleanup and remove mounted content.</td></tr>
-        <tr><td>remount(id, target, overrides)</td><td>promise&lt;element&gt;</td><td>Mount again with new settings.</td></tr>
-        <tr><td>snippet(id, overrides)</td><td>string</td><td>Ask an adapter for a reusable snippet.</td></tr>
-        <tr><td>address(id)</td><td>url</td><td>Create a catalog URL using <code>?block=id</code>.</td></tr>
-      </tbody>
-    </table>
-
-    <h2>definition shape</h2>
-    <pre class="code-block"><code>{
-  id: "block-welcome",
-  label: "welcome",
-  adapter: "block-note",
-  medium: "html",
-  category: "text",
-  description: "a small note",
-  defaults: { text: "hello" },
-  attributes: [],
-  requires: []
-}</code></pre>
-
-    <h2>errors</h2>
-    <p>The library throws early for invalid ids, missing fields, invalid grid values, duplicate registrations, unknown blocks and incomplete adapters. Catch only errors you can recover from.</p>
+    <section aria-label="blocks.system reference blocks">
+      <div id="reference-board" class="reference-board" aria-label="complete API reference"></div>
+    </section>
   </main>
 
-  <footer><a href="https://github.com/seb-prjcts-be/blocks.system">blocks.system</a> · mit license · <span data-year></span></footer>
-  <script type="module" src="nav.mjs"></script>
+  <footer class="reference-foot">
+    <span>blocks.system · reference · v0.1.0</span>
+    <a href="blocks.system.manifest.json">open manifest →</a>
+  </footer>
+
+  <script type="module" src="shell.mjs?v=0.1.0"></script>
+  <script type="module" src="reference.mjs?v=0.1.0"></script>
 </body>
 </html>
