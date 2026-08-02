@@ -1,10 +1,8 @@
 # blocks.system
 
-**[Start](https://seb-prjcts-be.github.io/blocks.system/docs/guide.html)** ·
-**[Blocks](https://seb-prjcts-be.github.io/blocks.system/docs/guide-blocks.html)** ·
-**[Finish](https://seb-prjcts-be.github.io/blocks.system/docs/guide-finish.html)** ·
+**[Manual](https://seb-prjcts-be.github.io/blocks.system/docs/)** ·
 **[API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)** ·
-**[Examples](https://seb-prjcts-be.github.io/blocks.system/docs/examples.html)**
+**[Examples](https://seb-prjcts-be.github.io/blocks.system/docs/#examples)**
 
 `blocks.system` is a dependency-free ESM browser core for individually
 addressable HTML, SVG, canvas, custom elements and adapter-driven content.

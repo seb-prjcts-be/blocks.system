@@ -109,7 +109,7 @@ addHome({
   variant: "inverse",
   content: nodeFromHtml(`
     <nav class="home-next" aria-label="next steps">
-      <a href="docs/manual.html#start"><small>learn</small><strong>manual →</strong></a>
+      <a href="docs/#start"><small>learn</small><strong>manual →</strong></a>
       <a href="https://github.com/seb-prjcts-be/blocks.system"><small>inspect</small><strong>source →</strong></a>
     </nav>
   `)

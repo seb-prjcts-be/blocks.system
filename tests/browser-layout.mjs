@@ -650,40 +650,7 @@ try {
   assert.equal(afterHover.canvasVisual.boxShadow, beforeHover.canvasVisual.boxShadow, "hover mag geen onverwachte schaduw toevoegen");
   assert.equal(afterHover.canvasVisual.transform, beforeHover.canvasVisual.transform, "hover mag het block niet verplaatsen");
 
-  await navigateTo(`${pageUrl}docs/examples.html`);
-  for (const [width, height] of [[1280, 720], [800, 900], [390, 844]]) {
-    const examples = await measureExamples(width, height);
-    assert.ok(examples.horizontalOverflow <= 0.5, `examples heeft ${examples.horizontalOverflow}px horizontale overflow op ${width}px`);
-    assert.deepEqual(examples.outsideBoard, [], `examples plaatst blocks buiten het board op ${width}px: ${examples.outsideBoard.join(", ")}`);
-    assert.deepEqual(examples.clippedStatements, [], `examples knipt statements af op ${width}px: ${examples.clippedStatements.join(", ")}`);
-    assert.equal(examples.nestedSurfaces, 0, `examples bevat opnieuw ${examples.nestedSurfaces} geneste blocks-grids op ${width}px`);
-    assert.equal(examples.closeButtons, 13, `examples toont ${examples.closeButtons} in plaats van 13 ×-sluitknoppen op ${width}px`);
-    assert.equal(examples.scrollbarWidth, "thin", `examples gebruikt geen dunne OS-scrollbar op ${width}px`);
-    assert.match(examples.scrollbarColor, /rgba\(17, 17, 17, 0\.58\)/, `examples gebruikt geen neutrale scrollbar op ${width}px`);
-    assert.deepEqual(examples.hiddenActions, [], `examples verbergt acties op ${width}px: ${examples.hiddenActions.join(", ")}`);
-    assert.deepEqual(examples.clippedControls, [], `examples knipt controls af op ${width}px: ${examples.clippedControls.join(", ")}`);
-    assert.deepEqual(examples.routeBorderWidths, ["0px", "0px", "0px", "0px"], `examples toont opnieuw verticale kleurstroken op ${width}px`);
-    if (width === 1280) {
-      assert.ok(examples.boardBottom <= height, `examples-board past niet in het desktopscherm: ${examples.boardBottom}px > ${height}px`);
-      assert.ok(examples.documentHeight <= height, `examples is niet langer één scherm op desktop: ${examples.documentHeight}px > ${height}px`);
-    }
-  }
-  const examplesInteraction = await exerciseExamples();
-  assert.equal(examplesInteraction.incremented, "4", "examples adapter increment werkt niet meer");
-  assert.equal(examplesInteraction.allMinimized, true, "examples kan niet alle blocks minimaliseren");
-  assert.equal(examplesInteraction.allRestored, true, "examples kan de blocks niet herstellen");
-  assert.match(examplesInteraction.changedStatus, /12 × 6 · roomy/, "examples status volgt density/board niet");
-  assert.equal(examplesInteraction.resetDensity, "normal", "examples reset herstelt density niet");
-  assert.equal(examplesInteraction.resetBoard, "8,6", "examples reset herstelt board niet");
-  assert.deepEqual(examplesInteraction.resetMinimized, ["basic-2"], "examples reset herstelt de directe minimized-demo niet");
-  assert.equal(examplesInteraction.closedCount, 12, "de ×-sluitknop verwijdert het gekozen voorbeeldblock niet");
-  assert.match(examplesInteraction.closedStatus, /12 blocks/, "examples status volgt een gesloten block niet");
-  assert.equal(examplesInteraction.restoredCount, 13, "reset bouwt een gesloten voorbeeldblock niet opnieuw op");
-  assert.equal(examplesInteraction.restoredCloseButtons, 13, "een hersteld voorbeeldblock verliest zijn ×-sluitknop");
-  assert.match(examplesInteraction.restoredStatus, /13 blocks · 1 minimized/, "reset herstelt de oorspronkelijke examples status niet");
-  assert.deepEqual(examplesInteraction.restoredOrder.slice(0, 5), ["learning-path", "basic-1", "basic-2", "basic-3", "basic-4"], "reset herstelt de canonieke examples leesvolgorde niet");
-
-  await navigateTo(`${pageUrl}docs/manual.html`);
+  await navigateTo(`${pageUrl}docs/`);
   const manualMeasurements = [];
   for (const [width, height, columns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
@@ -756,7 +723,28 @@ try {
     }
   }
 
-  console.log("browser-layout: home, manual en reference op 1440–320px @1x/@2x — OK");
+  const aliases = {
+    "manual.html": "system",
+    "system.html": "system",
+    "examples.html": "examples",
+    "guide.html": "start",
+    "guide-blocks.html": "compose",
+    "guide-finish.html": "connect",
+    "about.html": "boundary"
+  };
+  for (const [file, anchor] of Object.entries(aliases)) {
+    await navigateTo(`${pageUrl}docs/${file}?legacy=1`);
+    await new Promise(function (resolveAlias) { setTimeout(resolveAlias, 60); });
+    const aliasResult = await protocol.send("Runtime.evaluate", {
+      expression: `({ pathname: location.pathname, hash: location.hash, search: location.search })`,
+      returnByValue: true
+    });
+    assert.equal(aliasResult.result.value.pathname, "/docs/", `${file} komt niet op de canonieke /docs/ route uit`);
+    assert.equal(aliasResult.result.value.hash, `#${anchor}`, `${file} komt niet op #${anchor} uit`);
+    assert.equal(aliasResult.result.value.search, "", `${file} laat de legacy query in de canonieke URL staan`);
+  }
+
+  console.log("browser-layout: canonieke routes op 1440–320px @1x/@2x plus zeven legacy aliases — OK");
 } finally {
   if (protocol) {
     try { await protocol.send("Browser.close"); } catch {}

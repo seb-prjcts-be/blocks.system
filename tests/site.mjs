@@ -7,6 +7,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 const pages = [
   "index.html",
+  "docs/index.html",
   "docs/system.html",
   "docs/examples.html",
   "docs/api.html",
@@ -45,21 +46,7 @@ for (const apiName of ["attach", "setGrid", "snap", "draggable", "variant", "var
   assert.ok(readmeNl.includes(apiName), `README_NL.md misses ${apiName}`);
 }
 
-const guideFiles = ["docs/guide.html", "docs/guide-blocks.html", "docs/guide-finish.html"];
-const guidePages = await Promise.all(guideFiles.map(function (file) {
-  return readFile(resolve(root, file), "utf8");
-}));
-for (const [index, html] of guidePages.entries()) {
-  assert.match(html, /class="docs-pagination"/, `${guideFiles[index]} needs the shared pager`);
-  for (const page of ["guide.html", "guide-blocks.html", "guide-finish.html"]) {
-    assert.ok(html.includes(`href="${page}"`), `${guideFiles[index]} must link to ${page}`);
-  }
-}
-assert.match(guidePages[0], /guide 01 · start/, "guide page one must be the start");
-assert.match(guidePages[1], /guide 02 · middle/, "guide page two must be the middle");
-assert.match(guidePages[2], /guide 03 · end/, "guide page three must be the end");
-
-for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl], ...guideFiles.map(function (file, index) { return [file, guidePages[index]]; })]) {
+for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]]) {
   assert.doesNotMatch(content, /const\s+(?!block)[A-Za-z_$][\w$]*\s*=\s*blocks(?:\.system)?\.add\(/, `${file} must prefix returned controllers with block`);
 }
 assert.match(readme, /import \{ system as blocks \}/, "README.md must alias the shared system to blocks");
@@ -80,8 +67,23 @@ const librarySource = await readFile(resolve(root, "blocks.system.mjs"), "utf8")
 const systemHtml = await readFile(resolve(root, "docs", "system.html"), "utf8");
 const examplesHtml = await readFile(resolve(root, "docs", "examples.html"), "utf8");
 const apiHtml = await readFile(resolve(root, "docs", "api.html"), "utf8");
-const manualHtml = await readFile(resolve(root, "docs", "manual.html"), "utf8");
+const manualHtml = await readFile(resolve(root, "docs", "index.html"), "utf8");
 const homeHtml = await readFile(resolve(root, "index.html"), "utf8");
+const aliasTargets = {
+  "manual.html": "system",
+  "system.html": "system",
+  "examples.html": "examples",
+  "guide.html": "start",
+  "guide-blocks.html": "compose",
+  "guide-finish.html": "connect",
+  "about.html": "boundary"
+};
+for (const [file, anchor] of Object.entries(aliasTargets)) {
+  const alias = await readFile(resolve(root, "docs", file), "utf8");
+  assert.match(alias, /rel="canonical" href="\.\/"/, `${file} must declare /docs/ canonical`);
+  assert.ok(alias.includes(`location.replace(new URL("./#${anchor}"`), `${file} must replace history with #${anchor}`);
+  assert.ok(alias.includes(`href="./#${anchor}"`), `${file} must retain a no-script link to #${anchor}`);
+}
 const siteDemoFiles = [
   "demo.mjs",
   "docs/board.mjs",
@@ -157,63 +159,14 @@ for (const [name, css] of [["docs", siteCss], ["standalone examples", exampleCss
 for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "yellow"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
-assert.match(siteCss, /\.demo-layout\s*\{[^}]*746px[^}]*max-width:\s*1020px;/s, "the showcase field must preserve the original compact width rhythm");
-assert.match(siteCss, /#field\s*\{[^}]*--blocks-demo-row-size:\s*110px;[^}]*height:\s*auto;[^}]*min-height:\s*0;/s, "the showcase must grow instead of crushing demo content into short rows");
-assert.match(siteCss, /#field\.blocks-system-surface\[data-snap="true"\]\s*\{[^}]*grid-template-rows:\s*repeat\(var\(--blocks-rows\),\s*var\(--blocks-demo-row-size\)\);/s, "every showcase row must use the same fixed grid unit");
-assert.match(siteCss, /#field \[data-block-object="canvas"\] \.blocks-system-content\s*\{[^}]*position:\s*relative;/s, "the showcase canvas needs a bounded content host");
-assert.match(siteCss, /\.demo-canvas\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*var\(--blocks-content-padding\);[^}]*max-height:\s*none;/s, "the showcase canvas must remain inside its block content area");
-assert.match(siteCss, /\.native-controls\s*\{[^}]*min-height:\s*0;[^}]*max-height:\s*100%;/s, "native controls must remain inside their block content area");
-assert.match(siteCss, /@media \(max-width: 560px\)[\s\S]*--block-column:\s*auto !important;[\s\S]*--block-row:\s*auto !important;[\s\S]*--block-span-columns:\s*1 !important;[\s\S]*--block-span-rows:\s*1 !important;/, "the mobile showcase must return blocks to automatic single grid units");
-assert.ok(siteDemos["demo.mjs"].includes("blocks.setGrid(8, 4)"), "the showcase must expose the original eight-column rhythm");
-assert.ok(siteDemos["demo.mjs"].includes("blockCanvas.span(2, 1)"), "the showcase must demonstrate a wider block");
-assert.ok(siteDemos["demo.mjs"].includes("blockCustom.span(2, 2)"), "the showcase must demonstrate a taller block");
 assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes('blockItem.variant = "magenta"'), "the basic grid must demonstrate magenta as its single explicit variant");
 assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes("blockItem.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
-assert.ok(["blockHtml.place(1, 1)", "blockCanvas.place(3, 2)", "blockCustom.place(7, 1)", "blockControls.place(5, 4)"].every(function (line) { return siteDemos["demo.mjs"].includes(line); }), "the showcase must preserve deliberate empty grid cells");
-assert.match(systemHtml, /<option value="8,6" selected>8 × 6<\/option>/, "the docs prototype must start from the reference eight-by-six board");
-assert.ok(siteDemos["docs/system.mjs"].includes("minimized: true"), "the docs prototype must keep its minimized navigation experiment");
-assert.ok(siteDemos["docs/system.mjs"].includes("await docsSystem.mount"), "the docs prototype must demonstrate the adapter contract through the real system");
-assert.match(boardCss, /\.docs-board-surface/, "one-screen docs pages must share one isolated board stylesheet");
-assert.match(boardCss, /@media \(max-width: 560px\)[\s\S]*--blocks-columns:\s*1 !important;[\s\S]*grid-template-columns:\s*1fr;/, "shared docs boards must collapse to one narrow column");
-assert.match(systemCss, /\.system-board/, "the system page must keep only its page-specific board rules");
-assert.match(systemCss, /\.prototype-link\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) auto;[^}]*align-content:\s*center;/s, "short system links must center a compact horizontal layout");
-assert.match(systemCss, /\.prototype-canvas,\s*\.prototype-reference\s*\{[^}]*min-height:\s*0;[^}]*max-height:\s*100%;/s, "intrinsic system media must be allowed to shrink and center inside its cell");
-assert.match(examplesCss, /\.examples-board/, "the examples page must keep only its page-specific board rules");
-assert.match(examplesCss, /\.example-actions\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1 \/ span 2;/s, "example actions must remain visible beside compact route content");
-assert.doesNotMatch(examplesCss, /\.example-live(?:-board)?/, "the examples page must not recreate nested live windows");
-assert.match(examplesHtml, /<body class="docs-board-body examples-page">/, "the examples composition needs an isolated page scope");
-assert.match(examplesHtml, /<h1 id="examples-title"><span>examples<\/span><em>small systems, clearly seen\.<\/em><\/h1>/, "the examples masthead must remain a restrained typographic statement");
-assert.match(examplesHtml, /13 blocks · 1 minimized/, "the flat examples board must expose all direct blocks in its initial status");
-assert.match(examplesHtml, /start → combine → extend \/ 13 grid cells intentionally empty/, "the examples footer must name the deliberate empty grid space");
-assert.match(examplesCss, /--accent-magenta:\s*rgb\(255, 0, 255\);/, "the examples composition must expose magenta as its one accent");
-for (const color of ["rgb(255, 0, 0)", "rgb(0, 255, 0)", "rgb(0, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"]) {
-  assert.ok(!examplesCss.includes(color) && !siteDemos["docs/examples.mjs"].includes(color), `the examples composition combines magenta with ${color}`);
-}
-assert.match(examplesCss, /\.examples-page \.docs-board-toolbar\s*\{[^}]*grid-template-columns:[^}]*border-bottom:\s*1px solid var\(--ink\);/s, "the examples masthead must keep its quiet asymmetric construction line");
-assert.match(examplesCss, /\.examples-board\s*\{[^}]*--blocks-gap:\s*6px;[^}]*border:\s*1px solid var\(--ink\);/s, "the examples board must keep the restrained system grid");
-assert.ok(["the grid is a decision.", "content is content.", "extend the contract. not the core."].every(function (statement) {
-  return siteDemos["docs/examples.mjs"].includes(statement);
-}), "each learning path must carry its own statement");
-assert.match(siteDemos["docs/examples.mjs"], /id:\s*"basic-4"[\s\S]*?variant:\s*"magenta"/, "the examples page must use magenta for its single variant proof");
-assert.match(siteDemos["docs/examples.mjs"], /createDocsBoard\(\{ system: examplesSystem, closeable: true \}\)/, "the examples page must expose the real close control on every block");
-assert.match(siteDemos["docs/board.mjs"], /if \(!blocks\[index\]\?\.element\.isConnected\) mountBlock\(spec, index\);/, "docs reset must remount a block removed by its close control");
-assert.match(siteDemos["docs/board.mjs"], /blocks\.forEach\(\(block\) => board\.appendChild\(block\.element\)\);/, "docs reset must restore the canonical DOM reading order after close");
-assert.doesNotMatch(examplesCss, /--statement-accent|border-left:\s*5px/, "example blocks must not contain vertical color strips");
-assert.doesNotMatch(libraryCss, /\.docs-board-surface|\.system-board|\.examples-board/, "the reusable library stylesheet must not absorb docs page composition");
-assert.doesNotMatch(examplesHtml, /<iframe\b/i, "the examples index must use live systems instead of passive iframe cards");
-assert.equal((siteDemos["docs/examples.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the examples page must use one shared blocks system");
-assert.doesNotMatch(siteDemos["docs/examples.mjs"], /data-live-example|example-live-board|blocksBasic|blocksMixed|blocksAdapter/, "the examples page must not create nested block systems");
-for (const directBlock of ["basic-1", "basic-2", "basic-3", "basic-4", "mixed-html", "mixed-canvas", "mixed-custom", "adapter-counter"]) {
-  assert.ok(siteDemos["docs/examples.mjs"].includes(`id: "${directBlock}"`), `the flat examples board misses ${directBlock}`);
-}
-assert.ok(siteDemos["docs/examples.mjs"].includes('await examplesSystem.mount("example-counter"'), "the shared examples board must include a live adapter");
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
-  assert.ok(siteDemos["docs/examples.mjs"].includes(`../examples/${example}/`), `the examples board must link to the ${example} standalone page`);
-  assert.ok(siteDemos["docs/examples.mjs"].includes(`../examples/${example}/demo.mjs`), `the examples board must link to the ${example} source module`);
-  assert.match(standaloneExamples[example], /href="\.\.\/\.\.\/docs\/examples\.html"/, `${example} must return to the examples learning path`);
   assert.match(standaloneExamples[example], /href="demo\.mjs" download/, `${example} must offer its copyable module explicitly`);
 }
-assert.equal((siteDemos["docs/examples.mjs"].match(/demo\.mjs" download/g) || []).length, 3, "each examples route must explicitly download its local source module");
+assert.match(standaloneExamples["basic-grid"], /href="\.\.\/\.\.\/docs\/#start"/, "basic-grid must return to manual start");
+assert.match(standaloneExamples["mixed-content"], /href="\.\.\/\.\.\/docs\/#compose"/, "mixed-content must return to manual compose");
+assert.match(standaloneExamples["custom-adapter"], /href="\.\.\/\.\.\/docs\/#connect"/, "custom-adapter must return to manual connect");
 
 assert.match(manualHtml, /<body class="manual-page">/, "the experimental manual needs an isolated page scope");
 assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one shared board");

@@ -523,7 +523,11 @@ canvasbitmap en natuurlijke paginascroll.
 - site-, browser- en linktests veranderen mee;
 - pas na groen resultaat komt publicatie in aanmerking.
 
-**Gate:** alle oude URL's werken, alle nieuwe anchors werken, `npm run check` en
+**Gate: geslaagd op 2 augustus 2026.** `/docs/` is de canonieke levende manual;
+hoofdnav, READMEs, reference en standalone examples wijzen naar hun eigenaar.
+Zeven oude routes blijven HTTP-200-aliases met canonical, leesbare fallback en
+`location.replace()` naar het juiste vaste anchor. Queryfragmenten verdwijnen
+uit de canonieke URL. Linktest, echte Chromium-aliastest, `npm run check` en
 `git diff --check` zijn groen.
 
 ### Fase 7 — Opruimen
