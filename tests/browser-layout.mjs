@@ -231,6 +231,7 @@ async function measureExamples(width, height) {
       });
       const nestedContents = Array.from(board.querySelectorAll(".example-live-board .blocks-system-content"));
       const links = Array.from(board.querySelectorAll(".example-actions a, .examples-next a"));
+      const controls = Array.from(document.querySelectorAll(".docs-board-controls button, .docs-board-controls label, .docs-board-controls select"));
       return {
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         documentHeight: document.documentElement.scrollHeight,
@@ -254,8 +255,11 @@ async function measureExamples(width, height) {
           const rect = link.getBoundingClientRect();
           return rect.width < 1 || rect.height < 1 || getComputedStyle(link).visibility === "hidden";
         }).map(function (link) { return link.textContent.trim(); }),
-        routeColors: ["basic-route", "mixed-route", "adapter-route"].map(function (id) {
-          return getComputedStyle(board.querySelector('[data-block-object="' + id + '"] > .blocks-system-content')).backgroundColor;
+        clippedControls: controls.filter(function (control) {
+          return control.scrollWidth > control.clientWidth + 1 || control.getBoundingClientRect().right > document.documentElement.clientWidth + 0.5;
+        }).map(function (control) { return control.textContent.trim(); }),
+        routeAccents: ["basic-route", "mixed-route", "adapter-route", "next-step"].map(function (id) {
+          return getComputedStyle(board.querySelector('[data-block-object="' + id + '"] .example-route, [data-block-object="' + id + '"] .examples-next')).borderLeftColor;
         })
       };
     })()`,
@@ -373,7 +377,8 @@ try {
     assert.deepEqual(examples.clippedStatements, [], `examples knipt statements af op ${width}px: ${examples.clippedStatements.join(", ")}`);
     assert.deepEqual(examples.clippedNestedContent, [], `examples knipt live inhoud af op ${width}px: ${examples.clippedNestedContent.join(", ")}`);
     assert.deepEqual(examples.hiddenActions, [], `examples verbergt acties op ${width}px: ${examples.hiddenActions.join(", ")}`);
-    assert.deepEqual(examples.routeColors, ["rgb(255, 0, 0)", "rgb(255, 255, 0)", "rgb(0, 0, 255)"], `examples verliest de primaire De Stijl-kleuren op ${width}px`);
+    assert.deepEqual(examples.clippedControls, [], `examples knipt controls af op ${width}px: ${examples.clippedControls.join(", ")}`);
+    assert.deepEqual(examples.routeAccents, ["rgb(255, 0, 0)", "rgb(0, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 0, 255)"], `examples verliest de subtiele kleuraccenten op ${width}px`);
     if (width === 1280) {
       assert.ok(examples.boardBottom <= height, `examples-board past niet in het desktopscherm: ${examples.boardBottom}px > ${height}px`);
       assert.ok(examples.documentHeight <= height, `examples is niet langer één scherm op desktop: ${examples.documentHeight}px > ${height}px`);
@@ -387,7 +392,7 @@ try {
   assert.equal(examplesInteraction.resetDensity, "normal", "examples reset herstelt density niet");
   assert.equal(examplesInteraction.resetBoard, "8,6", "examples reset herstelt board niet");
 
-  console.log("browser-layout: showcase-uitlijning/hover en De Stijl-examples op desktop/tablet/mobiel — OK");
+  console.log("browser-layout: showcase-uitlijning/hover en minimalistische examples op desktop/tablet/mobiel — OK");
 } finally {
   if (protocol) {
     try { await protocol.send("Browser.close"); } catch {}

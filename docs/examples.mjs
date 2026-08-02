@@ -10,7 +10,6 @@ addBlock({
   title: "00 / thesis",
   span: [2, 2],
   place: [1, 1],
-  variant: "inverse",
   content: nodeFromHtml(`
     <div class="examples-intro">
       <small>three examples / three decisions</small>
@@ -52,7 +51,6 @@ addBlock({
   title: "principle / 01",
   span: [2, 1],
   place: [1, 3],
-  variant: "red",
   content: nodeFromHtml(`
     <div class="example-route">
       <small>attach / grid / place</small>
@@ -111,7 +109,7 @@ if (!customElements.get("example-signal")) {
     }
   });
 }
-const blockCustom = blocksMixed.add(document.createElement("example-signal"), { id: "mixed-custom", variant: "yellow" });
+const blockCustom = blocksMixed.add(document.createElement("example-signal"), { id: "mixed-custom", variant: "magenta" });
 blockCustom.menu("element");
 
 addBlock({
@@ -119,7 +117,6 @@ addBlock({
   title: "principle / 02",
   span: [3, 1],
   place: [6, 3],
-  variant: "yellow",
   content: nodeFromHtml(`
     <div class="example-route">
       <small>one API / no hierarchy</small>
@@ -180,7 +177,6 @@ addBlock({
   title: "principle / 03",
   span: [2, 2],
   place: [5, 5],
-  variant: "blue",
   content: nodeFromHtml(`
     <div class="example-route">
       <small>register / mount / settings</small>
