@@ -66,7 +66,7 @@
 }
 
 .examples-page .docs-board-heading h1 > span {
-  font: 500 clamp(2.35rem, 4.4vw, 4.25rem)/0.82 "Oswald", sans-serif;
+  font: 600 clamp(2.35rem, 4.4vw, 4.25rem)/0.82 "Instrument Sans", sans-serif;
   letter-spacing: -0.045em;
   text-transform: lowercase;
 }
@@ -176,7 +176,7 @@ example-signal {
 
 .examples-intro strong {
   display: grid;
-  font: 500 clamp(1.55rem, 2.15vw, 2.25rem)/0.82 "Oswald", sans-serif;
+  font: 600 clamp(1.55rem, 2.15vw, 2.25rem)/0.82 "Instrument Sans", sans-serif;
   letter-spacing: -0.045em;
   text-transform: lowercase;
 }
@@ -222,7 +222,7 @@ example-signal {
 .example-route strong,
 .examples-next strong {
   grid-column: 1;
-  font: 500 clamp(0.95rem, 1.5vw, 1.3rem)/0.95 "Oswald", sans-serif;
+  font: 600 clamp(0.95rem, 1.5vw, 1.3rem)/0.95 "Instrument Sans", sans-serif;
   letter-spacing: -0.03em;
   text-transform: lowercase;
   white-space: nowrap;
@@ -298,7 +298,7 @@ example-signal {
 .nested-center small { display: block; }
 
 .nested-center strong {
-  font: 500 clamp(0.9rem, 1.6vw, 1.35rem)/0.95 "Oswald", sans-serif;
+  font: 600 clamp(0.9rem, 1.6vw, 1.35rem)/0.95 "Instrument Sans", sans-serif;
   letter-spacing: -0.03em;
   text-transform: lowercase;
 }
@@ -322,7 +322,7 @@ example-signal {
 
 .adapter-live-root output {
   color: var(--accent-blue);
-  font: 500 clamp(1.8rem, 3.5vw, 3.25rem)/0.85 "Oswald", sans-serif;
+  font: 600 clamp(1.8rem, 3.5vw, 3.25rem)/0.85 "Instrument Sans", sans-serif;
 }
 
 .adapter-live-root button {

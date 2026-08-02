@@ -3,6 +3,10 @@
   background: #d9d8d2;
 }
 
+.docs-board-surface {
+  --blocks-font-family: "Instrument Sans";
+}
+
 .docs-board-main {
   height: 100svh;
   padding-top: 56px;
@@ -43,7 +47,7 @@
 
 .docs-board-heading h1 {
   margin: 0;
-  font: 500 clamp(1.45rem, 3vw, 2.25rem)/0.95 "Oswald", sans-serif;
+  font: 600 clamp(1.45rem, 3vw, 2.25rem)/0.95 "Instrument Sans", sans-serif;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   white-space: nowrap;

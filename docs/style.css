@@ -1,4 +1,7 @@
+/* Vorige displayfont, bewaard voor een snelle vergelijking of terugkeer:
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@400;500;600&display=swap");
+*/
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Inter:wght@400;500;600&display=swap");
 
 :root {
   --paper: #f5f5f2;
@@ -21,7 +24,7 @@ body {
 }
 a { color: inherit; }
 code, pre { font-family: "Consolas", "Courier New", monospace; }
-h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Oswald", sans-serif; }
+h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Instrument Sans", sans-serif; }
 
 #navbar {
   position: fixed;
@@ -49,8 +52,9 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Oswald", 
 .nav-links a {
   border-bottom: 2px solid transparent;
   color: var(--muted);
-  font-family: "Oswald", sans-serif;
+  font-family: "Instrument Sans", sans-serif;
   font-size: 0.86rem;
+  font-weight: 500;
   letter-spacing: 0.05em;
   text-decoration: none;
 }
@@ -85,11 +89,11 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Oswald", 
   font-size: 0.76rem;
   letter-spacing: 0.09em;
 }
-.hero-text h1 { margin: 0; font-size: clamp(4rem, 13vw, 10rem); font-weight: 400; letter-spacing: -0.045em; line-height: 0.9; }
+.hero-text h1 { margin: 0; font-size: clamp(4rem, 13vw, 10rem); font-weight: 500; letter-spacing: -0.045em; line-height: 0.9; }
 .hero-sub { max-width: 760px; margin: 1.5rem auto 2rem; color: var(--muted); font-size: clamp(1rem, 2vw, 1.2rem); }
 .hero-stats { display: flex; justify-content: center; gap: clamp(1.4rem, 6vw, 4.5rem); margin: 2rem 0 2.5rem; }
 .hero-stats div { display: flex; flex-direction: column; }
-.hero-stats strong { font: 600 2rem/1 "Oswald", sans-serif; }
+.hero-stats strong { font: 600 2rem/1 "Instrument Sans", sans-serif; }
 .hero-stats span { color: var(--muted); font-size: 0.7rem; }
 
 .button {
@@ -111,7 +115,7 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Oswald", 
 .section-muted { border-block: 1px solid var(--line); background: var(--paper-2); }
 .section-ink { background: var(--ink); color: white; }
 .section-heading { max-width: 740px; margin: 0 auto 3rem; text-align: center; }
-.section-heading h1, .section-heading h2 { margin: 0 0 1rem; font-size: clamp(2.3rem, 6vw, 4rem); font-weight: 500; letter-spacing: -0.02em; line-height: 1; }
+.section-heading h1, .section-heading h2 { margin: 0 0 1rem; font-size: clamp(2.3rem, 6vw, 4rem); font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
 .section-heading p { margin: 0; color: var(--muted); }
 .section-ink .section-heading p { color: #aaa; }
 .section-ink .section-tag { border-color: #777; color: #bbb; }
@@ -139,7 +143,7 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Oswald", 
   grid-template-rows: repeat(var(--blocks-rows), var(--blocks-demo-row-size));
 }
 .demo-copy, system-badge { display: grid; width: 100%; height: 100%; place-content: center; text-align: center; }
-.demo-copy strong, system-badge strong { font: 500 1.25rem "Oswald", sans-serif; }
+.demo-copy strong, system-badge strong { font: 600 1.25rem "Instrument Sans", sans-serif; }
 .demo-copy small, system-badge small { color: var(--muted); font-size: 0.7rem; }
 #field [data-block-object="canvas"] .blocks-system-content { position: relative; }
 .demo-canvas {
@@ -160,24 +164,24 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Oswald", 
 .principles { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
 .principles article { position: relative; padding: 1.25rem 1.25rem 1.25rem 4rem; background: var(--surface); }
 .principles span { position: absolute; left: 1.2rem; top: 1.35rem; color: var(--muted); font-family: "Consolas", monospace; }
-.principles h3 { margin: 0 0 0.35rem; font-size: 1.15rem; font-weight: 500; }
+.principles h3 { margin: 0 0 0.35rem; font-size: 1.15rem; font-weight: 600; }
 .principles p { margin: 0; color: var(--muted); font-size: 0.9rem; }
 .link-row { display: flex; align-items: center; justify-content: center; gap: 2rem; }
 
 .page { max-width: 1000px; margin: auto; padding: 8rem 2rem 5rem; }
 .page-wide { max-width: 1200px; }
 .page-header { margin-bottom: 3rem; text-align: center; }
-.page-header h1 { margin: 0 0 0.8rem; font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 400; letter-spacing: -0.035em; line-height: 0.95; }
+.page-header h1 { margin: 0 0 0.8rem; font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 500; letter-spacing: -0.035em; line-height: 0.95; }
 .page-header p { max-width: 680px; margin: auto; color: var(--muted); }
-.docs h2 { margin: 3.5rem 0 0.8rem; padding-bottom: 0.35rem; border-bottom: 2px solid var(--ink); font-size: 1.65rem; font-weight: 500; }
-.docs h3 { margin: 2rem 0 0.5rem; font-size: 1.15rem; font-weight: 500; }
+.docs h2 { margin: 3.5rem 0 0.8rem; padding-bottom: 0.35rem; border-bottom: 2px solid var(--ink); font-size: 1.65rem; font-weight: 600; }
+.docs h3 { margin: 2rem 0 0.5rem; font-size: 1.15rem; font-weight: 600; }
 .docs p { color: var(--muted); }
 .docs :not(pre) > code { padding: 0.08em 0.32em; background: #e7e5df; font-size: 0.9em; }
 .callout { margin: 1.2rem 0; padding: 1rem 1.2rem; border-left: 3px solid var(--ink); background: var(--paper-2); }
 .callout p { margin: 0; }
 .steps { counter-reset: step; padding: 0; list-style: none; }
 .steps li { counter-increment: step; display: grid; grid-template-columns: 2rem 1fr; gap: 0.8rem; margin: 1rem 0; }
-.steps li::before { content: counter(step); display: grid; width: 2rem; height: 2rem; place-items: center; background: var(--ink); color: white; font-family: "Oswald", sans-serif; }
+.steps li::before { content: counter(step); display: grid; width: 2rem; height: 2rem; place-items: center; background: var(--ink); color: white; font-family: "Instrument Sans", sans-serif; }
 
 .docs-pagination {
   display: grid;
@@ -195,7 +199,7 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Oswald", 
 .docs-pagination a:last-child { border-right: 0; }
 .docs-pagination a:hover, .docs-pagination a.active { background: var(--ink); color: white; }
 .docs-pagination small { font: 400 0.68rem/1 "Consolas", monospace; }
-.docs-pagination strong { font: 500 1rem/1.2 "Oswald", sans-serif; }
+.docs-pagination strong { font: 600 1rem/1.2 "Instrument Sans", sans-serif; }
 .docs-next {
   display: flex;
   align-items: baseline;
@@ -204,7 +208,8 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Oswald", 
   margin-top: 3.5rem;
   padding-top: 1rem;
   border-top: 2px solid var(--ink);
-  font-family: "Oswald", sans-serif;
+  font-family: "Instrument Sans", sans-serif;
+  font-weight: 500;
 }
 .docs-next span { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .docs-next a { font-size: 1.2rem; text-underline-offset: 0.25em; }
@@ -213,7 +218,7 @@ h1, h2, h3, .nav-logo, .button, .section-tag, .eyebrow { font-family: "Oswald", 
 .docs-checklist li { margin: 0.65rem 0; }
 
 .api-table { width: 100%; margin: 1rem 0 2rem; border-collapse: collapse; font-size: 0.88rem; }
-.api-table th { padding: 0.55rem 0.75rem; background: var(--ink); color: white; font: 500 0.8rem "Oswald", sans-serif; text-align: left; }
+.api-table th { padding: 0.55rem 0.75rem; background: var(--ink); color: white; font: 600 0.8rem "Instrument Sans", sans-serif; text-align: left; }
 .api-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
 .api-table td:first-child { font-family: "Consolas", monospace; white-space: nowrap; }
 
