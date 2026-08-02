@@ -138,23 +138,64 @@ async function measure(width, rows) {
       requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
     });
     const field = document.querySelector("#field");
+    const fieldRect = field.getBoundingClientRect();
+    const fieldStyle = getComputedStyle(field);
+    const rowGap = parseFloat(fieldStyle.rowGap);
+    const rowSizes = fieldStyle.gridTemplateRows.split(" ").slice(0, ${rows}).map(parseFloat);
+    const backgroundPitch = (field.clientHeight + rowGap) / ${rows};
     const objects = Array.from(field.querySelectorAll(".blocks-system-object")).map(function (block) {
       const content = block.querySelector(".blocks-system-content");
+      const blockRect = block.getBoundingClientRect();
+      const row = Number(getComputedStyle(block).gridRowStart);
       return {
         id: block.dataset.blockObject,
-        height: block.getBoundingClientRect().height,
+        height: blockRect.height,
+        alignmentDelta: Number.isInteger(row)
+          ? blockRect.top - fieldRect.top - parseFloat(fieldStyle.borderTopWidth) - (row - 1) * backgroundPitch
+          : null,
         overflow: content.scrollHeight > content.clientHeight || content.scrollWidth > content.clientWidth
       };
     });
     return {
-      fieldHeight: field.getBoundingClientRect().height,
+      fieldHeight: fieldRect.height,
       minBlockHeight: Math.min(...objects.map(function (block) { return block.height; })),
+      rowSizes,
+      misaligned: objects.filter(function (block) {
+        return block.alignmentDelta !== null && Math.abs(block.alignmentDelta) > 0.25;
+      }).map(function (block) { return block.id; }),
       overflowing: objects.filter(function (block) { return block.overflow; }).map(function (block) { return block.id; })
     };
   })()`;
   const result = await protocol.send("Runtime.evaluate", {
     expression,
     awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function hoverSignature() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(() => {
+      const field = document.querySelector("#field");
+      const block = document.querySelector('[data-block-object="canvas"]');
+      const style = getComputedStyle(block);
+      return {
+        fieldHeight: field.getBoundingClientRect().height,
+        gridTemplateRows: getComputedStyle(field).gridTemplateRows,
+        blocks: Array.from(field.querySelectorAll(".blocks-system-object")).map(function (item) {
+          const rect = item.getBoundingClientRect();
+          return [item.dataset.blockObject, rect.left, rect.top, rect.width, rect.height];
+        }),
+        canvasVisual: {
+          outlineStyle: style.outlineStyle,
+          outlineWidth: style.outlineWidth,
+          outlineOffset: style.outlineOffset,
+          boxShadow: style.boxShadow,
+          transform: style.transform
+        }
+      };
+    })()`,
     returnByValue: true
   });
   return result.result.value;
@@ -183,6 +224,8 @@ try {
   });
   protocol = new Protocol(socket);
   await protocol.send("Page.enable");
+  await protocol.send("DOM.enable");
+  await protocol.send("CSS.enable");
   await protocol.send("Emulation.setDeviceMetricsOverride", {
     width: 1280,
     height: 1000,
@@ -198,12 +241,28 @@ try {
     const eightRows = await measure(width, 8);
     for (const [rows, result] of [[4, fourRows], [8, eightRows]]) {
       assert.ok(result.minBlockHeight >= 109.5, `${width}px/${rows} rijen plet een block tot ${result.minBlockHeight}px`);
+      assert.ok(result.rowSizes.length === rows && result.rowSizes.every(function (size) { return Math.abs(size - 110) <= 0.25; }), `${width}px/${rows} rijen gebruikt ongelijke rastereenheden: ${result.rowSizes.join(", ")}`);
+      assert.deepEqual(result.misaligned, [], `${width}px/${rows} rijen lijnt blocks niet uit: ${result.misaligned.join(", ")}`);
       assert.deepEqual(result.overflowing, [], `${width}px/${rows} rijen laat inhoud overlopen in ${result.overflowing.join(", ")}`);
     }
     assert.ok(eightRows.fieldHeight > fourRows.fieldHeight, `${width}px laat extra rijen het veld niet groeien`);
   }
 
-  console.log("browser-layout: 1280/800/390px × 4/8 rijen — OK");
+  await measure(1280, 4);
+  const beforeHover = await hoverSignature();
+  const documentNode = await protocol.send("DOM.getDocument");
+  const canvasNode = await protocol.send("DOM.querySelector", {
+    nodeId: documentNode.root.nodeId,
+    selector: '[data-block-object="canvas"]'
+  });
+  await protocol.send("CSS.forcePseudoState", {
+    nodeId: canvasNode.nodeId,
+    forcedPseudoClasses: ["hover"]
+  });
+  const afterHover = await hoverSignature();
+  assert.deepEqual(afterHover, beforeHover, "hover mag het block of het zichtbare grid niet veranderen");
+
+  console.log("browser-layout: uitlijning, overflow en hover op 1280/800/390px × 4/8 rijen — OK");
 } finally {
   if (protocol) {
     try { await protocol.send("Browser.close"); } catch {}

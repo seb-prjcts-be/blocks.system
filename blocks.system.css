@@ -68,11 +68,6 @@
     color: var(--block-content-color);
 }
 
-.blocks-system-object:hover {
-    outline: 2px solid var(--block-color);
-    outline-offset: -3px;
-}
-
 .blocks-system-object[data-block-minimized="true"] {
     align-self: start;
     min-height: 0;

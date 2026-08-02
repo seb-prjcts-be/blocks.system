@@ -116,14 +116,15 @@ assert.match(libraryCss, /\.blocks-system-content\s*\{[^}]*display:\s*grid;[^}]*
 assert.match(libraryCss, /data-block-minimized="true"[^}]*align-self:\s*start;[^}]*min-height:\s*0;/s, "a minimized block must override consumer minimum heights while keeping its grid area");
 assert.match(libraryCss, /data-block-minimized="true"\]\s+\.blocks-system-content\s*\{[^}]*display:\s*none;/s, "a minimized block must show only its menu");
 assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "the base block stylesheet must remain separate from motion");
-assert.match(libraryCss, /\.blocks-system-object:hover\s*\{[^}]*outline:\s*2px solid var\(--block-color\);[^}]*outline-offset:\s*-3px;/s, "hover must reproduce the original thicker inset line without layout shift");
+assert.doesNotMatch(libraryCss, /\.blocks-system-object:hover\s*\{/, "hover must not alter a block or the visible grid");
 for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "yellow"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
 assert.match(siteCss, /\.demo-layout\s*\{[^}]*746px[^}]*max-width:\s*1020px;/s, "the showcase field must preserve the original compact width rhythm");
-assert.match(siteCss, /#field\s*\{[^}]*--blocks-demo-row-min:\s*110px;[^}]*height:\s*auto;[^}]*min-height:\s*0;/s, "the showcase must grow instead of crushing demo content into short rows");
-assert.match(siteCss, /#field\.blocks-system-surface\[data-snap="true"\]\s*\{[^}]*grid-template-rows:\s*repeat\(var\(--blocks-rows\),\s*minmax\(var\(--blocks-demo-row-min\),\s*auto\)\);/s, "every showcase row must preserve the demo content minimum");
-assert.match(siteCss, /\.demo-canvas\s*\{[^}]*max-height:\s*100%;/s, "the showcase canvas must remain inside its block content area");
+assert.match(siteCss, /#field\s*\{[^}]*--blocks-demo-row-size:\s*110px;[^}]*height:\s*auto;[^}]*min-height:\s*0;/s, "the showcase must grow instead of crushing demo content into short rows");
+assert.match(siteCss, /#field\.blocks-system-surface\[data-snap="true"\]\s*\{[^}]*grid-template-rows:\s*repeat\(var\(--blocks-rows\),\s*var\(--blocks-demo-row-size\)\);/s, "every showcase row must use the same fixed grid unit");
+assert.match(siteCss, /#field \[data-block-object="canvas"\] \.blocks-system-content\s*\{[^}]*position:\s*relative;/s, "the showcase canvas needs a bounded content host");
+assert.match(siteCss, /\.demo-canvas\s*\{[^}]*position:\s*absolute;[^}]*inset:\s*var\(--blocks-content-padding\);[^}]*max-height:\s*none;/s, "the showcase canvas must remain inside its block content area");
 assert.match(siteCss, /\.native-controls\s*\{[^}]*min-height:\s*0;[^}]*max-height:\s*100%;/s, "native controls must remain inside their block content area");
 assert.match(siteCss, /@media \(max-width: 560px\)[\s\S]*--block-column:\s*auto !important;[\s\S]*--block-row:\s*auto !important;[\s\S]*--block-span-columns:\s*1 !important;[\s\S]*--block-span-rows:\s*1 !important;/, "the mobile showcase must return blocks to automatic single grid units");
 assert.ok(siteDemos["demo.mjs"].includes("blocks.setGrid(8, 4)"), "the showcase must expose the original eight-column rhythm");
