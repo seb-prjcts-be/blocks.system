@@ -42,7 +42,7 @@ addReference({
     <tr id="api-draggable"><td>draggable</td><td>boolean</td><td>Reorder by pointer or arrow keys on the menu header; enabled by default.</td></tr>
     <tr id="api-font"><td>font</td><td>object|null</td><td>Load one font stylesheet and set its family.</td></tr>
     <tr id="api-variant"><td>variant</td><td>string</td><td>Variant for new blocks; default <code>random</code>.</td></tr>
-    <tr id="api-variants"><td>variants</td><td>array</td><td>Built-in regular, inverse and RGB/CMY names.</td></tr>
+    <tr id="api-variants"><td>variants</td><td>array</td><td>Regular and inverse plus CMY for current work; RGB names remain compatibility variants.</td></tr>
     <tr id="api-field"><td>field</td><td>element|null</td><td>Read the attached field.</td></tr>
     <tr id="api-add"><td>add(content, options)</td><td>block</td><td>Add trusted HTML, a DOM node or factory.</td></tr>
   `))

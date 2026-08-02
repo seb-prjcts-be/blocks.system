@@ -50,11 +50,15 @@ const blockCanvas = blocks.add(document.createElement("canvas"), {
 blockCanvas.menu("canvas", { close: true, minimize: true });
 blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
-blockCanvas.variant = "blue";
+blockCanvas.variant = "magenta";
 blockCanvas.minimized = false;
-blockCanvas.color = "rgb(0, 0, 255)";
+blockCanvas.color = "rgb(255, 0, 255)";
 blockCanvas.remove();
 ```
+
+De documentatie gebruikt uitsluitend de drukwerkachtige CMY-familie, met één
+accent per surface. De oudere variantnamen rood, groen en blauw blijven voor
+compatibiliteit beschikbaar. Geel gebruikt altijd zwarte inkt op `#ffff00`.
 
 ## Einde
 

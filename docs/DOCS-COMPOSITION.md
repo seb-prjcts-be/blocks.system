@@ -15,8 +15,9 @@ toont wat het systeem kan.
 - de driehoek staat voor richting en volgende actie;
 - lege surface-ruimte maakt hiërarchie en ritme zichtbaar;
 - alleen echte blockranden tonen het raster: geen getekende gridachtergrond;
-- zwart, warm papier en veldgrijs dragen de compositie; magenta is het enige
-  accent binnen een zichtbare surface.
+- zwart, warm papier en veldgrijs dragen de compositie; CMY is de beschikbare
+  accentfamilie, maar binnen één zichtbare surface spreekt hoogstens één inkt.
+  De huidige canonieke compositie gebruikt magenta.
 
 Instrument Sans draagt de docs. De Oswald-import blijft als commentaar in
 `style.css` bewaard voor vergelijking, maar is geen actieve docsdependency.

@@ -49,11 +49,15 @@ const blockCanvas = blocks.add(document.createElement("canvas"), {
 blockCanvas.menu("canvas", { close: true, minimize: true });
 blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
-blockCanvas.variant = "blue";
+blockCanvas.variant = "magenta";
 blockCanvas.minimized = false;
-blockCanvas.color = "rgb(0, 0, 255)";
+blockCanvas.color = "rgb(255, 0, 255)";
 blockCanvas.remove();
 ```
+
+The documentation uses the print-like CMY family only, one accent per surface.
+The older red, green and blue variant names remain available for compatibility.
+Yellow always uses black ink on `#ffff00`.
 
 ## End
 

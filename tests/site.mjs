@@ -169,6 +169,8 @@ for (const [name, css] of [["docs", siteCss], ["standalone examples", exampleCss
 for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "yellow"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
+assert.match(libraryCss, /data-block-variant="yellow"\]\s*\{[^}]*--block-color:\s*#000;[^}]*--block-paper-color:\s*rgb\(255, 255, 0\);[^}]*--block-content-color:\s*#000;/s, "yellow must use black ink instead of blue-on-yellow");
+assert.doesNotMatch(readme + readmeNl, /variant\s*=\s*"(?:red|green|blue)"|color\s*=\s*"rgb\((?:255, 0, 0|0, 255, 0|0, 0, 255)\)"/, "README examples must demonstrate CMY rather than RGB");
 assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes('blockItem.variant = "magenta"'), "the basic grid must demonstrate magenta as its single explicit variant");
 assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes("blockItem.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
