@@ -14,10 +14,14 @@
   <nav id="navbar" aria-label="main navigation">
     <a class="nav-logo" href="../index.html">blocks.system</a>
     <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
-    <ul class="nav-links">
-      <li><a href="../index.html">home</a></li>
-      <li><a class="active" href="./" aria-current="page">manual</a></li>
-      <li><a href="api.html">reference</a></li>
+    <ul class="nav-links" data-section-navigation>
+      <li><a href="#start">start</a></li>
+      <li><a href="#compose">compose</a></li>
+      <li><a href="#arrange">arrange</a></li>
+      <li><a href="#connect">connect</a></li>
+      <li><a href="#examples">examples</a></li>
+      <li><a href="#reference">reference</a></li>
+      <li><a href="#boundary">boundary</a></li>
       <li><a href="https://github.com/seb-prjcts-be/blocks.system">source</a></li>
     </ul>
   </nav>
@@ -29,14 +33,9 @@
       <p>Start with one object. Compose real content, arrange it directly, and add a runtime only when the DOM is not enough.</p>
     </header>
 
-    <div class="manual-commandbar" aria-label="layout controls">
-      <nav class="manual-index" aria-label="manual chapters">
-        <a href="#start">start</a><a href="#compose">compose</a><a href="#arrange">arrange</a><a href="#connect">connect</a><a href="#examples">examples</a><a href="#reference">reference</a><a href="#boundary">boundary</a>
-      </nav>
-      <div class="manual-toolbar">
-        <button id="manual-lock" type="button" aria-pressed="false">lock layout</button>
-        <button id="manual-reset" type="button">reset</button>
-      </div>
+    <div class="manual-toolbar" aria-label="layout controls">
+      <button id="manual-lock" type="button" aria-pressed="false">lock layout</button>
+      <button id="manual-reset" type="button">reset</button>
     </div>
 
     <section aria-label="self-documenting blocks manual">

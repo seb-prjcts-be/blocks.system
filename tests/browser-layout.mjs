@@ -245,6 +245,16 @@ async function measureManual(width, height, dpr = 1) {
       const videoRect = video.getBoundingClientRect();
       const code = board.querySelector(".manual-code");
       const rootStyle = getComputedStyle(document.documentElement);
+      const navbar = document.querySelector("#navbar");
+      const logo = navbar.querySelector(".nav-logo");
+      const navigation = navbar.querySelector(".nav-links");
+      const toolbar = document.querySelector(".manual-toolbar");
+      const intersects = function (first, second) {
+        const a = first.getBoundingClientRect();
+        const b = second.getBoundingClientRect();
+        return Math.max(a.left, b.left) < Math.min(a.right, b.right) &&
+          Math.max(a.top, b.top) < Math.min(a.bottom, b.bottom);
+      };
       const formBlocks = ["manual-cycle", "manual-rectangle", "manual-direction"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         const blockRect = block.getBoundingClientRect();
@@ -284,6 +294,10 @@ async function measureManual(width, height, dpr = 1) {
           return child && (child.scrollWidth > content.clientWidth + 1 || child.scrollHeight > content.clientHeight + 1);
         }).map(function (block) { return block.dataset.blockObject; }),
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
+        pageSurfaceCount: document.querySelectorAll(".blocks-system-surface").length,
+        navigationCount: document.querySelectorAll("nav").length,
+        logoNavigationOverlap: getComputedStyle(navigation).display !== "none" && intersects(logo, navigation),
+        navigationToolbarOverlap: intersects(navbar, toolbar),
         draggable: board.dataset.draggable,
         devicePixelRatio: window.devicePixelRatio,
         codeOverflow: getComputedStyle(code).overflowX,
@@ -412,8 +426,8 @@ async function exerciseManual() {
       await Promise.resolve();
       const mediaPauseCalls = Number(video.dataset.pauseCalls);
       media.querySelector(".blocks-system-minimize").click();
-      document.querySelector('.manual-index a[href="#connect"]').click();
-      const activeAnchor = document.querySelector('.manual-index a[aria-current="location"]')?.getAttribute("href");
+      document.querySelector('[data-section-navigation] a[href="#connect"]').click();
+      const activeAnchor = document.querySelector('[data-section-navigation] a[aria-current="location"]')?.getAttribute("href");
       const draggedOrder = order();
       const dragCleanedUp = !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging");
       document.querySelector("#manual-lock").click();
@@ -539,6 +553,10 @@ try {
     assert.deepEqual(manual.outsideBoard, [], `manual plaatst blocks buiten het board op ${width}px: ${manual.outsideBoard.join(", ")}`);
     assert.deepEqual(manual.clippedContent, [], `manual knipt inhoud af op ${width}px: ${manual.clippedContent.join(", ")}`);
     assert.equal(manual.nestedSurfaces, 0, `manual bevat ${manual.nestedSurfaces} geneste blocks-grids op ${width}px`);
+    assert.equal(manual.pageSurfaceCount, 1, `manual bevat ${manual.pageSurfaceCount} systemen op ${width}px`);
+    assert.equal(manual.navigationCount, 1, `manual bevat ${manual.navigationCount} menu's op ${width}px`);
+    assert.equal(manual.logoNavigationOverlap, false, `manual laat logo en menu overlappen op ${width}px`);
+    assert.equal(manual.navigationToolbarOverlap, false, `manual laat menu en layoutbediening overlappen op ${width}px`);
     assert.equal(manual.draggable, "true", `manual start niet versleepbaar op ${width}px`);
     assert.equal(manual.boardBackgroundImage, "none", `manual tekent nog een achtergrondgrid op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);

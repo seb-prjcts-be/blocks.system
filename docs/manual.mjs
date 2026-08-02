@@ -274,9 +274,9 @@ addBlock({
   anchor: "examples",
   content: nodeFromHtml(`
     <div class="manual-examples">
-      <div><small>01 / start</small><strong>basic grid</strong><nav><a href="../examples/basic-grid/">run</a><a href="../examples/basic-grid/demo.mjs" download>module ↓</a></nav></div>
-      <div><small>02 / compose</small><strong>mixed content</strong><nav><a href="../examples/mixed-content/">run</a><a href="../examples/mixed-content/demo.mjs" download>module ↓</a></nav></div>
-      <div><small>03 / connect</small><strong>custom adapter</strong><nav><a href="../examples/custom-adapter/">run</a><a href="../examples/custom-adapter/demo.mjs" download>module ↓</a></nav></div>
+      <div><small>01 / start</small><strong>basic grid</strong><div class="manual-example-actions"><a href="../examples/basic-grid/">run</a><a href="../examples/basic-grid/demo.mjs" download>module ↓</a></div></div>
+      <div><small>02 / compose</small><strong>mixed content</strong><div class="manual-example-actions"><a href="../examples/mixed-content/">run</a><a href="../examples/mixed-content/demo.mjs" download>module ↓</a></div></div>
+      <div><small>03 / connect</small><strong>custom adapter</strong><div class="manual-example-actions"><a href="../examples/custom-adapter/">run</a><a href="../examples/custom-adapter/demo.mjs" download>module ↓</a></div></div>
     </div>
   `)
 });

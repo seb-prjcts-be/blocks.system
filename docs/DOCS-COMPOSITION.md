@@ -29,6 +29,11 @@ vijftien directe blocks met vaste anchors. De reference bevat zes directe,
 niet-versleepbare lookupblocks. Standalone examples blijven losse uitvoer; ze
 worden niet als een tweede docsgrid genest.
 
+De manual heeft exact één navigatiesysteem. De vaste hoofdstukanchors zitten
+in de globale navbar; `lock layout` en `reset` zijn losse surfacebediening en
+vormen geen tweede menu. De example-acties zijn gewone linkgroepen, geen extra
+navigatielandmarks.
+
 ## Interactiecontract
 
 - dragging staat standaard aan op home en manual;

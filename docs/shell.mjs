@@ -27,7 +27,7 @@ function initNavigation() {
 }
 
 export function initSectionNavigation() {
-  const navigation = document.querySelector(".manual-index");
+  const navigation = document.querySelector("[data-section-navigation]");
   if (!navigation) return;
   const links = Array.from(navigation.querySelectorAll('a[href^="#"]'));
   const sections = links.map((link) => ({

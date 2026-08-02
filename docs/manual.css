@@ -11,41 +11,20 @@
   background: rgba(245, 245, 242, 0.96);
 }
 
-.manual-commandbar,
 .manual-toolbar {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 6px;
+  width: min(100%, 1440px);
+  margin: 0 auto 6px;
   font: 400 9px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
-.manual-commandbar {
-  justify-content: space-between;
-  width: min(100%, 1440px);
-  margin: 0 auto 6px;
-  padding: 0 0 6px;
-  border-bottom: 1px solid var(--ink);
-}
-
-.manual-index {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px 12px;
-}
-
-.manual-index a {
-  color: inherit;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-
-.manual-index a.active,
-.manual-index a[aria-current="location"] {
-  font-weight: 700;
-  text-decoration-thickness: 2px;
-}
+.manual-page .nav-links { gap: clamp(0.7rem, 1.4vw, 1.4rem); }
+.manual-page .nav-links a { font-size: 0.78rem; }
 
 .manual-toolbar button {
   min-height: 24px;
@@ -182,7 +161,7 @@
   text-transform: lowercase;
 }
 
-.manual-examples nav {
+.manual-example-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 3px;
@@ -477,9 +456,7 @@
 
 @media (max-width: 900px) {
   .manual-page { --manual-row: 150px; }
-  .manual-toolbar > span { display: none; }
   .manual-masthead { grid-template-columns: 1fr; }
-  .manual-commandbar { align-items: flex-start; }
   .manual-board { --blocks-columns: 3 !important; }
   .manual-board.blocks-system-surface[data-snap="true"] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -494,7 +471,6 @@
 @media (max-width: 560px) {
   .manual-page { --manual-row: 170px; }
   .manual-page #navbar { align-items: flex-start; gap: 8px; padding-inline: 14px; }
-  .manual-commandbar { align-items: stretch; flex-direction: column; }
   .manual-toolbar { align-items: stretch; }
   .manual-toolbar button { padding-inline: 6px; }
   .manual-main { padding: 104px 8px 18px; }

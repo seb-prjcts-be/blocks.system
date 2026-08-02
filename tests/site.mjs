@@ -183,7 +183,9 @@ assert.match(standaloneExamples["custom-adapter"], /href="\.\.\/\.\.\/docs\/#con
 assert.match(manualHtml, /<body class="manual-page">/, "the experimental manual needs an isolated page scope");
 assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one shared board");
 assert.match(manualHtml, /href="api\.html">open the complete reference/, "the manual must lead to its complete reference owner");
-assert.match(manualHtml, /<li><a href="\.\.\/index\.html">home<\/a><\/li>[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item shared navigation");
+assert.equal((manualHtml.match(/<nav\b/g) || []).length, 1, "the manual must expose exactly one navigation system");
+assert.match(manualHtml, /data-section-navigation[\s\S]*#start[\s\S]*#compose[\s\S]*#arrange[\s\S]*#connect[\s\S]*#examples[\s\S]*#reference[\s\S]*#boundary[\s\S]*source/, "the single manual navigation must own chapters and source");
+assert.doesNotMatch(manualHtml, /manual-commandbar|manual-index/, "the retired second menu must not return");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.equal((siteDemos["docs/manual.mjs"].match(/^(?:addBlock|const block(?:Canvas|Media) = addBlock)\(\{/gm) || []).length, 15, "the canonical manual must keep its complete direct-block composition");
 for (const anchor of ["start", "compose", "arrange", "connect", "examples", "reference", "boundary"]) {
@@ -203,6 +205,7 @@ assert.match(siteDemos["docs/manual.mjs"], /data-video-lifecycle="pause-on-minim
 assert.match(siteDemos["docs/manual.mjs"], /poster="references\/media-contract-poster\.svg"/, "manual video must use the restrained form poster");
 assert.match(siteDemos["docs/manual.mjs"], /new MutationObserver\([\s\S]*blockMedia\.minimized\) pauseMedia\(\)/, "manual video must pause when minimized or removed");
 assert.match(siteDemos["docs/manual.mjs"], /addEventListener\("pagehide", pauseMedia\)/, "manual video must pause when the document exits");
+assert.match(siteDemos["docs/shell.mjs"], /\[data-section-navigation\]/, "the one main navigation must own section tracking");
 assert.match(siteDemos["docs/shell.mjs"], /aria-current", "location"/, "manual anchors must expose their active location");
 assert.match(siteCss, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*scroll-behavior:\s*auto/, "smooth anchor scrolling must respect reduced motion");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createBlocksSystem\([\s\S]*createBlocksSystem\(/, "the experimental manual must not create a nested blocks system");
