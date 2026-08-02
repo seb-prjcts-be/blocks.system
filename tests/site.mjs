@@ -7,6 +7,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
 const pages = [
   "index.html",
+  "docs/system.html",
   "docs/examples.html",
   "docs/api.html",
   "docs/guide.html",
@@ -44,10 +45,12 @@ for (const apiName of ["attach", "setGrid", "snap", "draggable", "variant", "var
 const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
+const prototypeCss = await readFile(resolve(root, "docs", "system.css"), "utf8");
 const exampleCss = await readFile(resolve(root, "examples", "example.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
 const siteDemos = await Promise.all([
   "demo.mjs",
+  "docs/system.mjs",
   "examples/basic-grid/demo.mjs",
   "examples/mixed-content/demo.mjs",
   "examples/custom-adapter/demo.mjs"
@@ -85,9 +88,14 @@ assert.match(siteCss, /@media \(max-width: 560px\)[\s\S]*--block-column:\s*auto 
 assert.ok(siteDemos[0].includes("system.setGrid(8, 4)"), "the showcase must expose the original eight-column rhythm");
 assert.ok(siteDemos[0].includes("canvasBlock.span(2, 1)"), "the showcase must demonstrate a wider block");
 assert.ok(siteDemos[0].includes("customBlock.span(2, 2)"), "the showcase must demonstrate a taller block");
-assert.ok(siteDemos[1].includes('block.variant = "red"'), "the basic grid must demonstrate an explicit built-in variant");
-assert.ok(siteDemos[1].includes("block.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
+assert.ok(siteDemos[2].includes('block.variant = "red"'), "the basic grid must demonstrate an explicit built-in variant");
+assert.ok(siteDemos[2].includes("block.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
 assert.ok(["htmlBlock.place(1, 1)", "canvasBlock.place(3, 2)", "customBlock.place(7, 1)", "controlsBlock.place(5, 4)"].every(function (line) { return siteDemos[0].includes(line); }), "the showcase must preserve deliberate empty grid cells");
+assert.ok(siteDemos[1].includes("docsSystem.setGrid(8, 6)"), "the docs prototype must start from the reference eight-by-six board");
+assert.ok(siteDemos[1].includes('block.minimized = block.id === "api"'), "the docs prototype reset must preserve its minimized navigation experiment");
+assert.ok(siteDemos[1].includes("await docsSystem.mount"), "the docs prototype must demonstrate the adapter contract through the real system");
+assert.match(prototypeCss, /\.prototype-board/, "the one-screen prototype must keep its composition in its isolated stylesheet");
+assert.doesNotMatch(libraryCss, /\.prototype-board/, "the reusable library stylesheet must not absorb docs prototype composition");
 
 const combinedDemos = siteDemos.join("\n");
 for (const color of [
