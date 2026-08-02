@@ -3,119 +3,49 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="blocks.system — individually addressable objects for html, canvas and custom runtimes.">
+  <meta name="description" content="blocks.system — a dependency-free browser core for individually addressable DOM objects.">
   <title>blocks.system</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="docs/style.css">
-  <link rel="stylesheet" href="blocks.system.css">
+  <link rel="stylesheet" href="docs/style.css?v=0.1.2">
+  <link rel="stylesheet" href="blocks.system.css?v=0.1.1">
+  <link rel="stylesheet" href="docs/home.css?v=0.1.0">
 </head>
-<body>
+<body class="home-page">
   <nav id="navbar" aria-label="main navigation">
-    <a class="nav-logo active" href="index.html">blocks.system</a>
-    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
+    <a class="nav-logo active" href="index.html" aria-current="page">blocks.system</a>
+    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
     <ul class="nav-links">
-      <li><a class="active" href="index.html">showcase</a></li>
-      <li><a href="docs/system.html">system</a></li>
-      <li><a href="docs/examples.html">examples</a></li>
-      <li><a href="docs/api.html">api</a></li>
-      <li><a href="docs/guide.html">guide</a></li>
-      <li><a href="docs/about.html">about</a></li>
-      <li><a href="https://github.com/seb-prjcts-be/blocks.system">github</a></li>
+      <li><a class="active" href="index.html" aria-current="page">home</a></li>
+      <li><a href="docs/manual.html">manual</a></li>
+      <li><a href="docs/api.html">reference</a></li>
+      <li><a href="https://github.com/seb-prjcts-be/blocks.system">source</a></li>
     </ul>
   </nav>
 
-  <header id="hero">
-    <div class="hero-grid" aria-hidden="true"></div>
-    <div class="hero-text">
-      <p class="eyebrow">small objects · any content · one system</p>
-      <h1>blocks.system</h1>
-      <p class="hero-sub">a dependency-free browser core for individually addressable html, canvas, custom elements and adapter-driven objects.</p>
-      <div class="hero-stats" aria-label="project properties">
-        <div><strong>0</strong><span>runtime dependencies</span></div>
-        <div><strong>esm</strong><span>native modules</span></div>
-        <div><strong>any</strong><span>dom content</span></div>
-      </div>
-      <a class="button" href="#live-system">try the system</a>
+  <main class="home-main">
+    <header class="home-masthead">
+      <span>zero dependencies / native esm / real dom</span>
+      <h1>small objects.<br>one system.</h1>
+      <p><strong>blocks.system</strong> is a dependency-free browser core for individually addressable HTML, canvas, custom elements and adapter-driven objects.</p>
+    </header>
+
+    <div class="home-commandbar" aria-label="live surface controls">
+      <span>one real surface · drag by a header · empty space is part of the system</span>
+      <button id="home-reset" type="button">reset</button>
     </div>
-  </header>
 
-  <main>
-    <section class="section section-muted" id="live-system">
-      <div class="section-heading">
-        <span class="section-tag">live system</span>
-        <h2>objects need empty space</h2>
-        <p>The visible grid and its empty cells carry as much weight as the four objects. Black stays the default; pure RGB/CMY colours mark only a few exceptions.</p>
-      </div>
-
-      <div class="demo-layout">
-        <aside class="control-panel" aria-label="demo controls">
-          <label>columns <output id="columns-value">8</output>
-            <input id="columns" type="range" min="8" max="12" value="8">
-          </label>
-          <label>rows <output id="rows-value">4</output>
-            <input id="rows" type="range" min="4" max="8" value="4">
-          </label>
-          <label class="check-row"><input id="snap" type="checkbox" checked> snap to grid</label>
-          <pre><code>blocks.system.attach("#field");
-blocks.system.setGrid(8, 4);
-blocks.system.snap = true;
-
-const blockDemo = blocks.system.add(content);
-blockDemo.place(3, 2);</code></pre>
-        </aside>
-        <div id="field" aria-label="interactive blocks.system field"></div>
-      </div>
-    </section>
-
-    <section class="section">
-      <div class="section-heading">
-        <span class="section-tag">quick start</span>
-        <h2>the object is the interface</h2>
-        <p>Use <code>blocks</code> for the shared system and a <code>block…</code> name for every returned controller.</p>
-      </div>
-      <div class="split">
-        <pre class="code-block"><code>import { system as blocks } from "./blocks.system.mjs";
-
-blocks.attach("#field");
-blocks.setGrid(3, 2);
-blocks.snap = true;
-blocks.draggable = true;
-blocks.variant = "random";
-
-const blockDemo = blocks.add(content);
-blockDemo.menu("test", { close: true, minimize: true });
-blockDemo.minimized = false;
-blockDemo.variant = "red";
-blockDemo.span(2, 1);
-blockDemo.place(2, 2);</code></pre>
-        <div class="principles">
-          <article><span>01</span><h3>generic core</h3><p>No knowledge of p5.js, waves, frameworks or renderers.</p></article>
-          <article><span>02</span><h3>real dom</h3><p>Add a string, node, canvas, svg, custom element or factory function.</p></article>
-          <article><span>03</span><h3>optional adapters</h3><p>Connect any runtime through a small mount contract.</p></article>
-        </div>
-      </div>
-    </section>
-
-    <section class="section section-ink">
-      <div class="section-heading">
-        <span class="section-tag">extend</span>
-        <h2>adapters stay outside the core</h2>
-        <p>A renderer only needs to know how it mounts. The system keeps registration, addressing and lifecycle consistent.</p>
-      </div>
-      <div class="link-row">
-        <a class="button button-light" href="docs/guide.html">read the guide</a>
-        <a class="text-link" href="docs/examples.html">open all examples →</a>
-      </div>
+    <section aria-label="live blocks.system proof">
+      <div id="home-board" class="home-board" aria-label="draggable blocks.system surface"></div>
+      <p id="home-status" class="home-status" role="status">loading surface…</p>
     </section>
   </main>
 
-  <footer>
-    <a href="https://github.com/seb-prjcts-be/blocks.system">blocks.system</a> · mit license · sebastien vanblaere · <span data-year></span>
+  <footer class="home-foot">
+    <span>blocks.system · mit · sebastien vanblaere · <span data-year></span></span>
+    <span><a href="docs/manual.html#start">open manual</a> · <a href="docs/api.html">reference</a></span>
   </footer>
 
-  <script type="module" src="docs/nav.mjs"></script>
-  <script type="module" src="demo.mjs"></script>
+  <script type="module" src="docs/shell.mjs?v=0.1.0"></script>
+  <script type="module" src="docs/home.mjs?v=0.1.0"></script>
 </body>
 </html>

@@ -480,7 +480,10 @@ docs-only tracks tot hele CSS-pixels; de core blijft ongewijzigd.
 - voorbeelden direct op de gedeelde surface, nooit als genest docsgrid;
 - lange reference blijft op de aparte maar visueel identieke route.
 
-**Gate:** volledige contentdekking, logisch pad en bruikbare directe anchors.
+**Gate: geslaagd op 2 augustus 2026.** De voordeur bewijst het systeem met vijf
+directe blocks en gerichte leegte; de manual bezit het volledige leerpad met
+stabiele anchors; de aparte reference bezit het volledige API-contract. Geen
+van de drie canonieke surfaces bevat een genest of getekend grid.
 
 ### Fase 4 — Interacties harden
 

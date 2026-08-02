@@ -123,47 +123,56 @@ class Protocol {
   }
 }
 
-async function measure(width, rows) {
+async function measureHome(width, height) {
   await protocol.send("Emulation.setDeviceMetricsOverride", {
     width,
-    height: 1000,
+    height,
     deviceScaleFactor: 1,
     mobile: false
   });
   const expression = `(async function () {
-    const input = document.querySelector("#rows");
-    input.value = "${rows}";
-    input.dispatchEvent(new Event("input", { bubbles: true }));
+    for (let attempt = 0; attempt < 60 && !document.querySelector("#home-board")?.dataset.homeReady; attempt += 1) {
+      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+    }
     await new Promise(function (resolveFrame) {
       requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
     });
-    const field = document.querySelector("#field");
+    window.scrollTo(0, 0);
+    const field = document.querySelector("#home-board");
     const fieldRect = field.getBoundingClientRect();
-    const fieldStyle = getComputedStyle(field);
-    const rowGap = parseFloat(fieldStyle.rowGap);
-    const rowSizes = fieldStyle.gridTemplateRows.split(" ").slice(0, ${rows}).map(parseFloat);
-    const backgroundPitch = (field.clientHeight + rowGap) / ${rows};
-    const objects = Array.from(field.querySelectorAll(".blocks-system-object")).map(function (block) {
-      const content = block.querySelector(".blocks-system-content");
-      const blockRect = block.getBoundingClientRect();
-      const row = Number(getComputedStyle(block).gridRowStart);
-      return {
-        id: block.dataset.blockObject,
-        height: blockRect.height,
-        alignmentDelta: Number.isInteger(row)
-          ? blockRect.top - fieldRect.top - parseFloat(fieldStyle.borderTopWidth) - (row - 1) * backgroundPitch
-          : null,
-        overflow: content.scrollHeight > content.clientHeight || content.scrollWidth > content.clientWidth
-      };
-    });
+    const objects = Array.from(field.querySelectorAll(":scope > .blocks-system-object"));
+    const canvas = field.querySelector(".home-canvas");
+    const canvasRect = canvas.getBoundingClientRect();
     return {
-      fieldHeight: fieldRect.height,
-      minBlockHeight: Math.min(...objects.map(function (block) { return block.height; })),
-      rowSizes,
-      misaligned: objects.filter(function (block) {
-        return block.alignmentDelta !== null && Math.abs(block.alignmentDelta) > 0.25;
-      }).map(function (block) { return block.id; }),
-      overflowing: objects.filter(function (block) { return block.overflow; }).map(function (block) { return block.id; })
+      blockCount: objects.length,
+      columnCount: getComputedStyle(field).gridTemplateColumns.split(" ").length,
+      horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      backgroundImage: getComputedStyle(field).backgroundImage,
+      quantized: field.dataset.quantized,
+      trackWidth: Number(field.dataset.trackWidth),
+      draggable: field.dataset.draggable,
+      nestedSurfaces: field.querySelectorAll(".blocks-system-surface").length,
+      outsideBoard: objects.filter(function (block) {
+        const rect = block.getBoundingClientRect();
+        return rect.left < fieldRect.left - 0.5 || rect.right > fieldRect.right + 0.5;
+      }).map(function (block) { return block.dataset.blockObject; }),
+      nonIntegerHorizontalGeometry: objects.filter(function (block) {
+        const rect = block.getBoundingClientRect();
+        return [rect.left - fieldRect.left, rect.right - fieldRect.left, rect.width].some(function (value) {
+          return Math.abs(value - Math.round(value)) > 0.01;
+        });
+      }).map(function (block) { return block.dataset.blockObject; }),
+      clippedContent: objects.filter(function (block) {
+        const content = block.querySelector(".blocks-system-content");
+        const child = content.firstElementChild;
+        return child && (child.scrollWidth > content.clientWidth + 1 || child.scrollHeight > content.clientHeight + 1);
+      }).map(function (block) { return block.dataset.blockObject; }),
+      canvas: {
+        cssWidth: canvasRect.width,
+        cssHeight: canvasRect.height,
+        bitmapWidth: canvas.width,
+        bitmapHeight: canvas.height
+      }
     };
   })()`;
   const result = await protocol.send("Runtime.evaluate", {
@@ -177,8 +186,8 @@ async function measure(width, rows) {
 async function hoverSignature() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(() => {
-      const field = document.querySelector("#field");
-      const block = document.querySelector('[data-block-object="canvas"]');
+      const field = document.querySelector("#home-board");
+      const block = document.querySelector('[data-block-object="home-canvas"]');
       const style = getComputedStyle(block);
       return {
         fieldHeight: field.getBoundingClientRect().height,
@@ -517,24 +526,32 @@ try {
   await protocol.send("Page.navigate", { url: pageUrl });
   await loaded;
 
-  for (const width of [1280, 800, 390]) {
-    const fourRows = await measure(width, 4);
-    const eightRows = await measure(width, 8);
-    for (const [rows, result] of [[4, fourRows], [8, eightRows]]) {
-      assert.ok(result.minBlockHeight >= 109.5, `${width}px/${rows} rijen plet een block tot ${result.minBlockHeight}px`);
-      assert.ok(result.rowSizes.length === rows && result.rowSizes.every(function (size) { return Math.abs(size - 110) <= 0.25; }), `${width}px/${rows} rijen gebruikt ongelijke rastereenheden: ${result.rowSizes.join(", ")}`);
-      assert.deepEqual(result.misaligned, [], `${width}px/${rows} rijen lijnt blocks niet uit: ${result.misaligned.join(", ")}`);
-      assert.deepEqual(result.overflowing, [], `${width}px/${rows} rijen laat inhoud overlopen in ${result.overflowing.join(", ")}`);
-    }
-    assert.ok(eightRows.fieldHeight > fourRows.fieldHeight, `${width}px laat extra rijen het veld niet groeien`);
+  const homeWidths = [[1280, 900, 6], [800, 900, 3], [390, 844, 1]];
+  const homeMeasurements = [];
+  for (const [width, height, columns] of homeWidths) {
+    const home = await measureHome(width, height);
+    homeMeasurements.push(home);
+    assert.equal(home.blockCount, 5, `home toont ${home.blockCount} in plaats van vijf directe blocks op ${width}px`);
+    assert.equal(home.columnCount, columns, `home gebruikt ${home.columnCount} in plaats van ${columns} kolommen op ${width}px`);
+    assert.ok(home.horizontalOverflow <= 0.5, `home heeft ${home.horizontalOverflow}px horizontale overflow op ${width}px`);
+    assert.equal(home.backgroundImage, "none", `home tekent nog een achtergrondgrid op ${width}px`);
+    assert.equal(home.quantized, "true", `home quantiseert het grid niet op ${width}px`);
+    assert.ok(Number.isInteger(home.trackWidth) && home.trackWidth > 0, `home gebruikt geen hele trackbreedte op ${width}px`);
+    assert.equal(home.draggable, "true", `home start niet versleepbaar op ${width}px`);
+    assert.equal(home.nestedSurfaces, 0, `home bevat ${home.nestedSurfaces} geneste blocks-grids op ${width}px`);
+    assert.deepEqual(home.outsideBoard, [], `home plaatst blocks buiten het board op ${width}px: ${home.outsideBoard.join(", ")}`);
+    assert.deepEqual(home.nonIntegerHorizontalGeometry, [], `home laat fractionele geometrie achter op ${width}px: ${home.nonIntegerHorizontalGeometry.join(", ")}`);
+    assert.deepEqual(home.clippedContent, [], `home knipt inhoud af op ${width}px: ${home.clippedContent.join(", ")}`);
+    assert.ok(home.canvas.cssWidth > 0 && home.canvas.cssHeight > 0 && home.canvas.bitmapWidth > 0 && home.canvas.bitmapHeight > 0, `home canvas herschaalt niet op ${width}px`);
   }
+  assert.notEqual(homeMeasurements[0].canvas.cssWidth, homeMeasurements[2].canvas.cssWidth, "home canvas reageert niet op viewportbreedte");
 
-  await measure(1280, 4);
+  await measureHome(1280, 900);
   const beforeHover = await hoverSignature();
   const documentNode = await protocol.send("DOM.getDocument");
   const canvasNode = await protocol.send("DOM.querySelector", {
     nodeId: documentNode.root.nodeId,
-    selector: '[data-block-object="canvas"]'
+    selector: '[data-block-object="home-canvas"]'
   });
   await protocol.send("CSS.forcePseudoState", {
     nodeId: canvasNode.nodeId,
@@ -629,7 +646,7 @@ try {
   assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
   assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");
 
-  console.log("browser-layout: showcase, examples en levende manual op desktop/tablet/mobiel — OK");
+  console.log("browser-layout: home, examples en levende manual op desktop/tablet/mobiel — OK");
 } finally {
   if (protocol) {
     try { await protocol.send("Browser.close"); } catch {}

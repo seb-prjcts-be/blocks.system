@@ -71,6 +71,7 @@ const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
 const boardCss = await readFile(resolve(root, "docs", "board.css"), "utf8");
 const systemCss = await readFile(resolve(root, "docs", "system.css"), "utf8");
 const examplesCss = await readFile(resolve(root, "docs", "examples.css"), "utf8");
+const homeCss = await readFile(resolve(root, "docs", "home.css"), "utf8");
 const manualCss = await readFile(resolve(root, "docs", "manual.css"), "utf8");
 const referenceCss = await readFile(resolve(root, "docs", "reference.css"), "utf8");
 const exampleCss = await readFile(resolve(root, "examples", "example.css"), "utf8");
@@ -79,11 +80,13 @@ const systemHtml = await readFile(resolve(root, "docs", "system.html"), "utf8");
 const examplesHtml = await readFile(resolve(root, "docs", "examples.html"), "utf8");
 const apiHtml = await readFile(resolve(root, "docs", "api.html"), "utf8");
 const manualHtml = await readFile(resolve(root, "docs", "manual.html"), "utf8");
+const homeHtml = await readFile(resolve(root, "index.html"), "utf8");
 const siteDemoFiles = [
   "demo.mjs",
   "docs/board.mjs",
   "docs/system.mjs",
   "docs/examples.mjs",
+  "docs/home.mjs",
   "docs/manual.mjs",
   "docs/reference.mjs",
   "docs/shell.mjs",
@@ -114,6 +117,21 @@ assert.match(libraryCss, /\.blocks-system-surface\s*\{[^}]*--blocks-field-color:
 assert.match(libraryCss, /\.blocks-system-object\s*\{[^}]*--block-color:\s*var\(--blocks-ink-color\);[^}]*--block-paper-color:\s*var\(--blocks-paper-color\);[^}]*background:\s*var\(--block-paper-color\);/s, "the library must make black on warm paper the block default");
 assert.doesNotMatch(siteCss, /#field \.blocks-system-object\s*\{[^}]*--block-color:/s, "the showcase must not recreate the library default");
 assert.doesNotMatch(exampleCss, /\.blocks-system-object\s*\{[^}]*--block-color:/s, "examples must not recreate the library default");
+assert.match(homeHtml, /<body class="home-page">/, "home needs its isolated canonical surface");
+assert.match(homeHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "home must use the four-item shared navigation");
+assert.match(homeHtml, /id="home-board"/, "home must expose one live proof surface");
+assert.match(homeHtml, /src="docs\/home\.mjs/, "home must load its focused composition module");
+assert.equal((siteDemos["docs/home.mjs"].match(/^(?:addHome|const blockCanvas = addHome)\(\{/gm) || []).length, 5, "home must contain exactly five direct blocks");
+assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "home must use one shared blocks system");
+assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must preserve deliberate empty cells in a six-column field");
+assert.match(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must be draggable by default");
+assert.match(siteDemos["docs/home.mjs"], /new ResizeObserver\(drawCanvas\)/, "home must prove responsive canvas content");
+assert.match(siteDemos["docs/home.mjs"], /quantizeSurface\(board\)/, "home must use whole-pixel grid geometry");
+assert.doesNotMatch(homeCss, /background-image\s*:/, "home must not draw grid lines");
+assert.match(homeCss, /--blocks-columns:\s*6/, "home must start from six columns");
+assert.match(homeCss, /@media \(max-width: 900px\)[\s\S]*--blocks-columns:\s*3 !important/, "home must collapse to three columns on tablets");
+assert.match(homeCss, /@media \(max-width: 560px\)[\s\S]*--blocks-columns:\s*1 !important/, "home must collapse to one column on phones");
+assert.doesNotMatch(libraryCss, /\.home-/, "the reusable library stylesheet must not absorb home composition");
 assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*min-height:\s*22px;[^}]*padding:\s*3px 7px;/s, "the menu must preserve the compact original proportions");
 assert.match(libraryCss, /\.blocks-system-surface\s*\{[^}]*--blocks-font-family:\s*"Oswald";/s, "the original Oswald family must remain the CSS default");
 assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*font:\s*600 13px\/1 var\(--blocks-font-family\),\s*"Arial Narrow",\s*sans-serif;/s, "the menu must use the configurable font family at its original weight");
