@@ -14,6 +14,7 @@ const pages = [
   "docs/guide-blocks.html",
   "docs/guide-finish.html",
   "docs/about.html",
+  "docs/manual.html",
   "examples/basic-grid/index.html",
   "examples/mixed-content/index.html",
   "examples/custom-adapter/index.html"
@@ -70,15 +71,18 @@ const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
 const boardCss = await readFile(resolve(root, "docs", "board.css"), "utf8");
 const systemCss = await readFile(resolve(root, "docs", "system.css"), "utf8");
 const examplesCss = await readFile(resolve(root, "docs", "examples.css"), "utf8");
+const manualCss = await readFile(resolve(root, "docs", "manual.css"), "utf8");
 const exampleCss = await readFile(resolve(root, "examples", "example.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
 const systemHtml = await readFile(resolve(root, "docs", "system.html"), "utf8");
 const examplesHtml = await readFile(resolve(root, "docs", "examples.html"), "utf8");
+const manualHtml = await readFile(resolve(root, "docs", "manual.html"), "utf8");
 const siteDemoFiles = [
   "demo.mjs",
   "docs/board.mjs",
   "docs/system.mjs",
   "docs/examples.mjs",
+  "docs/manual.mjs",
   "examples/basic-grid/demo.mjs",
   "examples/mixed-content/demo.mjs",
   "examples/custom-adapter/demo.mjs"
@@ -173,6 +177,21 @@ for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.match(standaloneExamples[example], /href="demo\.mjs" download/, `${example} must offer its copyable module explicitly`);
 }
 assert.equal((siteDemos["docs/examples.mjs"].match(/demo\.mjs" download/g) || []).length, 3, "each examples route must explicitly download its local source module");
+
+assert.match(manualHtml, /<body class="manual-page">/, "the experimental manual needs an isolated page scope");
+assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one shared board");
+assert.match(manualHtml, /href="DOCS-COMPOSITION\.md"/, "the experimental manual must expose its durable composition contract");
+assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
+assert.equal((siteDemos["docs/manual.mjs"].match(/^(?:addBlock|const blockCanvas = addBlock)\(\{/gm) || []).length, 14, "the experimental manual must keep its complete direct-block composition");
+assert.match(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;/, "the experimental manual must start with dragging enabled");
+assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "the experimental manual must demonstrate responsive runtime content");
+assert.match(siteDemos["docs/manual.mjs"], /<video controls muted preload="none"/, "the experimental manual must make the pending video contract visible");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createBlocksSystem\([\s\S]*createBlocksSystem\(/, "the experimental manual must not create a nested blocks system");
+assert.match(manualCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;/s, "long code must scroll inside its own block");
+assert.match(manualCss, /\.manual-media video\s*\{[^}]*object-fit:\s*contain;/s, "video must use an explicit contain prototype");
+assert.match(manualCss, /@media \(max-width: 900px\)[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/, "the experimental manual must collapse to three tablet columns");
+assert.match(manualCss, /@media \(max-width: 560px\)[\s\S]*grid-template-columns:\s*1fr;/, "the experimental manual must collapse to one mobile column");
+assert.doesNotMatch(libraryCss, /\.manual-/, "the reusable library stylesheet must not absorb the experimental manual composition");
 
 const combinedDemos = Object.values(siteDemos).join("\n");
 for (const color of [

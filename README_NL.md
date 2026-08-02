@@ -91,6 +91,9 @@ blocks.register({
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
 - Eén block: `menu`, `minimized`, `span`, `place`, `variant`, `color`, `remove`.
 
+Verslepen via de menubalk van een block staat standaard aan. Zet
+`blocks.draggable = false` om de layout te vergrendelen.
+
 Bekijk de [volledige API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
 voor argumenten en returnwaarden.
 

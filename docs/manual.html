@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An experimental self-documenting blocks.system manual built from direct draggable blocks.">
+  <title>manual prototype · blocks.system</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="../blocks.system.css">
+  <link rel="stylesheet" href="manual.css?v=0.1.0">
+</head>
+<body class="manual-page">
+  <nav id="navbar" aria-label="prototype navigation">
+    <a class="nav-logo" href="../index.html">blocks.system</a>
+    <div class="manual-toolbar" aria-label="layout controls">
+      <span>experimental manual · not in public navigation</span>
+      <button id="manual-lock" type="button" aria-pressed="false">lock layout</button>
+      <button id="manual-reset" type="button">reset</button>
+    </div>
+  </nav>
+
+  <main class="manual-main">
+    <header class="manual-masthead">
+      <span>manual prototype / 02</span>
+      <h1>the manual is the system.</h1>
+      <p>Read from left to right, drag blocks by their black menu bars, or lock the composition. One surface; no nested grids.</p>
+    </header>
+
+    <section aria-label="self-documenting blocks manual">
+      <div id="manual-board" class="manual-board" aria-label="draggable manual composition"></div>
+      <p id="manual-status" class="manual-status" role="status">loading manual…</p>
+    </section>
+  </main>
+
+  <footer class="manual-foot">
+    <span>prototype only · existing docs remain intact</span>
+    <a href="DOCS-COMPOSITION.md">read the composition contract →</a>
+  </footer>
+
+  <script type="module" src="manual.mjs?v=0.1.0"></script>
+</body>
+</html>

@@ -114,7 +114,7 @@ export function createBlocksSystem(options = {}) {
     let columns = 1;
     let rows = 1;
     let snapEnabled = false;
-    let draggableEnabled = false;
+    let draggableEnabled = true;
     let fontState = normalizeFont(options.font);
     let variantMode = normalizeVariant(options.variant);
     let dragState = null;
@@ -237,7 +237,8 @@ export function createBlocksSystem(options = {}) {
             ? event.clientX < bounds.left + bounds.width / 2
             : event.clientY < bounds.top + bounds.height / 2;
         const reference = beforeTarget ? target : target.nextElementSibling;
-        if (reference !== dragState.shell) surface.insertBefore(dragState.shell, reference);
+        if (reference === dragState.shell || reference === dragState.shell.nextElementSibling) return;
+        surface.insertBefore(dragState.shell, reference);
     }
 
     function finishDragging(event) {

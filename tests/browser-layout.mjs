@@ -305,6 +305,131 @@ async function exerciseExamples() {
   return result.result.value;
 }
 
+async function measureManual(width, height) {
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width,
+    height,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
+      window.scrollTo(0, 0);
+      const board = document.querySelector("#manual-board");
+      const boardRect = board.getBoundingClientRect();
+      const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
+      const canvas = board.querySelector(".manual-canvas");
+      const canvasRect = canvas.getBoundingClientRect();
+      const video = board.querySelector(".manual-media video");
+      const videoRect = video.getBoundingClientRect();
+      const code = board.querySelector(".manual-code");
+      return {
+        blockCount: objects.length,
+        columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        documentHeight: document.documentElement.scrollHeight,
+        pageScrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight,
+        boardOverflowY: getComputedStyle(board).overflowY,
+        outsideBoard: objects.filter(function (block) {
+          const rect = block.getBoundingClientRect();
+          return rect.left < boardRect.left - 0.5 || rect.right > boardRect.right + 0.5;
+        }).map(function (block) { return block.dataset.blockObject; }),
+        clippedContent: objects.filter(function (block) {
+          if (block.dataset.blockObject === "manual-start") return false;
+          const content = block.querySelector(":scope > .blocks-system-content");
+          const child = content.firstElementChild;
+          return child && (child.scrollWidth > content.clientWidth + 1 || child.scrollHeight > content.clientHeight + 1);
+        }).map(function (block) { return block.dataset.blockObject; }),
+        nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
+        draggable: board.dataset.draggable,
+        codeOverflow: getComputedStyle(code).overflowX,
+        canvas: {
+          cssWidth: canvasRect.width,
+          cssHeight: canvasRect.height,
+          bitmapWidth: canvas.width,
+          bitmapHeight: canvas.height
+        },
+        video: {
+          width: videoRect.width,
+          height: videoRect.height,
+          controls: video.controls,
+          fit: getComputedStyle(video).objectFit,
+          preload: video.preload
+        }
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function exerciseManual() {
+  const pointResult = await protocol.send("Runtime.evaluate", {
+    expression: `(() => {
+      const center = function (element, xFactor) {
+        const rect = element.getBoundingClientRect();
+        return { x: rect.left + rect.width * xFactor, y: rect.top + rect.height / 2 };
+      };
+      return {
+        start: center(document.querySelector('[data-block-object="manual-thesis"] > .blocks-system-menu'), 0.5),
+        target: center(document.querySelector('[data-block-object="manual-cycle"] > .blocks-system-menu'), 0.8)
+      };
+    })()`,
+    returnByValue: true
+  });
+  const { start, target } = pointResult.result.value;
+  await protocol.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: start.x, y: start.y });
+  await protocol.send("Input.dispatchMouseEvent", { type: "mousePressed", x: start.x, y: start.y, button: "left", buttons: 1, clickCount: 1 });
+  for (let step = 1; step <= 8; step += 1) {
+    const progress = step / 8;
+    await protocol.send("Input.dispatchMouseEvent", {
+      type: "mouseMoved",
+      x: start.x + (target.x - start.x) * progress,
+      y: start.y + (target.y - start.y) * progress,
+      button: "left",
+      buttons: 1
+    });
+  }
+  await protocol.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: target.x, y: target.y, button: "left", buttons: 0, clickCount: 1 });
+
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
+      const board = document.querySelector("#manual-board");
+      const order = function () {
+        return Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
+          return block.dataset.blockObject;
+        });
+      };
+      const draggedOrder = order();
+      const dragCleanedUp = !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging");
+      document.querySelector("#manual-lock").click();
+      const locked = board.dataset.draggable === "false" && document.querySelector("#manual-lock").getAttribute("aria-pressed") === "true";
+      document.querySelector("#manual-reset").click();
+      return {
+        draggedOrder,
+        dragCleanedUp,
+        locked,
+        resetOrder: order(),
+        resetDraggable: board.dataset.draggable,
+        resetStatus: document.querySelector("#manual-status").textContent
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
 try {
   chrome = spawn(chromePath, [
     "--headless=new",
@@ -390,7 +515,39 @@ try {
   assert.equal(examplesInteraction.resetBoard, "8,6", "examples reset herstelt board niet");
   assert.deepEqual(examplesInteraction.resetMinimized, ["basic-2"], "examples reset herstelt de directe minimized-demo niet");
 
-  console.log("browser-layout: showcase-uitlijning/hover en minimalistische examples op desktop/tablet/mobiel — OK");
+  await navigateTo(`${pageUrl}docs/manual.html`);
+  const manualWidths = [[1280, 720, 6], [800, 900, 3], [390, 844, 1]];
+  const manualMeasurements = [];
+  for (const [width, height, columns] of manualWidths) {
+    const manual = await measureManual(width, height);
+    manualMeasurements.push(manual);
+    assert.equal(manual.blockCount, 14, `manual mist directe blocks op ${width}px`);
+    assert.equal(manual.columnCount, columns, `manual gebruikt ${manual.columnCount} in plaats van ${columns} kolommen op ${width}px`);
+    assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
+    assert.deepEqual(manual.outsideBoard, [], `manual plaatst blocks buiten het board op ${width}px: ${manual.outsideBoard.join(", ")}`);
+    assert.deepEqual(manual.clippedContent, [], `manual knipt inhoud af op ${width}px: ${manual.clippedContent.join(", ")}`);
+    assert.equal(manual.nestedSurfaces, 0, `manual bevat ${manual.nestedSurfaces} geneste blocks-grids op ${width}px`);
+    assert.equal(manual.draggable, "true", `manual start niet versleepbaar op ${width}px`);
+    assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
+    assert.ok(manual.pageScrollable && manual.documentHeight > height, `manual gebruikt geen natuurlijke paginascroll op ${width}px`);
+    assert.notEqual(manual.boardOverflowY, "scroll", `manual maakt het volledige board scrollbaar op ${width}px`);
+    assert.ok(manual.canvas.cssWidth > 0 && manual.canvas.cssHeight > 0 && manual.canvas.bitmapWidth > 0 && manual.canvas.bitmapHeight > 0, `manual canvas herschaalt niet op ${width}px`);
+    assert.ok(manual.video.width > 0 && manual.video.height > 0, `manual video heeft geen bruikbare maat op ${width}px`);
+    assert.equal(manual.video.controls, true, `manual video mist controls op ${width}px`);
+    assert.equal(manual.video.fit, "contain", `manual video gebruikt geen contain op ${width}px`);
+    assert.equal(manual.video.preload, "none", `manual video preload is niet terughoudend op ${width}px`);
+  }
+  assert.notEqual(manualMeasurements[0].canvas.cssWidth, manualMeasurements[2].canvas.cssWidth, "manual canvas reageert niet op viewportbreedte");
+  await measureManual(1280, 720);
+  const manualInteraction = await exerciseManual();
+  assert.notEqual(manualInteraction.draggedOrder[0], "manual-thesis", "manual drag herschikt de directe blocks niet");
+  assert.equal(manualInteraction.dragCleanedUp, true, "manual drag laat een pointer/dragtoestand hangen");
+  assert.equal(manualInteraction.locked, true, "manual layout lock schakelt dragging niet uit");
+  assert.equal(manualInteraction.resetOrder[0], "manual-thesis", "manual reset herstelt de oorspronkelijke volgorde niet");
+  assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
+  assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");
+
+  console.log("browser-layout: showcase, examples en levende manual op desktop/tablet/mobiel — OK");
 } finally {
   if (protocol) {
     try { await protocol.send("Browser.close"); } catch {}

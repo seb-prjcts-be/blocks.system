@@ -15,7 +15,7 @@ assert.doesNotMatch(source, /vanilla\.waves|p5\.waves|VanillaWaves|WavesLoader|P
 assert.ok(["attach", "setGrid", "add", "register", "registerAdapter", "mount", "unmount"]
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
 assert.equal(singleton.snap, false, "snap must be disabled by default");
-assert.equal(singleton.draggable, false, "dragging must be disabled by default");
+assert.equal(singleton.draggable, true, "dragging must be enabled by default");
 assert.equal(singleton.font, null, "external fonts must remain opt-in");
 assert.equal(singleton.variant, "random", "visual variants must be random by default");
 assert.deepEqual(singleton.variants, ["regular", "inverse", "red", "green", "blue", "cyan", "magenta", "yellow"], "the original visual variants must be discoverable");
