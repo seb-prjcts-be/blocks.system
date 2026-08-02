@@ -156,14 +156,7 @@ assert.ok(["the grid is a decision.", "content is content.", "extend the contrac
   return siteDemos["docs/examples.mjs"].includes(statement);
 }), "each learning path must carry its own statement");
 assert.match(siteDemos["docs/examples.mjs"], /mixed-custom", variant: "magenta"/, "the mixed example must retain the agreed magenta content variant");
-for (const mapping of [
-  ["basic-route", "--accent-red"],
-  ["mixed-route", "--accent-blue"],
-  ["adapter-route", "--accent-cyan"],
-  ["next-step", "--accent-magenta"]
-]) {
-  assert.ok(examplesCss.includes(`[data-block-object="${mapping[0]}"]`) && examplesCss.includes(mapping[1]), `the subtle ${mapping[0]} accent is missing`);
-}
+assert.doesNotMatch(examplesCss, /--statement-accent|border-left:\s*5px/, "example blocks must not contain vertical color strips");
 assert.doesNotMatch(libraryCss, /\.docs-board-surface|\.system-board|\.examples-board/, "the reusable library stylesheet must not absorb docs page composition");
 assert.doesNotMatch(examplesHtml, /<iframe\b/i, "the examples index must use live systems instead of passive iframe cards");
 assert.ok(siteDemos["docs/examples.mjs"].includes("blocksBasic.setGrid(2, 2)"), "the examples board must include a real basic grid");

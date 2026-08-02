@@ -258,8 +258,8 @@ async function measureExamples(width, height) {
         clippedControls: controls.filter(function (control) {
           return control.scrollWidth > control.clientWidth + 1 || control.getBoundingClientRect().right > document.documentElement.clientWidth + 0.5;
         }).map(function (control) { return control.textContent.trim(); }),
-        routeAccents: ["basic-route", "mixed-route", "adapter-route", "next-step"].map(function (id) {
-          return getComputedStyle(board.querySelector('[data-block-object="' + id + '"] .example-route, [data-block-object="' + id + '"] .examples-next')).borderLeftColor;
+        routeBorderWidths: ["basic-route", "mixed-route", "adapter-route", "next-step"].map(function (id) {
+          return getComputedStyle(board.querySelector('[data-block-object="' + id + '"] .example-route, [data-block-object="' + id + '"] .examples-next')).borderLeftWidth;
         })
       };
     })()`,
@@ -378,7 +378,7 @@ try {
     assert.deepEqual(examples.clippedNestedContent, [], `examples knipt live inhoud af op ${width}px: ${examples.clippedNestedContent.join(", ")}`);
     assert.deepEqual(examples.hiddenActions, [], `examples verbergt acties op ${width}px: ${examples.hiddenActions.join(", ")}`);
     assert.deepEqual(examples.clippedControls, [], `examples knipt controls af op ${width}px: ${examples.clippedControls.join(", ")}`);
-    assert.deepEqual(examples.routeAccents, ["rgb(255, 0, 0)", "rgb(0, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 0, 255)"], `examples verliest de subtiele kleuraccenten op ${width}px`);
+    assert.deepEqual(examples.routeBorderWidths, ["0px", "0px", "0px", "0px"], `examples toont opnieuw verticale kleurstroken op ${width}px`);
     if (width === 1280) {
       assert.ok(examples.boardBottom <= height, `examples-board past niet in het desktopscherm: ${examples.boardBottom}px > ${height}px`);
       assert.ok(examples.documentHeight <= height, `examples is niet langer één scherm op desktop: ${examples.documentHeight}px > ${height}px`);
