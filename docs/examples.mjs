@@ -19,38 +19,24 @@ addBlock({
   `)
 });
 
-const basicPreview = nodeFromHtml(`
-  <div class="example-live">
-    <div class="example-live-board" data-live-example="basic" aria-label="live basic grid preview"></div>
-    <small>drag the header / restore 02 / find the red exception</small>
-  </div>
-`);
-addBlock({
-  id: "basic-live",
-  title: "01 / the grid",
-  span: [3, 3],
-  place: [3, 1],
-  content: basicPreview
-});
-
-const blocksBasic = createBlocksSystem({ variant: "random" });
-blocksBasic.attach(basicPreview.querySelector("[data-live-example]"));
-blocksBasic.setGrid(2, 2);
-blocksBasic.snap = true;
-blocksBasic.draggable = true;
-for (let index = 0; index < 4; index += 1) {
-  const number = index + 1;
-  const blockBasic = blocksBasic.add(`<div class="nested-center"><strong>${number}</strong><small>html</small></div>`, { id: `basic-${number}` });
-  blockBasic.menu(`block ${number}`);
-  blockBasic.minimized = index === 1;
-  if (index === 3) blockBasic.variant = "red";
+for (const spec of [
+  { id: "basic-1", title: "01.1 / html", place: [3, 1] },
+  { id: "basic-2", title: "01.2 / minimized", place: [4, 1], minimized: true },
+  { id: "basic-3", title: "01.3 / movable", place: [3, 2] },
+  { id: "basic-4", title: "01.4 / variant", place: [4, 2], variant: "red" }
+]) {
+  const number = spec.id.at(-1);
+  addBlock({
+    ...spec,
+    content: nodeFromHtml(`<div class="nested-center"><strong>${number}</strong><small>html</small></div>`)
+  });
 }
 
 addBlock({
   id: "basic-route",
   title: "principle / 01",
   span: [2, 1],
-  place: [1, 3],
+  place: [3, 3],
   content: nodeFromHtml(`
     <div class="example-route">
       <small>attach / grid / place</small>
@@ -63,26 +49,13 @@ addBlock({
   `)
 });
 
-const mixedPreview = nodeFromHtml(`
-  <div class="example-live">
-    <div class="example-live-board" data-live-example="mixed" aria-label="live mixed content preview"></div>
-    <small>html / canvas / element / one object contract</small>
-  </div>
-`);
 addBlock({
-  id: "mixed-live",
-  title: "02 / any content",
-  span: [3, 2],
-  place: [6, 1],
-  content: mixedPreview
+  id: "mixed-html",
+  title: "02.1 / html",
+  span: [1, 2],
+  place: [5, 1],
+  content: nodeFromHtml(`<div class="nested-center"><strong>html</strong><small>string</small></div>`)
 });
-
-const blocksMixed = createBlocksSystem({ variant: "regular" });
-blocksMixed.attach(mixedPreview.querySelector("[data-live-example]"));
-blocksMixed.setGrid(3, 1);
-blocksMixed.snap = true;
-const blockHtml = blocksMixed.add(`<div class="nested-center"><strong>html</strong><small>string</small></div>`, { id: "mixed-html" });
-blockHtml.menu("html");
 
 const canvas = document.createElement("canvas");
 canvas.width = 240;
@@ -99,18 +72,30 @@ for (let x = 0; x <= canvas.width; x += 3) {
   else context.lineTo(x, y);
 }
 context.stroke();
-const blockCanvas = blocksMixed.add(canvas, { id: "mixed-canvas", variant: "blue" });
-blockCanvas.menu("canvas");
+addBlock({
+  id: "mixed-canvas",
+  title: "02.2 / canvas",
+  span: [2, 2],
+  place: [6, 1],
+  variant: "blue",
+  content: canvas
+});
 
 if (!customElements.get("example-signal")) {
   customElements.define("example-signal", class extends HTMLElement {
     connectedCallback() {
-      this.innerHTML = `<div class="nested-center"><strong>&lt;signal&gt;</strong><small>custom</small></div>`;
+      this.innerHTML = `<div class="nested-center"><strong>&lt;signal&gt;</strong><small>custom element</small></div>`;
     }
   });
 }
-const blockCustom = blocksMixed.add(document.createElement("example-signal"), { id: "mixed-custom", variant: "magenta" });
-blockCustom.menu("element");
+addBlock({
+  id: "mixed-custom",
+  title: "02.3 / element",
+  span: [1, 2],
+  place: [8, 1],
+  variant: "magenta",
+  content: document.createElement("example-signal")
+});
 
 addBlock({
   id: "mixed-route",
@@ -129,26 +114,7 @@ addBlock({
   `)
 });
 
-const adapterPreview = nodeFromHtml(`
-  <div class="example-live">
-    <div class="example-live-board" data-live-example="adapter" aria-label="live custom adapter preview"></div>
-    <small>the system knows the contract / not the renderer</small>
-  </div>
-`);
-addBlock({
-  id: "adapter-live",
-  title: "03 / outside the core",
-  span: [4, 2],
-  place: [1, 5],
-  content: adapterPreview
-});
-
-const blocksAdapter = createBlocksSystem({ variant: "regular" });
-const blocksAdapterField = adapterPreview.querySelector("[data-live-example]");
-blocksAdapter.attach(blocksAdapterField);
-blocksAdapter.setGrid(1, 1);
-blocksAdapter.snap = true;
-blocksAdapter.registerAdapter("counter", {
+examplesSystem.registerAdapter("counter", {
   mount({ host, settings }) {
     const root = nodeFromHtml(`
       <div class="adapter-live-root">
@@ -165,12 +131,17 @@ blocksAdapter.registerAdapter("counter", {
     return root;
   }
 });
-blocksAdapter.register({ id: "example-counter", adapter: "counter", defaults: { start: 3 } });
+examplesSystem.register({ id: "example-counter", adapter: "counter", defaults: { start: 3 } });
 const blockAdapterHost = document.createElement("div");
-blockAdapterHost.className = "nested-center";
-const blockAdapter = blocksAdapter.add(blockAdapterHost, { id: "adapter-counter" });
-blockAdapter.menu("counter");
-await blocksAdapter.mount("example-counter", blockAdapterHost);
+blockAdapterHost.className = "adapter-host";
+addBlock({
+  id: "adapter-counter",
+  title: "03 / counter adapter",
+  span: [4, 2],
+  place: [1, 5],
+  content: blockAdapterHost
+});
+await examplesSystem.mount("example-counter", blockAdapterHost);
 
 addBlock({
   id: "adapter-route",

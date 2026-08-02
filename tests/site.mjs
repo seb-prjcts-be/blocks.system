@@ -143,10 +143,11 @@ assert.match(systemCss, /\.prototype-link\s*\{[^}]*grid-template-columns:\s*minm
 assert.match(systemCss, /\.prototype-canvas,\s*\.prototype-reference\s*\{[^}]*min-height:\s*0;[^}]*max-height:\s*100%;/s, "intrinsic system media must be allowed to shrink and center inside its cell");
 assert.match(examplesCss, /\.examples-board/, "the examples page must keep only its page-specific board rules");
 assert.match(examplesCss, /\.example-actions\s*\{[^}]*grid-column:\s*2;[^}]*grid-row:\s*1 \/ span 2;/s, "example actions must remain visible beside compact route content");
-assert.doesNotMatch(examplesCss, /\.examples-intro,\s*\.example-live,\s*\.example-route,\s*\.examples-next\s*\{[^}]*height:\s*100%;/s, "short example content must not be forced taller than its grid cell");
+assert.doesNotMatch(examplesCss, /\.example-live(?:-board)?/, "the examples page must not recreate nested live windows");
 assert.match(examplesHtml, /<body class="docs-board-body examples-page">/, "the examples composition needs an isolated page scope");
 assert.match(examplesHtml, /<h1 id="examples-title"><span>examples<\/span><em>small systems, clearly seen\.<\/em><\/h1>/, "the examples masthead must remain a restrained typographic statement");
-assert.match(examplesHtml, /start → combine → extend \/ 10 grid cells intentionally empty/, "the examples footer must name the deliberate empty grid space");
+assert.match(examplesHtml, /13 blocks · 1 minimized/, "the flat examples board must expose all direct blocks in its initial status");
+assert.match(examplesHtml, /start → combine → extend \/ 13 grid cells intentionally empty/, "the examples footer must name the deliberate empty grid space");
 for (const color of ["rgb(255, 0, 0)", "rgb(0, 255, 0)", "rgb(0, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)"]) {
   assert.ok(examplesCss.includes(color), `the agreed RGB/CMY composition misses ${color}`);
 }
@@ -155,13 +156,16 @@ assert.match(examplesCss, /\.examples-board\s*\{[^}]*--blocks-gap:\s*6px;[^}]*bo
 assert.ok(["the grid is a decision.", "content is content.", "extend the contract. not the core."].every(function (statement) {
   return siteDemos["docs/examples.mjs"].includes(statement);
 }), "each learning path must carry its own statement");
-assert.match(siteDemos["docs/examples.mjs"], /mixed-custom", variant: "magenta"/, "the mixed example must retain the agreed magenta content variant");
+assert.match(siteDemos["docs/examples.mjs"], /id:\s*"mixed-custom"[\s\S]*?variant:\s*"magenta"/, "the mixed example must retain the agreed magenta content variant");
 assert.doesNotMatch(examplesCss, /--statement-accent|border-left:\s*5px/, "example blocks must not contain vertical color strips");
 assert.doesNotMatch(libraryCss, /\.docs-board-surface|\.system-board|\.examples-board/, "the reusable library stylesheet must not absorb docs page composition");
 assert.doesNotMatch(examplesHtml, /<iframe\b/i, "the examples index must use live systems instead of passive iframe cards");
-assert.ok(siteDemos["docs/examples.mjs"].includes("blocksBasic.setGrid(2, 2)"), "the examples board must include a real basic grid");
-assert.ok(siteDemos["docs/examples.mjs"].includes("blocksMixed.setGrid(3, 1)"), "the examples board must include real mixed content");
-assert.ok(siteDemos["docs/examples.mjs"].includes('await blocksAdapter.mount("example-counter"'), "the examples board must include a live adapter");
+assert.equal((siteDemos["docs/examples.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the examples page must use one shared blocks system");
+assert.doesNotMatch(siteDemos["docs/examples.mjs"], /data-live-example|example-live-board|blocksBasic|blocksMixed|blocksAdapter/, "the examples page must not create nested block systems");
+for (const directBlock of ["basic-1", "basic-2", "basic-3", "basic-4", "mixed-html", "mixed-canvas", "mixed-custom", "adapter-counter"]) {
+  assert.ok(siteDemos["docs/examples.mjs"].includes(`id: "${directBlock}"`), `the flat examples board misses ${directBlock}`);
+}
+assert.ok(siteDemos["docs/examples.mjs"].includes('await examplesSystem.mount("example-counter"'), "the shared examples board must include a live adapter");
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.ok(siteDemos["docs/examples.mjs"].includes(`../examples/${example}/`), `the examples board must link to the ${example} standalone page`);
   assert.ok(siteDemos["docs/examples.mjs"].includes(`../examples/${example}/demo.mjs`), `the examples board must link to the ${example} source module`);

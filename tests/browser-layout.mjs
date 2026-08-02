@@ -229,7 +229,6 @@ async function measureExamples(width, height) {
       const statements = objects.map(function (block) {
         return { block, content: block.querySelector(":scope > .blocks-system-content"), statement: block.querySelector(":scope > .blocks-system-content > *") };
       });
-      const nestedContents = Array.from(board.querySelectorAll(".example-live-board .blocks-system-content"));
       const links = Array.from(board.querySelectorAll(".example-actions a, .examples-next a"));
       const controls = Array.from(document.querySelectorAll(".docs-board-controls button, .docs-board-controls label, .docs-board-controls select"));
       return {
@@ -244,13 +243,7 @@ async function measureExamples(width, height) {
           return content.scrollWidth > content.clientWidth + 1 || content.scrollHeight > content.clientHeight + 1 ||
             statement.scrollWidth > statement.clientWidth + 1 || statement.scrollHeight > statement.clientHeight + 1;
         }).map(function ({ block }) { return block.dataset.blockObject; }),
-        clippedNestedContent: nestedContents.filter(function (content) {
-          return getComputedStyle(content).display !== "none" &&
-            (content.scrollWidth > content.clientWidth + 3 || content.scrollHeight > content.clientHeight + 3);
-        }).map(function (content) {
-          const id = content.closest(".blocks-system-object").dataset.blockObject;
-          return id + ":" + content.scrollWidth + "×" + content.scrollHeight + "/" + content.clientWidth + "×" + content.clientHeight;
-        }),
+        nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
         hiddenActions: links.filter(function (link) {
           const rect = link.getBoundingClientRect();
           return rect.width < 1 || rect.height < 1 || getComputedStyle(link).visibility === "hidden";
@@ -285,6 +278,9 @@ async function exerciseExamples() {
         return block.dataset.blockMinimized === "true";
       });
       toggle.click();
+      const allRestored = Array.from(board.querySelectorAll(":scope > .blocks-system-object")).every(function (block) {
+        return block.dataset.blockMinimized === "false";
+      });
       density.value = "roomy";
       density.dispatchEvent(new Event("change", { bubbles: true }));
       boardSize.value = "12,6";
@@ -294,12 +290,13 @@ async function exerciseExamples() {
       return {
         incremented,
         allMinimized,
-        allRestored: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).every(function (block) {
-          return block.dataset.blockMinimized === "false";
-        }),
+        allRestored,
         changedStatus,
         resetDensity: density.value,
-        resetBoard: boardSize.value
+        resetBoard: boardSize.value,
+        resetMinimized: Array.from(board.querySelectorAll(':scope > .blocks-system-object[data-block-minimized="true"]')).map(function (block) {
+          return block.dataset.blockObject;
+        })
       };
     })()`,
     awaitPromise: true,
@@ -375,7 +372,7 @@ try {
     assert.ok(examples.horizontalOverflow <= 0.5, `examples heeft ${examples.horizontalOverflow}px horizontale overflow op ${width}px`);
     assert.deepEqual(examples.outsideBoard, [], `examples plaatst blocks buiten het board op ${width}px: ${examples.outsideBoard.join(", ")}`);
     assert.deepEqual(examples.clippedStatements, [], `examples knipt statements af op ${width}px: ${examples.clippedStatements.join(", ")}`);
-    assert.deepEqual(examples.clippedNestedContent, [], `examples knipt live inhoud af op ${width}px: ${examples.clippedNestedContent.join(", ")}`);
+    assert.equal(examples.nestedSurfaces, 0, `examples bevat opnieuw ${examples.nestedSurfaces} geneste blocks-grids op ${width}px`);
     assert.deepEqual(examples.hiddenActions, [], `examples verbergt acties op ${width}px: ${examples.hiddenActions.join(", ")}`);
     assert.deepEqual(examples.clippedControls, [], `examples knipt controls af op ${width}px: ${examples.clippedControls.join(", ")}`);
     assert.deepEqual(examples.routeBorderWidths, ["0px", "0px", "0px", "0px"], `examples toont opnieuw verticale kleurstroken op ${width}px`);
@@ -391,6 +388,7 @@ try {
   assert.match(examplesInteraction.changedStatus, /12 × 6 · roomy/, "examples status volgt density/board niet");
   assert.equal(examplesInteraction.resetDensity, "normal", "examples reset herstelt density niet");
   assert.equal(examplesInteraction.resetBoard, "8,6", "examples reset herstelt board niet");
+  assert.deepEqual(examplesInteraction.resetMinimized, ["basic-2"], "examples reset herstelt de directe minimized-demo niet");
 
   console.log("browser-layout: showcase-uitlijning/hover en minimalistische examples op desktop/tablet/mobiel — OK");
 } finally {
