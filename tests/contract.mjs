@@ -17,6 +17,8 @@ assert.ok(["attach", "setGrid", "add", "register", "registerAdapter", "mount", "
 assert.equal(singleton.snap, false, "snap must be disabled by default");
 assert.equal(singleton.draggable, false, "dragging must be disabled by default");
 assert.equal(singleton.font, null, "external fonts must remain opt-in");
+assert.equal(singleton.variant, "random", "visual variants must be random by default");
+assert.deepEqual(singleton.variants, ["regular", "inverse", "red", "green", "blue", "cyan", "magenta", "yellow"], "the original visual variants must be discoverable");
 
 const minUrl = pathToFileURL(minPath);
 minUrl.searchParams.set("parity", Date.now());
@@ -24,7 +26,7 @@ const { system: minSingleton } = await import(minUrl.href);
 assert.deepEqual(Object.keys(minSingleton).sort(), Object.keys(singleton).sort(), "source and minified API must match");
 assert.ok(minified.length < source.length, "the minified module must be smaller than the source");
 
-const local = createBlocksSystem({ catalogUrl: "https://example.test/catalog.html" });
+const local = createBlocksSystem({ catalogUrl: "https://example.test/catalog.html", random: () => 0.99 });
 local.registerAdapter("html", {
   mount() {},
   snippet({ block }) { return block.markup; }
@@ -112,6 +114,14 @@ local.font = null;
 assert.equal(field.style.getPropertyValue("--blocks-font-family"), "", "resetting font must restore the CSS default");
 local.setGrid(4, 4);
 const object = local.add("<p>span</p>", { id: "span-test" });
+assert.equal(object.minimized, false, "blocks must start restored unless configured otherwise");
+assert.equal(object.variant, "inverse", "an unspecified block must receive a stable random monochrome variant");
+assert.equal(object.element.getAttribute("data-block-variant"), "inverse", "the resolved variant must be exposed to CSS");
+object.variant = "default";
+assert.equal(object.variant, "regular", "the default alias must resolve to regular");
+object.variant = "random";
+assert.equal(object.variant, "inverse", "an explicit random assignment must reroll the block");
+assert.throws(function () { object.variant = "not valid"; }, /Ongeldige blockvariant/, "invalid variant names must fail early");
 assert.equal(typeof object.span, "function", "every block must expose span(x, y)");
 assert.equal(object.span(2, 1), object, "span must remain chainable");
 assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2", "span x must set whole column units");
@@ -119,11 +129,23 @@ assert.equal(object.element.style.getPropertyValue("--block-span-rows"), "1", "s
 assert.equal(object.place(2, 2), object, "place must remain chainable");
 assert.equal(object.element.style.getPropertyValue("--block-column"), "2", "place x must set a one-based column");
 assert.equal(object.element.style.getPropertyValue("--block-row"), "2", "place y must set a one-based row");
+object.menu("span", true);
+assert.equal(object.element.children[0].children[1].children.length, 2, "a menu must expose minimize and optional close controls together");
+object.minimized = true;
+assert.equal(object.element.getAttribute("data-block-minimized"), "true", "minimize state must be exposed to CSS");
+assert.equal(object.content.getAttribute("aria-hidden"), "true", "minimized content must leave the accessibility tree");
+assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2", "minimizing must preserve the configured span");
+object.minimized = false;
+assert.equal(object.element.getAttribute("data-block-minimized"), "false", "restoring must expose the normal state");
+assert.equal(object.content.getAttribute("aria-hidden"), "false", "restoring must reveal content accessibly");
 assert.throws(function () { object.span(0, 1); }, /positieve gehele/, "invalid spans must fail early");
 assert.throws(function () { object.span(5, 1); }, /past niet/, "a block cannot span beyond its grid");
 assert.throws(function () { object.place(0, 1); }, /positieve gehele/, "invalid positions must fail early");
 assert.throws(function () { object.place(4, 2); }, /past niet/, "a placed span cannot exceed the grid edge");
+local.variant = "blue";
 const neighbour = local.add("<p>neighbour</p>", { id: "place-test" });
+assert.equal(neighbour.variant, "blue", "an explicit system variant must apply to new blocks");
+assert.throws(function () { local.variant = "not valid"; }, /Ongeldige blockvariant/, "invalid system variants must fail early");
 assert.throws(function () { neighbour.place(2, 2); }, /overlapt/, "explicitly placed blocks cannot overlap");
 neighbour.place(1, 1);
 assert.throws(function () { local.setGrid(2, 4); }, /past niet/, "a grid cannot shrink below an existing placed span");
@@ -131,5 +153,6 @@ object.remove();
 assert.doesNotThrow(function () { local.setGrid(1, 1); }, "removed blocks must release their span constraint");
 assert.throws(function () { object.span(1, 1); }, /verwijderd/, "removed blocks cannot re-enter span state");
 assert.throws(function () { object.place(1, 1); }, /verwijderd/, "removed blocks cannot re-enter position state");
+assert.throws(function () { object.minimized = false; }, /verwijderd/, "removed blocks cannot change minimized state");
 
 console.log("blocks.system contract — ok");

@@ -40,7 +40,7 @@ for (let x = 0; x <= canvas.width; x += 4) {
 context.stroke();
 const canvasBlock = system.add(canvas, { id: "canvas" });
 canvasBlock.menu("canvas", true);
-canvasBlock.color = `rgb(${colors[2].join(", ")})`;
+canvasBlock.variant = "blue";
 canvasBlock.span(2, 1);
 canvasBlock.place(3, 2);
 
@@ -53,7 +53,7 @@ if (!customElements.get("system-badge")) {
 }
 const customBlock = system.add(document.createElement("system-badge"), { id: "custom-element" });
 customBlock.menu("custom element", true);
-customBlock.color = `rgb(${colors[4].join(", ")})`;
+customBlock.variant = "magenta";
 customBlock.span(2, 2);
 customBlock.place(7, 1);
 

@@ -5,6 +5,18 @@
  * wordt gemount, opgeruimd en als snippet geëxporteerd.
  */
 
+const BUILT_IN_VARIANTS = Object.freeze([
+    "regular",
+    "inverse",
+    "red",
+    "green",
+    "blue",
+    "cyan",
+    "magenta",
+    "yellow"
+]);
+const RANDOM_VARIANTS = Object.freeze(["regular", "regular", "inverse"]);
+
 function normalizeBlock(definition) {
     if (!definition || typeof definition !== "object") {
         throw new TypeError("Een blokdefinitie moet een object zijn.");
@@ -31,6 +43,18 @@ function resolveHost(target) {
     const host = typeof target === "string" ? document.querySelector(target) : target;
     if (!(host instanceof Element)) throw new TypeError("building blocks verwacht een geldig host-element.");
     return host;
+}
+
+function normalizeVariant(value) {
+    const requested = String(value ?? "random").trim().toLowerCase();
+    const name = requested === "default"
+        ? "regular"
+        : requested === "invert" ? "inverse" : requested;
+    if (name === "random") return name;
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)) {
+        throw new TypeError(`Ongeldige blockvariant: ${name || "(leeg)"}`);
+    }
+    return name;
 }
 
 function normalizeFont(value) {
@@ -85,15 +109,25 @@ export function createBlocksSystem(options = {}) {
     const objects = new Map();
     const objectLayouts = new Map();
     const catalogUrl = options.catalogUrl ? new URL(options.catalogUrl) : null;
+    const randomSource = typeof options.random === "function" ? options.random : Math.random;
     let surface = null;
     let columns = 1;
     let rows = 1;
     let snapEnabled = false;
     let draggableEnabled = false;
     let fontState = normalizeFont(options.font);
+    let variantMode = normalizeVariant(options.variant);
     let dragState = null;
     let objectIndex = 0;
     let api;
+
+    function resolveVariant(value) {
+        const name = normalizeVariant(value);
+        if (name !== "random") return name;
+        const raw = Number(randomSource());
+        const unit = Number.isFinite(raw) ? Math.max(0, Math.min(0.999999999, raw)) : 0;
+        return RANDOM_VARIANTS[Math.floor(unit * RANDOM_VARIANTS.length)];
+    }
 
     function register(definition, registerOptions = {}) {
         const block = normalizeBlock(definition);
@@ -301,9 +335,13 @@ export function createBlocksSystem(options = {}) {
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new TypeError(`Ongeldig block-id: ${id}`);
         if (objects.has(id)) throw new Error(`Block bestaat al: ${id}`);
 
+        let variantValue = resolveVariant(addOptions.variant ?? variantMode);
+        let minimizedValue = Boolean(addOptions.minimized);
         const shell = document.createElement("section");
         shell.className = "blocks-system-object";
         shell.setAttribute("data-block-object", id);
+        shell.setAttribute("data-block-variant", variantValue);
+        shell.setAttribute("data-block-minimized", String(minimizedValue));
         const contentNode = document.createElement("div");
         contentNode.className = "blocks-system-content";
         appendContent(contentNode, content);
@@ -312,6 +350,8 @@ export function createBlocksSystem(options = {}) {
 
         let menuNode = null;
         let titleNode = null;
+        let actionsNode = null;
+        let minimizeNode = null;
         let closeNode = null;
         let colorValue = "";
         let spanColumns = 1;
@@ -319,6 +359,21 @@ export function createBlocksSystem(options = {}) {
         let placeColumn = null;
         let placeRow = null;
         let block;
+
+        function syncMinimizedState() {
+            shell.setAttribute("data-block-minimized", String(minimizedValue));
+            contentNode.setAttribute("aria-hidden", String(minimizedValue));
+            if (!minimizeNode) return;
+            minimizeNode.textContent = minimizedValue ? "+" : "−";
+            minimizeNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${minimizedValue ? "herstellen" : "minimaliseren"}`);
+            minimizeNode.setAttribute("aria-pressed", String(minimizedValue));
+        }
+
+        function setMinimized(value) {
+            if (block && objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            minimizedValue = Boolean(value);
+            syncMinimizedState();
+        }
 
         function remove() {
             if (dragState?.shell === shell) stopDragging();
@@ -375,27 +430,44 @@ export function createBlocksSystem(options = {}) {
         }
 
         function menu(name, close = false) {
+            const menuOptions = close && typeof close === "object"
+                ? { close: Boolean(close.close), minimize: close.minimize !== false }
+                : { close: Boolean(close), minimize: true };
             if (!menuNode) {
                 menuNode = document.createElement("header");
                 menuNode.className = "blocks-system-menu";
                 titleNode = document.createElement("span");
                 titleNode.className = "blocks-system-title";
+                actionsNode = document.createElement("span");
+                actionsNode.className = "blocks-system-actions";
                 menuNode.appendChild(titleNode);
+                menuNode.appendChild(actionsNode);
                 shell.insertBefore(menuNode, contentNode);
             }
             titleNode.textContent = String(name || "");
-            if (Boolean(close) && !closeNode) {
+            if (menuOptions.minimize && !minimizeNode) {
+                minimizeNode = document.createElement("button");
+                minimizeNode.type = "button";
+                minimizeNode.className = "blocks-system-minimize";
+                minimizeNode.addEventListener("click", () => setMinimized(!minimizedValue));
+                actionsNode.appendChild(minimizeNode);
+            } else if (!menuOptions.minimize && minimizeNode) {
+                minimizeNode.remove();
+                minimizeNode = null;
+            }
+            if (menuOptions.close && !closeNode) {
                 closeNode = document.createElement("button");
                 closeNode.type = "button";
                 closeNode.className = "blocks-system-close";
                 closeNode.setAttribute("aria-label", `${titleNode.textContent || id} sluiten`);
                 closeNode.textContent = "×";
                 closeNode.addEventListener("click", remove);
-                menuNode.appendChild(closeNode);
-            } else if (!Boolean(close) && closeNode) {
+                actionsNode.appendChild(closeNode);
+            } else if (!menuOptions.close && closeNode) {
                 closeNode.remove();
                 closeNode = null;
             }
+            syncMinimizedState();
             return block;
         }
 
@@ -417,6 +489,20 @@ export function createBlocksSystem(options = {}) {
                 else shell.style.removeProperty("--block-color");
             }
         });
+        Object.defineProperty(controller, "variant", {
+            enumerable: true,
+            get: () => variantValue,
+            set(value) {
+                variantValue = resolveVariant(value ?? variantMode);
+                shell.setAttribute("data-block-variant", variantValue);
+            }
+        });
+        Object.defineProperty(controller, "minimized", {
+            enumerable: true,
+            get: () => minimizedValue,
+            set: setMinimized
+        });
+        syncMinimizedState();
         block = Object.freeze(controller);
         objects.set(id, block);
         objectLayouts.set(id, {
@@ -528,6 +614,17 @@ export function createBlocksSystem(options = {}) {
                 fontState = normalizeFont(value);
                 applyFontState();
             }
+        },
+        variant: {
+            enumerable: true,
+            get: () => variantMode,
+            set(value) {
+                variantMode = normalizeVariant(value);
+            }
+        },
+        variants: {
+            enumerable: true,
+            get: () => BUILT_IN_VARIANTS
         },
         field: {
             enumerable: true,

@@ -17,7 +17,9 @@
     "block.id",
     "block.element",
     "block.content",
-    "block.menu(name, close)",
+    "block.menu(name, options)",
+    "block.minimized",
+    "block.variant",
     "block.color",
     "block.remove()"
   ],
@@ -26,6 +28,10 @@
     "the core has no renderer-specific knowledge",
     "system properties live under blocks.system",
     "individual properties live under block",
+    "automatic variants stay monochrome while RGB/CMY variants require explicit selection",
+    "hover uses the original two-pixel inset outline without changing layout",
+    "minimized blocks keep their configured grid area reserved for conflict-free restore",
+    "base block CSS defines states and scrolling but contains no animation",
     "attach() always receives an explicit field"
   ]
 }

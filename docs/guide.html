@@ -47,6 +47,13 @@
 blocks.system.snap = true;
 blocks.system.draggable = true;</code></pre>
     <p>Drag a block by its menu bar. The stylesheet supplies the agreed composition by default: 6px intervals, black blocks, warm paper, a 22px menu and 7px content inset. Override its CSS variables only when your own composition deliberately differs.</p>
+    <h3>smart variants</h3>
+    <p>New blocks choose a stable random monochrome variant: <code>regular</code> is twice as likely as <code>inverse</code>. The pure red, green, blue, cyan, magenta and yellow variants are built in but stay explicit. On mouseover, the original thicker inset line appears without moving the layout.</p>
+    <pre class="code-block"><code>blocks.system.variant = "random";
+
+const automatic = blocks.system.add(content);
+const inverse = blocks.system.add(content, { variant: "inverse" });
+automatic.variant = "blue";</code></pre>
     <h3>optional font</h3>
     <p>The CSS defaults to Oswald with a system fallback. Loading an external font stays an explicit choice:</p>
     <pre class="code-block"><code>blocks.system.font = {
@@ -69,15 +76,20 @@ const lazy = blocks.system.add(function () {
     <div class="callout"><p>HTML strings are interpreted as markup. Never pass untrusted user input; build a DOM node and assign <code>textContent</code> instead.</p></div>
 
     <h2 id="object">5. configure one object</h2>
-    <p><code>add()</code> returns the controller for that object. A menu, close button, span, grid position and colour belong to the object, not to the system.</p>
+    <p><code>add()</code> returns the controller for that object. A menu, minimized state, span, grid position, variant and colour belong to the object, not to the system.</p>
     <pre class="code-block"><code>const block = blocks.system.add(content, { id: "preview" });
-block.menu("preview", true);
+block.menu("preview", { close: true, minimize: true });
 block.color = "#ef3e36";
 block.span(2, 1);
 block.place(3, 2);
 
 // later
 block.remove();</code></pre>
+    <h3>minimize and restore</h3>
+    <p>Every menu is minimizable by default. A minimized block shows only its header but keeps its configured span and position reserved, so restoring can never collide with another block. Set <code>minimize: false</code> only when a menu must not expose that control.</p>
+    <pre class="code-block"><code>block.minimized = true;
+block.minimized = false;</code></pre>
+    <p>Content centers while it fits and scrolls inside the block when it overflows. The base stylesheet defines only states; motion remains a separate optional layer.</p>
 
     <h2 id="adapter">6. connect a runtime</h2>
     <p>Use an adapter when content needs mounting, cleanup, readiness or a reusable snippet. The runtime remains outside the core.</p>

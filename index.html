@@ -81,10 +81,12 @@ blocks.system.attach("#field");
 blocks.system.setGrid(3, 2);
 blocks.system.snap = true;
 blocks.system.draggable = true;
+blocks.system.variant = "random";
 
 const block = blocks.system.add(content);
-block.menu("test", true);
-block.color = "red";
+block.menu("test", { close: true, minimize: true });
+block.minimized = false;
+block.variant = "red";
 block.span(2, 1);
 block.place(2, 2);</code></pre>
         <div class="principles">

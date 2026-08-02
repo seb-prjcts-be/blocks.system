@@ -89,6 +89,39 @@ blocks.system.draggable = true;
 Met verslepen ingeschakeld is de menubalk het handvat. Controls in de inhoud
 behouden hun normale pointergedrag.
 
+Ieder menu kan standaard minimaliseren. Daarbij verdwijnt de inhoud, maar blijven
+de ingestelde span en positie gereserveerd; herstellen kan dus nooit met een
+ander block botsen. Inhoud scrollt binnen het block zodra ze niet meer past.
+
+```js
+block.menu("preview", { close: true, minimize: true });
+block.minimized = true;
+block.minimized = false;
+```
+
+De oudere vorm `block.menu("preview", true)` blijft geldig en betekent een
+minimaliseerbaar menu met sluitknop. Gebruik `minimize: false` om de knop weg te
+laten. De basisstylesheet bevat geen animatie; motion hoort in een aparte,
+optionele stylesheet.
+
+Nieuwe blocks krijgen één stabiele willekeurige monochrome variant. `regular`
+heeft dubbel zoveel kans als `inverse`, zodat de normale zwart-op-papier-
+compositie dominant blijft. Zuivere RGB/CMY-varianten zijn ingebouwd, maar
+blijven expliciet:
+
+```js
+blocks.system.variant = "random"; // standaard voor nieuwe blocks
+
+const automatisch = blocks.system.add(content);
+const inverse = blocks.system.add(content, { variant: "inverse" });
+automatisch.variant = "blue";
+```
+
+Ingebouwd zijn `regular`, `inverse`, `red`, `green`, `blue`, `cyan`, `magenta`
+en `yellow`. Eigen lowercase kebab-case-namen werken via CSS op
+`[data-block-variant="..."]`. Bij mouseover verschijnt de oorspronkelijke
+dikkere binnenlijn zonder dat het block verschuift.
+
 Externe fonts blijven opt-in. Geef een stylesheet-URL en de bijbehorende
 fontfamilie op; dezelfde URL wordt maar één keer toegevoegd. Zet `font` opnieuw
 op `null` om de CSS-standaard en systeemfallback te gebruiken.
@@ -131,13 +164,14 @@ blocks.system.register({
 - `blocks.system.snap`
 - `blocks.system.draggable`
 - `blocks.system.font`
+- `blocks.system.variant` / `blocks.system.variants`
 - `blocks.system.add(content, options)`
 - `blocks.system.register(definition)`
 - `blocks.system.registerAdapter(id, adapter)`
 - `blocks.system.list()` / `get()` / `listAdapters()`
 - `blocks.system.mount()` / `unmount()` / `remount()`
 - `blocks.system.snippet()` / `address()`
-- `block.menu(name, close)` / `block.span(x, y)` / `block.place(x, y)` / `block.color` / `block.remove()`
+- `block.menu(name, options)` / `block.minimized` / `block.span(x, y)` / `block.place(x, y)` / `block.variant` / `block.color` / `block.remove()`
 
 ## Ontwikkelen
 

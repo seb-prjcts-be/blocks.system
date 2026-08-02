@@ -86,6 +86,38 @@ blocks.system.draggable = true;
 With dragging enabled, the menu bar is the drag handle. Content controls keep
 their normal pointer behaviour.
 
+Every menu is minimizable by default. Minimizing hides the content but preserves
+the configured span and position, so restoring cannot collide with another
+block. Content scrolls internally when it no longer fits.
+
+```js
+block.menu("preview", { close: true, minimize: true });
+block.minimized = true;
+block.minimized = false;
+```
+
+The older `block.menu("preview", true)` form remains valid and means a
+minimizable menu with a close button. Use `minimize: false` to omit the minimize
+control. The base stylesheet contains no animation; motion belongs in a separate
+optional stylesheet.
+
+New blocks use a stable random monochrome variant. `regular` has twice the
+chance of `inverse`, so the normal black-on-paper composition remains dominant.
+Pure RGB/CMY variants are built in but explicit:
+
+```js
+blocks.system.variant = "random"; // default for new blocks
+
+const automatic = blocks.system.add(content);
+const inverse = blocks.system.add(content, { variant: "inverse" });
+automatic.variant = "blue";
+```
+
+Built-ins are `regular`, `inverse`, `red`, `green`, `blue`, `cyan`, `magenta`
+and `yellow`. Custom lowercase kebab-case names work through
+`[data-block-variant="..."]` CSS. The original thicker inset line appears on
+mouseover without changing the block size.
+
 External fonts remain opt-in. Assign a stylesheet URL and its family; the same
 URL is inserted only once. Set `font` back to `null` to use the CSS default and
 system fallback again.
@@ -128,13 +160,14 @@ blocks.system.register({
 - `blocks.system.snap`
 - `blocks.system.draggable`
 - `blocks.system.font`
+- `blocks.system.variant` / `blocks.system.variants`
 - `blocks.system.add(content, options)`
 - `blocks.system.register(definition)`
 - `blocks.system.registerAdapter(id, adapter)`
 - `blocks.system.list()` / `get()` / `listAdapters()`
 - `blocks.system.mount()` / `unmount()` / `remount()`
 - `blocks.system.snippet()` / `address()`
-- `block.menu(name, close)` / `block.span(x, y)` / `block.place(x, y)` / `block.color` / `block.remove()`
+- `block.menu(name, options)` / `block.minimized` / `block.span(x, y)` / `block.place(x, y)` / `block.variant` / `block.color` / `block.remove()`
 
 ## Develop
 
