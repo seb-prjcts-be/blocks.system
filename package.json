@@ -17,7 +17,7 @@
   "scripts": {
     "build:min": "terser blocks.system.mjs --module --compress --mangle --output blocks.system.min.mjs",
     "manifest": "node tools/gen-manifest.mjs",
-    "test": "node tests/contract.mjs && node tests/site.mjs",
+    "test": "node tests/contract.mjs && node tests/site.mjs && node tests/browser-layout.mjs",
     "check": "npm run build:min && npm run manifest && npm test"
   },
   "repository": {

@@ -100,6 +100,7 @@ npm run check
 ```
 
 `npm run check` rebuilds the minified module and manifest, then checks the API,
-docs, examples and local links.
+docs, examples, local links and the real showcase layout in headless Chrome.
+Set `CHROME_PATH` when Chrome or Edge is not installed in a standard location.
 
 MIT License. Developed by Sebastien Vanblaere.

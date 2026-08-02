@@ -59,6 +59,11 @@ npm install
 npm run check
 ```
 
+De check opent de echte showcase in headless Chrome op 1280, 800 en 390px met
+4 en 8 rijen. Elk block moet minstens 110px hoog blijven en mag intern niet
+overlopen. Gebruik `CHROME_PATH` wanneer Chrome of Edge niet op een
+standaardlocatie staat.
+
 Then open `http://localhost/blocks.system/` and check the showcase plus all
 three standalone examples at desktop and narrow widths. Also inspect the shared
 one-screen shell on `docs/system.html` and `docs/examples.html`: both desktop

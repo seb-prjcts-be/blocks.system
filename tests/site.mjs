@@ -121,7 +121,10 @@ for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "ye
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
 assert.match(siteCss, /\.demo-layout\s*\{[^}]*746px[^}]*max-width:\s*1020px;/s, "the showcase field must preserve the original compact width rhythm");
-assert.match(siteCss, /#field\s*\{[^}]*height:\s*370px;/s, "the showcase field must preserve four compact rows");
+assert.match(siteCss, /#field\s*\{[^}]*--blocks-demo-row-min:\s*110px;[^}]*height:\s*auto;[^}]*min-height:\s*0;/s, "the showcase must grow instead of crushing demo content into short rows");
+assert.match(siteCss, /#field\.blocks-system-surface\[data-snap="true"\]\s*\{[^}]*grid-template-rows:\s*repeat\(var\(--blocks-rows\),\s*minmax\(var\(--blocks-demo-row-min\),\s*auto\)\);/s, "every showcase row must preserve the demo content minimum");
+assert.match(siteCss, /\.demo-canvas\s*\{[^}]*max-height:\s*100%;/s, "the showcase canvas must remain inside its block content area");
+assert.match(siteCss, /\.native-controls\s*\{[^}]*min-height:\s*0;[^}]*max-height:\s*100%;/s, "native controls must remain inside their block content area");
 assert.match(siteCss, /@media \(max-width: 560px\)[\s\S]*--block-column:\s*auto !important;[\s\S]*--block-row:\s*auto !important;[\s\S]*--block-span-columns:\s*1 !important;[\s\S]*--block-span-rows:\s*1 !important;/, "the mobile showcase must return blocks to automatic single grid units");
 assert.ok(siteDemos["demo.mjs"].includes("blocks.setGrid(8, 4)"), "the showcase must expose the original eight-column rhythm");
 assert.ok(siteDemos["demo.mjs"].includes("blockCanvas.span(2, 1)"), "the showcase must demonstrate a wider block");
