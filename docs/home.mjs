@@ -13,11 +13,10 @@ blocks.snap = true;
 blocks.draggable = true;
 quantizeSurface(board);
 
-function addHome({ id, title, content, span, place, variant = "regular" }) {
+function addHome({ id, title, content, span, variant = "regular" }) {
   const block = blocks.add(content, { id, variant });
   block.menu(title, { minimize: true });
   block.span(...span);
-  block.place(...place);
   controllers.push(block);
   return block;
 }
@@ -26,7 +25,6 @@ addHome({
   id: "home-thesis",
   title: "blocks.system / object model",
   span: [3, 2],
-  place: [1, 1],
   content: nodeFromHtml(`
     <div class="home-thesis">
       <small>the object is the interface</small>
@@ -40,7 +38,6 @@ addHome({
   id: "home-facts",
   title: "three facts",
   span: [3, 1],
-  place: [4, 1],
   content: nodeFromHtml(`
     <div class="home-facts">
       <p><strong>0</strong><span>runtime dependencies</span></p>
@@ -57,7 +54,6 @@ const blockCanvas = addHome({
   id: "home-canvas",
   title: "canvas / live resize",
   span: [2, 2],
-  place: [5, 3],
   content: canvas
 });
 
@@ -90,7 +86,6 @@ addHome({
   id: "home-principles",
   title: "generic / direct / extensible",
   span: [3, 2],
-  place: [1, 4],
   content: nodeFromHtml(`
     <div class="home-principles">
       <p><small>01</small><strong>generic core</strong><span>No framework or renderer knowledge.</span></p>
@@ -104,7 +99,6 @@ addHome({
   id: "home-next",
   title: "start / source",
   span: [2, 1],
-  place: [4, 6],
   variant: "inverse",
   content: nodeFromHtml(`
     <div class="home-next">

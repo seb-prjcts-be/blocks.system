@@ -150,6 +150,7 @@ assert.equal((siteDemos["docs/home.mjs"].match(/^(?:addHome|const blockCanvas = 
 assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "home must use one shared blocks system");
 assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must preserve deliberate empty cells in a six-column field");
 assert.match(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must be draggable by default");
+assert.doesNotMatch(siteDemos["docs/home.mjs"], /block\.place\(|place:\s*\[/, "home reorder must not be pinned by explicit grid positions");
 assert.match(siteDemos["docs/home.mjs"], /new ResizeObserver\(drawCanvas\)/, "home must prove responsive canvas content");
 assert.match(siteDemos["docs/home.mjs"], /blocks:reorder/, "home status must follow keyboard reordering");
 assert.match(siteDemos["docs/home.mjs"], /quantizeSurface\(board\)/, "home must use whole-pixel grid geometry");

@@ -489,6 +489,72 @@ async function exerciseManual() {
   return result.result.value;
 }
 
+async function exerciseHome() {
+  const beforeResult = await protocol.send("Runtime.evaluate", {
+    expression: `(() => {
+      const board = document.querySelector("#home-board");
+      const geometry = function () {
+        return Object.fromEntries(Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
+          const rect = block.getBoundingClientRect();
+          return [block.dataset.blockObject, [rect.left, rect.top]];
+        }));
+      };
+      const center = function (element, xFactor) {
+        const rect = element.getBoundingClientRect();
+        return { x: rect.left + rect.width * xFactor, y: rect.top + rect.height / 2 };
+      };
+      return {
+        start: center(document.querySelector('[data-block-object="home-thesis"] > .blocks-system-menu'), 0.5),
+        target: center(document.querySelector('[data-block-object="home-facts"] > .blocks-system-menu'), 0.8),
+        order: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) { return block.dataset.blockObject; }),
+        geometry: geometry(),
+        explicitPositions: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).filter(function (block) {
+          return block.style.getPropertyValue("--block-column") || block.style.getPropertyValue("--block-row");
+        }).map(function (block) { return block.dataset.blockObject; })
+      };
+    })()`,
+    returnByValue: true
+  });
+  const before = beforeResult.result.value;
+  await protocol.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: before.start.x, y: before.start.y });
+  await protocol.send("Input.dispatchMouseEvent", { type: "mousePressed", x: before.start.x, y: before.start.y, button: "left", buttons: 1, clickCount: 1 });
+  for (let step = 1; step <= 8; step += 1) {
+    const progress = step / 8;
+    await protocol.send("Input.dispatchMouseEvent", {
+      type: "mouseMoved",
+      x: before.start.x + (before.target.x - before.start.x) * progress,
+      y: before.start.y + (before.target.y - before.start.y) * progress,
+      button: "left",
+      buttons: 1
+    });
+  }
+  await protocol.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: before.target.x, y: before.target.y, button: "left", buttons: 0, clickCount: 1 });
+
+  const afterResult = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const board = document.querySelector("#home-board");
+      const state = function () {
+        return {
+          order: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) { return block.dataset.blockObject; }),
+          geometry: Object.fromEntries(Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
+            const rect = block.getBoundingClientRect();
+            return [block.dataset.blockObject, [rect.left, rect.top]];
+          })),
+          clean: !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging")
+        };
+      };
+      await new Promise(function (resolveFrame) { requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); }); });
+      const dragged = state();
+      document.querySelector("#home-reset").click();
+      await new Promise(function (resolveFrame) { requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); }); });
+      return { dragged, reset: state(), status: document.querySelector("#home-status").textContent };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return { before, ...afterResult.result.value };
+}
+
 async function exerciseMobileNavigation() {
   await protocol.send("Emulation.setDeviceMetricsOverride", {
     width: 390,
@@ -638,6 +704,17 @@ try {
   assert.equal(afterHover.canvasVisual.outlineOffset, "-3px", "hoverkader moet binnen het block blijven");
   assert.equal(afterHover.canvasVisual.boxShadow, beforeHover.canvasVisual.boxShadow, "hover mag geen onverwachte schaduw toevoegen");
   assert.equal(afterHover.canvasVisual.transform, beforeHover.canvasVisual.transform, "hover mag het block niet verplaatsen");
+
+  const homeInteraction = await exerciseHome();
+  assert.deepEqual(homeInteraction.before.explicitPositions, [], "home pint versleepbare blocks nog vast met block.place()");
+  assert.deepEqual(homeInteraction.before.order.slice(0, 2), ["home-thesis", "home-facts"], "home start niet in de bedoelde volgorde");
+  assert.deepEqual(homeInteraction.dragged.order.slice(0, 2), ["home-facts", "home-thesis"], "home drag herschikt de directe blocks niet");
+  assert.notDeepEqual(homeInteraction.dragged.geometry["home-thesis"], homeInteraction.before.geometry["home-thesis"], "home drag verplaatst het gesleepte block niet zichtbaar");
+  assert.notDeepEqual(homeInteraction.dragged.geometry["home-facts"], homeInteraction.before.geometry["home-facts"], "home drag schuift het buurblock niet zichtbaar op");
+  assert.equal(homeInteraction.dragged.clean, true, "home drag laat een pointer/dragtoestand hangen");
+  assert.deepEqual(homeInteraction.reset.order, homeInteraction.before.order, "home reset herstelt de oorspronkelijke volgorde niet");
+  assert.deepEqual(homeInteraction.reset.geometry, homeInteraction.before.geometry, "home reset herstelt de oorspronkelijke blockposities niet");
+  assert.match(homeInteraction.status, /surface reset · drag on/, "home resetstatus is niet duidelijk");
 
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
