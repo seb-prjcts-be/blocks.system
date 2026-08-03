@@ -56,10 +56,6 @@ const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
 const declarations = await readFile(resolve(root, "blocks.system.d.ts"), "utf8");
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
-const homeCss = await readFile(resolve(root, "docs", "home.css"), "utf8");
-const manualCss = await readFile(resolve(root, "docs", "manual.css"), "utf8");
-const referenceCss = await readFile(resolve(root, "docs", "reference.css"), "utf8");
-const exampleCss = await readFile(resolve(root, "examples", "example.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
 const librarySource = await readFile(resolve(root, "blocks.system.mjs"), "utf8");
 const apiHtml = await readFile(resolve(root, "docs", "api.html"), "utf8");
@@ -109,6 +105,22 @@ const navigationPages = [
   ["reference", apiHtml, "reference"],
   ...Object.entries(standaloneExamples).map(([name, html]) => [`example ${name}`, html, null])
 ];
+
+const canonicalStylesheets = [
+  ["home", homeHtml, ["blocks.system.css?v=0.1.4", "docs/style.css?v=0.1.3"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.4", "style.css?v=0.1.3"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.4", "style.css?v=0.1.3"]],
+  ...Object.entries(standaloneExamples).map(([name, html]) => [
+    `example ${name}`,
+    html,
+    ["../../blocks.system.css?v=0.1.4", "../../docs/style.css?v=0.1.3"]
+  ])
+];
+for (const [page, html, expected] of canonicalStylesheets) {
+  const stylesheets = [...html.matchAll(/<link rel="stylesheet" href="([^"]+)"/g)].map((match) => match[1]);
+  assert.deepEqual(stylesheets, expected, `${page} must load library then canonical consumer CSS exactly once`);
+}
+
 for (const [page, html, currentLabel] of navigationPages) {
   const navigation = html.match(/<nav id="navbar"[\s\S]*?<\/nav>/)?.[0] || "";
   const links = [...navigation.matchAll(/<li><a\b[^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/g)]
@@ -128,6 +140,10 @@ const retiredAssets = [
   "docs/examples.mjs",
   "docs/examples.css",
   "docs/nav.mjs",
+  "docs/home.css",
+  "docs/manual.css",
+  "docs/reference.css",
+  "examples/example.css",
   "docs/references/micrographic-drag-snap-reference.png"
 ];
 for (const file of retiredAssets) {
@@ -146,7 +162,6 @@ for (const declaration of ["BlocksSystem", "BlockController", "BlocksLabels", "B
 assert.match(libraryCss, /\.blocks-system-surface\s*\{[^}]*--blocks-field-color:\s*#e7e6e0;[^}]*--blocks-paper-color:\s*#efeee8;[^}]*--blocks-ink-color:\s*#000;/s, "the library must own the agreed out-of-the-box palette");
 assert.match(libraryCss, /\.blocks-system-object\s*\{[^}]*--block-color:\s*var\(--blocks-ink-color\);[^}]*--block-paper-color:\s*var\(--blocks-paper-color\);[^}]*background:\s*var\(--block-paper-color\);/s, "the library must make black on warm paper the block default");
 assert.doesNotMatch(siteCss, /#field \.blocks-system-object\s*\{[^}]*--block-color:/s, "the showcase must not recreate the library default");
-assert.doesNotMatch(exampleCss, /\.blocks-system-object\s*\{[^}]*--block-color:/s, "examples must not recreate the library default");
 assert.match(homeHtml, /<body class="home-page">/, "home needs its isolated canonical surface");
 assert.match(homeHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "home must use the four-item shared navigation");
 assert.match(homeHtml, /id="home-board"/, "home must expose one live proof surface");
@@ -158,15 +173,16 @@ assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must p
 assert.match(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must be draggable by default");
 assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-intro[\s\S]*open manual/, "home must lead from identity to one concise action");
 assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*intro\.place\(5, 7\)/, "home must preserve its deliberate asymmetric anchors");
-assert.match(homeCss, /background-image\s*:[\s\S]*linear-gradient/, "home must expose the grid because the system itself is the subject");
-assert.match(homeCss, /--blocks-columns:\s*6/, "home must start from six columns");
-assert.match(homeCss, /@media \(max-width: 900px\)[\s\S]*--blocks-columns:\s*3 !important/, "home must collapse to three columns on tablets");
-assert.doesNotMatch(homeCss, /@media \(max-width: 560px\)[\s\S]*--blocks-columns:\s*1 !important/, "home must preserve its meaningful three-column mobile grid");
+assert.match(siteCss, /\.home-board\s*\{[^}]*background-image\s*:[^}]*linear-gradient/s, "home must expose the grid because the system itself is the subject");
+assert.match(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*6/s, "home must start from six columns");
+assert.match(siteCss, /@media \(max-width: 900px\)[\s\S]*?\.home-board\s*\{[^}]*--blocks-columns:\s*3 !important/s, "home must collapse to three columns on tablets");
+assert.doesNotMatch(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*1 !important/s, "home must preserve its meaningful three-column mobile grid");
 assert.doesNotMatch(libraryCss, /\.home-/, "the reusable library stylesheet must not absorb home composition");
 assert.match(siteDemos["docs/shell.mjs"], /export function nodeFromHtml/, "the active docs shell must own the shared content helper");
-assert.match(siteCss, /Oswald:wght@400;500;600/, "the inactive Oswald comparison link must remain in its comment");
+assert.equal((siteCss.match(/@import\s+url\(/g) || []).length, 1, "consumer CSS must own one font import");
+assert.doesNotMatch(siteCss, /\b(?:Inter|Oswald)\b/, "all site and example typography must use the canonical Instrument Sans family");
 assert.doesNotMatch(siteCss, /\.hero-|\.demo-|#field|\.docs-pagination|\.api-table/, "shared CSS must not retain retired page systems");
-assert.doesNotMatch(siteCss, /background-image\s*:/, "shared docs CSS must not draw a grid");
+assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[^}]*background-image:\s*none;/s, "manual and reference must share one invisible editorial grid owner");
 assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*min-height:\s*22px;[^}]*padding:\s*3px 7px;/s, "the menu must preserve the compact original proportions");
 assert.match(libraryCss, /\.blocks-system-surface\s*\{[^}]*--blocks-font-family:\s*"Segoe UI",\s*Arial,\s*sans-serif;/s, "the core must use a delivered system fallback instead of implying an unloaded webfont");
 assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*font:\s*600 13px\/1 var\(--blocks-font-family\);/s, "the menu must use the configurable font family at its original weight");
@@ -187,13 +203,11 @@ assert.match(librarySource, /function pushedGridLayouts\([\s\S]*layout\.row \+= 
 assert.match(librarySource, /DRAG_SETTLE_DURATION = 160[\s\S]*prefers-reduced-motion: reduce/, "drop settlement must match the donor timing and respect reduced motion");
 assert.match(librarySource, /new CustomEvent\("blocks:reorder"/, "keyboard reordering must expose one stable event for docs status and consumers");
 assert.match(librarySource, /mode:\s*detail\.mode[\s\S]*fromIndex:[\s\S]*toIndex:[\s\S]*direction:/, "reorder events must expose one stable detail shape");
-for (const [name, css] of [["docs", siteCss], ["standalone examples", exampleCss]]) {
-  assert.match(css, /scrollbar-color:\s*rgba\(17, 17, 17, 0\.58\) transparent;/, `${name} must use the shared neutral OS-like scrollbar`);
-  assert.match(css, /scrollbar-width:\s*thin;/, `${name} must keep vertical scrollbars thin`);
-  assert.match(css, /::-webkit-scrollbar-thumb\s*\{[^}]*border-radius:\s*999px;[^}]*background-clip:\s*content-box;/s, `${name} must expose the rounded overlay thumb in Chromium`);
-  assert.match(css, /@media \(forced-colors:\s*active\)[\s\S]*scrollbar-color:\s*auto;/, `${name} must restore native forced-colors scrollbars`);
-  assert.doesNotMatch(css, /scrollbar-(?:color|thumb)[^;}]*magenta|::-webkit-scrollbar-thumb\s*\{[^}]*255, 0, 255/s, `${name} must keep scrollbars neutral`);
-}
+assert.match(siteCss, /scrollbar-color:\s*rgba\(17, 17, 17, 0\.58\) transparent;/, "consumer CSS must use the shared neutral OS-like scrollbar");
+assert.match(siteCss, /scrollbar-width:\s*thin;/, "consumer CSS must keep vertical scrollbars thin");
+assert.match(siteCss, /::-webkit-scrollbar-thumb\s*\{[^}]*border-radius:\s*999px;[^}]*background-clip:\s*content-box;/s, "consumer CSS must expose the rounded overlay thumb in Chromium");
+assert.match(siteCss, /@media \(forced-colors:\s*active\)[\s\S]*scrollbar-color:\s*auto;/, "consumer CSS must restore native forced-colors scrollbars");
+assert.doesNotMatch(siteCss, /scrollbar-(?:color|thumb)[^;}]*magenta|::-webkit-scrollbar-thumb\s*\{[^}]*255, 0, 255/s, "consumer CSS must keep scrollbars neutral");
 for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "yellow"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
@@ -211,7 +225,7 @@ for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.match(standaloneExamples[example], /src="\.\.\/\.\.\/docs\/shell\.mjs/, `${example} must load the shared navigation behaviour`);
 }
 
-assert.match(manualHtml, /<body class="manual-page">/, "the experimental manual needs an isolated page scope");
+assert.match(manualHtml, /<body class="docs-page manual-page">/, "the experimental manual needs the shared docs shell and its page scope");
 assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one shared board");
 assert.match(manualHtml, /href="api\.html">open the complete reference/, "the manual must lead to its complete reference owner");
 assert.match(manualHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item index navigation");
@@ -254,21 +268,20 @@ assert.match(siteDemos["docs/manual.mjs"], /state \/ circle[\s\S]*content \/ rec
 for (const formClass of ["manual-circle", "manual-rectangle", "manual-triangle"]) {
   assert.match(siteDemos["docs/manual.mjs"], new RegExp(`class="${formClass}"`), `the manual misses ${formClass}`);
 }
-assert.match(manualCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
-assert.match(manualCss, /\.manual-board\s*\{[^}]*background-image:\s*none;/s, "the canonical manual must not draw a background grid");
-assert.match(manualCss, /\.manual-rectangle\s*\{[^}]*background:\s*#000;/s, "the Munari rectangle must remain black");
-assert.match(manualCss, /--manual-accent:\s*rgb\(255, 0, 255\);/, "the manual must define magenta as its one accent");
-assert.match(manualCss, /\.manual-circle\s*\{[^}]*background:\s*var\(--manual-accent\);/s, "the Munari circle must carry the isolated magenta accent");
-assert.match(manualCss, /\.manual-triangle\s*\{[^}]*background:\s*#000;/s, "the Munari triangle must remain neutral black");
+assert.match(siteCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
+assert.match(siteCss, /\.manual-rectangle\s*\{[^}]*background:\s*#000;/s, "the Munari rectangle must remain black");
+assert.match(siteCss, /--manual-accent:\s*rgb\(255, 0, 255\);/, "the manual must define magenta as its one accent");
+assert.match(siteCss, /\.manual-circle\s*\{[^}]*background:\s*var\(--manual-accent\);/s, "the Munari circle must carry the isolated magenta accent");
+assert.match(siteCss, /\.manual-triangle\s*\{[^}]*background:\s*#000;/s, "the Munari triangle must remain neutral black");
 for (const color of ["rgb(255, 0, 0)", "rgb(0, 255, 0)", "rgb(0, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"]) {
-  assert.ok(!manualCss.includes(color) && !siteDemos["docs/manual.mjs"].includes(color), `the manual combines magenta with ${color}`);
+  assert.ok(!siteCss.includes(color) && !siteDemos["docs/manual.mjs"].includes(color), `the manual combines magenta with ${color}`);
 }
-assert.match(manualCss, /\.manual-media video\s*\{[^}]*object-fit:\s*contain;/s, "video must use an explicit contain prototype");
-assert.match(manualCss, /@media \(max-width: 900px\)[\s\S]*repeat\(3, minmax\(0, 1fr\)\)/, "the experimental manual must collapse to three tablet columns");
-assert.match(manualCss, /@media \(max-width: 560px\)[\s\S]*grid-template-columns:\s*1fr;/, "the experimental manual must collapse to one mobile column");
+assert.match(siteCss, /\.manual-media video\s*\{[^}]*object-fit:\s*contain;/s, "video must use an explicit contain prototype");
+assert.match(siteCss, /@media \(max-width: 900px\)[\s\S]*\.docs-board\.blocks-system-surface[^}]*repeat\(3, minmax\(0, 1fr\)\)/, "the docs shell must collapse to three tablet columns");
+assert.match(siteCss, /@media \(max-width: 560px\)[\s\S]*\.docs-board\.blocks-system-surface[^}]*grid-template-columns:\s*1fr;/, "the docs shell must collapse to one mobile column");
 assert.doesNotMatch(libraryCss, /\.manual-/, "the reusable library stylesheet must not absorb the experimental manual composition");
 
-assert.match(apiHtml, /<body class="reference-page">/, "the API route must use the canonical reference surface");
+assert.match(apiHtml, /<body class="docs-page reference-page">/, "the API route must use the shared docs shell and reference surface");
 assert.match(apiHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the reference must use the four-item shared navigation");
 assert.equal((siteDemos["docs/reference.mjs"].match(/^addReference\(\{/gm) || []).length, 6, "the reference must use six direct API blocks");
 assert.equal((siteDemos["docs/reference.mjs"].match(/const blocks = createBlocksSystem\(/g) || []).length, 1, "the reference must use one shared blocks system");
@@ -283,8 +296,7 @@ for (const apiName of ["createBlocksSystem(options)", "attach(target)", "setGrid
 for (const hook of [".blocks-system-surface", ".blocks-system-object", ".blocks-system-menu", ".blocks-system-content", ".blocks-system-drop-preview", "[data-block-object]", "[data-block-variant]", "[data-block-minimized]", "[data-draggable]"]) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(hook), `the reference misses stable hook ${hook}`);
 }
-assert.match(referenceCss, /\.reference-board\s*\{[^}]*background:\s*var\(--reference-field\);/s, "the reference must use an invisible editorial grid");
-assert.doesNotMatch(referenceCss, /background-image\s*:/, "the reference must not draw background grid lines");
+assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[^}]*background-image:\s*none;/s, "the reference must use the shared invisible editorial grid");
 assert.doesNotMatch(libraryCss, /\.reference-/, "the reusable library stylesheet must not absorb reference composition");
 
 const canonicalDemos = ["docs/home.mjs", "docs/manual.mjs", "docs/reference.mjs"]

@@ -32,12 +32,19 @@ const { system: minSingleton } = await import(minUrl.href);
 assert.deepEqual(Object.keys(minSingleton).sort(), Object.keys(singleton).sort(), "source and minified API must match");
 assert.ok(minified.length < source.length, "the minified module must be smaller than the source");
 
+let adapterUnmounts = 0;
 const local = createBlocksSystem({ catalogUrl: "https://example.test/catalog.html", random: () => 0.99 });
-local.registerAdapter("html", {
-  mount() {},
+const adapterRegistration = local.registerAdapter("html", {
+  mount({ host, settings }) {
+    const node = document.createElement("p");
+    node.setAttribute("data-value", settings.value || "mounted");
+    host.appendChild(node);
+    return node;
+  },
+  unmount() { adapterUnmounts += 1; },
   snippet({ block }) { return block.markup; }
 });
-local.register({
+const blockRegistration = local.register({
   id: "plain-html",
   label: "plain html",
   adapter: "html",
@@ -45,10 +52,16 @@ local.register({
   markup: "<p>test</p>"
 });
 
+assert.equal(adapterRegistration, local, "registerAdapter must remain chainable on the public system");
+assert.equal(blockRegistration, local, "register must remain chainable on the public system");
 assert.equal(local.get("plain-html").markup, "<p>test</p>", "free block data must be preserved");
 assert.deepEqual(local.listAdapters(), ["html"], "custom adapters must be registerable");
 assert.equal(local.list({ medium: "html" }).length, 1, "content type must be filterable");
 assert.equal(local.address("plain-html"), "https://example.test/catalog.html?block=plain-html", "addresses use the block parameter");
+assert.equal(local.snippet("plain-html"), "<p>test</p>", "snippet requests must stay inside the registered catalog");
+const isolated = createBlocksSystem();
+assert.equal(isolated.get("plain-html"), null, "each system must own an isolated catalog");
+assert.deepEqual(isolated.listAdapters(), [], "adapters must not leak between systems");
 assert.throws(function () { local.setGrid(0, 2); }, /positieve gehele/, "invalid grids must fail early");
 
 class TestStyle {
@@ -64,6 +77,7 @@ class TestElement {
     this.children = [];
     this.classList = { add() {}, remove() {} };
     this.parentElement = null;
+    this.parentNode = null;
     this.style = new TestStyle();
   }
   addEventListener() {}
@@ -77,6 +91,7 @@ class TestElement {
   }
   appendChild(child) {
     child.parentElement = this;
+    child.parentNode = this;
     this.children.push(child);
     return child;
   }
@@ -85,14 +100,26 @@ class TestElement {
     if (currentIndex >= 0) this.children.splice(currentIndex, 1);
     const referenceIndex = reference ? this.children.indexOf(reference) : -1;
     child.parentElement = this;
+    child.parentNode = this;
     this.children.splice(referenceIndex >= 0 ? referenceIndex : this.children.length, 0, child);
+    return child;
+  }
+  contains(node) {
+    return this === node || this.children.some((child) =>
+      child === node || (typeof child.contains === "function" && child.contains(node))
+    );
+  }
+  removeChild(child) {
+    const index = this.children.indexOf(child);
+    if (index < 0) throw new Error("child not found");
+    this.children.splice(index, 1);
+    child.parentElement = null;
+    child.parentNode = null;
     return child;
   }
   remove() {
     if (!this.parentElement) return;
-    const index = this.parentElement.children.indexOf(this);
-    if (index >= 0) this.parentElement.children.splice(index, 1);
-    this.parentElement = null;
+    this.parentElement.removeChild(this);
   }
 }
 
@@ -103,6 +130,15 @@ globalThis.document = {
   createElement() { return new TestElement(); },
   querySelector() { return null; }
 };
+
+const adapterHost = new TestElement();
+const mountedNode = await local.mount("plain-html", adapterHost, { value: "ready" });
+assert.equal(mountedNode.getAttribute("data-value"), "ready", "mount must pass overrides to the registered adapter");
+assert.equal(adapterHost.getAttribute("data-block-mounted"), "plain-html", "mount must expose the active definition on its host");
+assert.equal(local.unmount(adapterHost), true, "unmount must report a mounted adapter");
+assert.equal(adapterUnmounts, 1, "unmount must run the registered adapter cleanup");
+assert.equal(adapterHost.children.length, 0, "unmount must remove the mounted adapter root");
+assert.equal(adapterHost.getAttribute("data-block-mounted"), null, "unmount must clear the host state");
 
 const field = new TestElement();
 const font = {

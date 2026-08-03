@@ -1,12 +1,18 @@
 # blocks.system development system
 
-Status: canonieke structuur uitgevoerd op 2 augustus 2026.
+Status: canonieke structuur uitgevoerd op 3 augustus 2026.
 
 ## Topologie
 
 - `blocks.system.mjs` is de canonieke dependency-free ESM-bron.
 - `blocks.system.min.mjs` wordt uitsluitend door `npm run build:min` gemaakt.
-- `blocks.system.css` bevat alleen herbruikbare surface-, block- en state-CSS.
+- `blocks.system.css` is het afzonderlijk gepubliceerde librarycontract en bevat
+  alleen herbruikbare surface-, block- en state-CSS.
+- `docs/style.css` is de enige sitecascade voor home, manual, reference en alle
+  examples. Iedere canonieke pagina laadt eerst de library-CSS en daarna dit
+  consumerbestand, elk exact één keer.
+- `docs/alias.css` blijft bewust apart: de zeven kleine redirectpagina's zijn
+  een zelfstandige, lichte leveringsroute en laden geen volledige sitecascade.
 - `index.html` is de voordeur met één echt blocks-systeem.
 - `docs/index.html` is de levende manual op de canonieke route `/docs/`.
 - `docs/api.html` is de volledige, niet-versleepbare reference.
@@ -14,8 +20,10 @@ Status: canonieke structuur uitgevoerd op 2 augustus 2026.
 - `docs/blocks.system.manifest.json` wordt door `npm run manifest` gemaakt.
 
 `docs/shell.mjs` bezit uitsluitend gedeelde docsfuncties: navigatie, actieve
-anchors, `nodeFromHtml()` en hele-pixelkwantisering. Home, manual en reference
-bezitten elk hun eigen compositie-CSS en ESM; niets daarvan lekt naar de core.
+anchors, `nodeFromHtml()` en hele-pixelkwantisering. De gedeelde CSS-shell staat
+onder `.docs-*`; home, manual, reference en examples voegen in `docs/style.css`
+alleen hun eigen delta toe. Hun ESM-composities blijven afzonderlijk en niets
+daarvan lekt naar de core.
 
 ## Publieke routes
 
@@ -44,6 +52,20 @@ De stabiele geavanceerde stijlhaken staan in de reference:
 `.blocks-system-surface`, `.blocks-system-object`, `.blocks-system-menu`,
 `.blocks-system-content` en de publieke `data-*`-states. Docsclasses zijn geen
 library-API.
+
+## Compositiecontract
+
+- Iedere canonieke docspagina gebruikt één direct blocks-systeem; voeg geen
+  geneste grids of overkoepelende vensters toe.
+- Cirkel betekent toestand, rechthoek inhoud en driehoek richting.
+- Lege ruimte maakt hiërarchie zichtbaar en is geen uitnodiging om extra
+  onderdelen toe te voegen.
+- Een zichtbare surface gebruikt hoogstens één CMY-accent; de huidige docs
+  gebruiken magenta naast zwart, warm papier en veldgrijs.
+- Paginaspecifieke compositie, kwantisering en mediagedrag blijven buiten de
+  librarycore.
+- Bewaar een regel hier alleen wanneer de reden niet betrouwbaar uit broncode,
+  tests of gitgeschiedenis terug te vinden is.
 
 ## Lokale verificatie
 

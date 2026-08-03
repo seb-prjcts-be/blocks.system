@@ -1,127 +1,11 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
-import { mkdtemp, readFile, rm, stat } from "node:fs/promises";
-import { createServer } from "node:http";
-import { tmpdir } from "node:os";
-import { dirname, extname, join, resolve, sep } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { startBrowserHarness } from "./support/browser-harness.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const chromeCandidates = [
-  process.env.CHROME_PATH,
-  "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-  "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
-  "C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe",
-  "/usr/bin/google-chrome",
-  "/usr/bin/google-chrome-stable",
-  "/usr/bin/chromium",
-  "/usr/bin/chromium-browser"
-].filter(Boolean);
-const chromePath = chromeCandidates.find(function (candidate) {
-  return existsSync(candidate);
-});
-
-if (!chromePath) {
-  throw new Error("browser-layout vereist Chrome, Edge of CHROME_PATH.");
-}
-
-function mimeType(path) {
-  return ({
-    ".css": "text/css; charset=utf-8",
-    ".html": "text/html; charset=utf-8",
-    ".js": "text/javascript; charset=utf-8",
-    ".json": "application/json; charset=utf-8",
-    ".mjs": "text/javascript; charset=utf-8"
-  })[extname(path)] || "application/octet-stream";
-}
-
-const server = createServer(async function (request, response) {
-  try {
-    const pathname = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
-    let target = resolve(root, `.${pathname}`);
-    if (target !== root && !target.startsWith(`${root}${sep}`)) {
-      response.writeHead(403).end("forbidden");
-      return;
-    }
-    if ((await stat(target)).isDirectory()) target = join(target, "index.html");
-    const body = await readFile(target);
-    response.writeHead(200, { "content-type": mimeType(target), "cache-control": "no-store" });
-    response.end(body);
-  } catch {
-    response.writeHead(404).end("not found");
-  }
-});
-
-await new Promise(function (resolveListen, rejectListen) {
-  server.once("error", rejectListen);
-  server.listen(0, "127.0.0.1", resolveListen);
-});
-
-const address = server.address();
-const pageUrl = `http://127.0.0.1:${address.port}/`;
-const profile = await mkdtemp(join(tmpdir(), "blocks-system-layout-"));
-let chrome;
-let protocol;
-
-function waitForDevTools(process) {
-  return new Promise(function (resolveTools, rejectTools) {
-    let output = "";
-    const timeout = setTimeout(function () {
-      rejectTools(new Error("Chrome DevTools startte niet binnen 15 seconden."));
-    }, 15000);
-    process.stderr.on("data", function (chunk) {
-      output += chunk.toString();
-      const match = output.match(/DevTools listening on (ws:\/\/[^\s]+)/);
-      if (!match) return;
-      clearTimeout(timeout);
-      resolveTools(match[1]);
-    });
-    process.once("exit", function (code) {
-      clearTimeout(timeout);
-      rejectTools(new Error(`Chrome stopte vóór de test met code ${code}.`));
-    });
-  });
-}
-
-class Protocol {
-  constructor(socket) {
-    this.socket = socket;
-    this.id = 0;
-    this.pending = new Map();
-    this.events = new Map();
-    socket.addEventListener("message", (event) => this.receive(event));
-  }
-
-  receive(event) {
-    const message = JSON.parse(event.data);
-    if (message.id && this.pending.has(message.id)) {
-      const pending = this.pending.get(message.id);
-      this.pending.delete(message.id);
-      if (message.error) pending.reject(new Error(message.error.message));
-      else pending.resolve(message.result);
-      return;
-    }
-    const waiters = this.events.get(message.method);
-    if (waiters?.length) waiters.shift()(message.params);
-  }
-
-  send(method, params = {}) {
-    const id = ++this.id;
-    this.socket.send(JSON.stringify({ id, method, params }));
-    return new Promise((resolveSend, rejectSend) => {
-      this.pending.set(id, { resolve: resolveSend, reject: rejectSend });
-    });
-  }
-
-  once(method) {
-    return new Promise((resolveEvent) => {
-      const waiters = this.events.get(method) || [];
-      waiters.push(resolveEvent);
-      this.events.set(method, waiters);
-    });
-  }
-}
+const browser = await startBrowserHarness(root);
+const { pageUrl, protocol } = browser;
 
 async function measureHome(width, height, dpr = 1) {
   await protocol.send("Emulation.setDeviceMetricsOverride", {
@@ -606,40 +490,6 @@ async function exerciseMobileNavigation() {
 }
 
 try {
-  chrome = spawn(chromePath, [
-    "--headless=new",
-    "--disable-gpu",
-    "--no-sandbox",
-    "--remote-debugging-port=0",
-    `--user-data-dir=${profile}`,
-    "about:blank"
-  ], { stdio: ["ignore", "ignore", "pipe"] });
-
-  const browserSocketUrl = await waitForDevTools(chrome);
-  const devToolsPort = new URL(browserSocketUrl).port;
-  const targets = await fetch(`http://127.0.0.1:${devToolsPort}/json/list`).then(function (response) {
-    return response.json();
-  });
-  const target = targets.find(function (entry) { return entry.type === "page"; });
-  const socket = new WebSocket(target.webSocketDebuggerUrl);
-  await new Promise(function (resolveSocket, rejectSocket) {
-    socket.addEventListener("open", resolveSocket, { once: true });
-    socket.addEventListener("error", rejectSocket, { once: true });
-  });
-  protocol = new Protocol(socket);
-  await protocol.send("Page.enable");
-  await protocol.send("DOM.enable");
-  await protocol.send("CSS.enable");
-  await protocol.send("Emulation.setDeviceMetricsOverride", {
-    width: 1280,
-    height: 1000,
-    deviceScaleFactor: 1,
-    mobile: false
-  });
-  const loaded = protocol.once("Page.loadEventFired");
-  await protocol.send("Page.navigate", { url: pageUrl });
-  await loaded;
-
   const viewportMatrix = [
     [1440, 1000, 6, 6],
     [1280, 900, 6, 6],
@@ -801,6 +651,38 @@ try {
       const navigation = await measureMainNavigation();
       assertMainNavigation(navigation, `${example} op ${width}px`);
       assert.ok(navigation.contentTop >= navigation.navbarBottom - 0.5, `${example} schuift onder het vaste menu op ${width}px`);
+      const styleResult = await protocol.send("Runtime.evaluate", {
+        expression: `(async function () {
+          await document.fonts.ready;
+          for (let attempt = 0; attempt < 60 && !document.querySelector(".blocks-system-menu"); attempt += 1) {
+            await new Promise(function (done) { requestAnimationFrame(done); });
+          }
+          const field = document.querySelector("#field");
+          return {
+            stylesheets: Array.from(document.styleSheets).map(function (sheet) {
+              return new URL(sheet.href).pathname;
+            }),
+            bodyFont: getComputedStyle(document.body).fontFamily,
+            headingFont: getComputedStyle(document.querySelector("h1")).fontFamily,
+            navigationFont: getComputedStyle(document.querySelector(".nav-logo")).fontFamily,
+            blockFont: getComputedStyle(field.querySelector(".blocks-system-menu")).fontFamily,
+            configuredBlockFont: getComputedStyle(field).getPropertyValue("--blocks-font-family").trim()
+          };
+        })()`,
+        awaitPromise: true,
+        returnByValue: true
+      });
+      const exampleStyle = styleResult.result.value;
+      assert.deepEqual(exampleStyle.stylesheets, ["/blocks.system.css", "/docs/style.css"], `${example} laadt niet exact library-CSS en de canonieke sitecascade`);
+      for (const [part, font] of Object.entries({
+        body: exampleStyle.bodyFont,
+        heading: exampleStyle.headingFont,
+        navigation: exampleStyle.navigationFont,
+        block: exampleStyle.blockFont
+      })) {
+        assert.match(font, /Instrument Sans/, `${example} gebruikt Instrument Sans niet voor ${part} op ${width}px`);
+      }
+      assert.equal(exampleStyle.configuredBlockFont, '"Instrument Sans"', `${example} configureert de librarytypografie niet via haar publieke CSS-hook`);
     }
   }
 
@@ -825,22 +707,7 @@ try {
     assert.equal(aliasResult.result.value.search, "", `${file} laat de legacy query in de canonieke URL staan`);
   }
 
-  console.log("browser-layout: gedeeld hoofdmenu, canonieke routes op 1440–320px @1x/@2x en zeven legacy aliases — OK");
+  console.log("browser-layout: gedeelde cascade, drie examples, routes op 1440–320px @1x/@2x en zeven legacy aliases — OK");
 } finally {
-  if (protocol) {
-    try { await protocol.send("Browser.close"); } catch {}
-  }
-  if (chrome && chrome.exitCode === null) {
-    await new Promise(function (resolveExit) {
-      const timeout = setTimeout(function () {
-        if (chrome.exitCode === null) chrome.kill();
-      }, 2000);
-      chrome.once("exit", function () {
-        clearTimeout(timeout);
-        resolveExit();
-      });
-    });
-  }
-  await new Promise(function (resolveClose) { server.close(resolveClose); });
-  await rm(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  await browser.close();
 }

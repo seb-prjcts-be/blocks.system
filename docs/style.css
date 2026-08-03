@@ -1,6 +1,3 @@
-/* Vorige displayfont, bewaard voor een snelle vergelijking of terugkeer:
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Oswald:wght@400;500;600&display=swap");
-*/
 @import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap");
 
 :root {
@@ -115,4 +112,888 @@ footer a { color: var(--ink); }
 
 @media (forced-colors: active) {
   :root, * { scrollbar-color: auto; }
+}
+
+/* Home */
+
+.home-page {
+  --home-field: #e7e6e0;
+  --home-navbar-height: 56px;
+  overflow: hidden;
+  background: var(--home-field);
+}
+
+.home-page #navbar {
+  border-bottom-color: var(--ink);
+  background: rgba(245, 245, 242, 0.96);
+}
+
+.home-main {
+  width: 100%;
+  height: 100svh;
+  padding-top: var(--home-navbar-height);
+}
+
+.home-board {
+  --blocks-columns: 6;
+  --blocks-rows: 8;
+  --blocks-gap: 0px;
+  --blocks-content-padding: 0;
+  --blocks-font-family: "Instrument Sans";
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  background-color: var(--home-field);
+  background-image:
+    linear-gradient(to right, rgba(20, 20, 15, 0.16) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20, 20, 15, 0.16) 1px, transparent 1px);
+  background-size:
+    calc(100% / var(--blocks-columns)) calc(100% / var(--blocks-rows));
+}
+
+.home-board .blocks-system-menu {
+  text-transform: lowercase;
+}
+
+.home-board > .blocks-system-object > .blocks-system-content {
+  background: var(--block-paper-color);
+}
+
+.home-title {
+  margin: 0;
+  font: 600 clamp(3rem, 7.2vw, 8.6rem)/0.76 "Instrument Sans", sans-serif;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
+}
+
+.home-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  padding: 11px 12px;
+}
+
+.home-intro p {
+  max-width: 22ch;
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.3;
+}
+
+.home-intro a {
+  border-bottom: 1px solid currentColor;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .home-board {
+    --blocks-columns: 3 !important;
+  }
+
+  .home-board > [data-block-object="home-title"] {
+    --block-column: 1 !important;
+    --block-span-columns: 3 !important;
+  }
+
+  .home-board > [data-block-object="home-intro"] {
+    --block-column: 2 !important;
+    --block-span-columns: 2 !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .home-board > [data-block-object="home-intro"] {
+    --block-span-rows: 2 !important;
+  }
+
+  .home-intro {
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 5px;
+  }
+
+  .home-intro p { max-width: 20ch; }
+  .home-intro a { justify-self: start; }
+}
+
+/* Documentation shell */
+
+.docs-page {
+  --docs-field: #d9d8d2;
+  --docs-paper: #efeee8;
+  --docs-row: 132px;
+  --docs-masthead-aside: 250px;
+  background: var(--docs-field);
+}
+
+.docs-page #navbar {
+  border-bottom-color: var(--ink);
+  background: rgba(245, 245, 242, 0.96);
+}
+
+.docs-main {
+  min-height: 100svh;
+  padding: 88px 18px 24px;
+}
+
+.docs-masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(var(--docs-masthead-aside), 0.55fr);
+  align-items: end;
+  gap: 20px;
+  width: min(100%, 1440px);
+  margin: 0 auto 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--ink);
+}
+
+.docs-masthead > span {
+  grid-column: 1 / -1;
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.docs-board {
+  --blocks-columns: 6;
+  --blocks-content-padding: 0;
+  --blocks-font-family: "Instrument Sans";
+  width: min(100%, 1440px);
+  margin: 0 auto;
+  border-color: var(--ink);
+  background: var(--docs-field);
+  background-image: none;
+}
+
+.docs-board.blocks-system-surface[data-snap="true"] {
+  grid-template-rows: none;
+  grid-auto-flow: row;
+  grid-auto-rows: var(--docs-row);
+}
+
+.docs-board > .blocks-system-object > .blocks-system-content {
+  place-items: stretch;
+  overflow: hidden;
+  background: var(--block-paper-color);
+}
+
+.docs-board .blocks-system-menu { text-transform: lowercase; }
+.manual-anchor,
+.reference-anchor { scroll-margin-top: 68px; }
+
+@media (max-width: 900px) {
+  .docs-masthead { grid-template-columns: 1fr; }
+  .docs-board { --blocks-columns: 3 !important; }
+  .docs-board.blocks-system-surface[data-snap="true"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .docs-board { --blocks-columns: 1 !important; }
+  .docs-board.blocks-system-surface[data-snap="true"] { grid-template-columns: 1fr; }
+  .docs-board > .blocks-system-object {
+    --block-span-columns: 1 !important;
+    --block-span-rows: 1 !important;
+  }
+}
+
+/* Manual */
+
+.manual-page { --manual-accent: rgb(255, 0, 255); }
+
+.manual-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  width: min(100%, 1440px);
+  margin: 0 auto 6px;
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.manual-toolbar button {
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--docs-paper);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-transform: inherit;
+}
+
+.manual-toolbar button:hover,
+.manual-toolbar button:focus-visible,
+.manual-toolbar button[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--docs-paper);
+}
+
+.manual-masthead h1 {
+  margin: 0;
+  font: 600 clamp(2.7rem, 7vw, 6.8rem)/0.78 "Instrument Sans", sans-serif;
+  letter-spacing: -0.055em;
+  text-transform: lowercase;
+}
+
+.manual-masthead p {
+  max-width: 50ch;
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.manual-board > .blocks-system-object {
+  transition: opacity 120ms linear;
+}
+
+.manual-statement,
+.manual-api,
+.manual-hooks,
+.manual-media,
+.manual-about,
+.manual-adapter,
+.manual-html-demo {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.manual-examples {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  height: 100%;
+}
+
+.manual-examples > div {
+  display: grid;
+  align-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border-right: 1px solid currentColor;
+}
+
+.manual-examples > div:last-child { border-right: 0; }
+
+.manual-examples small,
+.manual-examples span {
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.manual-examples strong {
+  max-width: 10ch;
+  font: 600 clamp(1.2rem, 2.5vw, 2.6rem)/0.86 "Instrument Sans", sans-serif;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+}
+
+.manual-example-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+.manual-examples a {
+  padding: 3px 5px;
+  border: 1px solid currentColor;
+  color: inherit;
+  font: 600 10px/1.1 "Instrument Sans", "Segoe UI", sans-serif;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.manual-examples a:hover,
+.manual-examples a:focus-visible {
+  background: var(--ink);
+  color: var(--docs-paper);
+}
+
+.manual-statement small,
+.manual-api small,
+.manual-hooks small,
+.manual-media small,
+.manual-about small,
+.manual-adapter small {
+  font: 400 10px/1.25 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.manual-statement p,
+.manual-media p,
+.manual-about p {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.manual-forms {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  height: 100%;
+}
+
+.manual-form-item {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 40px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  border-right: 1px solid currentColor;
+}
+
+.manual-form-item:last-child { border-right: 0; }
+
+.manual-form-item figcaption {
+  display: grid;
+  align-items: center;
+  padding: 6px 8px;
+  border-top: 1px solid currentColor;
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.manual-form-stage {
+  display: grid;
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  overflow: hidden;
+  padding: clamp(16px, 1.5vw, 24px);
+  background: var(--docs-paper);
+}
+
+.manual-rectangle,
+.manual-circle,
+.manual-triangle {
+  display: block;
+  flex: none;
+}
+
+.manual-rectangle {
+  height: min(48%, 118px);
+  aspect-ratio: 1.45;
+  background: #000;
+}
+
+.manual-circle {
+  height: min(65%, 160px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--manual-accent);
+}
+
+.manual-triangle {
+  height: min(78%, 190px);
+  aspect-ratio: 1;
+  background: #000;
+  clip-path: polygon(50% 3%, 97% 93%, 3% 93%);
+}
+
+.manual-code {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: auto;
+  padding: 14px;
+  overscroll-behavior: auto;
+  font: 400 11px/1.45 "Consolas", "Courier New", monospace;
+  white-space: pre-wrap;
+}
+
+.manual-statement {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: center;
+  align-items: end;
+  gap: 10px;
+  padding: 14px;
+}
+
+.manual-statement strong {
+  grid-column: 1;
+  font: 600 clamp(1.4rem, 2.8vw, 2.8rem)/0.84 "Instrument Sans", sans-serif;
+  letter-spacing: -0.045em;
+  text-transform: lowercase;
+}
+
+.manual-statement p { grid-column: 1; }
+.manual-statement b {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: stretch;
+  border-left: 1px solid currentColor;
+  padding-left: 10px;
+  font: 600 clamp(2rem, 4vw, 4rem)/1 "Instrument Sans", sans-serif;
+}
+
+.manual-html-demo {
+  display: grid;
+  place-items: center;
+  padding: 12px;
+}
+
+.manual-html-demo button,
+.manual-adapter button {
+  border: 1px solid currentColor;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.manual-html-demo button {
+  width: 100%;
+  height: 100%;
+  font: 600 1rem/1 "Instrument Sans", sans-serif;
+}
+
+.manual-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.manual-grid-language {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  width: 100%;
+  height: 100%;
+  background: currentColor;
+}
+
+.manual-grid-language div {
+  display: grid;
+  align-content: space-between;
+  gap: 8px;
+  padding: 12px;
+  background: var(--block-paper-color);
+  color: var(--block-content-color);
+}
+
+.manual-grid-language strong {
+  font: 600 clamp(1.05rem, 2vw, 2rem)/0.9 "Instrument Sans", sans-serif;
+  text-transform: lowercase;
+}
+
+.manual-grid-language code {
+  font-size: 0.68rem;
+}
+
+.manual-adapter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-content: space-between;
+  gap: 8px;
+  padding: 12px;
+}
+
+.manual-adapter output {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  font: 600 clamp(2.8rem, 6vw, 6rem)/0.8 "Instrument Sans", sans-serif;
+}
+
+.manual-adapter button {
+  min-height: 24px;
+  padding: 3px 9px;
+  text-transform: uppercase;
+}
+
+.manual-api,
+.manual-hooks {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 9px;
+  padding: 12px;
+}
+
+.manual-api ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 3px 10px;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+  font: 400 11px/1.4 "Consolas", "Courier New", monospace;
+}
+
+.manual-api a {
+  justify-self: start;
+  color: inherit;
+  font: 500 10px/1.25 "Consolas", "Courier New", monospace;
+  text-transform: uppercase;
+  text-underline-offset: 3px;
+}
+
+.manual-hooks pre {
+  min-height: 0;
+  margin: 0;
+  overflow: auto;
+  font: 400 11px/1.45 "Consolas", "Courier New", monospace;
+  white-space: pre-wrap;
+}
+
+.manual-media {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(150px, 0.85fr);
+  gap: 10px;
+  padding: 12px;
+}
+
+.manual-media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  background: #000;
+}
+
+.manual-media div {
+  display: grid;
+  align-content: space-between;
+  gap: 8px;
+}
+
+.manual-media strong,
+.manual-about strong {
+  font: 600 clamp(1.35rem, 2.6vw, 2.7rem)/0.86 "Instrument Sans", sans-serif;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+}
+
+.manual-about {
+  display: grid;
+  align-content: space-between;
+  gap: 8px;
+  padding: 12px;
+}
+
+.manual-about a {
+  justify-self: start;
+  text-underline-offset: 0.2em;
+}
+
+.manual-status,
+.manual-foot {
+  width: min(100%, 1440px);
+  margin-inline: auto;
+  font: 400 10px/1.35 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.manual-status {
+  min-height: 14px;
+  margin-block: 7px 0;
+}
+
+.manual-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 18px 28px;
+}
+
+@media (max-width: 900px) {
+  .manual-page { --docs-row: 150px; }
+}
+
+@media (max-width: 560px) {
+  .manual-page { --docs-row: 170px; }
+  .manual-page #navbar { align-items: flex-start; gap: 8px; padding-inline: 14px; }
+  .manual-toolbar { align-items: stretch; }
+  .manual-toolbar button { padding-inline: 6px; }
+  .manual-main { padding: 104px 8px 18px; }
+  .manual-masthead h1 { font-size: clamp(2.8rem, 17vw, 4.5rem); }
+  .manual-board.blocks-system-surface[data-snap="true"] {
+    grid-auto-rows: minmax(170px, auto);
+  }
+  .manual-board > .blocks-system-object {
+    min-height: 170px;
+  }
+  .manual-media { grid-template-columns: 1fr; }
+  .manual-media video { min-height: 190px; }
+  .manual-grid-language { grid-template-columns: 1fr; }
+  .manual-examples { grid-template-columns: 1fr; }
+  .manual-examples > div { min-height: 130px; border-right: 0; border-bottom: 1px solid currentColor; }
+  .manual-examples > div:last-child { border-bottom: 0; }
+  .manual-board > [data-block-object="manual-examples"] { min-height: 420px; }
+  .manual-foot { flex-direction: column; padding-inline: 8px; }
+}
+
+/* Reference */
+
+.reference-page {
+  --docs-masthead-aside: 270px;
+}
+
+.reference-masthead h1 {
+  margin: 0;
+  font: 600 clamp(3rem, 8vw, 7.4rem)/0.74 "Instrument Sans", sans-serif;
+  letter-spacing: -0.06em;
+  text-transform: lowercase;
+}
+
+.reference-masthead p {
+  max-width: 52ch;
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.reference-table-wrap,
+.reference-code,
+.reference-hooks,
+.reference-errors {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.reference-table-wrap { overflow: auto; }
+
+.reference-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 11px/1.45 "Consolas", "Courier New", monospace;
+  text-align: left;
+}
+
+.reference-table th,
+.reference-table td {
+  padding: 6px 8px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  vertical-align: top;
+}
+
+.reference-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--docs-paper);
+  text-transform: uppercase;
+}
+
+.reference-table td:first-child { font-weight: 600; }
+
+.reference-code {
+  margin: 0;
+  overflow: auto;
+  padding: 12px;
+  font: 400 11px/1.45 "Consolas", "Courier New", monospace;
+  white-space: pre-wrap;
+}
+
+.reference-hooks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 1px;
+  overflow: auto;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.reference-hooks p {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 9px;
+  background: var(--docs-paper);
+}
+
+.reference-hooks code { font-size: 10px; font-weight: 600; }
+.reference-hooks span { font-size: 0.72rem; line-height: 1.35; }
+
+.reference-errors {
+  display: grid;
+  align-content: space-between;
+  gap: 10px;
+  padding: 12px;
+}
+
+.reference-errors small {
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.reference-errors strong {
+  max-width: 28ch;
+  font: 600 clamp(1.25rem, 2.3vw, 2.4rem)/0.9 "Instrument Sans", sans-serif;
+  letter-spacing: -0.04em;
+  text-transform: lowercase;
+}
+
+.reference-errors p { margin: 0; font-size: 0.76rem; }
+
+.reference-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 18px 28px;
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 561px) and (max-width: 900px) {
+  .reference-board > [data-block-object="reference-adapters"] { --block-span-columns: 3 !important; }
+}
+
+@media (max-width: 560px) {
+  .reference-main { padding: 88px 8px 18px; }
+  .reference-masthead h1 { font-size: clamp(3.4rem, 18vw, 5rem); }
+  .reference-board.blocks-system-surface[data-snap="true"] {
+    grid-auto-rows: minmax(220px, auto);
+  }
+  .reference-board > .blocks-system-object {
+    min-height: 280px;
+  }
+  .reference-board > [data-block-object="reference-system"],
+  .reference-board > [data-block-object="reference-block"],
+  .reference-board > [data-block-object="reference-adapters"] { min-height: 0; }
+  .reference-board > [data-block-object="reference-system"] > .blocks-system-content,
+  .reference-board > [data-block-object="reference-block"] > .blocks-system-content,
+  .reference-board > [data-block-object="reference-adapters"] > .blocks-system-content { overflow: visible; }
+  .reference-table-wrap { height: auto; overflow: visible; }
+  .reference-table,
+  .reference-table tbody { display: block; }
+  .reference-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .reference-table tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 5px 12px;
+    padding: 10px 11px 11px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  }
+  .reference-table tr:last-child { border-bottom: 0; }
+  .reference-table td {
+    display: block;
+    padding: 0;
+    border: 0;
+  }
+  .reference-table td:first-child {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+  .reference-table td:nth-child(2) {
+    opacity: 0.68;
+    font-size: 10px;
+    line-height: 1.35;
+    text-align: right;
+    text-transform: uppercase;
+  }
+  .reference-table td:nth-child(2)::before {
+    content: "returns ";
+    font-weight: 400;
+  }
+  .reference-table td:nth-child(3) {
+    grid-column: 1 / -1;
+    font: 400 13px/1.45 "Instrument Sans", "Segoe UI", sans-serif;
+  }
+  .reference-hooks { grid-template-columns: 1fr; }
+  .reference-foot { flex-direction: column; padding-inline: 8px; }
+}
+
+/* Examples */
+
+.example-page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  min-height: 100svh;
+  margin: 0;
+  padding: 76px 10px 10px;
+  background: #d9d8d2;
+  color: #14140f;
+  font: 400 12px/1.45 "Instrument Sans", "Segoe UI", sans-serif;
+}
+.example-page h1 { margin: 0; font: 600 clamp(1.8rem, 5vw, 3rem)/0.95 "Instrument Sans", sans-serif; letter-spacing: -0.035em; text-transform: uppercase; }
+.example-page p { margin: 2px 0 0; color: #555; }
+.example-page a { color: inherit; }
+.example-page .example-topbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #14140f;
+}
+.example-page .example-kicker,
+.example-page .example-note,
+.example-page .example-actions { font: 400 10px/1.2 "Consolas", "Courier New", monospace; text-transform: uppercase; }
+.example-page .example-kicker { display: block; margin-bottom: 3px; }
+.example-page .example-actions { display: flex; gap: 4px; }
+.example-page .example-actions a {
+  display: inline-block;
+  padding: 5px 8px;
+  border: 1px solid #14140f;
+  text-decoration: none;
+}
+.example-page .example-actions a:hover,
+.example-page .example-actions a:focus-visible { background: #14140f; color: #efeee8; }
+.example-page .example-main { display: grid; min-height: 0; place-items: center; }
+.example-page .field {
+  --blocks-font-family: "Instrument Sans";
+  width: min(100%, 780px);
+  height: min(58svh, 480px);
+  min-height: 260px;
+}
+.example-page .blocks-system-object { min-height: 100px; }
+.example-page .center { display: grid; width: 100%; height: 100%; place-content: center; text-align: center; }
+.example-page .center strong { display: block; font-size: 1.1rem; }
+.example-page .center small { color: #777; }
+.example-page canvas { width: 100%; height: 100%; }
+.example-page example-dot { display: grid; width: 100%; height: 100%; place-content: center; border: 1px dashed currentColor; }
+.example-page button { border: 1px solid #111; border-radius: 0; background: #111; color: white; padding: 0.7rem 1rem; cursor: pointer; }
+.example-page .example-note { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid #14140f; padding-top: 7px; }
+
+@media (max-width: 560px) {
+  .example-page .example-topbar { align-items: flex-start; flex-direction: column; }
+  .example-page .example-actions { width: 100%; }
+  .example-page .example-actions a { flex: 1; text-align: center; }
+  .example-page .field { height: auto; min-height: 520px; }
+  .example-page .field.blocks-system-surface[data-snap="true"] { --blocks-columns: 1 !important; grid-template-columns: 1fr; grid-template-rows: none; grid-auto-rows: minmax(110px, auto); }
+  .example-page .example-note { flex-direction: column; }
 }
