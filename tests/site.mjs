@@ -53,6 +53,7 @@ assert.match(readme, /import \{ system as blocks \}/, "README.md must alias the 
 assert.match(readmeNl, /import \{ system as blocks \}/, "README_NL.md must alias the shared system to blocks");
 
 const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
+const docsContent = JSON.parse(await readFile(resolve(root, "docs", "content.json"), "utf8"));
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
 const declarations = await readFile(resolve(root, "blocks.system.d.ts"), "utf8");
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
@@ -283,7 +284,26 @@ assert.doesNotMatch(libraryCss, /\.manual-/, "the reusable library stylesheet mu
 
 assert.match(apiHtml, /<body class="docs-page reference-page">/, "the API route must use the shared docs shell and reference surface");
 assert.match(apiHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the reference must use the four-item shared navigation");
-assert.equal((siteDemos["docs/reference.mjs"].match(/^addReference\(\{/gm) || []).length, 6, "the reference must use six direct API blocks");
+assert.equal(docsContent.schema, "blocks.system/docs-content@1", "docs content must publish its supported schema");
+assert.deepEqual(Object.keys(docsContent.reference), [
+  "reference-system",
+  "reference-block",
+  "reference-adapters",
+  "reference-definition",
+  "reference-hooks",
+  "reference-errors"
+], "the reference content must own exactly six blocks in canonical reading order");
+const docsContentKeys = new Set();
+JSON.stringify(docsContent, function (key, value) {
+  if (key) docsContentKeys.add(key);
+  return value;
+});
+for (const forbiddenKey of ["adapter", "anchor", "class", "className", "defaults", "lifecycle", "minimized", "renderer", "span", "variant"]) {
+  assert.equal(docsContentKeys.has(forbiddenKey), false, `docs content must not own ${forbiddenKey}`);
+}
+const serializedReferenceContent = JSON.stringify(docsContent.reference);
+assert.match(siteDemos["docs/reference.mjs"], /fetch\(new URL\("\.\/content\.json", import\.meta\.url\)\)/, "the reference must load its visible content from the canonical JSON file");
+assert.doesNotMatch(siteDemos["docs/reference.mjs"], /Create an independent system|stable detail: id, input, mode/, "the reference module must not duplicate extracted prose");
 assert.equal((siteDemos["docs/reference.mjs"].match(/const blocks = createBlocksSystem\(/g) || []).length, 1, "the reference must use one shared blocks system");
 assert.match(siteDemos["docs/reference.mjs"], /blocks\.draggable = false;/, "the lookup reference must preserve its canonical reading order");
 assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the reference must use the shared whole-pixel geometry");
@@ -291,10 +311,10 @@ for (const anchor of ["shared-system", "block-controller", "adapters", "definiti
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);
 }
 for (const apiName of ["createBlocksSystem(options)", "attach(target)", "setGrid(x, y)", "draggable", "labels", "add(content, options)", "menu(name, options)", "span(x, y)", "place(x, y)", "flow()", "registerAdapter(id, adapter)", "mount(id, target, overrides)", "unmount(target)", "address(id)"]) {
-  assert.ok(siteDemos["docs/reference.mjs"].includes(apiName), `the reference misses ${apiName}`);
+  assert.ok(serializedReferenceContent.includes(apiName), `the reference content misses ${apiName}`);
 }
 for (const hook of [".blocks-system-surface", ".blocks-system-object", ".blocks-system-menu", ".blocks-system-content", ".blocks-system-drop-preview", "[data-block-object]", "[data-block-variant]", "[data-block-minimized]", "[data-draggable]"]) {
-  assert.ok(siteDemos["docs/reference.mjs"].includes(hook), `the reference misses stable hook ${hook}`);
+  assert.ok(serializedReferenceContent.includes(hook), `the reference content misses stable hook ${hook}`);
 }
 assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[^}]*background-image:\s*none;/s, "the reference must use the shared invisible editorial grid");
 assert.doesNotMatch(libraryCss, /\.reference-/, "the reusable library stylesheet must not absorb reference composition");

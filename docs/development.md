@@ -16,6 +16,10 @@ Status: canonieke structuur uitgevoerd op 3 augustus 2026.
 - `index.html` is de voordeur met één echt blocks-systeem.
 - `docs/index.html` is de levende manual op de canonieke route `/docs/`.
 - `docs/api.html` is de volledige, niet-versleepbare reference.
+- `docs/content.json` bezit alleen de zichtbare inhoud van docblocks: titels,
+  uitleg, termen en codevoorbeelden. Block-ID's, layout, DOM-opbouw, gedrag en
+  lifecycle blijven bij de betreffende docscompositie; de library leest dit
+  bestand niet.
 - `examples/<naam>/` is zelfstandig, uitvoerbaar en kopieerbaar.
 - `docs/blocks.system.manifest.json` wordt door `npm run manifest` gemaakt.
 

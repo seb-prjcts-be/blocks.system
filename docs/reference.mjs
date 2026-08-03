@@ -1,8 +1,18 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.3";
-import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.2";
+import { quantizeSurface } from "./shell.mjs?v=0.1.2";
 
+const CONTENT_SCHEMA = "blocks.system/docs-content@1";
 const board = document.querySelector("#reference-board");
 const blocks = createBlocksSystem({ variant: "regular" });
+
+const referenceBlocks = [
+  { id: "reference-system", anchor: "shared-system", span: [3, 3], render: createReferenceTable },
+  { id: "reference-block", anchor: "block-controller", span: [3, 3], render: createReferenceTable },
+  { id: "reference-adapters", anchor: "adapters", span: [4, 4], render: createReferenceTable },
+  { id: "reference-definition", anchor: "definition", span: [2, 2], render: createReferenceCode },
+  { id: "reference-hooks", anchor: "css-hooks", span: [3, 2], render: createReferenceHooks },
+  { id: "reference-errors", anchor: "errors", span: [3, 2], render: createReferenceErrors }
+];
 
 blocks.attach(board);
 blocks.setGrid(6, 20);
@@ -19,129 +29,121 @@ function addReference({ id, title, anchor, span, content }) {
   return block;
 }
 
-function table(rows) {
-  return `
-    <div class="reference-table-wrap">
-      <table class="reference-table">
-        <thead><tr><th>member</th><th>returns</th><th>purpose</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-  `;
+function appendInlineContent(target, content) {
+  if (typeof content === "string") {
+    target.textContent = content;
+    return;
+  }
+  if (!Array.isArray(content)) throw new Error("Reference purpose must be text or an array of text/code parts.");
+
+  for (const part of content) {
+    if (typeof part?.text === "string") {
+      target.append(document.createTextNode(part.text));
+    } else if (typeof part?.code === "string") {
+      const code = document.createElement("code");
+      code.textContent = part.code;
+      target.append(code);
+    } else {
+      throw new Error("Reference purpose parts must contain text or code.");
+    }
+  }
 }
 
-addReference({
-  id: "reference-system",
-  title: "01 / blocks · shared system",
-  anchor: "shared-system",
-  span: [3, 3],
-  content: nodeFromHtml(table(`
-    <tr id="api-create"><td>createBlocksSystem(options)</td><td>blocks</td><td>Create an independent system with optional variant, font, labels, catalog URL, random source and definitions.</td></tr>
-    <tr id="api-attach"><td>attach(target)</td><td>blocks</td><td>Attach to a selector or DOM element.</td></tr>
-    <tr id="api-set-grid"><td>setGrid(x, y)</td><td>blocks</td><td>Set positive integer columns and rows.</td></tr>
-    <tr id="api-snap"><td>snap</td><td>boolean</td><td>Read or change grid snapping.</td></tr>
-    <tr id="api-draggable"><td>draggable</td><td>boolean</td><td>Move by pointer or arrow keys on the menu header; snapped collisions push downward on drop.</td></tr>
-    <tr id="api-font"><td>font</td><td>object|null</td><td>Load one font stylesheet and set its family.</td></tr>
-    <tr id="api-labels"><td>labels</td><td>object</td><td>Read the accessible move, minimize, restore and close labels. Defaults follow the document language; creation options can override them.</td></tr>
-    <tr id="api-variant"><td>variant</td><td>string</td><td>Variant for new blocks; default <code>random</code>.</td></tr>
-    <tr id="api-variants"><td>variants</td><td>array</td><td>Regular and inverse plus CMY for current work; RGB names remain compatibility variants.</td></tr>
-    <tr id="api-field"><td>field</td><td>element|null</td><td>Read the attached field.</td></tr>
-    <tr id="api-add"><td>add(content, options)</td><td>block</td><td>Add trusted HTML, a DOM node or factory.</td></tr>
-  `))
-});
+function createReferenceTable({ headers, rows }) {
+  const wrapper = document.createElement("div");
+  wrapper.className = "reference-table-wrap";
 
-addReference({
-  id: "reference-block",
-  title: "02 / block… · one controller",
-  anchor: "block-controller",
-  span: [3, 3],
-  content: nodeFromHtml(table(`
-    <tr id="api-block-id"><td>id</td><td>string</td><td>Stable lowercase kebab-case id.</td></tr>
-    <tr id="api-element"><td>element</td><td>section</td><td>Outer block element.</td></tr>
-    <tr id="api-content"><td>content</td><td>div</td><td>Content host inside the block.</td></tr>
-    <tr id="api-menu"><td>menu(name, options)</td><td>block</td><td>Title bar with minimize and optional close.</td></tr>
-    <tr id="api-span"><td>span(x, y)</td><td>block</td><td>Occupy whole grid units.</td></tr>
-    <tr id="api-place"><td>place(x, y)</td><td>block</td><td>Use one-based coordinates without overlap.</td></tr>
-    <tr id="api-flow"><td>flow()</td><td>block</td><td>Clear fixed coordinates and return to CSS auto-flow.</td></tr>
-    <tr id="api-minimized"><td>minimized</td><td>boolean</td><td>Show only the menu while preserving layout.</td></tr>
-    <tr id="api-block-variant"><td>variant</td><td>string</td><td>Read or set the resolved variant.</td></tr>
-    <tr id="api-color"><td>color</td><td>string</td><td>Read or set the block CSS colour.</td></tr>
-    <tr id="api-remove"><td>remove()</td><td>true</td><td>Remove the block and release its layout.</td></tr>
-  `))
-});
+  const table = document.createElement("table");
+  table.className = "reference-table";
+  const head = table.createTHead();
+  const headRow = head.insertRow();
+  for (const label of headers) {
+    const cell = document.createElement("th");
+    cell.textContent = label;
+    headRow.append(cell);
+  }
 
-addReference({
-  id: "reference-adapters",
-  title: "03 / definitions and adapters",
-  anchor: "adapters",
-  span: [4, 4],
-  content: nodeFromHtml(table(`
-    <tr id="api-register"><td>register(definition)</td><td>blocks</td><td>Register a reusable definition.</td></tr>
-    <tr id="api-register-adapter"><td>registerAdapter(id, adapter)</td><td>blocks</td><td>Register a lifecycle adapter with <code>mount()</code>.</td></tr>
-    <tr id="api-list"><td>list(filters)</td><td>array</td><td>Filter by query, adapter, medium or category.</td></tr>
-    <tr id="api-get"><td>get(id)</td><td>definition|null</td><td>Read one registered definition.</td></tr>
-    <tr id="api-list-adapters"><td>listAdapters()</td><td>array</td><td>List registered adapter ids.</td></tr>
-    <tr id="api-mount"><td>mount(id, target, overrides)</td><td>promise&lt;element&gt;</td><td>Mount through the registered adapter.</td></tr>
-    <tr id="api-unmount"><td>unmount(target)</td><td>boolean</td><td>Run optional cleanup and remove mounted content.</td></tr>
-    <tr id="api-remount"><td>remount(id, target, overrides)</td><td>promise&lt;element&gt;</td><td>Mount again with new settings.</td></tr>
-    <tr id="api-snippet"><td>snippet(id, overrides)</td><td>string</td><td>Ask the adapter for a reusable snippet.</td></tr>
-    <tr id="api-address"><td>address(id)</td><td>url</td><td>Create a catalog URL with <code>?block=id</code>.</td></tr>
-  `))
-});
+  const body = table.createTBody();
+  for (const row of rows) {
+    const tableRow = body.insertRow();
+    tableRow.id = row.id;
+    for (const value of [row.member, row.returns]) {
+      const cell = tableRow.insertCell();
+      cell.textContent = value;
+    }
+    appendInlineContent(tableRow.insertCell(), row.purpose);
+  }
 
-addReference({
-  id: "reference-definition",
-  title: "04 / definition shape",
-  anchor: "definition",
-  span: [2, 2],
-  content: nodeFromHtml(`
-    <pre class="reference-code"><code>{
-  id: "block-welcome",
-  label: "welcome",
-  adapter: "block-note",
-  medium: "html",
-  category: "text",
-  description: "a small note",
-  defaults: { text: "hello" },
-  attributes: [],
-  requires: []
-}</code></pre>
-  `)
-});
+  wrapper.append(table);
+  return wrapper;
+}
 
-addReference({
-  id: "reference-hooks",
-  title: "05 / stable css hooks",
-  anchor: "css-hooks",
-  span: [3, 2],
-  content: nodeFromHtml(`
-    <div class="reference-hooks">
-      <p><code>.blocks-system-surface</code><span>surface tokens and layout</span></p>
-      <p><code>.blocks-system-object</code><span>one outer block</span></p>
-      <p><code>.blocks-system-menu</code><span>header and drag handle</span></p>
-      <p><code>.blocks-system-content</code><span>content host and overflow</span></p>
-      <p><code>.blocks-system-drop-preview</code><span>magnetic landing cell; solid ↓ means downward displacement</span></p>
-      <p><code>[data-block-object]</code><span>one stable object id</span></p>
-      <p><code>[data-block-variant]</code><span>resolved visual variant</span></p>
-      <p><code>[data-block-minimized]</code><span>restored or minimized state</span></p>
-      <p><code>[data-draggable]</code><span>surface drag state</span></p>
-      <p><code>blocks:reorder</code><span>stable detail: id, input, mode, key, indices, grid positions and direction</span></p>
-    </div>
-  `)
-});
+function createReferenceCode({ code }) {
+  const pre = document.createElement("pre");
+  pre.className = "reference-code";
+  const codeElement = document.createElement("code");
+  codeElement.textContent = code.join("\n");
+  pre.append(codeElement);
+  return pre;
+}
 
-addReference({
-  id: "reference-errors",
-  title: "06 / errors and defaults",
-  anchor: "errors",
-  span: [3, 2],
-  content: nodeFromHtml(`
-    <div class="reference-errors">
-      <small>fail early / catch only recoverable errors</small>
-      <strong>invalid ids, missing fields, grid overflow, overlap, duplicate registration, unknown definitions and incomplete adapters throw.</strong>
-      <p>Defaults: drag on · snap off · 1 × 1 grid · random monochrome variant · no attached field · English labels unless the document language is Dutch.</p>
-    </div>
-  `)
-});
+function createReferenceHooks({ items }) {
+  const root = document.createElement("div");
+  root.className = "reference-hooks";
+  for (const item of items) {
+    const line = document.createElement("p");
+    const term = document.createElement("code");
+    const description = document.createElement("span");
+    term.textContent = item.term;
+    description.textContent = item.description;
+    line.append(term, description);
+    root.append(line);
+  }
+  return root;
+}
+
+function createReferenceErrors({ eyebrow, statement, details }) {
+  const root = document.createElement("div");
+  root.className = "reference-errors";
+  const small = document.createElement("small");
+  const strong = document.createElement("strong");
+  const paragraph = document.createElement("p");
+  small.textContent = eyebrow;
+  strong.textContent = statement;
+  paragraph.textContent = details;
+  root.append(small, strong, paragraph);
+  return root;
+}
+
+async function loadReferenceContent() {
+  const response = await fetch(new URL("./content.json", import.meta.url));
+  if (!response.ok) throw new Error(`Could not load docs content (${response.status}).`);
+
+  const content = await response.json();
+  if (content.schema !== CONTENT_SCHEMA) throw new Error(`Unsupported docs content schema: ${content.schema || "missing"}.`);
+  if (!content.reference || Array.isArray(content.reference) || typeof content.reference !== "object") {
+    throw new Error("Docs content must contain one reference object.");
+  }
+  return content.reference;
+}
+
+const referenceContent = await loadReferenceContent();
+const knownIds = new Set(referenceBlocks.map(({ id }) => id));
+const unusedIds = Object.keys(referenceContent).filter((id) => !knownIds.has(id));
+if (unusedIds.length) throw new Error(`Unused reference content: ${unusedIds.join(", ")}.`);
+
+for (const definition of referenceBlocks) {
+  const content = referenceContent[definition.id];
+  if (!content || typeof content.title !== "string") {
+    throw new Error(`Missing reference content: ${definition.id}.`);
+  }
+  addReference({
+    id: definition.id,
+    title: content.title,
+    anchor: definition.anchor,
+    span: definition.span,
+    content: definition.render(content)
+  });
+}
 
 board.dataset.referenceReady = "true";

@@ -1,0 +1,264 @@
+{
+  "schema": "blocks.system/docs-content@1",
+  "reference": {
+    "reference-system": {
+      "title": "01 / blocks · shared system",
+      "headers": ["member", "returns", "purpose"],
+      "rows": [
+        {
+          "id": "api-create",
+          "member": "createBlocksSystem(options)",
+          "returns": "blocks",
+          "purpose": "Create an independent system with optional variant, font, labels, catalog URL, random source and definitions."
+        },
+        {
+          "id": "api-attach",
+          "member": "attach(target)",
+          "returns": "blocks",
+          "purpose": "Attach to a selector or DOM element."
+        },
+        {
+          "id": "api-set-grid",
+          "member": "setGrid(x, y)",
+          "returns": "blocks",
+          "purpose": "Set positive integer columns and rows."
+        },
+        {
+          "id": "api-snap",
+          "member": "snap",
+          "returns": "boolean",
+          "purpose": "Read or change grid snapping."
+        },
+        {
+          "id": "api-draggable",
+          "member": "draggable",
+          "returns": "boolean",
+          "purpose": "Move by pointer or arrow keys on the menu header; snapped collisions push downward on drop."
+        },
+        {
+          "id": "api-font",
+          "member": "font",
+          "returns": "object|null",
+          "purpose": "Load one font stylesheet and set its family."
+        },
+        {
+          "id": "api-labels",
+          "member": "labels",
+          "returns": "object",
+          "purpose": "Read the accessible move, minimize, restore and close labels. Defaults follow the document language; creation options can override them."
+        },
+        {
+          "id": "api-variant",
+          "member": "variant",
+          "returns": "string",
+          "purpose": [
+            { "text": "Variant for new blocks; default " },
+            { "code": "random" },
+            { "text": "." }
+          ]
+        },
+        {
+          "id": "api-variants",
+          "member": "variants",
+          "returns": "array",
+          "purpose": "Regular and inverse plus CMY for current work; RGB names remain compatibility variants."
+        },
+        {
+          "id": "api-field",
+          "member": "field",
+          "returns": "element|null",
+          "purpose": "Read the attached field."
+        },
+        {
+          "id": "api-add",
+          "member": "add(content, options)",
+          "returns": "block",
+          "purpose": "Add trusted HTML, a DOM node or factory."
+        }
+      ]
+    },
+    "reference-block": {
+      "title": "02 / block… · one controller",
+      "headers": ["member", "returns", "purpose"],
+      "rows": [
+        {
+          "id": "api-block-id",
+          "member": "id",
+          "returns": "string",
+          "purpose": "Stable lowercase kebab-case id."
+        },
+        {
+          "id": "api-element",
+          "member": "element",
+          "returns": "section",
+          "purpose": "Outer block element."
+        },
+        {
+          "id": "api-content",
+          "member": "content",
+          "returns": "div",
+          "purpose": "Content host inside the block."
+        },
+        {
+          "id": "api-menu",
+          "member": "menu(name, options)",
+          "returns": "block",
+          "purpose": "Title bar with minimize and optional close."
+        },
+        {
+          "id": "api-span",
+          "member": "span(x, y)",
+          "returns": "block",
+          "purpose": "Occupy whole grid units."
+        },
+        {
+          "id": "api-place",
+          "member": "place(x, y)",
+          "returns": "block",
+          "purpose": "Use one-based coordinates without overlap."
+        },
+        {
+          "id": "api-flow",
+          "member": "flow()",
+          "returns": "block",
+          "purpose": "Clear fixed coordinates and return to CSS auto-flow."
+        },
+        {
+          "id": "api-minimized",
+          "member": "minimized",
+          "returns": "boolean",
+          "purpose": "Show only the menu while preserving layout."
+        },
+        {
+          "id": "api-block-variant",
+          "member": "variant",
+          "returns": "string",
+          "purpose": "Read or set the resolved variant."
+        },
+        {
+          "id": "api-color",
+          "member": "color",
+          "returns": "string",
+          "purpose": "Read or set the block CSS colour."
+        },
+        {
+          "id": "api-remove",
+          "member": "remove()",
+          "returns": "true",
+          "purpose": "Remove the block and release its layout."
+        }
+      ]
+    },
+    "reference-adapters": {
+      "title": "03 / definitions and adapters",
+      "headers": ["member", "returns", "purpose"],
+      "rows": [
+        {
+          "id": "api-register",
+          "member": "register(definition)",
+          "returns": "blocks",
+          "purpose": "Register a reusable definition."
+        },
+        {
+          "id": "api-register-adapter",
+          "member": "registerAdapter(id, adapter)",
+          "returns": "blocks",
+          "purpose": [
+            { "text": "Register a lifecycle adapter with " },
+            { "code": "mount()" },
+            { "text": "." }
+          ]
+        },
+        {
+          "id": "api-list",
+          "member": "list(filters)",
+          "returns": "array",
+          "purpose": "Filter by query, adapter, medium or category."
+        },
+        {
+          "id": "api-get",
+          "member": "get(id)",
+          "returns": "definition|null",
+          "purpose": "Read one registered definition."
+        },
+        {
+          "id": "api-list-adapters",
+          "member": "listAdapters()",
+          "returns": "array",
+          "purpose": "List registered adapter ids."
+        },
+        {
+          "id": "api-mount",
+          "member": "mount(id, target, overrides)",
+          "returns": "promise<element>",
+          "purpose": "Mount through the registered adapter."
+        },
+        {
+          "id": "api-unmount",
+          "member": "unmount(target)",
+          "returns": "boolean",
+          "purpose": "Run optional cleanup and remove mounted content."
+        },
+        {
+          "id": "api-remount",
+          "member": "remount(id, target, overrides)",
+          "returns": "promise<element>",
+          "purpose": "Mount again with new settings."
+        },
+        {
+          "id": "api-snippet",
+          "member": "snippet(id, overrides)",
+          "returns": "string",
+          "purpose": "Ask the adapter for a reusable snippet."
+        },
+        {
+          "id": "api-address",
+          "member": "address(id)",
+          "returns": "url",
+          "purpose": [
+            { "text": "Create a catalog URL with " },
+            { "code": "?block=id" },
+            { "text": "." }
+          ]
+        }
+      ]
+    },
+    "reference-definition": {
+      "title": "04 / definition shape",
+      "code": [
+        "{",
+        "  id: \"block-welcome\",",
+        "  label: \"welcome\",",
+        "  adapter: \"block-note\",",
+        "  medium: \"html\",",
+        "  category: \"text\",",
+        "  description: \"a small note\",",
+        "  defaults: { text: \"hello\" },",
+        "  attributes: [],",
+        "  requires: []",
+        "}"
+      ]
+    },
+    "reference-hooks": {
+      "title": "05 / stable css hooks",
+      "items": [
+        { "term": ".blocks-system-surface", "description": "surface tokens and layout" },
+        { "term": ".blocks-system-object", "description": "one outer block" },
+        { "term": ".blocks-system-menu", "description": "header and drag handle" },
+        { "term": ".blocks-system-content", "description": "content host and overflow" },
+        { "term": ".blocks-system-drop-preview", "description": "magnetic landing cell; solid ↓ means downward displacement" },
+        { "term": "[data-block-object]", "description": "one stable object id" },
+        { "term": "[data-block-variant]", "description": "resolved visual variant" },
+        { "term": "[data-block-minimized]", "description": "restored or minimized state" },
+        { "term": "[data-draggable]", "description": "surface drag state" },
+        { "term": "blocks:reorder", "description": "stable detail: id, input, mode, key, indices, grid positions and direction" }
+      ]
+    },
+    "reference-errors": {
+      "title": "06 / errors and defaults",
+      "eyebrow": "fail early / catch only recoverable errors",
+      "statement": "invalid ids, missing fields, grid overflow, overlap, duplicate registration, unknown definitions and incomplete adapters throw.",
+      "details": "Defaults: drag on · snap off · 1 × 1 grid · random monochrome variant · no attached field · English labels unless the document language is Dutch."
+    }
+  }
+}
