@@ -45,9 +45,8 @@
 
 .home-title {
   margin: 0;
-  font: 600 clamp(3rem, 8vw, 9.5rem)/0.76 "Instrument Sans", sans-serif;
+  font: 600 clamp(3rem, 7.2vw, 8.6rem)/0.76 "Instrument Sans", sans-serif;
   letter-spacing: -0.055em;
-  text-transform: lowercase;
   white-space: nowrap;
 }
 

@@ -8,7 +8,7 @@ blocks.setGrid(6, 8);
 blocks.snap = true;
 blocks.draggable = true;
 
-const title = blocks.add('<h1 class="home-title">blocks.system</h1>', { id: "home-title" });
+const title = blocks.add('<h1 class="home-title">Blocks. System.</h1>', { id: "home-title" });
 title.menu("blocks.system");
 title.span(3, 3);
 title.place(2, 3);
