@@ -46,24 +46,6 @@
   line-height: 1.45;
 }
 
-.reference-index {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 3px 12px;
-  width: min(100%, 1440px);
-  margin: 0 auto 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--ink);
-  font: 400 9px/1.2 "Consolas", "Courier New", monospace;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.reference-index a {
-  color: inherit;
-  text-underline-offset: 3px;
-}
-
 .reference-board {
   --blocks-columns: 6;
   --blocks-content-padding: 0;

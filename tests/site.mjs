@@ -102,6 +102,22 @@ const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileT
 const standaloneExamples = Object.fromEntries(await Promise.all(exampleDirectories.map(async function (example) {
   return [example, await readFile(resolve(root, "examples", example, "index.html"), "utf8")];
 })));
+const navigationPages = [
+  ["home", homeHtml, "home"],
+  ["manual", manualHtml, "manual"],
+  ["reference", apiHtml, "reference"],
+  ...Object.entries(standaloneExamples).map(([name, html]) => [`example ${name}`, html, null])
+];
+for (const [page, html, currentLabel] of navigationPages) {
+  const navigation = html.match(/<nav id="navbar"[\s\S]*?<\/nav>/)?.[0] || "";
+  const links = [...navigation.matchAll(/<li><a\b[^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/g)]
+    .map((match) => ({ href: match[1], label: match[2], current: /aria-current="page"/.test(match[0]) }));
+  assert.ok(navigation, `${page} must expose the shared main navigation`);
+  assert.deepEqual(links.map(({ label }) => label), ["home", "manual", "reference", "source"], `${page} must keep the index menu order`);
+  assert.equal(links.some(({ href }) => href.includes("#")), false, `${page} main navigation must not use fragments`);
+  assert.deepEqual(links.filter(({ current }) => current).map(({ label }) => label), currentLabel ? [currentLabel] : [], `${page} must expose only its real current page`);
+  assert.equal((html.match(/<nav\b/g) || []).length, 1, `${page} must expose exactly one navigation landmark`);
+}
 const retiredAssets = [
   "demo.mjs",
   "docs/board.mjs",
@@ -176,15 +192,17 @@ assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes("blockItem.minimize
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.match(standaloneExamples[example], /href="demo\.mjs" download/, `${example} must offer its copyable module explicitly`);
 }
-assert.match(standaloneExamples["basic-grid"], /href="\.\.\/\.\.\/docs\/#start"/, "basic-grid must return to manual start");
-assert.match(standaloneExamples["mixed-content"], /href="\.\.\/\.\.\/docs\/#compose"/, "mixed-content must return to manual compose");
-assert.match(standaloneExamples["custom-adapter"], /href="\.\.\/\.\.\/docs\/#connect"/, "custom-adapter must return to manual connect");
+for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
+  assert.match(standaloneExamples[example], /href="\.\.\/\.\.\/docs\/">← manual<\/a>/, `${example} must return to the canonical manual without a fragment`);
+  assert.match(standaloneExamples[example], /href="\.\.\/\.\.\/docs\/style\.css/, `${example} must load the shared navigation styles`);
+  assert.match(standaloneExamples[example], /src="\.\.\/\.\.\/docs\/shell\.mjs/, `${example} must load the shared navigation behaviour`);
+}
 
 assert.match(manualHtml, /<body class="manual-page">/, "the experimental manual needs an isolated page scope");
 assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one shared board");
 assert.match(manualHtml, /href="api\.html">open the complete reference/, "the manual must lead to its complete reference owner");
-assert.equal((manualHtml.match(/<nav\b/g) || []).length, 1, "the manual must expose exactly one navigation system");
-assert.match(manualHtml, /data-section-navigation[\s\S]*#start[\s\S]*#compose[\s\S]*#arrange[\s\S]*#connect[\s\S]*#examples[\s\S]*#reference[\s\S]*#boundary[\s\S]*source/, "the single manual navigation must own chapters and source");
+assert.match(manualHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item index navigation");
+assert.doesNotMatch(manualHtml.match(/<nav id="navbar"[\s\S]*?<\/nav>/)?.[0] || "", /href="[^"]*#/, "the manual main navigation must not use chapter fragments");
 assert.doesNotMatch(manualHtml, /manual-commandbar|manual-index/, "the retired second menu must not return");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.equal((siteDemos["docs/manual.mjs"].match(/^(?:addBlock|const block(?:Canvas|Media) = addBlock)\(\{/gm) || []).length, 15, "the canonical manual must keep its complete direct-block composition");
@@ -205,12 +223,7 @@ assert.match(siteDemos["docs/manual.mjs"], /data-video-lifecycle="pause-on-minim
 assert.match(siteDemos["docs/manual.mjs"], /poster="references\/media-contract-poster\.svg"/, "manual video must use the restrained form poster");
 assert.match(siteDemos["docs/manual.mjs"], /new MutationObserver\([\s\S]*blockMedia\.minimized\) pauseMedia\(\)/, "manual video must pause when minimized or removed");
 assert.match(siteDemos["docs/manual.mjs"], /addEventListener\("pagehide", pauseMedia\)/, "manual video must pause when the document exits");
-assert.match(siteDemos["docs/shell.mjs"], /\[data-section-navigation\]/, "the one main navigation must own section tracking");
-assert.match(siteDemos["docs/shell.mjs"], /aria-current", "location"/, "manual anchors must expose their active location");
-assert.match(siteDemos["docs/shell.mjs"], /link\.hash === hash/, "manual anchor state must follow the explicit URL hash");
-assert.doesNotMatch(siteDemos["docs/shell.mjs"], /IntersectionObserver/, "the two-dimensional manual must not infer one active chapter from vertical scroll");
-assert.doesNotMatch(siteDemos["docs/manual.mjs"], /initSectionNavigation/, "the manual must not initialize shared navigation a second time");
-assert.equal((siteDemos["docs/shell.mjs"].match(/^initSectionNavigation\(\);$/gm) || []).length, 1, "the shared shell must initialize section navigation exactly once");
+assert.doesNotMatch(siteDemos["docs/shell.mjs"], /data-section-navigation|hashchange|location\.hash|initSectionNavigation/, "the shared main navigation must not own fragment state");
 for (const [page, html] of [["home", homeHtml], ["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /class="nav-hamburger"[^>]*aria-controls="primary-navigation"/, `${page} hamburger must identify the controlled navigation`);
   assert.match(html, /id="primary-navigation" class="nav-links"/, `${page} navigation must expose the controlled id`);

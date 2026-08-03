@@ -47,27 +47,6 @@ function initNavigation() {
   }
 }
 
-export function initSectionNavigation() {
-  const navigation = document.querySelector("[data-section-navigation]");
-  if (!navigation) return;
-  const links = Array.from(navigation.querySelectorAll('a[href^="#"]'));
-
-  function activate(hash = location.hash) {
-    for (const link of links) {
-      const current = Boolean(hash) && link.hash === hash;
-      link.classList.toggle("active", current);
-      if (current) link.setAttribute("aria-current", "location");
-      else link.removeAttribute("aria-current");
-    }
-  }
-
-  for (const link of links) {
-    link.addEventListener("click", () => activate(link.hash));
-  }
-  window.addEventListener("hashchange", () => activate());
-  activate();
-}
-
 export function quantizeSurface(surface, { maxWidth = 1440 } = {}) {
   const container = surface.parentElement;
   if (!container) throw new TypeError("quantizeSurface verwacht een surface met een parent.");
@@ -94,4 +73,3 @@ export function quantizeSurface(surface, { maxWidth = 1440 } = {}) {
 }
 
 initNavigation();
-initSectionNavigation();

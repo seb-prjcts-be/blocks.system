@@ -5,23 +5,35 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>mixed content · blocks.system</title>
   <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../../docs/style.css?v=0.1.2">
   <link rel="stylesheet" href="../../blocks.system.css">
-  <link rel="stylesheet" href="../example.css?v=0.1.0">
+  <link rel="stylesheet" href="../example.css?v=0.1.1">
 </head>
 <body>
+  <nav id="navbar" aria-label="main navigation">
+    <a class="nav-logo" href="../../index.html">blocks.system</a>
+    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false" aria-controls="primary-navigation"><span></span><span></span><span></span></button>
+    <ul id="primary-navigation" class="nav-links">
+      <li><a href="../../index.html">home</a></li>
+      <li><a href="../../docs/">manual</a></li>
+      <li><a href="../../docs/api.html">reference</a></li>
+      <li><a href="https://github.com/seb-prjcts-be/blocks.system">source</a></li>
+    </ul>
+  </nav>
   <header class="example-topbar">
     <div>
       <span class="example-kicker">example 02 · combine content</span>
       <h1>mixed content</h1>
       <p>one block contract across html, canvas and a custom element</p>
     </div>
-    <nav class="example-actions" aria-label="example navigation">
-      <a href="../../docs/#compose">← manual / compose</a>
+    <div class="example-actions">
+      <a href="../../docs/">← manual</a>
       <a href="demo.mjs" download>module ↓</a>
-    </nav>
+    </div>
   </header>
   <main class="example-main"><div id="field" class="field"></div></main>
   <footer class="example-note"><span><strong>notice:</strong> black stays regular</span><span>magenta is the single explicit accent</span></footer>
+  <script type="module" src="../../docs/shell.mjs?v=0.1.2"></script>
   <script type="module" src="demo.mjs"></script>
 </body>
 </html>

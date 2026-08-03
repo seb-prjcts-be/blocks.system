@@ -23,9 +23,6 @@
   text-transform: uppercase;
 }
 
-.manual-page .nav-links { gap: clamp(0.7rem, 1.4vw, 1.4rem); }
-.manual-page .nav-links a { font-size: 0.78rem; }
-
 .manual-toolbar button {
   min-height: 24px;
   padding: 3px 8px;

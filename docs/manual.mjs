@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
-import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.1";
+import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.2";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");

@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
-import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.1";
+import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.2";
 
 const board = document.querySelector("#home-board");
 const status = document.querySelector("#home-status");
@@ -107,10 +107,10 @@ addHome({
   place: [4, 6],
   variant: "inverse",
   content: nodeFromHtml(`
-    <nav class="home-next" aria-label="next steps">
-      <a href="docs/#start"><small>learn</small><strong>manual →</strong></a>
+    <div class="home-next">
+      <a href="docs/"><small>learn</small><strong>manual →</strong></a>
       <a href="https://github.com/seb-prjcts-be/blocks.system"><small>inspect</small><strong>source →</strong></a>
-    </nav>
+    </div>
   `)
 });
 

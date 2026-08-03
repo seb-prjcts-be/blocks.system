@@ -219,6 +219,39 @@ async function navigateTo(url) {
   await loaded;
 }
 
+async function measureMainNavigation() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(() => {
+      const navbar = document.querySelector("#navbar");
+      const toggle = navbar.querySelector(".nav-hamburger");
+      const navigation = navbar.querySelector(".nav-links");
+      const links = Array.from(navigation.querySelectorAll(":scope > li > a"));
+      const topbar = document.querySelector(".example-topbar");
+      return {
+        labels: links.map(function (link) { return link.textContent.trim(); }),
+        fragmentLinks: links.filter(function (link) { return link.getAttribute("href").includes("#"); }).map(function (link) { return link.getAttribute("href"); }),
+        current: links.filter(function (link) { return link.getAttribute("aria-current") === "page"; }).map(function (link) { return link.textContent.trim(); }),
+        navigationCount: document.querySelectorAll("nav").length,
+        controlsTarget: document.getElementById(toggle.getAttribute("aria-controls")) === navigation,
+        navbarBottom: navbar.getBoundingClientRect().bottom,
+        contentTop: topbar ? topbar.getBoundingClientRect().top : null,
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
+      };
+    })()`,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+function assertMainNavigation(state, page, current = null) {
+  assert.deepEqual(state.labels, ["home", "manual", "reference", "source"], `${page} gebruikt niet dezelfde menuvolgorde als index`);
+  assert.deepEqual(state.fragmentLinks, [], `${page} gebruikt nog fragmentlinks in het hoofdmenu`);
+  assert.deepEqual(state.current, current ? [current] : [], `${page} markeert niet exact de echte huidige pagina`);
+  assert.equal(state.navigationCount, 1, `${page} bevat meer dan één navigatielandmark`);
+  assert.equal(state.controlsTarget, true, `${page} koppelt de hamburger niet aan het gedeelde menu`);
+  assert.ok(state.horizontalOverflow <= 0.5, `${page} krijgt horizontale overflow door het gedeelde menu`);
+}
+
 async function measureManual(width, height, dpr = 1) {
   await protocol.send("Emulation.setDeviceMetricsOverride", {
     width,
@@ -317,35 +350,6 @@ async function measureManual(width, height, dpr = 1) {
           fit: getComputedStyle(video).objectFit,
           preload: video.preload
         }
-      };
-    })()`,
-    awaitPromise: true,
-    returnByValue: true
-  });
-  return result.result.value;
-}
-
-async function measureManualSectionState(width, height, anchor) {
-  await protocol.send("Emulation.setDeviceMetricsOverride", {
-    width,
-    height,
-    deviceScaleFactor: 1,
-    mobile: false
-  });
-  await navigateTo(`${pageUrl}docs/?section-test=${encodeURIComponent(anchor)}-${width}#${anchor}`);
-  const result = await protocol.send("Runtime.evaluate", {
-    expression: `(async function () {
-      for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
-        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
-      }
-      await new Promise(function (resolveDelay) { setTimeout(resolveDelay, 300); });
-      const target = document.getElementById(${JSON.stringify(anchor)});
-      return {
-        hash: location.hash,
-        active: document.querySelector('[data-section-navigation] a[aria-current="location"]')?.getAttribute("href") || null,
-        currentCount: document.querySelectorAll('[data-section-navigation] a[aria-current="location"]').length,
-        targetTop: target.getBoundingClientRect().top,
-        navbarBottom: document.querySelector("#navbar").getBoundingClientRect().bottom
       };
     })()`,
     awaitPromise: true,
@@ -455,8 +459,6 @@ async function exerciseManual() {
       await Promise.resolve();
       const mediaPauseCalls = Number(video.dataset.pauseCalls);
       media.querySelector(".blocks-system-minimize").click();
-      document.querySelector('[data-section-navigation] a[href="#connect"]').click();
-      const activeAnchor = document.querySelector('[data-section-navigation] a[aria-current="location"]')?.getAttribute("href");
       const draggedOrder = order();
       const dragCleanedUp = !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging");
       document.querySelector("#manual-lock").click();
@@ -476,7 +478,6 @@ async function exerciseManual() {
         keyboardPrevented: keyboardEvent.defaultPrevented,
         keyboardHandleLabel: keyboardHandle.getAttribute("aria-label"),
         mediaPauseCalls,
-        activeAnchor,
         resetOrder: order(),
         resetDraggable: board.dataset.draggable,
         resetStatus: document.querySelector("#manual-status").textContent
@@ -592,6 +593,7 @@ try {
   await loaded;
 
   const viewportMatrix = [[1440, 1000, 6], [1280, 900, 6], [1024, 900, 6], [800, 900, 3], [390, 844, 1], [320, 720, 1]];
+  assertMainNavigation(await measureMainNavigation(), "home", "home");
   const homeMeasurements = [];
   for (const [width, height, columns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
@@ -638,6 +640,7 @@ try {
   assert.equal(afterHover.canvasVisual.transform, beforeHover.canvasVisual.transform, "hover mag het block niet verplaatsen");
 
   await navigateTo(`${pageUrl}docs/`);
+  assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const manualMeasurements = [];
   for (const [width, height, columns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
@@ -688,37 +691,9 @@ try {
   assert.equal(manualInteraction.keyboardPrevented, true, "manual keyboard drag laat de pagina meescrollen");
   assert.match(manualInteraction.keyboardHandleLabel, /pijltjestoetsen/, "manual keyboard handle legt zijn bediening niet uit");
   assert.ok(manualInteraction.mediaPauseCalls >= 1, "manual video pauzeert niet bij minimaliseren");
-  assert.equal(manualInteraction.activeAnchor, "#connect", "manual sectienavigatie markeert de gekozen anchor niet");
   assert.equal(manualInteraction.resetOrder[0], "manual-cycle", "manual reset herstelt de oorspronkelijke volgorde niet");
   assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
   assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");
-
-  const sectionAnchors = ["start", "compose", "arrange", "connect", "examples", "reference", "boundary"];
-  for (const [width, height] of [[1280, 720], [390, 844]]) {
-    for (const anchor of sectionAnchors) {
-      const state = await measureManualSectionState(width, height, anchor);
-      assert.equal(state.hash, `#${anchor}`, `manual bewaart #${anchor} niet in de URL op ${width}px`);
-      assert.equal(state.active, `#${anchor}`, `manual markeert ${state.active} in plaats van #${anchor} op ${width}px`);
-      assert.equal(state.currentCount, 1, `manual markeert niet exact één hashlocatie voor #${anchor} op ${width}px`);
-      assert.ok(state.targetTop >= state.navbarBottom - 0.5, `manual verbergt #${anchor} achter de vaste navigatie op ${width}px`);
-    }
-  }
-
-  await measureManualSectionState(1280, 720, "reference");
-  const scrolledHashState = await protocol.send("Runtime.evaluate", {
-    expression: `(async function () {
-      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" });
-      await new Promise(function (resolveDelay) { setTimeout(resolveDelay, 300); });
-      return {
-        hash: location.hash,
-        active: document.querySelector('[data-section-navigation] a[aria-current="location"]')?.getAttribute("href") || null
-      };
-    })()`,
-    awaitPromise: true,
-    returnByValue: true
-  });
-  assert.equal(scrolledHashState.result.value.hash, "#reference", "natuurlijke scroll mag de expliciete manualhash niet herschrijven");
-  assert.equal(scrolledHashState.result.value.active, "#reference", "natuurlijke scroll mag de expliciete manualstatus niet overschrijven");
 
   const mobileNavigation = await exerciseMobileNavigation();
   assert.deepEqual(mobileNavigation.opened, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie publiceert haar open toestand niet volledig");
@@ -729,6 +704,7 @@ try {
   assert.deepEqual(mobileNavigation.afterResize, { open: false, expanded: "false", label: "open navigation" }, "desktopresize ruimt de mobiele navigatiestate niet op");
 
   await navigateTo(`${pageUrl}docs/api.html`);
+  assertMainNavigation(await measureMainNavigation(), "reference", "reference");
   for (const [width, height, columns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
       const reference = await measureReference(width, height, dpr);
@@ -746,6 +722,21 @@ try {
       assert.deepEqual(reference.missingAnchors, [], `reference mist anchors op ${width}px @${dpr}x: ${reference.missingAnchors.join(", ")}`);
       assert.ok(reference.overflowModes.every((mode) => mode === "auto"), `reference gebruikt geen lokale overflow op ${width}px @${dpr}x`);
       assert.equal(reference.pageScrollable, true, `reference gebruikt geen natuurlijke paginascroll op ${width}px @${dpr}x`);
+    }
+  }
+
+  for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
+    for (const [width, height] of [[1280, 900], [390, 844]]) {
+      await protocol.send("Emulation.setDeviceMetricsOverride", {
+        width,
+        height,
+        deviceScaleFactor: 1,
+        mobile: false
+      });
+      await navigateTo(`${pageUrl}examples/${example}/?navigation-test=${width}`);
+      const navigation = await measureMainNavigation();
+      assertMainNavigation(navigation, `${example} op ${width}px`);
+      assert.ok(navigation.contentTop >= navigation.navbarBottom - 0.5, `${example} schuift onder het vaste menu op ${width}px`);
     }
   }
 
@@ -770,7 +761,7 @@ try {
     assert.equal(aliasResult.result.value.search, "", `${file} laat de legacy query in de canonieke URL staan`);
   }
 
-  console.log("browser-layout: canonieke routes op 1440–320px @1x/@2x plus zeven legacy aliases — OK");
+  console.log("browser-layout: gedeeld hoofdmenu, canonieke routes op 1440–320px @1x/@2x en zeven legacy aliases — OK");
 } finally {
   if (protocol) {
     try { await protocol.send("Browser.close"); } catch {}
