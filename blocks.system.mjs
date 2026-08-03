@@ -16,6 +16,8 @@ const BUILT_IN_VARIANTS = Object.freeze([
     "yellow"
 ]);
 const RANDOM_VARIANTS = Object.freeze(["regular", "regular", "inverse"]);
+const DRAG_SETTLE_DURATION = 160;
+const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
 
 function normalizeBlock(definition) {
     if (!definition || typeof definition !== "object") {
@@ -108,6 +110,7 @@ export function createBlocksSystem(options = {}) {
     const mounts = new WeakMap();
     const objects = new Map();
     const objectLayouts = new Map();
+    const objectLayoutSetters = new Map();
     const catalogUrl = options.catalogUrl ? new URL(options.catalogUrl) : null;
     const randomSource = typeof options.random === "function" ? options.random : Math.random;
     let surface = null;
@@ -118,6 +121,7 @@ export function createBlocksSystem(options = {}) {
     let fontState = normalizeFont(options.font);
     let variantMode = normalizeVariant(options.variant);
     let dragState = null;
+    const dragAnimations = new Set();
     let objectIndex = 0;
     let api;
 
@@ -193,12 +197,263 @@ export function createBlocksSystem(options = {}) {
         applyFontState();
     }
 
+    function directObjects() {
+        if (!surface) return [];
+        return Array.from(surface.children).filter((element) =>
+            element.matches?.(".blocks-system-object")
+        );
+    }
+
+    function pixelTracks(value) {
+        return Array.from(String(value || "").matchAll(/(-?\d*\.?\d+)px/g), (match) => Number(match[1]));
+    }
+
+    function gridMetrics() {
+        // Meet de werkelijk gerenderde tracks, zodat responsive CSS leidend blijft.
+        const style = getComputedStyle(surface);
+        const bounds = surface.getBoundingClientRect();
+        const columnTracks = pixelTracks(style.gridTemplateColumns);
+        const rowTracks = pixelTracks(style.gridTemplateRows);
+        const columnGap = Number.parseFloat(style.columnGap) || 0;
+        const rowGap = Number.parseFloat(style.rowGap) || 0;
+        const left = bounds.left + (Number.parseFloat(style.borderLeftWidth) || 0) +
+            (Number.parseFloat(style.paddingLeft) || 0);
+        const top = bounds.top + (Number.parseFloat(style.borderTopWidth) || 0) +
+            (Number.parseFloat(style.paddingTop) || 0);
+        const columnStep = (columnTracks[0] || bounds.width / Math.max(1, columns)) + columnGap;
+        const rowStep = (rowTracks[0] || bounds.height / Math.max(1, rows)) + rowGap;
+        return {
+            left,
+            top,
+            columns: columnTracks.length || columns,
+            columnStep,
+            rowStep
+        };
+    }
+
+    function gridLayoutSnapshot(elements, metrics) {
+        return elements.map((element) => {
+            const id = element.getAttribute("data-block-object");
+            const layout = objectLayouts.get(id) || { columns: 1, rows: 1 };
+            const bounds = element.getBoundingClientRect();
+            const style = getComputedStyle(element);
+            return {
+                id,
+                element,
+                col: Math.max(0, Math.round((bounds.left - metrics.left) / metrics.columnStep)),
+                row: Math.max(0, Math.round((bounds.top - metrics.top) / metrics.rowStep)),
+                width: Number.parseInt(style.getPropertyValue("--block-span-columns"), 10) || layout.columns,
+                height: Number.parseInt(style.getPropertyValue("--block-span-rows"), 10) || layout.rows
+            };
+        });
+    }
+
+    function gridLayoutsOverlap(first, second) {
+        return first.col < second.col + second.width && first.col + first.width > second.col &&
+            first.row < second.row + second.height && first.row + first.height > second.row;
+    }
+
+    function pushedGridLayouts(priority, layouts) {
+        // De drop blijft staan; botsingen zakken kolomvast en cascaderen omlaag.
+        const placed = [priority];
+        const rest = layouts.filter((layout) => layout !== priority)
+            .sort((first, second) => (first.row - second.row) || (first.col - second.col));
+        for (const layout of rest) {
+            while (placed.some((placedLayout) => gridLayoutsOverlap(layout, placedLayout))) layout.row += 1;
+            placed.push(layout);
+        }
+        return placed;
+    }
+
+    function showGridLanding(current, col, row) {
+        current.targetCol = Math.max(0, Math.min(current.metrics.columns - current.draggedLayout.width, col));
+        current.targetRow = Math.max(0, row);
+        const targetLeft = current.metrics.left + current.targetCol * current.metrics.columnStep;
+        const targetTop = current.metrics.top + current.targetRow * current.metrics.rowStep;
+        current.preview.style.setProperty("--blocks-preview-x", `${targetLeft - current.previewOrigin.left}px`);
+        current.preview.style.setProperty("--blocks-preview-y", `${targetTop - current.previewOrigin.top}px`);
+        const deltaX = current.targetCol - current.draggedLayout.col;
+        const deltaY = current.targetRow - current.draggedLayout.row;
+        current.previewDirection = Math.abs(deltaY) >= Math.abs(deltaX)
+            ? (deltaY > 0 ? "down" : deltaY < 0 ? "up" : "still")
+            : (deltaX > 0 ? "right" : "left");
+        current.preview.setAttribute("data-drop-direction", current.previewDirection);
+        const target = {
+            ...current.draggedLayout,
+            col: current.targetCol,
+            row: current.targetRow
+        };
+        const pushes = current.gridLayouts.some((layout) =>
+            layout !== current.draggedLayout && gridLayoutsOverlap(target, layout)
+        );
+        if (pushes) current.preview.setAttribute("data-drop-state", "push");
+        else current.preview.removeAttribute("data-drop-state");
+    }
+
+    function commitGridDrop(current) {
+        const moved = current.targetCol !== current.draggedLayout.col ||
+            current.targetRow !== current.draggedLayout.row;
+        if (!moved) return false;
+        current.draggedLayout.col = current.targetCol;
+        current.draggedLayout.row = current.targetRow;
+        const placed = pushedGridLayouts(current.draggedLayout, current.gridLayouts);
+        rows = Math.max(rows, ...placed.map((layout) => layout.row + layout.height));
+        for (const layout of placed) {
+            objectLayoutSetters.get(layout.id)?.(layout.col + 1, layout.row + 1);
+        }
+        placed.sort((first, second) => (first.row - second.row) || (first.col - second.col));
+        for (const layout of placed) surface.appendChild(layout.element);
+        applySurfaceState();
+        current.targetIndex = placed.indexOf(current.draggedLayout);
+        return true;
+    }
+
+    function moveGridWithKeyboard(shell, key) {
+        finishDragAnimations();
+        const elements = directObjects();
+        const metrics = gridMetrics();
+        const layouts = gridLayoutSnapshot(elements, metrics);
+        const dragged = layouts.find((layout) => layout.element === shell);
+        const from = { col: dragged.col, row: dragged.row };
+        if (key === "ArrowLeft") dragged.col = Math.max(0, dragged.col - 1);
+        if (key === "ArrowRight") dragged.col = Math.min(metrics.columns - dragged.width, dragged.col + 1);
+        if (key === "ArrowUp") dragged.row = Math.max(0, dragged.row - 1);
+        if (key === "ArrowDown") dragged.row += 1;
+        if (dragged.col === from.col && dragged.row === from.row) return false;
+
+        const before = new Map(elements.map((element) => [element, element.getBoundingClientRect()]));
+        const placed = pushedGridLayouts(dragged, layouts);
+        rows = Math.max(rows, ...placed.map((layout) => layout.row + layout.height));
+        for (const layout of placed) objectLayoutSetters.get(layout.id)?.(layout.col + 1, layout.row + 1);
+        placed.sort((first, second) => (first.row - second.row) || (first.col - second.col));
+        for (const layout of placed) surface.appendChild(layout.element);
+        applySurfaceState();
+        animateDragSettlement(elements, before);
+        surface.dispatchEvent(new CustomEvent("blocks:reorder", {
+            detail: {
+                id: shell.getAttribute("data-block-object"),
+                input: "keyboard",
+                key,
+                from: { column: from.col + 1, row: from.row + 1 },
+                to: { column: dragged.col + 1, row: dragged.row + 1 }
+            }
+        }));
+        return true;
+    }
+
+    function finishDragAnimations() {
+        for (const animation of dragAnimations) {
+            try {
+                animation.finish();
+            } catch {
+                animation.cancel();
+            }
+        }
+        dragAnimations.clear();
+    }
+
+    function animateDragSettlement(elements, before) {
+        // FLIP zonder CSS-transition: alle betrokken blocks settelen als één drop.
+        if (typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        for (const element of elements) {
+            if (element.parentElement !== surface || typeof element.animate !== "function") continue;
+            const from = before.get(element);
+            const to = element.getBoundingClientRect();
+            if (!from) continue;
+            const deltaX = from.left - to.left;
+            const deltaY = from.top - to.top;
+            if (Math.abs(deltaX) < 0.5 && Math.abs(deltaY) < 0.5) continue;
+            const animation = element.animate([
+                { translate: `${deltaX}px ${deltaY}px` },
+                { translate: "0 0" }
+            ], {
+                duration: DRAG_SETTLE_DURATION,
+                easing: DRAG_SETTLE_EASING
+            });
+            dragAnimations.add(animation);
+            animation.finished.catch(() => {}).finally(() => dragAnimations.delete(animation));
+        }
+    }
+
+    function measureLandingSlots(preview, shell, objects) {
+        const slots = [];
+        for (let index = 0; index <= objects.length; index += 1) {
+            const reference = objects[index] || null;
+            surface.insertBefore(preview, reference);
+            const bounds = preview.getBoundingClientRect();
+            slots.push({ index, reference, left: bounds.left, top: bounds.top });
+        }
+        surface.insertBefore(preview, shell);
+        return slots;
+    }
+
+    function closestLandingSlot(current, left, top) {
+        const deltaX = left - current.startLeft;
+        const deltaY = top - current.startTop;
+        const vertical = Math.abs(deltaY) >= Math.abs(deltaX);
+        const direction = Math.sign(vertical ? deltaY : deltaX);
+        let best = current.slots[0];
+        let bestDistance = Number.POSITIVE_INFINITY;
+        for (const slot of current.slots) {
+            const distance = Math.hypot(left - slot.left, top - slot.top);
+            const directionalTie = Math.abs(distance - bestDistance) <= 0.5 && direction !== 0 &&
+                direction * (slot.index - best.index) > 0;
+            if (distance < bestDistance - 0.5 || directionalTie) {
+                best = slot;
+                bestDistance = distance;
+            }
+        }
+
+        const active = current.slots[current.targetIndex];
+        if (!active || active.index === best.index) return best;
+        const activeDistance = Math.hypot(left - active.left, top - active.top);
+        const hysteresis = Math.max(4, Math.min(12, Math.min(current.width, current.height) * 0.06));
+        return bestDistance + hysteresis < activeDistance ? best : active;
+    }
+
+    function rectanglesOverlap(first, second) {
+        return first.left < second.right - 0.5 && first.right > second.left + 0.5 &&
+            first.top < second.bottom - 0.5 && first.bottom > second.top + 0.5;
+    }
+
+    function showLandingSlot(current, slot) {
+        current.targetIndex = slot.index;
+        current.targetReference = slot.reference;
+        current.preview.style.setProperty("--blocks-preview-x", `${slot.left - current.previewOrigin.left}px`);
+        current.preview.style.setProperty("--blocks-preview-y", `${slot.top - current.previewOrigin.top}px`);
+
+        const deltaX = slot.left - current.previewOrigin.left;
+        const deltaY = slot.top - current.previewOrigin.top;
+        const direction = Math.abs(deltaY) >= Math.abs(deltaX)
+            ? (deltaY > 0.5 ? "down" : deltaY < -0.5 ? "up" : "still")
+            : (deltaX > 0.5 ? "right" : "left");
+        current.preview.setAttribute("data-drop-direction", direction);
+        const landing = {
+            left: slot.left,
+            top: slot.top,
+            right: slot.left + current.width,
+            bottom: slot.top + current.height
+        };
+        const pushes = direction === "down" && current.occupied.some((bounds) => rectanglesOverlap(landing, bounds));
+        if (pushes) current.preview.setAttribute("data-drop-state", "push");
+        else current.preview.removeAttribute("data-drop-state");
+    }
+
     function stopDragging(pointerId, commit = false) {
         if (!dragState || (pointerId !== undefined && dragState.pointerId !== pointerId)) return;
         const current = dragState;
         dragState = null;
+        const animatedObjects = current.objects.filter((element) => element.parentElement === surface);
+        const before = new Map(animatedObjects.map((element) => [element, element.getBoundingClientRect()]));
+        let changed = false;
         if (commit && current.preview.parentElement === surface) {
-            surface.insertBefore(current.shell, current.preview);
+            if (current.mode === "grid") {
+                changed = commitGridDrop(current);
+            } else {
+                const reference = current.targetReference?.parentElement === surface ? current.targetReference : null;
+                surface.insertBefore(current.shell, reference);
+                changed = current.targetIndex !== current.originalIndex;
+            }
         }
         current.preview.remove();
         current.shell.classList.remove("is-dragging");
@@ -208,6 +463,18 @@ export function createBlocksSystem(options = {}) {
         if (surface) surface.removeAttribute("data-dragging");
         if (current.handle.hasPointerCapture?.(current.pointerId)) {
             current.handle.releasePointerCapture(current.pointerId);
+        }
+        animateDragSettlement(animatedObjects, before);
+        if (commit && changed && surface) {
+            surface.dispatchEvent(new CustomEvent("blocks:reorder", {
+                detail: {
+                    id: current.shell.getAttribute("data-block-object"),
+                    input: "pointer",
+                    fromIndex: current.originalIndex,
+                    toIndex: current.targetIndex,
+                    direction: current.previewDirection
+                }
+            }));
         }
     }
 
@@ -220,6 +487,7 @@ export function createBlocksSystem(options = {}) {
         if (!handle || !shell || shell.parentElement !== surface) return;
 
         stopDragging();
+        finishDragAnimations();
         const bounds = shell.getBoundingClientRect();
         const computed = getComputedStyle(shell);
         const preview = document.createElement("div");
@@ -227,23 +495,67 @@ export function createBlocksSystem(options = {}) {
         preview.setAttribute("aria-hidden", "true");
         preview.style.setProperty("--block-span-columns", computed.getPropertyValue("--block-span-columns").trim() || "1");
         preview.style.setProperty("--block-span-rows", computed.getPropertyValue("--block-span-rows").trim() || "1");
+        preview.style.setProperty("--block-column", computed.getPropertyValue("--block-column").trim() || "auto");
+        preview.style.setProperty("--block-row", computed.getPropertyValue("--block-row").trim() || "auto");
         preview.style.width = `${bounds.width}px`;
         preview.style.height = `${bounds.height}px`;
         surface.insertBefore(preview, shell);
 
-        dragState = {
-            pointerId: event.pointerId,
-            shell,
-            handle,
-            preview,
-            offsetX: event.clientX - bounds.left,
-            offsetY: event.clientY - bounds.top
-        };
         shell.style.setProperty("--blocks-drag-left", `${bounds.left}px`);
         shell.style.setProperty("--blocks-drag-top", `${bounds.top}px`);
         shell.style.setProperty("--blocks-drag-width", `${bounds.width}px`);
         shell.style.setProperty("--blocks-drag-height", `${bounds.height}px`);
         shell.classList.add("is-dragging");
+
+        const allObjects = directObjects();
+        const originalIndex = allObjects.indexOf(shell);
+        const otherObjects = allObjects.filter((element) => element !== shell);
+        const previewBounds = preview.getBoundingClientRect();
+        const commonState = {
+            pointerId: event.pointerId,
+            shell,
+            handle,
+            preview,
+            offsetX: event.clientX - bounds.left,
+            offsetY: event.clientY - bounds.top,
+            startLeft: bounds.left,
+            startTop: bounds.top,
+            width: bounds.width,
+            height: bounds.height,
+            objects: allObjects,
+            originalIndex,
+            targetIndex: originalIndex,
+            previewOrigin: { left: previewBounds.left, top: previewBounds.top },
+            previewDirection: "still"
+        };
+        if (snapEnabled) {
+            // Snapmodus is ruimtelijk; zonder snap blijft de bestaande flowreorder actief.
+            const metrics = gridMetrics();
+            const gridLayouts = gridLayoutSnapshot(allObjects, metrics);
+            const draggedLayout = gridLayouts.find((layout) => layout.element === shell);
+            dragState = {
+                ...commonState,
+                mode: "grid",
+                metrics,
+                gridLayouts,
+                draggedLayout,
+                targetCol: draggedLayout.col,
+                targetRow: draggedLayout.row
+            };
+            showGridLanding(dragState, draggedLayout.col, draggedLayout.row);
+        } else {
+            const slots = measureLandingSlots(preview, shell, otherObjects);
+            const restoredPreviewBounds = preview.getBoundingClientRect();
+            dragState = {
+                ...commonState,
+                mode: "flow",
+                slots,
+                occupied: otherObjects.map((element) => element.getBoundingClientRect()),
+                targetReference: slots[originalIndex]?.reference || null,
+                previewOrigin: { left: restoredPreviewBounds.left, top: restoredPreviewBounds.top }
+            };
+            showLandingSlot(dragState, slots[originalIndex]);
+        }
         surface.setAttribute("data-dragging", shell.getAttribute("data-block-object") || "");
         handle.setPointerCapture?.(event.pointerId);
         event.preventDefault();
@@ -252,32 +564,19 @@ export function createBlocksSystem(options = {}) {
     function moveDragging(event) {
         if (!dragState || dragState.pointerId !== event.pointerId || !surface) return;
         event.preventDefault();
-        dragState.shell.style.setProperty("--blocks-drag-left", `${event.clientX - dragState.offsetX}px`);
-        dragState.shell.style.setProperty("--blocks-drag-top", `${event.clientY - dragState.offsetY}px`);
-        const previewBounds = dragState.preview.getBoundingClientRect();
-        if (event.clientX >= previewBounds.left && event.clientX <= previewBounds.right &&
-            event.clientY >= previewBounds.top && event.clientY <= previewBounds.bottom) return;
-        const pointedElement = document.elementFromPoint(event.clientX, event.clientY);
-        const target = pointedElement?.closest?.(".blocks-system-object");
-        if (!target || target === dragState.shell || target.parentElement !== surface) {
-            if (pointedElement && surface.contains(pointedElement)) surface.appendChild(dragState.preview);
-            return;
+        const left = event.clientX - dragState.offsetX;
+        const top = event.clientY - dragState.offsetY;
+        dragState.shell.style.setProperty("--blocks-drag-left", `${left}px`);
+        dragState.shell.style.setProperty("--blocks-drag-top", `${top}px`);
+        if (dragState.mode === "grid") {
+            const col = Math.round((left - dragState.metrics.left) / dragState.metrics.columnStep);
+            const row = Math.round((top - dragState.metrics.top) / dragState.metrics.rowStep);
+            showGridLanding(dragState, col, row);
+        } else {
+            const slot = closestLandingSlot(dragState, left, top);
+            showLandingSlot(dragState, slot);
+            dragState.previewDirection = dragState.preview.getAttribute("data-drop-direction") || "still";
         }
-
-        const bounds = target.getBoundingClientRect();
-        const neighbours = [target.previousElementSibling, target.nextElementSibling]
-            .filter((neighbour) => neighbour?.matches?.(".blocks-system-object"));
-        const horizontalFlow = Math.abs(previewBounds.top - bounds.top) < Math.min(previewBounds.height, bounds.height) / 2 ||
-            neighbours.some((neighbour) => {
-                const neighbourBounds = neighbour.getBoundingClientRect();
-                return Math.abs(neighbourBounds.top - bounds.top) < Math.min(neighbourBounds.height, bounds.height) / 2;
-            });
-        const beforeTarget = horizontalFlow
-            ? event.clientX < bounds.left + bounds.width / 2
-            : event.clientY < bounds.top + bounds.height / 2;
-        const reference = beforeTarget ? target : target.nextElementSibling;
-        if (reference === dragState.preview || reference === dragState.preview.nextElementSibling) return;
-        surface.insertBefore(dragState.preview, reference);
     }
 
     function finishDragging(event) {
@@ -290,6 +589,12 @@ export function createBlocksSystem(options = {}) {
         const handle = event.target.closest(".blocks-system-menu");
         const shell = handle?.closest(".blocks-system-object");
         if (!handle || event.target !== handle || !shell || shell.parentElement !== surface) return;
+
+        if (snapEnabled) {
+            if (!moveGridWithKeyboard(shell, event.key)) return;
+            event.preventDefault();
+            return;
+        }
 
         const previous = shell.previousElementSibling;
         const next = shell.nextElementSibling;
@@ -367,6 +672,7 @@ export function createBlocksSystem(options = {}) {
     }
 
     function setGrid(x, y) {
+        if (dragState) stopDragging();
         const nextColumns = Number(x);
         const nextRows = Number(y);
         if (!Number.isInteger(nextColumns) || nextColumns < 1 ||
@@ -395,6 +701,7 @@ export function createBlocksSystem(options = {}) {
 
     function add(content, addOptions = {}) {
         if (!surface) throw new Error("Roep eerst blocks.system.attach(target) aan.");
+        if (dragState) stopDragging();
         const id = String(addOptions.id || `block-${++objectIndex}`);
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new TypeError(`Ongeldig block-id: ${id}`);
         if (objects.has(id)) throw new Error(`Block bestaat al: ${id}`);
@@ -424,6 +731,23 @@ export function createBlocksSystem(options = {}) {
         let placeRow = null;
         let block;
 
+        function applyLayout(layout) {
+            spanColumns = layout.columns;
+            spanRows = layout.rows;
+            placeColumn = layout.column;
+            placeRow = layout.row;
+            objectLayouts.set(id, { ...layout });
+            shell.style.setProperty("--block-span-columns", String(spanColumns));
+            shell.style.setProperty("--block-span-rows", String(spanRows));
+            if (placeColumn === null || placeRow === null) {
+                shell.style.removeProperty("--block-column");
+                shell.style.removeProperty("--block-row");
+            } else {
+                shell.style.setProperty("--block-column", String(placeColumn));
+                shell.style.setProperty("--block-row", String(placeRow));
+            }
+        }
+
         function syncMinimizedState() {
             shell.setAttribute("data-block-minimized", String(minimizedValue));
             contentNode.setAttribute("aria-hidden", String(minimizedValue));
@@ -440,15 +764,17 @@ export function createBlocksSystem(options = {}) {
         }
 
         function remove() {
-            if (dragState?.shell === shell) stopDragging();
+            if (dragState) stopDragging();
             objects.delete(id);
             objectLayouts.delete(id);
+            objectLayoutSetters.delete(id);
             shell.remove();
             return true;
         }
 
         function span(x, y) {
             if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            if (dragState) stopDragging();
             const nextColumns = Number(x);
             const nextRows = Number(y);
             if (!Number.isInteger(nextColumns) || nextColumns < 1 ||
@@ -462,16 +788,13 @@ export function createBlocksSystem(options = {}) {
                 row: placeRow
             };
             assertLayoutFits(id, nextLayout);
-            spanColumns = nextColumns;
-            spanRows = nextRows;
-            objectLayouts.set(id, nextLayout);
-            shell.style.setProperty("--block-span-columns", String(spanColumns));
-            shell.style.setProperty("--block-span-rows", String(spanRows));
+            applyLayout(nextLayout);
             return block;
         }
 
         function place(x, y) {
             if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            if (dragState) stopDragging();
             const nextColumn = Number(x);
             const nextRow = Number(y);
             if (!Number.isInteger(nextColumn) || nextColumn < 1 ||
@@ -485,11 +808,21 @@ export function createBlocksSystem(options = {}) {
                 row: nextRow
             };
             assertLayoutFits(id, nextLayout);
-            placeColumn = nextColumn;
-            placeRow = nextRow;
-            objectLayouts.set(id, nextLayout);
-            shell.style.setProperty("--block-column", String(placeColumn));
-            shell.style.setProperty("--block-row", String(placeRow));
+            applyLayout(nextLayout);
+            return block;
+        }
+
+        function flow() {
+            if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            if (dragState) stopDragging();
+            const nextLayout = {
+                columns: spanColumns,
+                rows: spanRows,
+                column: null,
+                row: null
+            };
+            assertLayoutFits(id, nextLayout);
+            applyLayout(nextLayout);
             return block;
         }
 
@@ -544,6 +877,7 @@ export function createBlocksSystem(options = {}) {
             menu,
             span,
             place,
+            flow,
             remove
         };
         Object.defineProperty(controller, "color", {
@@ -571,12 +905,18 @@ export function createBlocksSystem(options = {}) {
         syncMinimizedState();
         block = Object.freeze(controller);
         objects.set(id, block);
-        objectLayouts.set(id, {
+        applyLayout({
             columns: spanColumns,
             rows: spanRows,
             column: placeColumn,
             row: placeRow
         });
+        objectLayoutSetters.set(id, (column, row) => applyLayout({
+            columns: spanColumns,
+            rows: spanRows,
+            column,
+            row
+        }));
         return block;
     }
 

@@ -1,4 +1,4 @@
-import { system as blocks } from "../../blocks.system.mjs?v=0.1.1";
+import { system as blocks } from "../../blocks.system.mjs?v=0.1.2";
 
 const accent = [255, 0, 255];
 

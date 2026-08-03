@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.1";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.2";
 import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.2";
 
 const board = document.querySelector("#home-board");
@@ -117,7 +117,9 @@ function updateStatus(message = "") {
 }
 
 reset.addEventListener("click", () => {
+  controllers.forEach((block) => block.flow());
   initialOrder.forEach((element) => board.appendChild(element));
+  blocks.setGrid(6, 8);
   controllers.forEach((block) => { block.minimized = false; });
   blocks.draggable = true;
   updateStatus("surface reset · drag on");

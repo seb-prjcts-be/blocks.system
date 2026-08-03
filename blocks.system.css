@@ -68,14 +68,31 @@
 
 .blocks-system-drop-preview {
     box-sizing: border-box;
-    grid-column: auto / span var(--block-span-columns, 1);
-    grid-row: auto / span var(--block-span-rows, 1);
+    position: relative;
+    z-index: 999;
+    grid-column: var(--block-column, auto) / span var(--block-span-columns, 1);
+    grid-row: var(--block-row, auto) / span var(--block-span-rows, 1);
     flex: 0 0 auto;
     min-width: 0;
     min-height: 0;
     border: 1px dashed var(--blocks-ink-color);
     background: transparent;
+    transform: translate(var(--blocks-preview-x, 0), var(--blocks-preview-y, 0));
     pointer-events: none;
+}
+
+.blocks-system-drop-preview[data-drop-state="push"][data-drop-direction="down"] {
+    border-style: solid;
+    background: color-mix(in srgb, var(--blocks-ink-color) 12%, transparent);
+}
+
+.blocks-system-drop-preview[data-drop-state="push"][data-drop-direction="down"]::after {
+    content: "↓";
+    position: absolute;
+    right: 4px;
+    bottom: 2px;
+    color: var(--blocks-ink-color);
+    font: 700 16px/1 sans-serif;
 }
 
 .blocks-system-object {
@@ -210,7 +227,7 @@
     min-width: 0;
     min-height: 0;
     overflow: auto;
-    overscroll-behavior: contain;
+    overscroll-behavior: auto;
     padding: var(--blocks-content-padding);
 }
 

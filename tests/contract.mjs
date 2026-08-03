@@ -129,6 +129,10 @@ assert.equal(object.element.style.getPropertyValue("--block-span-rows"), "1", "s
 assert.equal(object.place(2, 2), object, "place must remain chainable");
 assert.equal(object.element.style.getPropertyValue("--block-column"), "2", "place x must set a one-based column");
 assert.equal(object.element.style.getPropertyValue("--block-row"), "2", "place y must set a one-based row");
+assert.equal(object.flow(), object, "flow must remain chainable");
+assert.equal(object.element.style.getPropertyValue("--block-column"), "", "flow must clear the fixed column");
+assert.equal(object.element.style.getPropertyValue("--block-row"), "", "flow must clear the fixed row");
+object.place(2, 2);
 object.menu("span", true);
 assert.equal(object.element.children[0].children[1].children.length, 2, "a menu must expose minimize and optional close controls together");
 assert.equal(object.element.children[0].tabIndex, 0, "a draggable menu must be keyboard-focusable");

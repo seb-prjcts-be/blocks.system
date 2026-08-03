@@ -91,13 +91,21 @@ blocks.register({
   `variants`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- Eén block: `menu`, `minimized`, `span`, `place`, `variant`, `color`, `remove`.
+- Eén block: `menu`, `minimized`, `span`, `place`, `flow`, `variant`, `color`, `remove`.
 
 Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen
-toont een gestippelde preview waar het block zal landen. Focus diezelfde header
-en gebruik de pijltjestoetsen om zonder pointer te herschikken; na iedere
-toetsverplaatsing vuurt de surface `blocks:reorder`. Zet
+toont een magnetische preview waar het block zal landen, terwijl de andere
+blocks stilstaan. Met `snap = true` blijft een vrije doelcel gestippeld; een
+bezette neerwaartse doelcel wordt vol met een `↓`. Bij loslaten behouden de
+verdrongen blocks hun kolom en settelen ze samen omlaag. `flow()` zet een
+ruimtelijk verplaatst block terug in CSS auto-flow. Focus dezelfde header en
+gebruik de pijltjestoetsen voor dezelfde rasterbeweging zonder pointer. Na een
+pointer- of toetsverplaatsing vuurt de surface `blocks:reorder`. Zet
 `blocks.draggable = false` om de layout te vergrendelen.
+Trackpad- en wheelscroll boven gewone blockinhoud blijft de pagina scrollen;
+alleen echt overlopende binneninhoud scrollt eerst lokaal.
+De gemeten werking en grenzen staan duurzaam in
+[`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
 Bekijk de [volledige API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
 voor argumenten en returnwaarden.

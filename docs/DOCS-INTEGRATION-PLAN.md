@@ -496,13 +496,13 @@ van de drie canonieke surfaces bevat een genest of getekend grid.
 - vrije celplaatsing alleen als de donor veilig in echte blockcontrollers kan
   landen.
 
-**Gate: geslaagd op 2 augustus 2026.** Pointerdrag en touch blijven het
-bestaande headercontract gebruiken; gefocuste headers herschikken met de vier
-pijltjestoetsen en krijgen hetzelfde volledige kader. Lock/reset, actieve
-anchors, canvas-resize en pause-on-minimize/remove/page-exit zijn in echte
-Chrome getest. Een vrije-celmodus wordt bewust niet publiek beloofd: expliciete
-`place(x, y)`-coordinaten blijven de deterministische laag tot collision- en
-toetsenbordgedrag voor vrije cellen even sterk bewezen zijn.
+**Gate: geslaagd op 2 augustus 2026 en uitgebreid op 3 augustus 2026.**
+Pointerdrag en touch blijven het bestaande headercontract gebruiken;
+gefocuste headers gebruiken dezelfde rasterstappen met de vier pijltoetsen en
+krijgen hetzelfde volledige kader. Lock/reset, actieve anchors, canvas-resize
+en pause-on-minimize/remove/page-exit zijn in echte Chrome getest. De
+snapmodus gebruikt nu vrije doelcellen, een magnetische preview en bewezen
+neerwaartse collision-cascade; `flow()` herstelt CSS auto-flow.
 
 ### Fase 5 — Parallelle vergelijking
 
@@ -594,7 +594,8 @@ standalone examples. De finale bron-, link-, browser- en diffchecks zijn groen.
 - geen externe stijl nabouwen;
 - geen API verstoppen in hover-only of drag-only bediening;
 - geen oude URL's abrupt breken;
-- geen vrije drag publiceren zonder keyboard- en collisioncontract;
+- vrije snapdrag alleen samen met keyboard-, collision-, reset- en
+  reduced-motioncontract publiceren;
 - geen kleur of animatie gebruiken om structurele onduidelijkheid te maskeren;
 - geen publicatie, commit of push tijdens de planfase.
 

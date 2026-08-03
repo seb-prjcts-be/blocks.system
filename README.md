@@ -89,13 +89,20 @@ blocks.register({
   `variants`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- One block: `menu`, `minimized`, `span`, `place`, `variant`, `color`, `remove`.
+- One block: `menu`, `minimized`, `span`, `place`, `flow`, `variant`, `color`, `remove`.
 
 Dragging by a block's menu bar is enabled by default. During pointer dragging,
-a dashed preview marks the block's landing position. Focus that same header and
-use the arrow keys to reorder without a pointer; the surface emits
-`blocks:reorder` after each keyboard move. Set `blocks.draggable = false` to
-lock the layout.
+a magnetic preview marks the block's landing position while the other blocks
+stay still. With `snap = true`, a free cell stays dashed; an occupied downward
+target becomes solid with a `↓`, and the colliding blocks keep their columns
+while settling downward together on drop. `flow()` returns a spatially moved
+block to CSS auto-flow. Focus the same header and use the arrow keys for the
+same grid movement without a pointer. The surface emits `blocks:reorder` after
+pointer and keyboard moves. Set `blocks.draggable = false` to lock the layout.
+Trackpad and wheel input over ordinary block content continues scrolling the
+page; only genuinely overflowing inner content scrolls locally first.
+The measured mechanics and boundaries are recorded in
+[`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
 See the [complete API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
 for arguments and return values.

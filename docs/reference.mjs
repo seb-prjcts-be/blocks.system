@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.1";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.2";
 import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.2";
 
 const board = document.querySelector("#reference-board");
@@ -39,7 +39,7 @@ addReference({
     <tr id="api-attach"><td>attach(target)</td><td>blocks</td><td>Attach to a selector or DOM element.</td></tr>
     <tr id="api-set-grid"><td>setGrid(x, y)</td><td>blocks</td><td>Set positive integer columns and rows.</td></tr>
     <tr id="api-snap"><td>snap</td><td>boolean</td><td>Read or change grid snapping.</td></tr>
-    <tr id="api-draggable"><td>draggable</td><td>boolean</td><td>Reorder by pointer or arrow keys on the menu header; pointer drag shows a dashed landing preview.</td></tr>
+    <tr id="api-draggable"><td>draggable</td><td>boolean</td><td>Move by pointer or arrow keys on the menu header; snapped collisions push downward on drop.</td></tr>
     <tr id="api-font"><td>font</td><td>object|null</td><td>Load one font stylesheet and set its family.</td></tr>
     <tr id="api-variant"><td>variant</td><td>string</td><td>Variant for new blocks; default <code>random</code>.</td></tr>
     <tr id="api-variants"><td>variants</td><td>array</td><td>Regular and inverse plus CMY for current work; RGB names remain compatibility variants.</td></tr>
@@ -60,6 +60,7 @@ addReference({
     <tr id="api-menu"><td>menu(name, options)</td><td>block</td><td>Title bar with minimize and optional close.</td></tr>
     <tr id="api-span"><td>span(x, y)</td><td>block</td><td>Occupy whole grid units.</td></tr>
     <tr id="api-place"><td>place(x, y)</td><td>block</td><td>Use one-based coordinates without overlap.</td></tr>
+    <tr id="api-flow"><td>flow()</td><td>block</td><td>Clear fixed coordinates and return to CSS auto-flow.</td></tr>
     <tr id="api-minimized"><td>minimized</td><td>boolean</td><td>Show only the menu while preserving layout.</td></tr>
     <tr id="api-block-variant"><td>variant</td><td>string</td><td>Read or set the resolved variant.</td></tr>
     <tr id="api-color"><td>color</td><td>string</td><td>Read or set the block CSS colour.</td></tr>
@@ -117,12 +118,12 @@ addReference({
       <p><code>.blocks-system-object</code><span>one outer block</span></p>
       <p><code>.blocks-system-menu</code><span>header and drag handle</span></p>
       <p><code>.blocks-system-content</code><span>content host and overflow</span></p>
-      <p><code>.blocks-system-drop-preview</code><span>dashed pointer landing position</span></p>
+      <p><code>.blocks-system-drop-preview</code><span>magnetic landing cell; solid ↓ means downward displacement</span></p>
       <p><code>[data-block-object]</code><span>one stable object id</span></p>
       <p><code>[data-block-variant]</code><span>resolved visual variant</span></p>
       <p><code>[data-block-minimized]</code><span>restored or minimized state</span></p>
       <p><code>[data-draggable]</code><span>surface drag state</span></p>
-      <p><code>blocks:reorder</code><span>keyboard reorder event on the surface</span></p>
+      <p><code>blocks:reorder</code><span>pointer or keyboard movement event on the surface</span></p>
     </div>
   `)
 });

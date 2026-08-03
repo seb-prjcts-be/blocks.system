@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.1";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.2";
 import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.2";
 
 const board = document.querySelector("#manual-board");
@@ -220,7 +220,7 @@ addBlock({
       <ul>
         <li>blocks.attach()</li><li>block.menu()</li>
         <li>blocks.setGrid()</li><li>block.span()</li>
-        <li>blocks.snap</li><li>block.place()</li>
+        <li>blocks.snap</li><li>block.place()</li><li>block.flow()</li>
         <li>blocks.draggable</li><li>block.minimized</li>
         <li>blocks.add()</li><li>block.variant</li>
         <li>blocks.register()</li><li>block.color</li>
@@ -342,7 +342,9 @@ lock.addEventListener("click", () => {
 });
 
 reset.addEventListener("click", () => {
+  controllers.forEach(({ block }) => block.flow());
   initialOrder.forEach((element) => board.appendChild(element));
+  blocks.setGrid(6, 24);
   controllers.forEach(({ block, minimized }) => { block.minimized = minimized; });
   blocks.draggable = true;
   updateLock();

@@ -245,7 +245,7 @@
   margin: 0;
   overflow: auto;
   padding: 14px;
-  overscroll-behavior: contain;
+  overscroll-behavior: auto;
   font: 400 11px/1.45 "Consolas", "Courier New", monospace;
   white-space: pre-wrap;
 }

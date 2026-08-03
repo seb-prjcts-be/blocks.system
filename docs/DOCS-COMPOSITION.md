@@ -38,19 +38,26 @@ navigatielandmarks.
 
 - dragging staat standaard aan op home en manual;
 - de menuheader is pointer-, touch- en toetsenbordhandle;
-- tijdens pointerdrag volgt het block de pointer en toont een gestippelde
-  placeholder de toekomstige auto-flowpositie;
-- pijltoetsen herschikken DOM- en leesvolgorde en sturen `blocks:reorder`;
+- tijdens pointerdrag volgt het block vrij de pointer terwijl de compositie
+  pixelvast blijft; een magnetische doelcel stapt pas bij een halve rasterstap;
+- een vrije doelcel blijft gestippeld; een bezette neerwaartse doelcel wordt
+  vol met `↓` en verdringt de botsende blocks pas bij loslaten;
+- verdrongen blocks behouden hun kolom, cascaderen van boven naar onder en
+  settelen samen in 160 ms; reduced motion slaat die beweging over;
+- pijltoetsen gebruiken hetzelfde raster- en botsingsmodel en sturen net als
+  pointerdrops `blocks:reorder`;
 - lock en reset zijn omkeerbaar;
-- de pagina scrollt natuurlijk; alleen code en referentielijsten scrollen
-  lokaal;
+- de pagina scrollt ook met twee vingers boven gewone blockinhoud; alleen echt
+  overlopende code en referentielijsten scrollen eerst lokaal en ketenen daarna
+  weer door naar de pagina;
 - canvas volgt contentbox én DPR;
 - video pauzeert bij minimaliseren, verwijderen en page-exit;
 - smooth anchor scrolling respecteert reduced motion.
 
-Vrije-celcollision en persistence zijn geen publieke belofte. De gestippelde
-preview toont uitsluitend de toekomstige DOM-/auto-flowpositie; de
-deterministische vaste plaatsingslaag blijft `block.place(x, y)`.
+Een succesvolle snapdrop maakt de gemeten rasterposities deterministisch via
+dezelfde vaste plaatsingslaag als `block.place(x, y)`. `block.flow()` wist die
+positie opnieuw; de docsreset gebruikt dit voor het canonieke auto-flowbeeld.
+Persistence tussen paginaladingen is geen publieke belofte.
 
 ## Geavanceerde CSS-hooks
 
@@ -62,3 +69,5 @@ De publieke reference deelt bewust `.blocks-system-surface`,
 
 De volledige meetbare acceptatie staat in `VISUAL-ACCEPTANCE.md`; inhoudelijk
 eigenaarschap en legacy aliases staan in `CONTENT-MANIFEST.md`.
+Het donoronderzoek, snapcontract en scrollcontract staan in
+`DRAG-BEHAVIOR.md`.
