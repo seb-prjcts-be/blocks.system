@@ -1,4 +1,4 @@
-import { system as blocks } from "../../blocks.system.mjs?v=0.1.2";
+import { system as blocks } from "../../blocks.system.mjs?v=0.1.3";
 
 blocks.attach("#field");
 blocks.setGrid(1, 1);

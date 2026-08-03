@@ -19,6 +19,12 @@ assert.equal(singleton.draggable, true, "dragging must be enabled by default");
 assert.equal(singleton.font, null, "external fonts must remain opt-in");
 assert.equal(singleton.variant, "random", "visual variants must be random by default");
 assert.deepEqual(singleton.variants, ["regular", "inverse", "red", "green", "blue", "cyan", "magenta", "yellow"], "the original visual variants must be discoverable");
+assert.deepEqual(singleton.labels, {
+  move: "move with the arrow keys",
+  restore: "restore",
+  minimize: "minimize",
+  close: "close"
+}, "the environment-neutral singleton must expose English UI labels");
 
 const minUrl = pathToFileURL(minPath);
 minUrl.searchParams.set("parity", Date.now());
@@ -92,6 +98,7 @@ class TestElement {
 
 globalThis.Element = TestElement;
 globalThis.document = {
+  documentElement: { lang: "en" },
   head: new TestElement(),
   createElement() { return new TestElement(); },
   querySelector() { return null; }
@@ -136,7 +143,14 @@ object.place(2, 2);
 object.menu("span", true);
 assert.equal(object.element.children[0].children[1].children.length, 2, "a menu must expose minimize and optional close controls together");
 assert.equal(object.element.children[0].tabIndex, 0, "a draggable menu must be keyboard-focusable");
-assert.match(object.element.children[0].getAttribute("aria-label"), /pijltjestoetsen/, "a draggable menu must explain its keyboard handle");
+assert.match(object.element.children[0].getAttribute("aria-label"), /arrow keys/, "a draggable menu must explain its keyboard handle in the configured language");
+assert.match(object.element.children[0].children[1].children[0].getAttribute("aria-label"), /minimize/, "the minimize control must use the configured label");
+assert.match(object.element.children[0].children[1].children[1].getAttribute("aria-label"), /close/, "the close control must use the configured label");
+local.draggable = false;
+assert.equal(object.element.children[0].tabIndex, -1, "a locked menu must leave the keyboard tab order");
+assert.equal(object.element.children[0].getAttribute("aria-label"), null, "a locked menu must not promise arrow-key movement");
+local.draggable = true;
+assert.equal(object.element.children[0].tabIndex, 0, "unlocking must restore the keyboard handle");
 object.minimized = true;
 assert.equal(object.element.getAttribute("data-block-minimized"), "true", "minimize state must be exposed to CSS");
 assert.equal(object.content.getAttribute("aria-hidden"), "true", "minimized content must leave the accessibility tree");
@@ -160,5 +174,17 @@ assert.doesNotThrow(function () { local.setGrid(1, 1); }, "removed blocks must r
 assert.throws(function () { object.span(1, 1); }, /verwijderd/, "removed blocks cannot re-enter span state");
 assert.throws(function () { object.place(1, 1); }, /verwijderd/, "removed blocks cannot re-enter position state");
 assert.throws(function () { object.minimized = false; }, /verwijderd/, "removed blocks cannot change minimized state");
+
+const dutch = createBlocksSystem({
+  labels: {
+    move: "bewegen",
+    restore: "openen",
+    minimize: "inklappen",
+    close: "verwijderen"
+  }
+});
+assert.equal(dutch.labels.close, "verwijderen", "consumers must be able to configure accessible labels");
+assert.throws(function () { createBlocksSystem({ labels: { close: "" } }); }, /labels\.close mag niet leeg/, "empty accessible labels must fail early");
+assert.match(source, /mode:\s*detail\.mode[\s\S]*fromIndex:[\s\S]*toIndex:[\s\S]*direction:/, "reorder events must expose one stable detail shape");
 
 console.log("blocks.system contract — ok");

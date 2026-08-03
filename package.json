@@ -4,6 +4,7 @@
   "private": true,
   "description": "A small, dependency-free browser system for individually addressable HTML, canvas and custom objects.",
   "type": "module",
+  "types": "./blocks.system.d.ts",
   "exports": {
     ".": "./blocks.system.mjs",
     "./min": "./blocks.system.min.mjs",
@@ -12,7 +13,8 @@
   "files": [
     "blocks.system.mjs",
     "blocks.system.min.mjs",
-    "blocks.system.css"
+    "blocks.system.css",
+    "blocks.system.d.ts"
   ],
   "scripts": {
     "build:min": "terser blocks.system.mjs --module --compress --mangle --output blocks.system.min.mjs",

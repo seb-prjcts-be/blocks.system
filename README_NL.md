@@ -93,6 +93,11 @@ blocks.register({
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
 - Eén block: `menu`, `minimized`, `span`, `place`, `flow`, `variant`, `color`, `remove`.
 
+Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
+overschrijfbaar via `createBlocksSystem({ labels: { move, minimize, restore,
+close } })`. Bij een vergrendelde layout verdwijnen menuheaders uit de
+toetsenbordvolgorde; hun minimaliseer- en sluitknoppen blijven bereikbaar.
+
 Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen
 toont een magnetische preview waar het block zal landen, terwijl de andere
 blocks stilstaan. Met `snap = true` blijft een vrije doelcel gestippeld; een
@@ -100,8 +105,9 @@ bezette neerwaartse doelcel wordt vol met een `↓`. Bij loslaten behouden de
 verdrongen blocks hun kolom en settelen ze samen omlaag. `flow()` zet een
 ruimtelijk verplaatst block terug in CSS auto-flow. Focus dezelfde header en
 gebruik de pijltjestoetsen voor dezelfde rasterbeweging zonder pointer. Na een
-pointer- of toetsverplaatsing vuurt de surface `blocks:reorder`. Zet
-`blocks.draggable = false` om de layout te vergrendelen.
+pointer- of toetsverplaatsing vuurt de surface `blocks:reorder` met één vaste
+detailvorm: `id`, `input`, `mode`, `key`, indices, rasterposities en richting.
+Zet `blocks.draggable = false` om de layout te vergrendelen.
 Trackpad- en wheelscroll boven gewone blockinhoud blijft de pagina scrollen;
 alleen echt overlopende binneninhoud scrollt eerst lokaal.
 De gemeten werking en grenzen staan duurzaam in

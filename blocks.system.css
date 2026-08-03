@@ -6,7 +6,7 @@
     --blocks-paper-color: #efeee8;
     --blocks-ink-color: #000;
     --blocks-text-color: #14140f;
-    --blocks-font-family: "Oswald";
+    --blocks-font-family: "Segoe UI", Arial, sans-serif;
     --blocks-content-padding: 7px;
     box-sizing: border-box;
     position: relative;
@@ -180,7 +180,7 @@
     background: var(--block-color);
     color: var(--block-paper-color);
     padding: 3px 7px;
-    font: 600 13px/1 var(--blocks-font-family), "Arial Narrow", sans-serif;
+    font: 600 13px/1 var(--blocks-font-family);
 }
 
 .blocks-system-title {

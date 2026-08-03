@@ -24,10 +24,12 @@ Instrument Sans draagt de docs. De Oswald-import blijft als commentaar in
 
 ## Structuur
 
-Home bevat vijf directe blocks en veel gerichte leegte. De manual bevat
-vijftien directe blocks met vaste anchors. De reference bevat zes directe,
-niet-versleepbare lookupblocks. Standalone examples blijven losse uitvoer; ze
-worden niet als een tweede docsgrid genest.
+Home bevat twee directe blocks: de canonieke titel en één concrete route naar de
+manual, op een zichtbaar constructieraster met veel gerichte leegte. De manual
+bevat dertien directe blocks met vaste anchors. Cirkel, rechthoek en driehoek
+staan samen in één direct semantisch vormveld, meteen na `start`. De reference
+bevat zes directe, niet-versleepbare lookupblocks. Standalone examples blijven
+losse uitvoer; ze worden niet als een tweede docsgrid genest.
 
 De manual heeft exact één navigatiesysteem. De vaste hoofdstukanchors zitten
 in de globale navbar; `lock layout` en `reset` zijn losse surfacebediening en
@@ -38,6 +40,9 @@ navigatielandmarks.
 
 - dragging staat standaard aan op home en manual;
 - de menuheader is pointer-, touch- en toetsenbordhandle;
+- de standaardlabels zijn Engels, volgen automatisch een Nederlands
+  document en zijn via `createBlocksSystem({ labels })` overschrijfbaar;
+- bij `draggable = false` verlaat de niet-werkende menuheader de tabvolgorde;
 - tijdens pointerdrag volgt het block vrij de pointer terwijl de compositie
   pixelvast blijft; een magnetische doelcel stapt pas bij een halve rasterstap;
 - een vrije doelcel blijft gestippeld; een bezette neerwaartse doelcel wordt
@@ -45,7 +50,8 @@ navigatielandmarks.
 - verdrongen blocks behouden hun kolom, cascaderen van boven naar onder en
   settelen samen in 160 ms; reduced motion slaat die beweging over;
 - pijltoetsen gebruiken hetzelfde raster- en botsingsmodel en sturen net als
-  pointerdrops `blocks:reorder`;
+  pointerdrops `blocks:reorder` met de vaste velden `id`, `input`, `mode`,
+  `key`, `fromIndex`, `toIndex`, `from`, `to` en `direction`;
 - lock en reset zijn omkeerbaar;
 - de pagina scrollt ook met twee vingers boven gewone blockinhoud; alleen echt
   overlopende code en referentielijsten scrollen eerst lokaal en ketenen daarna

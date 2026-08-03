@@ -18,7 +18,7 @@
   gap: 6px;
   width: min(100%, 1440px);
   margin: 0 auto 6px;
-  font: 400 9px/1.2 "Consolas", "Courier New", monospace;
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -60,7 +60,7 @@
 
 .manual-masthead > span {
   grid-column: 1 / -1;
-  font: 400 9px/1.2 "Consolas", "Courier New", monospace;
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -146,7 +146,7 @@
 
 .manual-examples small,
 .manual-examples span {
-  font: 400 9px/1.2 "Consolas", "Courier New", monospace;
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -168,7 +168,7 @@
   padding: 3px 5px;
   border: 1px solid currentColor;
   color: inherit;
-  font: 500 8px/1 "Inter", sans-serif;
+  font: 600 10px/1.1 "Instrument Sans", "Segoe UI", sans-serif;
   text-decoration: none;
   text-transform: uppercase;
 }
@@ -185,7 +185,7 @@
 .manual-media small,
 .manual-about small,
 .manual-adapter small {
-  font: 400 9px/1.25 "Consolas", "Courier New", monospace;
+  font: 400 10px/1.25 "Consolas", "Courier New", monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -198,11 +198,39 @@
   line-height: 1.45;
 }
 
+.manual-forms {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+  height: 100%;
+}
+
+.manual-form-item {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 40px;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  border-right: 1px solid currentColor;
+}
+
+.manual-form-item:last-child { border-right: 0; }
+
+.manual-form-item figcaption {
+  display: grid;
+  align-items: center;
+  padding: 6px 8px;
+  border-top: 1px solid currentColor;
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .manual-form-stage {
   display: grid;
   box-sizing: border-box;
   width: 100%;
-  height: 100%;
+  height: auto;
   min-width: 0;
   min-height: 0;
   place-items: center;
@@ -370,13 +398,13 @@
   padding: 0;
   overflow: auto;
   list-style: none;
-  font: 400 10px/1.35 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.4 "Consolas", "Courier New", monospace;
 }
 
 .manual-api a {
   justify-self: start;
   color: inherit;
-  font: 500 9px/1.2 "Consolas", "Courier New", monospace;
+  font: 500 10px/1.25 "Consolas", "Courier New", monospace;
   text-transform: uppercase;
   text-underline-offset: 3px;
 }
@@ -385,7 +413,7 @@
   min-height: 0;
   margin: 0;
   overflow: auto;
-  font: 400 10px/1.45 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.45 "Consolas", "Courier New", monospace;
   white-space: pre-wrap;
 }
 
@@ -434,7 +462,7 @@
 .manual-foot {
   width: min(100%, 1440px);
   margin-inline: auto;
-  font: 400 9px/1.35 "Consolas", "Courier New", monospace;
+  font: 400 10px/1.35 "Consolas", "Courier New", monospace;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -457,11 +485,6 @@
   .manual-board { --blocks-columns: 3 !important; }
   .manual-board.blocks-system-surface[data-snap="true"] {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .manual-board > [data-block-object="manual-cycle"],
-  .manual-board > [data-block-object="manual-rectangle"],
-  .manual-board > [data-block-object="manual-direction"] {
-    --block-span-columns: 1 !important;
   }
 }
 

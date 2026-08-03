@@ -142,15 +142,13 @@ async function measureHome(width, height, dpr = 1) {
     const field = document.querySelector("#home-board");
     const fieldRect = field.getBoundingClientRect();
     const objects = Array.from(field.querySelectorAll(":scope > .blocks-system-object"));
-    const canvas = field.querySelector(".home-canvas");
-    const canvasRect = canvas.getBoundingClientRect();
+    const title = field.querySelector(".home-title");
+    const intro = field.querySelector(".home-intro");
     return {
       blockCount: objects.length,
       columnCount: getComputedStyle(field).gridTemplateColumns.split(" ").length,
       horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       backgroundImage: getComputedStyle(field).backgroundImage,
-      quantized: field.dataset.quantized,
-      trackWidth: Number(field.dataset.trackWidth),
       draggable: field.dataset.draggable,
       devicePixelRatio: window.devicePixelRatio,
       nestedSurfaces: field.querySelectorAll(".blocks-system-surface").length,
@@ -169,11 +167,15 @@ async function measureHome(width, height, dpr = 1) {
         const child = content.firstElementChild;
         return child && (child.scrollWidth > content.clientWidth + 1 || child.scrollHeight > content.clientHeight + 1);
       }).map(function (block) { return block.dataset.blockObject; }),
-      canvas: {
-        cssWidth: canvasRect.width,
-        cssHeight: canvasRect.height,
-        bitmapWidth: canvas.width,
-        bitmapHeight: canvas.height
+      ids: objects.map(function (block) { return block.dataset.blockObject; }),
+      title: {
+        text: title.textContent,
+        fontFamily: getComputedStyle(title).fontFamily,
+        whiteSpace: getComputedStyle(title).whiteSpace
+      },
+      intro: {
+        text: intro.textContent.replace(/\\s+/g, " ").trim(),
+        href: intro.querySelector("a").getAttribute("href")
       }
     };
   })()`;
@@ -189,7 +191,7 @@ async function hoverSignature() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(() => {
       const field = document.querySelector("#home-board");
-      const block = document.querySelector('[data-block-object="home-canvas"]');
+      const block = document.querySelector('[data-block-object="home-title"]');
       const style = getComputedStyle(block);
       return {
         fieldHeight: field.getBoundingClientRect().height,
@@ -288,13 +290,12 @@ async function measureManual(width, height, dpr = 1) {
         return Math.max(a.left, b.left) < Math.min(a.right, b.right) &&
           Math.max(a.top, b.top) < Math.min(a.bottom, b.bottom);
       };
-      const formBlocks = ["manual-cycle", "manual-rectangle", "manual-direction"].map(function (id) {
-        const block = board.querySelector('[data-block-object="' + id + '"]');
-        const blockRect = block.getBoundingClientRect();
-        const shape = block.querySelector(".manual-circle, .manual-rectangle, .manual-triangle");
+      const formBlocks = Array.from(board.querySelectorAll('[data-block-object="manual-forms"] .manual-form-item')).map(function (item) {
+        const blockRect = item.getBoundingClientRect();
+        const shape = item.querySelector(".manual-circle, .manual-rectangle, .manual-triangle");
         const shapeRect = shape.getBoundingClientRect();
         return {
-          id,
+          id: item.querySelector("figcaption").textContent.trim(),
           blockTop: blockRect.top,
           blockWidth: blockRect.width,
           shapeCenterY: shapeRect.top + shapeRect.height / 2,
@@ -303,6 +304,7 @@ async function measureManual(width, height, dpr = 1) {
       });
       return {
         blockCount: objects.length,
+        ids: objects.map(function (block) { return block.dataset.blockObject; }),
         columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         documentHeight: document.documentElement.scrollHeight,
@@ -377,6 +379,10 @@ async function measureReference(width, height, dpr = 1) {
       const board = document.querySelector("#reference-board");
       const boardRect = board.getBoundingClientRect();
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
+      const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu");
+      const firstTable = board.querySelector(".reference-table");
+      const firstTableRow = firstTable.querySelector("tbody tr");
+      const firstPurpose = firstTableRow.querySelector("td:last-child");
       return {
         blockCount: objects.length,
         columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
@@ -401,8 +407,19 @@ async function measureReference(width, height, dpr = 1) {
         missingAnchors: ["shared-system", "block-controller", "adapters", "definition", "css-hooks", "errors"].filter(function (id) {
           return !document.getElementById(id);
         }),
-        overflowModes: Array.from(board.querySelectorAll(".reference-table-wrap, .reference-code, .reference-hooks"))
-          .map(function (node) { return getComputedStyle(node).overflow; })
+        lockedHandleState: {
+          tabIndex: firstHandle.tabIndex,
+          ariaLabel: firstHandle.getAttribute("aria-label")
+        },
+        tableOverflowModes: Array.from(board.querySelectorAll(".reference-table-wrap"))
+          .map(function (node) { return getComputedStyle(node).overflow; }),
+        localOverflowModes: Array.from(board.querySelectorAll(".reference-code, .reference-hooks"))
+          .map(function (node) { return getComputedStyle(node).overflow; }),
+        table: {
+          fontSize: getComputedStyle(firstTable).fontSize,
+          rowDisplay: getComputedStyle(firstTableRow).display,
+          purposeFontSize: getComputedStyle(firstPurpose).fontSize
+        }
       };
     })()`,
     awaitPromise: true,
@@ -418,10 +435,16 @@ async function exerciseManual() {
         const rect = element.getBoundingClientRect();
         return { x: rect.left + rect.width * xFactor, y: rect.top + rect.height / 2 };
       };
+      const board = document.querySelector("#manual-board");
+      window.__manualPointerReorder = null;
+      board.addEventListener("blocks:reorder", function captureReorder(event) {
+        window.__manualPointerReorder = event.detail;
+        board.removeEventListener("blocks:reorder", captureReorder);
+      });
       return {
-        start: center(document.querySelector('[data-block-object="manual-cycle"] > .blocks-system-menu'), 0.5),
-        target: center(document.querySelector('[data-block-object="manual-rectangle"] > .blocks-system-menu'), 0.8),
-        beforeGeometry: Object.fromEntries(["manual-cycle", "manual-rectangle"].map(function (id) {
+        start: center(document.querySelector('[data-block-object="manual-start"] > .blocks-system-menu'), 0.5),
+        target: center(document.querySelector('[data-block-object="manual-forms"] > .blocks-system-menu'), 0.8),
+        beforeGeometry: Object.fromEntries(["manual-start", "manual-forms"].map(function (id) {
           const rect = document.querySelector('[data-block-object="' + id + '"]').getBoundingClientRect();
           return [id, [rect.left, rect.top]];
         }))
@@ -468,13 +491,15 @@ async function exerciseManual() {
       const mediaPauseCalls = Number(video.dataset.pauseCalls);
       media.querySelector(".blocks-system-minimize").click();
       const draggedOrder = order();
-      const draggedGeometry = Object.fromEntries(["manual-cycle", "manual-rectangle"].map(function (id) {
+      const draggedGeometry = Object.fromEntries(["manual-start", "manual-forms"].map(function (id) {
         const rect = board.querySelector('[data-block-object="' + id + '"]').getBoundingClientRect();
         return [id, [rect.left, rect.top]];
       }));
       const dragCleanedUp = !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging");
       document.querySelector("#manual-lock").click();
       const locked = board.dataset.draggable === "false" && document.querySelector("#manual-lock").getAttribute("aria-pressed") === "true";
+      const lockedHandle = board.querySelector(":scope > .blocks-system-object > .blocks-system-menu");
+      const lockedHandleState = { tabIndex: lockedHandle.tabIndex, ariaLabel: lockedHandle.getAttribute("aria-label") };
       document.querySelector("#manual-reset").click();
       const keyboardHandle = board.querySelector(":scope > .blocks-system-object > .blocks-system-menu");
       const keyboardBeforeRect = keyboardHandle.parentElement.getBoundingClientRect();
@@ -491,6 +516,7 @@ async function exerciseManual() {
         settling,
         dragCleanedUp,
         locked,
+        lockedHandleState,
         keyboardOrder,
         keyboardGeometry: {
           before: [keyboardBeforeRect.left, keyboardBeforeRect.top],
@@ -498,6 +524,7 @@ async function exerciseManual() {
         },
         keyboardPrevented: keyboardEvent.defaultPrevented,
         keyboardHandleLabel: keyboardHandle.getAttribute("aria-label"),
+        pointerReorder: window.__manualPointerReorder,
         mediaPauseCalls,
         resetOrder: order(),
         resetDraggable: board.dataset.draggable,
@@ -508,225 +535,6 @@ async function exerciseManual() {
     returnByValue: true
   });
   return { beforeGeometry, ...result.result.value };
-}
-
-async function exerciseHome() {
-  const beforeResult = await protocol.send("Runtime.evaluate", {
-    expression: `(() => {
-      const board = document.querySelector("#home-board");
-      const geometry = function () {
-        return Object.fromEntries(Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
-          const rect = block.getBoundingClientRect();
-          return [block.dataset.blockObject, [rect.left, rect.top]];
-        }));
-      };
-      const center = function (element, xFactor) {
-        const rect = element.getBoundingClientRect();
-        return { x: rect.left + rect.width * xFactor, y: rect.top + rect.height / 2 };
-      };
-      return {
-        start: center(document.querySelector('[data-block-object="home-thesis"] > .blocks-system-menu'), 0.5),
-        target: center(document.querySelector('[data-block-object="home-facts"] > .blocks-system-menu'), 0.8),
-        order: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) { return block.dataset.blockObject; }),
-        geometry: geometry(),
-        explicitPositions: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).filter(function (block) {
-          return block.style.getPropertyValue("--block-column") || block.style.getPropertyValue("--block-row");
-        }).map(function (block) { return block.dataset.blockObject; })
-      };
-    })()`,
-    returnByValue: true
-  });
-  const before = beforeResult.result.value;
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: before.start.x, y: before.start.y });
-  await protocol.send("Input.dispatchMouseEvent", { type: "mousePressed", x: before.start.x, y: before.start.y, button: "left", buttons: 1, clickCount: 1 });
-  for (let step = 1; step <= 8; step += 1) {
-    const progress = step / 8;
-    await protocol.send("Input.dispatchMouseEvent", {
-      type: "mouseMoved",
-      x: before.start.x + (before.target.x - before.start.x) * progress,
-      y: before.start.y + (before.target.y - before.start.y) * progress,
-      button: "left",
-      buttons: 1
-    });
-  }
-  const previewResult = await protocol.send("Runtime.evaluate", {
-    expression: `(() => {
-      const board = document.querySelector("#home-board");
-      const preview = board.querySelector(".blocks-system-drop-preview");
-      const dragged = board.querySelector(".blocks-system-object.is-dragging");
-      const previewRect = preview?.getBoundingClientRect();
-      const draggedRect = dragged?.getBoundingClientRect();
-      return {
-        count: board.querySelectorAll(".blocks-system-drop-preview").length,
-        borderStyle: preview ? getComputedStyle(preview).borderStyle : "",
-        geometry: previewRect ? [previewRect.left, previewRect.top, previewRect.width, previewRect.height] : null,
-        draggedPosition: dragged ? getComputedStyle(dragged).position : "",
-        draggedGeometry: draggedRect ? [draggedRect.left, draggedRect.top, draggedRect.width, draggedRect.height] : null
-      };
-    })()`,
-    returnByValue: true
-  });
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: before.target.x, y: before.target.y, button: "left", buttons: 0, clickCount: 1 });
-
-  const afterResult = await protocol.send("Runtime.evaluate", {
-    expression: `(async function () {
-      const board = document.querySelector("#home-board");
-      const state = function () {
-        return {
-          order: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) { return block.dataset.blockObject; }),
-          geometry: Object.fromEntries(Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
-            const rect = block.getBoundingClientRect();
-            return [block.dataset.blockObject, [rect.left, rect.top]];
-          })),
-          clean: !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging"),
-          previewCount: board.querySelectorAll(".blocks-system-drop-preview").length
-        };
-      };
-      await new Promise(function (resolveFrame) { requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); }); });
-      const settling = Array.from(board.querySelectorAll(":scope > .blocks-system-object")).filter(function (block) {
-        return block.getAnimations().length > 0;
-      }).map(function (block) { return block.dataset.blockObject; });
-      await new Promise(function (resolveWait) { setTimeout(resolveWait, 180); });
-      const dragged = state();
-      document.querySelector("#home-reset").click();
-      await new Promise(function (resolveFrame) { requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); }); });
-      return { dragged, settling, reset: state(), status: document.querySelector("#home-status").textContent };
-    })()`,
-    awaitPromise: true,
-    returnByValue: true
-  });
-  return { before, preview: previewResult.result.value, ...afterResult.result.value };
-}
-
-async function exerciseHomeDownward() {
-  const beforeResult = await protocol.send("Runtime.evaluate", {
-    expression: `(() => {
-      const board = document.querySelector("#home-board");
-      const dragged = board.querySelector('[data-block-object="home-thesis"]');
-      const handle = dragged.querySelector(".blocks-system-menu");
-      const draggedRect = dragged.getBoundingClientRect();
-      const handleRect = handle.getBoundingClientRect();
-      const geometry = Object.fromEntries(Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
-        const rect = block.getBoundingClientRect();
-        return [block.dataset.blockObject, [rect.left, rect.top]];
-      }));
-      window.__homePointerReorder = null;
-      board.addEventListener("blocks:reorder", function captureReorder(event) {
-        window.__homePointerReorder = event.detail;
-        board.removeEventListener("blocks:reorder", captureReorder);
-      });
-      return {
-        start: { x: handleRect.left + handleRect.width / 2, y: handleRect.top + handleRect.height / 2 },
-        target: { x: handleRect.left + handleRect.width / 2, y: draggedRect.top + 490 },
-        order: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) { return block.dataset.blockObject; }),
-        geometry
-      };
-    })()`,
-    returnByValue: true
-  });
-  const before = beforeResult.result.value;
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: before.start.x, y: before.start.y });
-  await protocol.send("Input.dispatchMouseEvent", { type: "mousePressed", x: before.start.x, y: before.start.y, button: "left", buttons: 1, clickCount: 1 });
-  const samples = [];
-  for (let step = 1; step <= 12; step += 1) {
-    const progress = step / 12;
-    const x = before.start.x + (before.target.x - before.start.x) * progress;
-    const y = before.start.y + (before.target.y - before.start.y) * progress;
-    await protocol.send("Input.dispatchMouseEvent", { type: "mouseMoved", x, y, button: "left", buttons: 1 });
-    const sampleResult = await protocol.send("Runtime.evaluate", {
-      expression: `(() => {
-        const board = document.querySelector("#home-board");
-        const preview = board.querySelector(".blocks-system-drop-preview");
-        const previewRect = preview.getBoundingClientRect();
-        return {
-          previewLeft: previewRect.left,
-          previewTop: previewRect.top,
-          direction: preview.getAttribute("data-drop-direction"),
-          state: preview.getAttribute("data-drop-state"),
-          borderStyle: getComputedStyle(preview).borderStyle,
-          arrow: getComputedStyle(preview, "::after").content,
-          geometry: Object.fromEntries(Array.from(board.querySelectorAll(":scope > .blocks-system-object:not(.is-dragging)")).map(function (block) {
-            const rect = block.getBoundingClientRect();
-            return [block.dataset.blockObject, [rect.left, rect.top]];
-          }))
-        };
-      })()`,
-      returnByValue: true
-    });
-    samples.push(sampleResult.result.value);
-  }
-  const landing = samples.at(-1);
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: before.target.x, y: before.target.y, button: "left", buttons: 0, clickCount: 1 });
-  const afterResult = await protocol.send("Runtime.evaluate", {
-    expression: `(async function () {
-      const board = document.querySelector("#home-board");
-      await new Promise(function (resolveFrame) { requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); }); });
-      const settling = Array.from(board.querySelectorAll(":scope > .blocks-system-object")).filter(function (block) {
-        return block.getAnimations().length > 0;
-      }).map(function (block) { return block.dataset.blockObject; });
-      await new Promise(function (resolveWait) { setTimeout(resolveWait, 180); });
-      const dragged = board.querySelector('[data-block-object="home-thesis"]');
-      const draggedRect = dragged.getBoundingClientRect();
-      const result = {
-        order: Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) { return block.dataset.blockObject; }),
-        draggedGeometry: [draggedRect.left, draggedRect.top],
-        geometry: Object.fromEntries(Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
-          const rect = block.getBoundingClientRect();
-          return [block.dataset.blockObject, [rect.left, rect.top]];
-        })),
-        settling,
-        reorder: window.__homePointerReorder,
-        clean: !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging") && !board.querySelector(".blocks-system-drop-preview")
-      };
-      document.querySelector("#home-reset").click();
-      await new Promise(function (resolveFrame) { requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); }); });
-      return result;
-    })()`,
-    awaitPromise: true,
-    returnByValue: true
-  });
-  return { before, samples, landing, ...afterResult.result.value };
-}
-
-async function exerciseHomeTrackpadScroll() {
-  const pointResult = await protocol.send("Runtime.evaluate", {
-    expression: `(() => {
-      window.scrollTo(0, 0);
-      const content = document.querySelector('[data-block-object="home-thesis"] .blocks-system-content');
-      const handle = document.querySelector('[data-block-object="home-thesis"] .blocks-system-menu');
-      const contentRect = content.getBoundingClientRect();
-      const handleRect = handle.getBoundingClientRect();
-      return {
-        content: { x: contentRect.left + contentRect.width / 2, y: contentRect.top + Math.min(contentRect.height / 2, 80) },
-        handle: { x: handleRect.left + handleRect.width / 2, y: handleRect.top + handleRect.height / 2 }
-      };
-    })()`,
-    returnByValue: true
-  });
-  const points = pointResult.result.value;
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: points.content.x, y: points.content.y });
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseWheel", x: points.content.x, y: points.content.y, deltaX: 0, deltaY: 320 });
-  const contentResult = await protocol.send("Runtime.evaluate", {
-    expression: `(async function () {
-      await new Promise(function (resolveWait) { setTimeout(resolveWait, 120); });
-      const content = document.querySelector('[data-block-object="home-thesis"] .blocks-system-content');
-      return { pageY: window.scrollY, contentY: content.scrollTop };
-    })()`,
-    awaitPromise: true,
-    returnByValue: true
-  });
-  await protocol.send("Runtime.evaluate", { expression: "window.scrollTo(0, 0)" });
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: points.handle.x, y: points.handle.y });
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseWheel", x: points.handle.x, y: points.handle.y, deltaX: 0, deltaY: 320 });
-  const handleResult = await protocol.send("Runtime.evaluate", {
-    expression: `(async function () {
-      await new Promise(function (resolveWait) { setTimeout(resolveWait, 120); });
-      return { pageY: window.scrollY };
-    })()`,
-    awaitPromise: true,
-    returnByValue: true
-  });
-  return { content: contentResult.result.value, handle: handleResult.result.value };
 }
 
 async function exerciseMobileNavigation() {
@@ -832,40 +640,45 @@ try {
   await protocol.send("Page.navigate", { url: pageUrl });
   await loaded;
 
-  const viewportMatrix = [[1440, 1000, 6], [1280, 900, 6], [1024, 900, 6], [800, 900, 3], [390, 844, 1], [320, 720, 1]];
+  const viewportMatrix = [
+    [1440, 1000, 6, 6],
+    [1280, 900, 6, 6],
+    [1024, 900, 6, 6],
+    [800, 900, 3, 3],
+    [390, 844, 3, 1],
+    [320, 720, 3, 1]
+  ];
   assertMainNavigation(await measureMainNavigation(), "home", "home");
-  const homeMeasurements = [];
-  for (const [width, height, columns] of viewportMatrix) {
+  for (const [width, height, homeColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
       const home = await measureHome(width, height, dpr);
-      homeMeasurements.push(home);
-      assert.equal(home.blockCount, 5, `home toont ${home.blockCount} in plaats van vijf directe blocks op ${width}px @${dpr}x`);
-      assert.equal(home.columnCount, columns, `home gebruikt ${home.columnCount} in plaats van ${columns} kolommen op ${width}px @${dpr}x`);
+      assert.equal(home.blockCount, 2, `home toont ${home.blockCount} in plaats van twee directe blocks op ${width}px @${dpr}x`);
+      assert.equal(home.columnCount, homeColumns, `home gebruikt ${home.columnCount} in plaats van ${homeColumns} kolommen op ${width}px @${dpr}x`);
       assert.equal(home.devicePixelRatio, dpr, `home test niet werkelijk op DPR ${dpr}`);
       assert.ok(home.horizontalOverflow <= 0.5, `home heeft ${home.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
-      assert.equal(home.backgroundImage, "none", `home tekent nog een achtergrondgrid op ${width}px @${dpr}x`);
-      assert.equal(home.quantized, "true", `home quantiseert het grid niet op ${width}px @${dpr}x`);
-      assert.ok(Number.isInteger(home.trackWidth) && home.trackWidth > 0, `home gebruikt geen hele trackbreedte op ${width}px @${dpr}x`);
+      assert.match(home.backgroundImage, /linear-gradient/, `home toont zijn constructieve raster niet op ${width}px @${dpr}x`);
       assert.equal(home.draggable, "true", `home start niet versleepbaar op ${width}px @${dpr}x`);
       assert.equal(home.nestedSurfaces, 0, `home bevat ${home.nestedSurfaces} geneste blocks-grids op ${width}px @${dpr}x`);
       assert.deepEqual(home.outsideBoard, [], `home plaatst blocks buiten het board op ${width}px @${dpr}x: ${home.outsideBoard.join(", ")}`);
-      assert.deepEqual(home.nonIntegerHorizontalGeometry, [], `home laat fractionele geometrie achter op ${width}px @${dpr}x: ${home.nonIntegerHorizontalGeometry.join(", ")}`);
       assert.deepEqual(home.clippedContent, [], `home knipt inhoud af op ${width}px @${dpr}x: ${home.clippedContent.join(", ")}`);
-      assert.ok(home.canvas.cssWidth > 0 && home.canvas.cssHeight > 0 && home.canvas.bitmapWidth > 0 && home.canvas.bitmapHeight > 0, `home canvas herschaalt niet op ${width}px @${dpr}x`);
-      assert.ok(Math.abs(home.canvas.bitmapWidth - Math.round(home.canvas.cssWidth * dpr)) <= 2, `home canvas gebruikt geen scherpe ${dpr}x bitmap op ${width}px: ${home.canvas.bitmapWidth} versus ${home.canvas.cssWidth * dpr}`);
+      assert.deepEqual(home.ids, ["home-title", "home-intro"], `home bewaart zijn korte leesvolgorde niet op ${width}px @${dpr}x`);
+      assert.equal(home.title.text.trim(), "Blocks. System.", `home verliest zijn canonieke titel op ${width}px @${dpr}x`);
+      assert.match(home.title.fontFamily, /Instrument Sans/, `home gebruikt Instrument Sans niet voor de hoofdboodschap op ${width}px @${dpr}x`);
+      assert.equal(home.title.whiteSpace, "nowrap", `home breekt de hoofdboodschap onverwacht op ${width}px @${dpr}x`);
+      assert.match(home.intro.text, /dependency-free esm/, `home benoemt de bibliotheek niet concreet op ${width}px @${dpr}x`);
+      assert.equal(home.intro.href, "docs/", `home verwijst niet rechtstreeks naar de manual op ${width}px @${dpr}x`);
     }
   }
-  assert.notEqual(homeMeasurements[0].canvas.cssWidth, homeMeasurements.at(-1).canvas.cssWidth, "home canvas reageert niet op viewportbreedte");
 
   await measureHome(1280, 900);
   const beforeHover = await hoverSignature();
   const documentNode = await protocol.send("DOM.getDocument");
-  const canvasNode = await protocol.send("DOM.querySelector", {
+  const titleNode = await protocol.send("DOM.querySelector", {
     nodeId: documentNode.root.nodeId,
-    selector: '[data-block-object="home-canvas"]'
+    selector: '[data-block-object="home-title"]'
   });
   await protocol.send("CSS.forcePseudoState", {
-    nodeId: canvasNode.nodeId,
+    nodeId: titleNode.nodeId,
     forcedPseudoClasses: ["hover"]
   });
   const afterHover = await hoverSignature();
@@ -879,72 +692,17 @@ try {
   assert.equal(afterHover.canvasVisual.boxShadow, beforeHover.canvasVisual.boxShadow, "hover mag geen onverwachte schaduw toevoegen");
   assert.equal(afterHover.canvasVisual.transform, beforeHover.canvasVisual.transform, "hover mag het block niet verplaatsen");
 
-  const homeInteraction = await exerciseHome();
-  assert.deepEqual(homeInteraction.before.explicitPositions, [], "home pint versleepbare blocks nog vast met block.place()");
-  assert.deepEqual(homeInteraction.before.order.slice(0, 2), ["home-thesis", "home-facts"], "home start niet in de bedoelde volgorde");
-  assert.equal(homeInteraction.preview.count, 1, "home toont tijdens drag niet exact één drop-preview");
-  assert.equal(homeInteraction.preview.borderStyle, "dashed", "home drop-preview gebruikt geen stippellijn");
-  assert.equal(homeInteraction.preview.draggedPosition, "fixed", "home drag laat het block niet los boven de gridflow volgen");
-  assert.notEqual(homeInteraction.preview.draggedGeometry[0], homeInteraction.before.geometry["home-thesis"][0], "home drag volgt de pointer horizontaal niet");
-  assert.deepEqual(homeInteraction.dragged.order, ["home-thesis", "home-principles", "home-facts", "home-canvas", "home-next"], "home drag herschikt de directe blocks niet in visuele rastervolgorde");
-  assert.notDeepEqual(homeInteraction.dragged.geometry["home-thesis"], homeInteraction.before.geometry["home-thesis"], "home drag verplaatst het gesleepte block niet zichtbaar");
-  assert.equal(homeInteraction.dragged.geometry["home-facts"][0], homeInteraction.before.geometry["home-facts"][0], "home drag bewaart de kolom van het verdrongen buurblock niet");
-  assert.ok(homeInteraction.dragged.geometry["home-facts"][1] > homeInteraction.before.geometry["home-facts"][1], "home drag duwt het overlappende buurblock niet neerwaarts");
-  assert.ok(Math.abs(homeInteraction.preview.geometry[0] - homeInteraction.dragged.geometry["home-thesis"][0]) <= 0.5 &&
-    Math.abs(homeInteraction.preview.geometry[1] - homeInteraction.dragged.geometry["home-thesis"][1]) <= 0.5,
-  "home block landt niet op de getoonde drop-preview");
-  assert.ok(homeInteraction.settling.length >= 2, "home laat de drop en het opschuiven niet samen magnetisch settelen");
-  assert.equal(homeInteraction.dragged.clean, true, "home drag laat een pointer/dragtoestand hangen");
-  assert.equal(homeInteraction.dragged.previewCount, 0, "home laat de drop-preview na pointerup staan");
-  assert.deepEqual(homeInteraction.reset.order, homeInteraction.before.order, "home reset herstelt de oorspronkelijke volgorde niet");
-  assert.deepEqual(homeInteraction.reset.geometry, homeInteraction.before.geometry, "home reset herstelt de oorspronkelijke blockposities niet");
-  assert.equal(homeInteraction.reset.previewCount, 0, "home reset laat een drop-preview achter");
-  assert.match(homeInteraction.status, /surface reset · drag on/, "home resetstatus is niet duidelijk");
-
-  const downwardInteraction = await exerciseHomeDownward();
-  const downwardPreviewTops = downwardInteraction.samples.map(function (sample) { return sample.previewTop; });
-  assert.ok(downwardPreviewTops.every(function (top, index) {
-    return index === 0 || top >= downwardPreviewTops[index - 1] - 0.5;
-  }), "home neerwaartse drag laat de magnetische preview terug omhoog jagen");
-  for (const sample of downwardInteraction.samples) {
-    for (const [id, geometry] of Object.entries(sample.geometry)) {
-      assert.deepEqual(geometry, downwardInteraction.before.geometry[id], `home verschuift ${id} al vóór de neerwaartse drop`);
-    }
-  }
-  assert.equal(downwardInteraction.landing.direction, "down", "home neerwaartse drag publiceert zijn richting niet op de preview");
-  assert.equal(downwardInteraction.landing.state, "push", "home neerwaartse drag markeert de bezette doelcel niet als verdringing");
-  assert.equal(downwardInteraction.landing.borderStyle, "solid", "home neerwaartse verdringing maakt het magneetveld niet sterker");
-  assert.equal(downwardInteraction.landing.arrow, '"↓"', "home neerwaartse verdringing mist haar richtingpijl");
-  assert.ok(downwardInteraction.order.indexOf("home-thesis") > downwardInteraction.before.order.indexOf("home-thesis"), "home neerwaartse drop herschikt niet naar een later slot");
-  assert.ok(Math.abs(downwardInteraction.landing.previewLeft - downwardInteraction.draggedGeometry[0]) <= 0.5 &&
-    Math.abs(downwardInteraction.landing.previewTop - downwardInteraction.draggedGeometry[1]) <= 0.5,
-  "home neerwaartse drop landt niet exact op zijn stabiele preview");
-  assert.ok(downwardInteraction.settling.length >= 2, "home neerwaartse drop settelt de cascade niet als één beweging");
-  assert.equal(downwardInteraction.geometry["home-principles"][0], downwardInteraction.before.geometry["home-principles"][0], "home neerwaartse cascade bewaart de kolom van het verdrongen block niet");
-  assert.ok(downwardInteraction.geometry["home-principles"][1] > downwardInteraction.before.geometry["home-principles"][1], "home neerwaartse cascade duwt het overlappende block niet omlaag");
-  assert.deepEqual(downwardInteraction.reorder, {
-    id: "home-thesis",
-    input: "pointer",
-    fromIndex: 0,
-    toIndex: 2,
-    direction: "down"
-  }, "home pointerdrop meldt zijn neerwaartse herschikking niet volledig");
-  assert.equal(downwardInteraction.clean, true, "home neerwaartse drag laat tijdelijke state hangen");
-  const homeTrackpadScroll = await exerciseHomeTrackpadScroll();
-  assert.ok(homeTrackpadScroll.content.pageY > 0, "home blokkeert trackpad-/wheelscroll van de pagina boven niet-scrollbare blockinhoud");
-  assert.equal(homeTrackpadScroll.content.contentY, 0, "home verschuift niet-scrollbare blockinhoud bij gewone paginascroll");
-  assert.ok(homeTrackpadScroll.handle.pageY > 0, "home blokkeert trackpad-/wheelscroll boven de dragheader wanneer er geen drag actief is");
-
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const manualMeasurements = [];
-  for (const [width, height, columns] of viewportMatrix) {
+  for (const [width, height, , documentColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
     manualMeasurements.push(manual);
-    assert.equal(manual.blockCount, 15, `manual mist directe blocks op ${width}px @${dpr}x`);
+    assert.equal(manual.blockCount, 13, `manual mist directe blocks op ${width}px @${dpr}x`);
+    assert.equal(manual.ids[0], "manual-start", `manual begint niet met de concrete start op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
-    assert.equal(manual.columnCount, columns, `manual gebruikt ${manual.columnCount} in plaats van ${columns} kolommen op ${width}px`);
+    assert.equal(manual.columnCount, documentColumns, `manual gebruikt ${manual.columnCount} in plaats van ${documentColumns} kolommen op ${width}px`);
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
     assert.deepEqual(manual.outsideBoard, [], `manual plaatst blocks buiten het board op ${width}px: ${manual.outsideBoard.join(", ")}`);
     assert.deepEqual(manual.clippedContent, [], `manual knipt inhoud af op ${width}px: ${manual.clippedContent.join(", ")}`);
@@ -959,15 +717,13 @@ try {
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
-    assert.deepEqual(manual.formBlocks.map(function (form) { return form.id; }), ["manual-cycle", "manual-rectangle", "manual-direction"], `manual verliest de vormvolgorde op ${width}px`);
+    assert.deepEqual(manual.formBlocks.map(function (form) { return form.id; }), ["state / circle", "content / rectangle", "direction / triangle"], `manual verliest de semantische vormvolgorde op ${width}px`);
     assert.deepEqual(manual.formBlocks.map(function (form) { return form.color; }), ["rgb(255, 0, 255)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual verliest magenta als enige vormaccent op ${width}px`);
     assert.equal(manual.scrollbarWidth, "thin", `manual gebruikt geen dunne OS-scrollbar op ${width}px`);
     assert.match(manual.scrollbarColor, /rgba\(17, 17, 17, 0\.58\)/, `manual gebruikt geen neutrale scrollbar op ${width}px`);
-    if (width > 560) {
-      assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockTop; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockTop; })) <= 0.5, `manual zet de drie vormen niet op één rij op ${width}px`);
-      assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockWidth; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockWidth; })) <= 0.5, `manual geeft de drie vormvelden geen gelijke breedte op ${width}px`);
-      assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.shapeCenterY; })) - Math.min(...manual.formBlocks.map(function (form) { return form.shapeCenterY; })) <= 0.5, `manual centreert de drie vormen niet op één optische lijn op ${width}px`);
-    }
+    assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockTop; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockTop; })) <= 0.5, `manual zet de drie vormen niet op één rij op ${width}px`);
+    assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockWidth; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockWidth; })) <= 0.5, `manual geeft de drie vormvelden geen gelijke breedte op ${width}px`);
+    assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.shapeCenterY; })) - Math.min(...manual.formBlocks.map(function (form) { return form.shapeCenterY; })) <= 0.5, `manual centreert de drie vormen niet op één optische lijn op ${width}px`);
     assert.ok(manual.pageScrollable && manual.documentHeight > height, `manual gebruikt geen natuurlijke paginascroll op ${width}px`);
     assert.notEqual(manual.boardOverflowY, "scroll", `manual maakt het volledige board scrollbaar op ${width}px`);
     assert.ok(manual.canvas.cssWidth > 0 && manual.canvas.cssHeight > 0 && manual.canvas.bitmapWidth > 0 && manual.canvas.bitmapHeight > 0, `manual canvas herschaalt niet op ${width}px`);
@@ -980,15 +736,17 @@ try {
   assert.notEqual(manualMeasurements[0].canvas.cssWidth, manualMeasurements.at(-1).canvas.cssWidth, "manual canvas reageert niet op viewportbreedte");
   await measureManual(1280, 720);
   const manualInteraction = await exerciseManual();
-  assert.notDeepEqual(manualInteraction.draggedGeometry["manual-cycle"], manualInteraction.beforeGeometry["manual-cycle"], "manual drag verplaatst het gesleepte block niet over het raster");
+  assert.notDeepEqual(manualInteraction.draggedGeometry["manual-start"], manualInteraction.beforeGeometry["manual-start"], "manual drag verplaatst het gesleepte block niet over het raster");
   assert.ok(manualInteraction.settling.length >= 2, "manual drag settelt de botsingscascade niet als één beweging");
   assert.equal(manualInteraction.dragCleanedUp, true, "manual drag laat een pointer/dragtoestand hangen");
   assert.equal(manualInteraction.locked, true, "manual layout lock schakelt dragging niet uit");
+  assert.deepEqual(manualInteraction.lockedHandleState, { tabIndex: -1, ariaLabel: null }, "manual verwijdert verplaatsbediening niet uit de tabvolgorde wanneer de layout op slot staat");
   assert.notDeepEqual(manualInteraction.keyboardGeometry.after, manualInteraction.keyboardGeometry.before, "manual pijltjestoetsen verplaatsen het gefocuste block niet over het raster");
   assert.equal(manualInteraction.keyboardPrevented, true, "manual keyboard drag laat de pagina meescrollen");
-  assert.match(manualInteraction.keyboardHandleLabel, /pijltjestoetsen/, "manual keyboard handle legt zijn bediening niet uit");
+  assert.match(manualInteraction.keyboardHandleLabel, /arrow keys/, "manual keyboard handle gebruikt niet de gedocumenteerde Engelse standaardtekst");
+  assert.deepEqual(Object.keys(manualInteraction.pointerReorder).sort(), ["direction", "from", "fromIndex", "id", "input", "key", "mode", "to", "toIndex"], "manual pointerdrop publiceert niet het stabiele reorder-contract");
   assert.ok(manualInteraction.mediaPauseCalls >= 1, "manual video pauzeert niet bij minimaliseren");
-  assert.equal(manualInteraction.resetOrder[0], "manual-cycle", "manual reset herstelt de oorspronkelijke volgorde niet");
+  assert.equal(manualInteraction.resetOrder[0], "manual-start", "manual reset herstelt de oorspronkelijke volgorde niet");
   assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
   assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");
 
@@ -1002,22 +760,31 @@ try {
 
   await navigateTo(`${pageUrl}docs/api.html`);
   assertMainNavigation(await measureMainNavigation(), "reference", "reference");
-  for (const [width, height, columns] of viewportMatrix) {
+  for (const [width, height, , documentColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
       const reference = await measureReference(width, height, dpr);
       assert.equal(reference.blockCount, 6, `reference mist directe blocks op ${width}px @${dpr}x`);
-      assert.equal(reference.columnCount, columns, `reference gebruikt ${reference.columnCount} in plaats van ${columns} kolommen op ${width}px @${dpr}x`);
+      assert.equal(reference.columnCount, documentColumns, `reference gebruikt ${reference.columnCount} in plaats van ${documentColumns} kolommen op ${width}px @${dpr}x`);
       assert.equal(reference.devicePixelRatio, dpr, `reference test niet werkelijk op DPR ${dpr}`);
       assert.ok(reference.horizontalOverflow <= 0.5, `reference heeft ${reference.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
       assert.equal(reference.boardBackgroundImage, "none", `reference tekent nog een achtergrondgrid op ${width}px @${dpr}x`);
       assert.equal(reference.quantized, "true", `reference quantiseert het grid niet op ${width}px @${dpr}x`);
       assert.ok(Number.isInteger(reference.trackWidth) && reference.trackWidth > 0, `reference gebruikt geen hele trackbreedte op ${width}px @${dpr}x`);
       assert.equal(reference.draggable, "false", `reference bewaart zijn leesvolgorde niet op ${width}px @${dpr}x`);
+      assert.deepEqual(reference.lockedHandleState, { tabIndex: -1, ariaLabel: null }, `reference zet een niet-werkende verplaatsheader in de tabvolgorde op ${width}px @${dpr}x`);
       assert.equal(reference.nestedSurfaces, 0, `reference bevat ${reference.nestedSurfaces} geneste grids op ${width}px @${dpr}x`);
       assert.deepEqual(reference.outsideBoard, [], `reference plaatst blocks buiten het board op ${width}px @${dpr}x: ${reference.outsideBoard.join(", ")}`);
       assert.deepEqual(reference.nonIntegerHorizontalGeometry, [], `reference laat fractionele geometrie achter op ${width}px @${dpr}x: ${reference.nonIntegerHorizontalGeometry.join(", ")}`);
       assert.deepEqual(reference.missingAnchors, [], `reference mist anchors op ${width}px @${dpr}x: ${reference.missingAnchors.join(", ")}`);
-      assert.ok(reference.overflowModes.every((mode) => mode === "auto"), `reference gebruikt geen lokale overflow op ${width}px @${dpr}x`);
+      assert.ok(reference.localOverflowModes.every((mode) => mode === "auto"), `reference code gebruikt geen lokale overflow op ${width}px @${dpr}x`);
+      if (width <= 560) {
+        assert.ok(reference.tableOverflowModes.every((mode) => mode === "visible"), `reference laat gestapelde tabellen niet natuurlijk groeien op ${width}px @${dpr}x`);
+        assert.equal(reference.table.rowDisplay, "grid", `reference stapelt tabelrijen niet op ${width}px @${dpr}x`);
+        assert.equal(reference.table.purposeFontSize, "13px", `reference maakt de inhoudshiërarchie niet leesbaar op ${width}px @${dpr}x`);
+      } else {
+        assert.ok(reference.tableOverflowModes.every((mode) => mode === "auto"), `reference bewaart geen lokale tabeloverflow op ${width}px @${dpr}x`);
+        assert.equal(reference.table.fontSize, "11px", `reference gebruikt niet de leesbare tabelmaat op ${width}px @${dpr}x`);
+      }
       assert.equal(reference.pageScrollable, true, `reference gebruikt geen natuurlijke paginascroll op ${width}px @${dpr}x`);
     }
   }

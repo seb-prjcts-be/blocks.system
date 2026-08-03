@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.2";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.3";
 import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.2";
 
 const board = document.querySelector("#manual-board");
@@ -28,39 +28,6 @@ function addBlock({ id, title, content, span = [1, 1], variant = "regular", mini
 }
 
 addBlock({
-  id: "manual-cycle",
-  title: "form / circle",
-  span: [2, 2],
-  content: nodeFromHtml(`
-    <div class="manual-form-stage" role="img" aria-label="Magenta circle: live state, cycle and interaction">
-      <div class="manual-circle" aria-hidden="true"></div>
-    </div>
-  `)
-});
-
-addBlock({
-  id: "manual-rectangle",
-  title: "form / rectangle",
-  span: [2, 2],
-  content: nodeFromHtml(`
-    <div class="manual-form-stage" role="img" aria-label="Black rectangle: information, code and content">
-      <div class="manual-rectangle" aria-hidden="true"></div>
-    </div>
-  `)
-});
-
-addBlock({
-  id: "manual-direction",
-  title: "form / triangle",
-  span: [2, 2],
-  content: nodeFromHtml(`
-    <div class="manual-form-stage" role="img" aria-label="Black triangle: direction, action and next step">
-      <div class="manual-triangle" aria-hidden="true"></div>
-    </div>
-  `)
-});
-
-addBlock({
   id: "manual-start",
   title: "01 / start",
   span: [3, 2],
@@ -85,6 +52,34 @@ blockHello.menu("hello", { close: true });
 blockHello.span(2, 1);
 blockHello.place(1, 1);
 &lt;/script&gt;</code></pre>`)
+});
+
+addBlock({
+  id: "manual-forms",
+  title: "form / state · content · direction",
+  span: [3, 2],
+  content: nodeFromHtml(`
+    <div class="manual-forms" role="group" aria-label="Visual language: state, content and direction">
+      <figure class="manual-form-item">
+        <div class="manual-form-stage" role="img" aria-label="Magenta circle: live state, cycle and interaction">
+          <div class="manual-circle" aria-hidden="true"></div>
+        </div>
+        <figcaption>state / circle</figcaption>
+      </figure>
+      <figure class="manual-form-item">
+        <div class="manual-form-stage" role="img" aria-label="Black rectangle: information, code and content">
+          <div class="manual-rectangle" aria-hidden="true"></div>
+        </div>
+        <figcaption>content / rectangle</figcaption>
+      </figure>
+      <figure class="manual-form-item">
+        <div class="manual-form-stage" role="img" aria-label="Black triangle: direction, action and next step">
+          <div class="manual-triangle" aria-hidden="true"></div>
+        </div>
+        <figcaption>direction / triangle</figcaption>
+      </figure>
+    </div>
+  `)
 });
 
 addBlock({

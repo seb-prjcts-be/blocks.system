@@ -19,6 +19,9 @@
     "block.content",
     "block.menu(name, options)",
     "block.minimized",
+    "block.span(x, y)",
+    "block.place(x, y)",
+    "block.flow()",
     "block.variant",
     "block.color",
     "block.remove()"
@@ -31,6 +34,8 @@
     "module examples alias the shared system to blocks and prefix returned controllers with block",
     "automatic variants stay monochrome while RGB/CMY variants require explicit selection",
     "minimized blocks keep their configured grid area reserved for conflict-free restore",
+    "accessible menu labels follow the document language and remain configurable",
+    "blocks:reorder always exposes the same detail keys for pointer and keyboard input",
     "base block CSS defines states and scrolling but contains no animation",
     "attach() always receives an explicit field"
   ]

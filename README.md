@@ -91,6 +91,11 @@ blocks.register({
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
 - One block: `menu`, `minimized`, `span`, `place`, `flow`, `variant`, `color`, `remove`.
 
+Accessible menu labels follow the document language (`nl` or English) and can
+be overridden with `createBlocksSystem({ labels: { move, minimize, restore,
+close } })`. A locked layout removes menu headers from the keyboard tab order;
+their minimize and close buttons remain available.
+
 Dragging by a block's menu bar is enabled by default. During pointer dragging,
 a magnetic preview marks the block's landing position while the other blocks
 stay still. With `snap = true`, a free cell stays dashed; an occupied downward
@@ -98,7 +103,9 @@ target becomes solid with a `↓`, and the colliding blocks keep their columns
 while settling downward together on drop. `flow()` returns a spatially moved
 block to CSS auto-flow. Focus the same header and use the arrow keys for the
 same grid movement without a pointer. The surface emits `blocks:reorder` after
-pointer and keyboard moves. Set `blocks.draggable = false` to lock the layout.
+pointer and keyboard moves with one stable detail shape: `id`, `input`, `mode`,
+`key`, indices, grid positions and direction. Set `blocks.draggable = false` to
+lock the layout.
 Trackpad and wheel input over ordinary block content continues scrolling the
 page; only genuinely overflowing inner content scrolls locally first.
 The measured mechanics and boundaries are recorded in
