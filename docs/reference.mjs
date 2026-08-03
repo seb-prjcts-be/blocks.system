@@ -12,7 +12,7 @@ quantizeSurface(board);
 
 function addReference({ id, title, anchor, span, content }) {
   const block = blocks.add(content, { id });
-  block.menu(title, { minimize: true });
+  block.menu(title, { minimize: true, close: true });
   block.span(...span);
   block.element.id = anchor;
   block.element.classList.add("reference-anchor");

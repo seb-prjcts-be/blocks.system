@@ -17,7 +17,7 @@ quantizeSurface(board);
 
 function addBlock({ id, title, content, span = [1, 1], variant = "regular", minimized = false, anchor = "" }) {
   const block = blocks.add(content, { id, variant, minimized });
-  block.menu(title, { minimize: true });
+  block.menu(title, { minimize: true, close: true });
   block.span(...span);
   if (anchor) {
     block.element.id = anchor;
@@ -342,6 +342,10 @@ lock.addEventListener("click", () => {
 });
 
 reset.addEventListener("click", () => {
+  if (controllers.some(({ block }) => !block.element.isConnected)) {
+    window.location.reload();
+    return;
+  }
   controllers.forEach(({ block }) => block.flow());
   initialOrder.forEach((element) => board.appendChild(element));
   blocks.setGrid(6, 24);
@@ -355,6 +359,9 @@ for (const eventName of ["pointerup", "pointercancel", "lostpointercapture"]) {
   board.addEventListener(eventName, () => requestAnimationFrame(() => updateStatus()));
 }
 board.addEventListener("blocks:reorder", () => updateStatus("keyboard reorder · drag on"));
+board.addEventListener("click", (event) => {
+  if (event.target.closest(".blocks-system-close")) requestAnimationFrame(() => updateStatus());
+});
 
 updateLock();
 updateStatus();
