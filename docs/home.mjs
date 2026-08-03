@@ -10,6 +10,7 @@ blocks.draggable = true;
 
 const title = blocks.add('<h1 class="home-title">blocks.system</h1>', { id: "home-title" });
 title.menu("blocks.system");
-title.place(3, 2);
+title.span(3, 3);
+title.place(2, 3);
 
 board.dataset.homeReady = "true";

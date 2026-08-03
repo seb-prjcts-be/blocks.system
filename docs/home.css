@@ -45,7 +45,7 @@
 
 .home-title {
   margin: 0;
-  font: 600 clamp(1.05rem, 2.2vw, 2.25rem)/0.82 "Instrument Sans", sans-serif;
+  font: 600 clamp(3rem, 8vw, 9.5rem)/0.76 "Instrument Sans", sans-serif;
   letter-spacing: -0.055em;
   text-transform: lowercase;
   white-space: nowrap;
@@ -54,5 +54,10 @@
 @media (max-width: 900px) {
   .home-board {
     --blocks-columns: 3 !important;
+  }
+
+  .home-board > [data-block-object="home-title"] {
+    --block-column: 1 !important;
+    --block-span-columns: 3 !important;
   }
 }
