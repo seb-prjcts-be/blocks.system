@@ -38,6 +38,8 @@ navigatielandmarks.
 
 - dragging staat standaard aan op home en manual;
 - de menuheader is pointer-, touch- en toetsenbordhandle;
+- tijdens pointerdrag volgt het block de pointer en toont een gestippelde
+  placeholder de toekomstige auto-flowpositie;
 - pijltoetsen herschikken DOM- en leesvolgorde en sturen `blocks:reorder`;
 - lock en reset zijn omkeerbaar;
 - de pagina scrollt natuurlijk; alleen code en referentielijsten scrollen
@@ -46,17 +48,17 @@ navigatielandmarks.
 - video pauzeert bij minimaliseren, verwijderen en page-exit;
 - smooth anchor scrolling respecteert reduced motion.
 
-Vrije-celcollision, ghosting en persistence zijn geen publieke belofte. De
-deterministische publieke laag blijft `block.place(x, y)` tot een even sterk
-keyboard- en collisioncontract bewezen is.
+Vrije-celcollision en persistence zijn geen publieke belofte. De gestippelde
+preview toont uitsluitend de toekomstige DOM-/auto-flowpositie; de
+deterministische vaste plaatsingslaag blijft `block.place(x, y)`.
 
 ## Geavanceerde CSS-hooks
 
 De publieke reference deelt bewust `.blocks-system-surface`,
 `.blocks-system-object`, `.blocks-system-menu`, `.blocks-system-content`,
-`[data-block-object]`, `[data-block-variant]`, `[data-block-minimized]` en
-`[data-draggable]`. Page-specifieke `.home-*`, `.manual-*` en `.reference-*`
-classes blijven interne compositiedetails.
+`.blocks-system-drop-preview`, `[data-block-object]`, `[data-block-variant]`,
+`[data-block-minimized]` en `[data-draggable]`. Page-specifieke `.home-*`,
+`.manual-*` en `.reference-*` classes blijven interne compositiedetails.
 
 De volledige meetbare acceptatie staat in `VISUAL-ACCEPTANCE.md`; inhoudelijk
 eigenaarschap en legacy aliases staan in `CONTENT-MANIFEST.md`.

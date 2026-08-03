@@ -193,11 +193,18 @@ export function createBlocksSystem(options = {}) {
         applyFontState();
     }
 
-    function stopDragging(pointerId) {
+    function stopDragging(pointerId, commit = false) {
         if (!dragState || (pointerId !== undefined && dragState.pointerId !== pointerId)) return;
         const current = dragState;
         dragState = null;
+        if (commit && current.preview.parentElement === surface) {
+            surface.insertBefore(current.shell, current.preview);
+        }
+        current.preview.remove();
         current.shell.classList.remove("is-dragging");
+        for (const property of ["--blocks-drag-left", "--blocks-drag-top", "--blocks-drag-width", "--blocks-drag-height"]) {
+            current.shell.style.removeProperty(property);
+        }
         if (surface) surface.removeAttribute("data-dragging");
         if (current.handle.hasPointerCapture?.(current.pointerId)) {
             current.handle.releasePointerCapture(current.pointerId);
@@ -213,7 +220,29 @@ export function createBlocksSystem(options = {}) {
         if (!handle || !shell || shell.parentElement !== surface) return;
 
         stopDragging();
-        dragState = { pointerId: event.pointerId, shell, handle };
+        const bounds = shell.getBoundingClientRect();
+        const computed = getComputedStyle(shell);
+        const preview = document.createElement("div");
+        preview.className = "blocks-system-drop-preview";
+        preview.setAttribute("aria-hidden", "true");
+        preview.style.setProperty("--block-span-columns", computed.getPropertyValue("--block-span-columns").trim() || "1");
+        preview.style.setProperty("--block-span-rows", computed.getPropertyValue("--block-span-rows").trim() || "1");
+        preview.style.width = `${bounds.width}px`;
+        preview.style.height = `${bounds.height}px`;
+        surface.insertBefore(preview, shell);
+
+        dragState = {
+            pointerId: event.pointerId,
+            shell,
+            handle,
+            preview,
+            offsetX: event.clientX - bounds.left,
+            offsetY: event.clientY - bounds.top
+        };
+        shell.style.setProperty("--blocks-drag-left", `${bounds.left}px`);
+        shell.style.setProperty("--blocks-drag-top", `${bounds.top}px`);
+        shell.style.setProperty("--blocks-drag-width", `${bounds.width}px`);
+        shell.style.setProperty("--blocks-drag-height", `${bounds.height}px`);
         shell.classList.add("is-dragging");
         surface.setAttribute("data-dragging", shell.getAttribute("data-block-object") || "");
         handle.setPointerCapture?.(event.pointerId);
@@ -223,26 +252,36 @@ export function createBlocksSystem(options = {}) {
     function moveDragging(event) {
         if (!dragState || dragState.pointerId !== event.pointerId || !surface) return;
         event.preventDefault();
+        dragState.shell.style.setProperty("--blocks-drag-left", `${event.clientX - dragState.offsetX}px`);
+        dragState.shell.style.setProperty("--blocks-drag-top", `${event.clientY - dragState.offsetY}px`);
+        const previewBounds = dragState.preview.getBoundingClientRect();
+        if (event.clientX >= previewBounds.left && event.clientX <= previewBounds.right &&
+            event.clientY >= previewBounds.top && event.clientY <= previewBounds.bottom) return;
         const pointedElement = document.elementFromPoint(event.clientX, event.clientY);
         const target = pointedElement?.closest?.(".blocks-system-object");
-        if (!target || target === dragState.shell || target.parentElement !== surface) return;
+        if (!target || target === dragState.shell || target.parentElement !== surface) {
+            if (pointedElement && surface.contains(pointedElement)) surface.appendChild(dragState.preview);
+            return;
+        }
 
         const bounds = target.getBoundingClientRect();
-        const neighbours = [target.previousElementSibling, target.nextElementSibling].filter(Boolean);
-        const horizontalFlow = neighbours.some((neighbour) => {
-            const neighbourBounds = neighbour.getBoundingClientRect();
-            return Math.abs(neighbourBounds.top - bounds.top) < Math.min(neighbourBounds.height, bounds.height) / 2;
-        });
+        const neighbours = [target.previousElementSibling, target.nextElementSibling]
+            .filter((neighbour) => neighbour?.matches?.(".blocks-system-object"));
+        const horizontalFlow = Math.abs(previewBounds.top - bounds.top) < Math.min(previewBounds.height, bounds.height) / 2 ||
+            neighbours.some((neighbour) => {
+                const neighbourBounds = neighbour.getBoundingClientRect();
+                return Math.abs(neighbourBounds.top - bounds.top) < Math.min(neighbourBounds.height, bounds.height) / 2;
+            });
         const beforeTarget = horizontalFlow
             ? event.clientX < bounds.left + bounds.width / 2
             : event.clientY < bounds.top + bounds.height / 2;
         const reference = beforeTarget ? target : target.nextElementSibling;
-        if (reference === dragState.shell || reference === dragState.shell.nextElementSibling) return;
-        surface.insertBefore(dragState.shell, reference);
+        if (reference === dragState.preview || reference === dragState.preview.nextElementSibling) return;
+        surface.insertBefore(dragState.preview, reference);
     }
 
     function finishDragging(event) {
-        stopDragging(event.pointerId);
+        stopDragging(event.pointerId, event.type === "pointerup");
     }
 
     function moveWithKeyboard(event) {

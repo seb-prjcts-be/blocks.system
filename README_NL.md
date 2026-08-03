@@ -93,8 +93,9 @@ blocks.register({
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
 - Eén block: `menu`, `minimized`, `span`, `place`, `variant`, `color`, `remove`.
 
-Verslepen via de menubalk van een block staat standaard aan. Focus diezelfde
-header en gebruik de pijltjestoetsen om zonder pointer te herschikken; na iedere
+Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen
+toont een gestippelde preview waar het block zal landen. Focus diezelfde header
+en gebruik de pijltjestoetsen om zonder pointer te herschikken; na iedere
 toetsverplaatsing vuurt de surface `blocks:reorder`. Zet
 `blocks.draggable = false` om de layout te vergrendelen.
 

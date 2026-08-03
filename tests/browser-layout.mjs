@@ -528,6 +528,23 @@ async function exerciseHome() {
       buttons: 1
     });
   }
+  const previewResult = await protocol.send("Runtime.evaluate", {
+    expression: `(() => {
+      const board = document.querySelector("#home-board");
+      const preview = board.querySelector(".blocks-system-drop-preview");
+      const dragged = board.querySelector(".blocks-system-object.is-dragging");
+      const previewRect = preview?.getBoundingClientRect();
+      const draggedRect = dragged?.getBoundingClientRect();
+      return {
+        count: board.querySelectorAll(".blocks-system-drop-preview").length,
+        borderStyle: preview ? getComputedStyle(preview).borderStyle : "",
+        geometry: previewRect ? [previewRect.left, previewRect.top, previewRect.width, previewRect.height] : null,
+        draggedPosition: dragged ? getComputedStyle(dragged).position : "",
+        draggedGeometry: draggedRect ? [draggedRect.left, draggedRect.top, draggedRect.width, draggedRect.height] : null
+      };
+    })()`,
+    returnByValue: true
+  });
   await protocol.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: before.target.x, y: before.target.y, button: "left", buttons: 0, clickCount: 1 });
 
   const afterResult = await protocol.send("Runtime.evaluate", {
@@ -540,7 +557,8 @@ async function exerciseHome() {
             const rect = block.getBoundingClientRect();
             return [block.dataset.blockObject, [rect.left, rect.top]];
           })),
-          clean: !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging")
+          clean: !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging"),
+          previewCount: board.querySelectorAll(".blocks-system-drop-preview").length
         };
       };
       await new Promise(function (resolveFrame) { requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); }); });
@@ -552,7 +570,7 @@ async function exerciseHome() {
     awaitPromise: true,
     returnByValue: true
   });
-  return { before, ...afterResult.result.value };
+  return { before, preview: previewResult.result.value, ...afterResult.result.value };
 }
 
 async function exerciseMobileNavigation() {
@@ -708,12 +726,21 @@ try {
   const homeInteraction = await exerciseHome();
   assert.deepEqual(homeInteraction.before.explicitPositions, [], "home pint versleepbare blocks nog vast met block.place()");
   assert.deepEqual(homeInteraction.before.order.slice(0, 2), ["home-thesis", "home-facts"], "home start niet in de bedoelde volgorde");
+  assert.equal(homeInteraction.preview.count, 1, "home toont tijdens drag niet exact één drop-preview");
+  assert.equal(homeInteraction.preview.borderStyle, "dashed", "home drop-preview gebruikt geen stippellijn");
+  assert.equal(homeInteraction.preview.draggedPosition, "fixed", "home drag laat het block niet los boven de gridflow volgen");
+  assert.notEqual(homeInteraction.preview.draggedGeometry[0], homeInteraction.before.geometry["home-thesis"][0], "home drag volgt de pointer horizontaal niet");
   assert.deepEqual(homeInteraction.dragged.order.slice(0, 2), ["home-facts", "home-thesis"], "home drag herschikt de directe blocks niet");
   assert.notDeepEqual(homeInteraction.dragged.geometry["home-thesis"], homeInteraction.before.geometry["home-thesis"], "home drag verplaatst het gesleepte block niet zichtbaar");
   assert.notDeepEqual(homeInteraction.dragged.geometry["home-facts"], homeInteraction.before.geometry["home-facts"], "home drag schuift het buurblock niet zichtbaar op");
+  assert.ok(Math.abs(homeInteraction.preview.geometry[0] - homeInteraction.dragged.geometry["home-thesis"][0]) <= 0.5 &&
+    Math.abs(homeInteraction.preview.geometry[1] - homeInteraction.dragged.geometry["home-thesis"][1]) <= 0.5,
+  "home block landt niet op de getoonde drop-preview");
   assert.equal(homeInteraction.dragged.clean, true, "home drag laat een pointer/dragtoestand hangen");
+  assert.equal(homeInteraction.dragged.previewCount, 0, "home laat de drop-preview na pointerup staan");
   assert.deepEqual(homeInteraction.reset.order, homeInteraction.before.order, "home reset herstelt de oorspronkelijke volgorde niet");
   assert.deepEqual(homeInteraction.reset.geometry, homeInteraction.before.geometry, "home reset herstelt de oorspronkelijke blockposities niet");
+  assert.equal(homeInteraction.reset.previewCount, 0, "home reset laat een drop-preview achter");
   assert.match(homeInteraction.status, /surface reset · drag on/, "home resetstatus is niet duidelijk");
 
   await navigateTo(`${pageUrl}docs/`);

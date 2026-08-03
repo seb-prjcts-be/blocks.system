@@ -55,8 +55,26 @@
 }
 
 .blocks-system-object.is-dragging {
-    z-index: 1;
-    opacity: 0.55;
+    position: fixed;
+    left: var(--blocks-drag-left);
+    top: var(--blocks-drag-top);
+    z-index: 1000;
+    width: var(--blocks-drag-width);
+    height: var(--blocks-drag-height);
+    opacity: 0.92;
+    pointer-events: none;
+    box-shadow: 4px 5px 0 rgb(0 0 0 / 16%);
+}
+
+.blocks-system-drop-preview {
+    box-sizing: border-box;
+    grid-column: auto / span var(--block-span-columns, 1);
+    grid-row: auto / span var(--block-span-rows, 1);
+    flex: 0 0 auto;
+    min-width: 0;
+    min-height: 0;
+    border: 1px dashed var(--blocks-ink-color);
+    background: transparent;
     pointer-events: none;
 }
 
