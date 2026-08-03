@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs";
-import { initSectionNavigation, nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.0";
+import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.1";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");
@@ -356,5 +356,4 @@ board.addEventListener("blocks:reorder", () => updateStatus("keyboard reorder ·
 
 updateLock();
 updateStatus();
-initSectionNavigation();
 board.dataset.manualReady = "true";

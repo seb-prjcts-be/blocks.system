@@ -325,6 +325,35 @@ async function measureManual(width, height, dpr = 1) {
   return result.result.value;
 }
 
+async function measureManualSectionState(width, height, anchor) {
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width,
+    height,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await navigateTo(`${pageUrl}docs/?section-test=${encodeURIComponent(anchor)}-${width}#${anchor}`);
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      await new Promise(function (resolveDelay) { setTimeout(resolveDelay, 300); });
+      const target = document.getElementById(${JSON.stringify(anchor)});
+      return {
+        hash: location.hash,
+        active: document.querySelector('[data-section-navigation] a[aria-current="location"]')?.getAttribute("href") || null,
+        currentCount: document.querySelectorAll('[data-section-navigation] a[aria-current="location"]').length,
+        targetTop: target.getBoundingClientRect().top,
+        navbarBottom: document.querySelector("#navbar").getBoundingClientRect().bottom
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
 async function measureReference(width, height, dpr = 1) {
   await protocol.send("Emulation.setDeviceMetricsOverride", {
     width,
@@ -457,6 +486,74 @@ async function exerciseManual() {
     returnByValue: true
   });
   return result.result.value;
+}
+
+async function exerciseMobileNavigation() {
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width: 390,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await navigateTo(`${pageUrl}docs/`);
+  const mobileResult = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      const navbar = document.querySelector("#navbar");
+      const toggle = navbar.querySelector(".nav-hamburger");
+      const navigation = navbar.querySelector(".nav-links");
+      const state = function () {
+        return {
+          open: navbar.classList.contains("nav-open"),
+          expanded: toggle.getAttribute("aria-expanded"),
+          label: toggle.getAttribute("aria-label")
+        };
+      };
+
+      toggle.click();
+      const opened = state();
+      const controlsTarget = document.getElementById(toggle.getAttribute("aria-controls")) === navigation;
+
+      document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+      const escaped = { ...state(), focusReturned: document.activeElement === toggle };
+
+      toggle.click();
+      document.querySelector(".manual-main").dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      const outside = state();
+
+      toggle.click();
+      return { opened, controlsTarget, escaped, outside, beforeResize: state() };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width: 1280,
+    height: 844,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  const desktopResult = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
+      const navbar = document.querySelector("#navbar");
+      const toggle = navbar.querySelector(".nav-hamburger");
+      return {
+        open: navbar.classList.contains("nav-open"),
+        expanded: toggle.getAttribute("aria-expanded"),
+        label: toggle.getAttribute("aria-label")
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+
+  return { ...mobileResult.result.value, afterResize: desktopResult.result.value };
 }
 
 try {
@@ -595,6 +692,41 @@ try {
   assert.equal(manualInteraction.resetOrder[0], "manual-cycle", "manual reset herstelt de oorspronkelijke volgorde niet");
   assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
   assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");
+
+  const sectionAnchors = ["start", "compose", "arrange", "connect", "examples", "reference", "boundary"];
+  for (const [width, height] of [[1280, 720], [390, 844]]) {
+    for (const anchor of sectionAnchors) {
+      const state = await measureManualSectionState(width, height, anchor);
+      assert.equal(state.hash, `#${anchor}`, `manual bewaart #${anchor} niet in de URL op ${width}px`);
+      assert.equal(state.active, `#${anchor}`, `manual markeert ${state.active} in plaats van #${anchor} op ${width}px`);
+      assert.equal(state.currentCount, 1, `manual markeert niet exact één hashlocatie voor #${anchor} op ${width}px`);
+      assert.ok(state.targetTop >= state.navbarBottom - 0.5, `manual verbergt #${anchor} achter de vaste navigatie op ${width}px`);
+    }
+  }
+
+  await measureManualSectionState(1280, 720, "reference");
+  const scrolledHashState = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" });
+      await new Promise(function (resolveDelay) { setTimeout(resolveDelay, 300); });
+      return {
+        hash: location.hash,
+        active: document.querySelector('[data-section-navigation] a[aria-current="location"]')?.getAttribute("href") || null
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  assert.equal(scrolledHashState.result.value.hash, "#reference", "natuurlijke scroll mag de expliciete manualhash niet herschrijven");
+  assert.equal(scrolledHashState.result.value.active, "#reference", "natuurlijke scroll mag de expliciete manualstatus niet overschrijven");
+
+  const mobileNavigation = await exerciseMobileNavigation();
+  assert.deepEqual(mobileNavigation.opened, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie publiceert haar open toestand niet volledig");
+  assert.equal(mobileNavigation.controlsTarget, true, "mobiele navigatie koppelt de hamburger niet aan het bediende menu");
+  assert.deepEqual(mobileNavigation.escaped, { open: false, expanded: "false", label: "open navigation", focusReturned: true }, "Escape sluit de mobiele navigatie niet met herstelde focus");
+  assert.deepEqual(mobileNavigation.outside, { open: false, expanded: "false", label: "open navigation" }, "een buitenklik sluit de mobiele navigatie niet");
+  assert.deepEqual(mobileNavigation.beforeResize, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie staat niet open vóór de breakpointtest");
+  assert.deepEqual(mobileNavigation.afterResize, { open: false, expanded: "false", label: "open navigation" }, "desktopresize ruimt de mobiele navigatiestate niet op");
 
   await navigateTo(`${pageUrl}docs/api.html`);
   for (const [width, height, columns] of viewportMatrix) {

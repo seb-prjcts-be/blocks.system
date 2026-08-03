@@ -13,8 +13,8 @@
 <body class="home-page">
   <nav id="navbar" aria-label="main navigation">
     <a class="nav-logo active" href="index.html" aria-current="page">blocks.system</a>
-    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false"><span></span><span></span><span></span></button>
-    <ul class="nav-links">
+    <button class="nav-hamburger" type="button" aria-label="open navigation" aria-expanded="false" aria-controls="primary-navigation"><span></span><span></span><span></span></button>
+    <ul id="primary-navigation" class="nav-links">
       <li><a class="active" href="index.html" aria-current="page">home</a></li>
       <li><a href="docs/">manual</a></li>
       <li><a href="docs/api.html">reference</a></li>
@@ -45,7 +45,7 @@
     <span><a href="docs/#start">open manual</a> · <a href="docs/api.html">reference</a></span>
   </footer>
 
-  <script type="module" src="docs/shell.mjs?v=0.1.0"></script>
+  <script type="module" src="docs/shell.mjs?v=0.1.1"></script>
   <script type="module" src="docs/home.mjs?v=0.1.0"></script>
 </body>
 </html>

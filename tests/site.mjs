@@ -207,6 +207,17 @@ assert.match(siteDemos["docs/manual.mjs"], /new MutationObserver\([\s\S]*blockMe
 assert.match(siteDemos["docs/manual.mjs"], /addEventListener\("pagehide", pauseMedia\)/, "manual video must pause when the document exits");
 assert.match(siteDemos["docs/shell.mjs"], /\[data-section-navigation\]/, "the one main navigation must own section tracking");
 assert.match(siteDemos["docs/shell.mjs"], /aria-current", "location"/, "manual anchors must expose their active location");
+assert.match(siteDemos["docs/shell.mjs"], /link\.hash === hash/, "manual anchor state must follow the explicit URL hash");
+assert.doesNotMatch(siteDemos["docs/shell.mjs"], /IntersectionObserver/, "the two-dimensional manual must not infer one active chapter from vertical scroll");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /initSectionNavigation/, "the manual must not initialize shared navigation a second time");
+assert.equal((siteDemos["docs/shell.mjs"].match(/^initSectionNavigation\(\);$/gm) || []).length, 1, "the shared shell must initialize section navigation exactly once");
+for (const [page, html] of [["home", homeHtml], ["manual", manualHtml], ["reference", apiHtml]]) {
+  assert.match(html, /class="nav-hamburger"[^>]*aria-controls="primary-navigation"/, `${page} hamburger must identify the controlled navigation`);
+  assert.match(html, /id="primary-navigation" class="nav-links"/, `${page} navigation must expose the controlled id`);
+}
+assert.match(siteDemos["docs/shell.mjs"], /function setNavigationOpen\(open/, "the shared shell must own one mobile navigation state setter");
+assert.match(siteDemos["docs/shell.mjs"], /event\.key !== "Escape"/, "mobile navigation must close with Escape");
+assert.match(siteDemos["docs/shell.mjs"], /mobileNavigation\.addEventListener\("change"/, "mobile navigation must reset when its breakpoint changes");
 assert.match(siteCss, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*scroll-behavior:\s*auto/, "smooth anchor scrolling must respect reduced motion");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createBlocksSystem\([\s\S]*createBlocksSystem\(/, "the experimental manual must not create a nested blocks system");
 const manualFormPositions = [
