@@ -14,24 +14,28 @@ addressable HTML, SVG, canvas, custom elements and adapter-driven content.
 <div id="blocks-field"></div>
 
 <script type="module">
-  import { system as blocks } from "./blocks.system.mjs";
+  import { createBlocksSystem } from "./blocks.system.mjs";
+
+  const blocks = createBlocksSystem({
+    snap: true,
+    blockDefaults: { menu: { close: true } }
+  });
 
   blocks.attach("#blocks-field");
   blocks.setGrid(4, 2);
-  blocks.snap = true;
-  blocks.draggable = true;
 
   const blockHello = blocks.add("<p>hello</p>", {
-    id: "block-hello"
+    id: "block-hello",
+    title: "hello"
   });
-  blockHello.menu("hello", { close: true });
   blockHello.span(2, 1);
   blockHello.place(1, 1);
 </script>
 ```
 
-Naming is deliberate: `blocks` is the shared system; every returned controller
-starts with `block`. The browser-global equivalent is `window.blocks.system`.
+Naming is deliberate: `blocks` is the configured system; every returned
+controller starts with `block`. For zero-config use, the module also exports the
+shared `system` and exposes it as `window.blocks.system`.
 
 ## Middle
 
@@ -44,9 +48,9 @@ minimized state and removal:
 
 ```js
 const blockCanvas = blocks.add(document.createElement("canvas"), {
-  id: "block-canvas"
+  id: "block-canvas",
+  title: "canvas"
 });
-blockCanvas.menu("canvas", { close: true, minimize: true });
 blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
 blockCanvas.variant = "magenta";
@@ -85,6 +89,7 @@ blocks.register({
 
 ## API map
 
+- Creation: `createBlocksSystem({ snap, draggable, variant, blockDefaults })`.
 - Shared system: `attach`, `setGrid`, `snap`, `draggable`, `font`, `variant`,
   `variants`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
@@ -95,6 +100,10 @@ Accessible menu labels follow the document language (`nl` or English) and can
 be overridden with `createBlocksSystem({ labels: { move, minimize, restore,
 close } })`. A locked layout removes menu headers from the keyboard tab order;
 their minimize and close buttons remain available.
+
+`blockDefaults.menu` applies the same menu controls to every new block. Give
+each block its own `title`; use `menu: false` or a local `menu` object in
+`add()` for an exception.
 
 Dragging by a block's menu bar is enabled by default. During pointer dragging,
 a magnetic preview marks the block's landing position while the other blocks

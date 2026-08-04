@@ -41,7 +41,7 @@ for (const page of pages) {
 
 const readme = await readFile(resolve(root, "README.md"), "utf8");
 const readmeNl = await readFile(resolve(root, "README_NL.md"), "utf8");
-for (const apiName of ["attach", "setGrid", "snap", "draggable", "variant", "variants", "add", "registerAdapter", "menu", "span", "place", "flow", "minimized", "color"]) {
+for (const apiName of ["createBlocksSystem", "blockDefaults", "attach", "setGrid", "snap", "draggable", "variant", "variants", "add", "registerAdapter", "menu", "span", "place", "flow", "minimized", "color"]) {
   assert.ok(readme.includes(apiName), `README.md misses ${apiName}`);
   assert.ok(readmeNl.includes(apiName), `README_NL.md misses ${apiName}`);
 }
@@ -49,8 +49,8 @@ for (const apiName of ["attach", "setGrid", "snap", "draggable", "variant", "var
 for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]]) {
   assert.doesNotMatch(content, /const\s+(?!block)[A-Za-z_$][\w$]*\s*=\s*blocks(?:\.system)?\.add\(/, `${file} must prefix returned controllers with block`);
 }
-assert.match(readme, /import \{ system as blocks \}/, "README.md must alias the shared system to blocks");
-assert.match(readmeNl, /import \{ system as blocks \}/, "README_NL.md must alias the shared system to blocks");
+assert.match(readme, /import \{ createBlocksSystem \}/, "README.md must show creation-time defaults");
+assert.match(readmeNl, /import \{ createBlocksSystem \}/, "README_NL.md must show creation-time defaults");
 
 const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
 const docsContent = JSON.parse(await readFile(resolve(root, "docs", "content.json"), "utf8"));
@@ -90,7 +90,8 @@ const siteDemos = Object.fromEntries(await Promise.all(siteDemoFiles.map(async f
   return [file, await readFile(resolve(root, file), "utf8")];
 })));
 for (const file of ["examples/basic-grid/demo.mjs", "examples/mixed-content/demo.mjs", "examples/custom-adapter/demo.mjs"]) {
-  assert.match(siteDemos[file], /import \{ system as blocks \}/, `${file} must alias the shared system to blocks`);
+  assert.match(siteDemos[file], /import \{ createBlocksSystem \}/, `${file} must import the configurable system factory`);
+  assert.match(siteDemos[file], /const blocks = createBlocksSystem\(/, `${file} must name its configured system blocks`);
   assert.doesNotMatch(siteDemos[file], /const\s+[A-Za-z_$][\w$]*Block\s*=/, `${file} must use block as a prefix, not a suffix`);
 }
 const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileTypes: true }))
@@ -156,7 +157,7 @@ assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must 
 assert.ok(["attach", "setGrid", "snap", "draggable", "variant", "variants", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose the TypeScript declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "the published file list must include the TypeScript declarations");
-for (const declaration of ["BlocksSystem", "BlockController", "BlocksLabels", "BlocksReorderDetail", "createBlocksSystem"]) {
+for (const declaration of ["BlocksSystem", "BlockController", "BlockDefaults", "BlocksLabels", "BlocksReorderDetail", "createBlocksSystem"]) {
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);
 }
 
@@ -171,7 +172,8 @@ assert.doesNotMatch(homeHtml + manualHtml + apiHtml, /board\.mjs|system\.mjs|exa
 assert.equal((siteDemos["docs/home.mjs"].match(/blocks\.add\(/g) || []).length, 2, "home must contain only the title and one functional start block");
 assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "home must use one shared blocks system");
 assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must preserve deliberate empty cells in a six-column field");
-assert.match(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must be draggable by default");
+assert.match(siteDemos["docs/home.mjs"], /snap:\s*true/, "home must configure snap once when its system is created");
+assert.doesNotMatch(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must rely on the library's draggable default");
 assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-intro/, "home must lead from identity to one concise action");
 assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*intro\.place\(5, 7\)/, "home must preserve its deliberate asymmetric anchors");
 assert.match(siteCss, /\.home-board\s*\{[^}]*background-image\s*:[^}]*linear-gradient/s, "home must expose the grid because the system itself is the subject");
@@ -242,7 +244,8 @@ for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.ok(JSON.stringify(docsContent.manual).includes(`../examples/${example}/demo.mjs`), `the manual content misses the ${example} module download`);
 }
 assert.match(JSON.stringify(docsContent.manual), /textContent/, "the manual content must preserve the untrusted-text safety note");
-assert.match(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;/, "the experimental manual must start with dragging enabled");
+assert.match(siteDemos["docs/manual.mjs"], /blockDefaults:\s*\{[\s\S]*menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the manual must configure its shared block menu once");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;[\s\S]*quantizeSurface/, "the manual must not repeat the library's initial draggable default");
 assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "the experimental manual must demonstrate responsive runtime content");
 assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");
 assert.match(siteDemos["docs/shell.mjs"], /Math\.floor\(\(available - borders - gap \* \(columns - 1\)\) \/ columns\)/, "the docs shell must quantize tracks to whole CSS pixels");
@@ -337,7 +340,7 @@ assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keep
 const serializedReferenceContent = JSON.stringify(docsContent.reference);
 assert.doesNotMatch(siteDemos["docs/reference.mjs"], /Create an independent system|stable detail: id, input, mode/, "the reference module must not duplicate extracted prose");
 assert.equal((siteDemos["docs/reference.mjs"].match(/const blocks = createBlocksSystem\(/g) || []).length, 1, "the reference must use one shared blocks system");
-assert.match(siteDemos["docs/reference.mjs"], /blocks\.draggable = false;/, "the lookup reference must preserve its canonical reading order");
+assert.match(siteDemos["docs/reference.mjs"], /draggable:\s*false/, "the lookup reference must configure its canonical reading order at creation");
 assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the reference must use the shared whole-pixel geometry");
 for (const anchor of ["shared-system", "block-controller", "adapters", "definition", "css-hooks", "errors"]) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);

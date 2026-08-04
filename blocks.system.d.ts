@@ -49,6 +49,8 @@ export interface RegisterOptions {
 
 export interface AddBlockOptions {
   id?: string;
+  title?: string;
+  menu?: boolean | BlockMenuOptions;
   variant?: string;
   minimized?: boolean;
 }
@@ -56,6 +58,10 @@ export interface AddBlockOptions {
 export interface BlockMenuOptions {
   close?: boolean;
   minimize?: boolean;
+}
+
+export interface BlockDefaults {
+  menu?: boolean | BlockMenuOptions;
 }
 
 export interface BlockController {
@@ -92,9 +98,12 @@ export interface BlocksReorderDetail {
 export interface BlocksSystemOptions {
   catalogUrl?: string | URL;
   random?: () => number;
+  snap?: boolean;
+  draggable?: boolean;
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
   variant?: string;
+  blockDefaults?: BlockDefaults;
   blocks?: BlockDefinition[];
 }
 

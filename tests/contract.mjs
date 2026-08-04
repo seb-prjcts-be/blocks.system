@@ -28,7 +28,7 @@ assert.deepEqual(singleton.labels, {
 
 const minUrl = pathToFileURL(minPath);
 minUrl.searchParams.set("parity", Date.now());
-const { system: minSingleton } = await import(minUrl.href);
+const { createBlocksSystem: createMinBlocksSystem, system: minSingleton } = await import(minUrl.href);
 assert.deepEqual(Object.keys(minSingleton).sort(), Object.keys(singleton).sort(), "source and minified API must match");
 assert.ok(minified.length < source.length, "the minified module must be smaller than the source");
 
@@ -131,6 +131,62 @@ globalThis.document = {
   querySelector() { return null; }
 };
 
+const configured = createBlocksSystem({
+  snap: true,
+  draggable: false,
+  variant: "regular",
+  blockDefaults: {
+    menu: { close: true, minimize: true }
+  }
+});
+assert.equal(configured.snap, true, "snap must be configurable when a system is created");
+assert.equal(configured.draggable, false, "dragging must be configurable when a system is created");
+const configuredField = new TestElement();
+configured.attach(configuredField);
+const defaultMenuBlock = configured.add("<p>default menu</p>", {
+  id: "default-menu",
+  title: "default menu"
+});
+assert.equal(defaultMenuBlock.element.children[0].children[0].textContent, "default menu", "an automatic menu must use the block title");
+assert.equal(defaultMenuBlock.element.children[0].children[1].children.length, 2, "blockDefaults.menu must apply shared minimize and close controls");
+assert.equal(defaultMenuBlock.element.children[0].tabIndex, -1, "an initially locked system must keep automatic menus outside the tab order");
+const overriddenMenuBlock = configured.add("<p>overridden menu</p>", {
+  id: "overridden-menu",
+  title: "overridden menu",
+  menu: { minimize: false }
+});
+assert.equal(overriddenMenuBlock.element.children[0].children[1].children.length, 1, "a local menu override must inherit close while disabling minimize");
+const menuFreeBlock = configured.add("<p>no menu</p>", {
+  id: "no-menu",
+  menu: false
+});
+assert.equal(menuFreeBlock.element.children.length, 1, "menu: false must disable an inherited automatic menu");
+const configuredChildren = configuredField.children.length;
+assert.throws(function () {
+  configured.add("<p>invalid menu</p>", { id: "invalid-menu", menu: "yes" });
+}, /add\(\).*menu/, "invalid local menu defaults must fail at the add boundary");
+assert.equal(configuredField.children.length, configuredChildren, "invalid menu settings must not append a partial block");
+assert.throws(function () {
+  createBlocksSystem({ blockDefaults: "menu" });
+}, /blockDefaults/, "blockDefaults must be an object");
+assert.throws(function () {
+  createBlocksSystem({ blockDefaults: { menu: "yes" } });
+}, /blockDefaults\.menu/, "blockDefaults.menu must be boolean or an options object");
+const minConfigured = createMinBlocksSystem({
+  snap: true,
+  draggable: false,
+  blockDefaults: { menu: { close: true } }
+});
+const minConfiguredField = new TestElement();
+minConfigured.attach(minConfiguredField);
+const minDefaultMenuBlock = minConfigured.add("<p>min default menu</p>", {
+  id: "min-default-menu",
+  title: "min default menu"
+});
+assert.equal(minConfigured.snap, configured.snap, "source and minified creation-time snap must match");
+assert.equal(minConfigured.draggable, configured.draggable, "source and minified creation-time dragging must match");
+assert.equal(minDefaultMenuBlock.element.children[0].children[1].children.length, 2, "source and minified block menu defaults must match");
+
 const adapterHost = new TestElement();
 const mountedNode = await local.mount("plain-html", adapterHost, { value: "ready" });
 assert.equal(mountedNode.getAttribute("data-value"), "ready", "mount must pass overrides to the registered adapter");
@@ -157,6 +213,7 @@ local.font = null;
 assert.equal(field.style.getPropertyValue("--blocks-font-family"), "", "resetting font must restore the CSS default");
 local.setGrid(4, 4);
 const object = local.add("<p>span</p>", { id: "span-test" });
+assert.equal(object.element.children.length, 1, "blocks without blockDefaults must not gain an automatic menu");
 assert.equal(object.minimized, false, "blocks must start restored unless configured otherwise");
 assert.equal(object.variant, "inverse", "an unspecified block must receive a stable random monochrome variant");
 assert.equal(object.element.getAttribute("data-block-variant"), "inverse", "the resolved variant must be exposed to CSS");

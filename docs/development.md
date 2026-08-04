@@ -72,6 +72,8 @@ library-API.
   gebruiken magenta naast zwart, warm papier en veldgrijs.
 - Paginaspecifieke compositie, kwantisering en mediagedrag blijven buiten de
   librarycore.
+- Gedeelde beginstate en menuknoppen worden éénmaal bij `createBlocksSystem()`
+  ingesteld; ids, titels en afwijkende layout blijven eigendom van ieder block.
 - Bewaar een regel hier alleen wanneer de reden niet betrouwbaar uit broncode,
   tests of gitgeschiedenis terug te vinden is.
 

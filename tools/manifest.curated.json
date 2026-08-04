@@ -31,7 +31,7 @@
     "the core has no renderer-specific knowledge",
     "system properties live under blocks.system",
     "individual properties live under block",
-    "module examples alias the shared system to blocks and prefix returned controllers with block",
+    "module examples name each configured system blocks and prefix returned controllers with block",
     "automatic variants stay monochrome while RGB/CMY variants require explicit selection",
     "minimized blocks keep their configured grid area reserved for conflict-free restore",
     "accessible menu labels follow the document language and remain configurable",

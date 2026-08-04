@@ -1,14 +1,18 @@
-import { system as blocks } from "../../blocks.system.mjs?v=0.1.3";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.4";
 
 const accent = [255, 0, 255];
+const blocks = createBlocksSystem({
+  snap: true,
+  blockDefaults: { menu: { close: true } }
+});
 
 blocks.attach("#field");
 blocks.setGrid(3, 2);
-blocks.snap = true;
-blocks.draggable = true;
 
-const blockHtml = blocks.add("<div class=\"center\"><strong>html</strong><small>trusted string</small></div>", { id: "html" });
-blockHtml.menu("html", true);
+blocks.add("<div class=\"center\"><strong>html</strong><small>trusted string</small></div>", {
+  id: "html",
+  title: "html"
+});
 
 const blockCanvasNode = document.createElement("canvas");
 blockCanvasNode.width = 300;
@@ -25,8 +29,7 @@ for (let x = 0; x <= blockCanvasNode.width; x += 3) {
   else context.lineTo(x, y);
 }
 context.stroke();
-const blockCanvas = blocks.add(blockCanvasNode, { id: "canvas" });
-blockCanvas.menu("canvas", true);
+blocks.add(blockCanvasNode, { id: "canvas", title: "canvas" });
 
 if (!customElements.get("example-dot")) {
   customElements.define("example-dot", class extends HTMLElement {
@@ -35,7 +38,9 @@ if (!customElements.get("example-dot")) {
     }
   });
 }
-const blockCustom = blocks.add(document.createElement("example-dot"), { id: "custom-element" });
-blockCustom.menu("custom element", true);
+blocks.add(document.createElement("example-dot"), {
+  id: "custom-element",
+  title: "custom element"
+});
 
 document.querySelector("#field").setAttribute("data-example-ready", "true");

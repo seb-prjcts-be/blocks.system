@@ -1,9 +1,12 @@
-import { system as blocks } from "../../blocks.system.mjs?v=0.1.3";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.4";
+
+const blocks = createBlocksSystem({
+  snap: true,
+  blockDefaults: { menu: { close: true } }
+});
 
 blocks.attach("#field");
 blocks.setGrid(1, 1);
-blocks.snap = true;
-blocks.draggable = true;
 
 blocks.registerAdapter("counter", {
   mount({ host, settings }) {
@@ -33,8 +36,7 @@ blocks.register({
 
 const blockCounterHost = document.createElement("div");
 blockCounterHost.className = "center";
-const blockCounter = blocks.add(blockCounterHost, { id: "counter" });
-blockCounter.menu("click counter", true);
+blocks.add(blockCounterHost, { id: "counter", title: "click counter" });
 await blocks.mount("click-counter", blockCounterHost, { start: 3 });
 
 document.querySelector("#field").setAttribute("data-example-ready", "true");

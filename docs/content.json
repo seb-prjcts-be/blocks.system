@@ -22,19 +22,22 @@
         "<div id=\"blocks-field\"></div>",
         "",
         "<script type=\"module\">",
-        "import { system as blocks } from",
+        "import { createBlocksSystem } from",
         "\"./blocks.system.mjs\";",
+        "",
+        "const blocks = createBlocksSystem({",
+        "  snap: true,",
+        "  blockDefaults: { menu: { close: true } }",
+        "});",
         "",
         "blocks.attach(\"#blocks-field\");",
         "blocks.setGrid(6, 8);",
-        "blocks.snap = true;",
-        "blocks.draggable = true;",
         "",
         "const blockHello = blocks.add(\"<p>hello</p>\", {",
-        "  id: \"block-hello\"",
+        "  id: \"block-hello\",",
+        "  title: \"hello\"",
         "});",
         "",
-        "blockHello.menu(\"hello\", { close: true });",
         "blockHello.span(2, 1);",
         "blockHello.place(1, 1);",
         "</script>"
@@ -196,7 +199,7 @@
           "id": "api-create",
           "member": "createBlocksSystem(options)",
           "returns": "blocks",
-          "purpose": "Create an independent system with optional variant, font, labels, catalog URL, random source and definitions."
+          "purpose": "Create an independent system with optional initial snap, dragging, variant, font, labels, shared blockDefaults.menu, catalog URL, random source and definitions."
         },
         {
           "id": "api-attach",
@@ -260,7 +263,7 @@
           "id": "api-add",
           "member": "add(content, options)",
           "returns": "block",
-          "purpose": "Add trusted HTML, a DOM node or factory."
+          "purpose": "Add trusted HTML, a DOM node or factory, with an optional id, title, menu override, variant or minimized state."
         }
       ]
     },
@@ -445,7 +448,7 @@
       "title": "06 / errors and defaults",
       "eyebrow": "fail early / catch only recoverable errors",
       "statement": "invalid ids, missing fields, grid overflow, overlap, duplicate registration, unknown definitions and incomplete adapters throw.",
-      "details": "Defaults: drag on · snap off · 1 × 1 grid · random monochrome variant · no attached field · English labels unless the document language is Dutch."
+      "details": "Defaults: drag on · snap off · no automatic menu · 1 × 1 grid · random monochrome variant · no attached field · English labels unless the document language is Dutch. Creation options can set shared initial behavior."
     }
   }
 }

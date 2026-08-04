@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.3";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.4";
 import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.3";
 
 const board = document.querySelector("#manual-board");
@@ -6,7 +6,13 @@ const status = document.querySelector("#manual-status");
 const lock = document.querySelector("#manual-lock");
 const reset = document.querySelector("#manual-reset");
 
-const blocks = createBlocksSystem({ variant: "regular" });
+const blocks = createBlocksSystem({
+  variant: "regular",
+  snap: true,
+  blockDefaults: {
+    menu: { minimize: true, close: true }
+  }
+});
 const controllers = [];
 const manualIds = [
   "manual-start",
@@ -27,8 +33,6 @@ const content = await loadDocsContent("manual", manualIds);
 
 blocks.attach(board);
 blocks.setGrid(6, 24);
-blocks.snap = true;
-blocks.draggable = true;
 quantizeSurface(board);
 
 function createTextElement(name, text, className = "") {
@@ -164,15 +168,14 @@ function createAboutContent({ eyebrow, statement, body, action }) {
   return root;
 }
 
-function addBlock({ id, title, content, span = [1, 1], variant = "regular", minimized = false, anchor = "" }) {
-  const block = blocks.add(content, { id, variant, minimized });
-  block.menu(title, { minimize: true, close: true });
-  block.span(...span);
+function addBlock({ id, title, content, span, variant, anchor = "" }) {
+  const block = blocks.add(content, { id, title, variant });
+  if (span) block.span(...span);
   if (anchor) {
     block.element.id = anchor;
     block.element.classList.add("manual-anchor");
   }
-  controllers.push({ block, minimized });
+  controllers.push({ block, minimized: block.minimized });
   return block;
 }
 
@@ -213,7 +216,6 @@ htmlDemo.append(htmlButton);
 addBlock({
   id: "manual-html",
   title: htmlContent.title,
-  span: [1, 1],
   content: htmlDemo
 });
 

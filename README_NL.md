@@ -14,24 +14,28 @@ adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
 <div id="blocks-field"></div>
 
 <script type="module">
-  import { system as blocks } from "./blocks.system.mjs";
+  import { createBlocksSystem } from "./blocks.system.mjs";
+
+  const blocks = createBlocksSystem({
+    snap: true,
+    blockDefaults: { menu: { close: true } }
+  });
 
   blocks.attach("#blocks-field");
   blocks.setGrid(4, 2);
-  blocks.snap = true;
-  blocks.draggable = true;
 
   const blockHallo = blocks.add("<p>hallo</p>", {
-    id: "block-hallo"
+    id: "block-hallo",
+    title: "hallo"
   });
-  blockHallo.menu("hallo", { close: true });
   blockHallo.span(2, 1);
   blockHallo.place(1, 1);
 </script>
 ```
 
-De naamgeving is bewust: `blocks` is het gedeelde systeem; iedere teruggegeven
-controller begint met `block`. Het globale browserequivalent is
+De naamgeving is bewust: `blocks` is het geconfigureerde systeem; iedere
+teruggegeven controller begint met `block`. Voor gebruik zonder configuratie
+exporteert de module ook het gedeelde `system`, globaal als
 `window.blocks.system`.
 
 ## Midden
@@ -45,9 +49,9 @@ minimaliseerstatus en verwijdering van één object:
 
 ```js
 const blockCanvas = blocks.add(document.createElement("canvas"), {
-  id: "block-canvas"
+  id: "block-canvas",
+  title: "canvas"
 });
-blockCanvas.menu("canvas", { close: true, minimize: true });
 blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
 blockCanvas.variant = "magenta";
@@ -87,6 +91,7 @@ blocks.register({
 
 ## API-overzicht
 
+- Aanmaak: `createBlocksSystem({ snap, draggable, variant, blockDefaults })`.
 - Gedeeld systeem: `attach`, `setGrid`, `snap`, `draggable`, `font`, `variant`,
   `variants`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
@@ -97,6 +102,10 @@ Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
 overschrijfbaar via `createBlocksSystem({ labels: { move, minimize, restore,
 close } })`. Bij een vergrendelde layout verdwijnen menuheaders uit de
 toetsenbordvolgorde; hun minimaliseer- en sluitknoppen blijven bereikbaar.
+
+`blockDefaults.menu` geeft ieder nieuw block dezelfde menuknoppen. Geef ieder
+block zijn eigen `title`; gebruik `menu: false` of een lokaal `menu`-object in
+`add()` voor een uitzondering.
 
 Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen
 toont een magnetische preview waar het block zal landen, terwijl de andere

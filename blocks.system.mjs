@@ -18,6 +18,7 @@ const BUILT_IN_VARIANTS = Object.freeze([
 const RANDOM_VARIANTS = Object.freeze(["regular", "regular", "inverse"]);
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
+const DEFAULT_MENU_OPTIONS = Object.freeze({ close: false, minimize: true });
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
         move: "move with the arrow keys",
@@ -32,6 +33,30 @@ const UI_LABELS = Object.freeze({
         close: "sluiten"
     })
 });
+
+function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.blockDefaults.menu") {
+    if (value === undefined) return inherited;
+    if (value === false) return null;
+    const fallback = inherited || DEFAULT_MENU_OPTIONS;
+    if (value === true) return fallback;
+    if (!value || typeof value !== "object") {
+        throw new TypeError(`${path} verwacht true, false of een object met close en minimize.`);
+    }
+    return Object.freeze({
+        close: value.close === undefined ? fallback.close : Boolean(value.close),
+        minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize)
+    });
+}
+
+function normalizeBlockDefaults(value) {
+    if (value === undefined) return Object.freeze({ menu: null });
+    if (!value || typeof value !== "object") {
+        throw new TypeError("blocks.system.blockDefaults verwacht een object.");
+    }
+    return Object.freeze({
+        menu: normalizeAutomaticMenu(value.menu)
+    });
+}
 
 function normalizeLabels(value) {
     if (value !== undefined && (!value || typeof value !== "object")) {
@@ -269,10 +294,11 @@ export function createBlocksSystem(options = {}) {
     let surface = null;
     let columns = 1;
     let rows = 1;
-    let snapEnabled = false;
-    let draggableEnabled = true;
+    let snapEnabled = options.snap === undefined ? false : Boolean(options.snap);
+    let draggableEnabled = options.draggable === undefined ? true : Boolean(options.draggable);
     let fontState = normalizeFont(options.font);
     const labels = normalizeLabels(options.labels);
+    const blockDefaults = normalizeBlockDefaults(options.blockDefaults);
     let variantMode = normalizeVariant(options.variant);
     let objectIndex = 0;
     let api;
@@ -906,7 +932,14 @@ export function createBlocksSystem(options = {}) {
         const id = String(addOptions.id || `block-${++objectIndex}`);
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new TypeError(`Ongeldig block-id: ${id}`);
         if (objects.has(id)) throw new Error(`Block bestaat al: ${id}`);
-        return createBlockController(id, content, addOptions);
+        const automaticMenu = normalizeAutomaticMenu(
+            addOptions.menu,
+            blockDefaults.menu,
+            "blocks.system.add() options.menu"
+        );
+        const block = createBlockController(id, content, addOptions);
+        if (automaticMenu) block.menu(addOptions.title ?? id, automaticMenu);
+        return block;
     }
 
     function createBlockController(id, content, addOptions) {

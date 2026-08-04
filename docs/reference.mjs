@@ -1,8 +1,15 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.3";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.4";
 import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.3";
 
 const board = document.querySelector("#reference-board");
-const blocks = createBlocksSystem({ variant: "regular" });
+const blocks = createBlocksSystem({
+  variant: "regular",
+  snap: true,
+  draggable: false,
+  blockDefaults: {
+    menu: { minimize: true, close: true }
+  }
+});
 
 const referenceBlocks = [
   { id: "reference-system", anchor: "shared-system", span: [3, 3], render: createReferenceTable },
@@ -15,13 +22,10 @@ const referenceBlocks = [
 
 blocks.attach(board);
 blocks.setGrid(6, 20);
-blocks.snap = true;
-blocks.draggable = false;
 quantizeSurface(board);
 
 function addReference({ id, title, anchor, span, content }) {
-  const block = blocks.add(content, { id });
-  block.menu(title, { minimize: true, close: true });
+  const block = blocks.add(content, { id, title });
   block.span(...span);
   block.element.id = anchor;
   block.element.classList.add("reference-anchor");
