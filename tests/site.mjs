@@ -257,7 +257,8 @@ for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.ok(JSON.stringify(docsContent.manual).includes(`../examples/${example}/`), `the manual content misses the ${example} route`);
 }
 assert.match(siteDemos["docs/manual.mjs"], /function createTextElement[\s\S]*element\.textContent\s*=\s*text/, "dynamic manual text must still use textContent without turning the content card into an explanation");
-assert.match(siteDemos["docs/manual.mjs"], /variant:\s*"regular"[\s\S]*draggable:\s*false[\s\S]*menu:\s*\{\s*minimize:\s*false,\s*close:\s*false\s*\}/, "the manual itself must stay fixed and monochrome");
+assert.match(siteDemos["docs/manual.mjs"], /variant:\s*"regular"[\s\S]*snap:\s*true[\s\S]*menu:\s*\{\s*minimize:\s*false,\s*close:\s*false\s*\}/, "the manual must stay monochrome while keeping its deliberate action-free headers");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /draggable:\s*false/, "the manual must inherit the library's interactive dragging, hover and keyboard defaults");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.colorArray\s*=\s*\["cyan",\s*"magenta",\s*"yellow"\][\s\S]*blocks\.colorVariation\s*=\s*1/, "the manual must introduce user colors only inside the color example");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.variant\s*=\s*"random"[\s\S]*blocks\.colorVariation\s*=\s*0\.5[\s\S]*blocks\.inversionVariation\s*=\s*0\.5/, "the manual must demonstrate reproducible random variation after fixed variants");
 const randomExampleContent = [1, 2, 3, 4, 5, 6].map((number) => docsContent.manual[`manual-random-${number}`]);

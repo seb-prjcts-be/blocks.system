@@ -363,6 +363,65 @@ async function exerciseManualFactory() {
   return result.result.value;
 }
 
+async function manualHoverSignature() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(function () {
+      const block = document.querySelector('[data-block-object="manual-random-1"]');
+      const handle = block.querySelector(":scope > .blocks-system-menu");
+      const rect = block.getBoundingClientRect();
+      const style = getComputedStyle(block);
+      return {
+        rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+        outlineColor: style.outlineColor,
+        outlineStyle: style.outlineStyle,
+        outlineWidth: style.outlineWidth,
+        outlineOffset: style.outlineOffset,
+        cursor: getComputedStyle(handle).cursor
+      };
+    })()`,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function exerciseManualKeyboardReorder() {
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width: 1280,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await navigateTo(`${pageUrl}docs/`);
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      const board = document.querySelector("#manual-board");
+      const block = board.querySelector('[data-block-object="manual-random-1"]');
+      const handle = block.querySelector(":scope > .blocks-system-menu");
+      const beforeRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
+      let reorderDetail = null;
+      board.addEventListener("blocks:reorder", function (event) { reorderDetail = event.detail; }, { once: true });
+      handle.focus();
+      const focusAcquired = document.activeElement === handle;
+      handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }));
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
+      return {
+        beforeRow,
+        afterRow: getComputedStyle(block).getPropertyValue("--block-row").trim(),
+        focusAcquired,
+        event: reorderDetail && { id: reorderDetail.id, input: reorderDetail.input, direction: reorderDetail.direction }
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
 async function measureReference(width, height, dpr = 1) {
   await protocol.send("Emulation.setDeviceMetricsOverride", {
     width,
@@ -584,6 +643,25 @@ try {
 
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
+  await measureManual(1280, 900);
+  const beforeManualHover = await manualHoverSignature();
+  const manualDocumentNode = await protocol.send("DOM.getDocument");
+  const manualRandomNode = await protocol.send("DOM.querySelector", {
+    nodeId: manualDocumentNode.root.nodeId,
+    selector: '[data-block-object="manual-random-1"]'
+  });
+  await protocol.send("CSS.forcePseudoState", {
+    nodeId: manualRandomNode.nodeId,
+    forcedPseudoClasses: ["hover"]
+  });
+  const afterManualHover = await manualHoverSignature();
+  assert.deepEqual(afterManualHover.rect, beforeManualHover.rect, "manual-hover mag het block niet verplaatsen of vergroten");
+  assert.equal(afterManualHover.outlineColor, "rgb(0, 0, 0)", "manual-hover gebruikt niet het echte zwarte librarykader");
+  assert.equal(afterManualHover.outlineStyle, "solid", "manual-hover toont geen volledig librarykader");
+  assert.equal(afterManualHover.outlineWidth, "3px", "manual-hover heeft niet de kracht van het librarykader");
+  assert.equal(afterManualHover.outlineOffset, "-3px", "manual-hover moet binnen het block blijven");
+  assert.equal(afterManualHover.cursor, "grab", "de manualheader toont geen echte dragcursor");
+  await protocol.send("CSS.forcePseudoState", { nodeId: manualRandomNode.nodeId, forcedPseudoClasses: [] });
   for (const [width, height, , documentColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
@@ -610,8 +688,9 @@ try {
     assert.equal(manual.nestedSurfaces, 0, `manual bevat ${manual.nestedSurfaces} geneste blocks-grids op ${width}px`);
     assert.equal(manual.pageSurfaceCount, 1, `manual bevat ${manual.pageSurfaceCount} systemen op ${width}px`);
     assert.equal(manual.navigationCount, 1, `manual bevat ${manual.navigationCount} menu's op ${width}px`);
-    assert.equal(manual.draggable, "false", `manual bewaart zijn vaste leesvolgorde niet op ${width}px`);
-    assert.deepEqual(manual.lockedHandleState, { tabIndex: -1, ariaLabel: null }, `manual biedt geen schijnbare verplaatsbediening op ${width}px`);
+    assert.equal(manual.draggable, "true", `manual schakelt het echte librarygedrag uit op ${width}px`);
+    assert.equal(manual.lockedHandleState.tabIndex, 0, `manual maakt de dragheader niet toetsenbordbereikbaar op ${width}px`);
+    assert.match(manual.lockedHandleState.ariaLabel, /arrow keys/i, `manual legt de toetsenbordverplaatsing niet toegankelijk uit op ${width}px`);
     assert.equal(manual.menuActionCount, 0, `manual toont nog minimaliseer- of sluitknoppen op ${width}px`);
     assert.equal(manual.boardBackgroundImage, "none", `manual tekent nog een achtergrondgrid op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
@@ -657,6 +736,13 @@ try {
     afterState: "contrast",
     afterIndex: "02"
   }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
+
+  assert.deepEqual(await exerciseManualKeyboardReorder(), {
+    beforeRow: "24",
+    afterRow: "25",
+    focusAcquired: true,
+    event: { id: "manual-random-1", input: "keyboard", direction: "down" }
+  }, "een manualblock moet via zijn echte libraryheader verplaatsbaar zijn");
 
   const mobileNavigation = await exerciseMobileNavigation();
   assert.deepEqual(mobileNavigation.opened, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie publiceert haar open toestand niet volledig");
