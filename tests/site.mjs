@@ -180,7 +180,7 @@ assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must p
 assert.match(siteDemos["docs/home.mjs"], /snap:\s*true/, "home must configure snap once when its system is created");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must rely on the library's draggable default");
 assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-photo[\s\S]*home-intro/, "home must lead from identity through the adjacent image to one concise action");
-assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*photo\.span\(1, 3\)[\s\S]*photo\.place\(5, 3\)[\s\S]*intro\.span\(2, 1\)[\s\S]*intro\.place\(4, 7\)/, "home must place the 1 by 3 photograph beside its hero and give the object statement two columns");
+assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 2\)[\s\S]*photo\.span\(1, 3\)[\s\S]*photo\.place\(5, 2\)[\s\S]*intro\.span\(2, 1\)[\s\S]*intro\.place\(4, 6\)/, "home must keep all three blocks one row above their original composition");
 assert.match(siteDemos["docs/home.mjs"], /new URL\("\.\/img\/pexels-peter-dyllong-2158803154-37466849\.jpg", import\.meta\.url\)/, "home must load the selected photograph relative to its module");
 assert.match(siteCss, /\.home-board\s*\{[^}]*background-image\s*:[^}]*linear-gradient/s, "home must expose the grid because the system itself is the subject");
 assert.match(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*6/s, "home must start from six columns");

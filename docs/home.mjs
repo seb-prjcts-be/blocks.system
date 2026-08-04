@@ -21,7 +21,7 @@ const title = blocks.add(heading, {
   title: content["home-title"].title
 });
 title.span(3, 3);
-title.place(2, 3);
+title.place(2, 2);
 
 const photoContent = document.createElement("figure");
 photoContent.className = "home-photo";
@@ -37,7 +37,7 @@ const photo = blocks.add(photoContent, {
   title: content["home-photo"].title
 });
 photo.span(1, 3);
-photo.place(5, 3);
+photo.place(5, 2);
 
 const introContent = document.createElement("div");
 introContent.className = "home-intro";
@@ -63,6 +63,6 @@ const intro = blocks.add(introContent, {
   menu: { minimize: false }
 });
 intro.span(2, 1);
-intro.place(4, 7);
+intro.place(4, 6);
 
 board.dataset.homeReady = "true";
