@@ -77,9 +77,14 @@ library-API.
   librarycore.
 - Gedeelde beginstate en menuknoppen worden éénmaal bij `createBlocksSystem()`
   ingesteld; ids, titels en afwijkende layout blijven eigendom van ieder block.
-- `colorArray` en `colorVary` bepalen alleen de variant van nieuwe `random`
-  blocks. Ze verkleuren bestaande blocks niet en dwingen de compositieregel over
-  aangrenzende steunkleuren niet stilzwijgend af.
+- `colorArray` en `colorVariation` bepalen het kleurdeel van nieuwe `random`
+  blocks. `inversionVariation` verdeelt daarna alleen het overblijvende
+  monochrome deel tussen `regular` en `inverse`. Ze verkleuren bestaande blocks
+  niet en dwingen de compositieregel over aangrenzende steunkleuren niet
+  stilzwijgend af.
+- RGB/CMY is uitsluitend blockstyling: een variant mag menu, rand, papier en de
+  overgeërfde inhoudsink omkeren. Zelfgetekende inhoud in HTML, canvas of SVG
+  kiest geen eigen steunkleur en blijft neutraal.
 - Bewaar een regel hier alleen wanneer de reden niet betrouwbaar uit broncode,
   tests of gitgeschiedenis terug te vinden is.
 

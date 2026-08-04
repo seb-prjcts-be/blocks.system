@@ -20,7 +20,9 @@ assert.equal(singleton.font, null, "external fonts must remain opt-in");
 assert.equal(singleton.variant, "random", "visual variants must be random by default");
 assert.deepEqual(singleton.variants, ["regular", "inverse", "red", "green", "blue", "cyan", "magenta", "yellow"], "the original visual variants must be discoverable");
 assert.deepEqual(singleton.colorArray, ["red", "green", "blue", "cyan", "magenta", "yellow"], "the full RGB/CMY family must be the default color array");
-assert.equal(singleton.colorVary, 0, "automatic color variation must remain opt-in");
+assert.equal(singleton.colorVariation, 0, "automatic color variation must remain opt-in");
+assert.equal(singleton.inversionVariation, 1 / 3, "automatic inversion must preserve the existing one-in-three monochrome distribution");
+assert.equal("colorVary" in singleton, false, "the abbreviated colorVary name must leave the public API");
 assert.deepEqual(singleton.labels, {
   move: "move with the arrow keys",
   restore: "restore",
@@ -138,7 +140,8 @@ const configured = createBlocksSystem({
   draggable: false,
   variant: "regular",
   colorArray: ["yellow", "blue", "yellow"],
-  colorVary: 0.2,
+  colorVariation: 0.2,
+  inversionVariation: 0.5,
   blockDefaults: {
     menu: { close: true, minimize: true }
   }
@@ -146,7 +149,8 @@ const configured = createBlocksSystem({
 assert.equal(configured.snap, true, "snap must be configurable when a system is created");
 assert.equal(configured.draggable, false, "dragging must be configurable when a system is created");
 assert.deepEqual(configured.colorArray, ["yellow", "blue"], "creation-time color arrays must normalize and deduplicate variants");
-assert.equal(configured.colorVary, 0.2, "creation-time color variation must remain readable");
+assert.equal(configured.colorVariation, 0.2, "creation-time color variation must remain readable");
+assert.equal(configured.inversionVariation, 0.5, "creation-time inversion variation must remain readable");
 const configuredField = new TestElement();
 configured.attach(configuredField);
 const defaultMenuBlock = configured.add("<p>default menu</p>", {
@@ -185,13 +189,20 @@ assert.throws(function () {
   createBlocksSystem({ colorArray: ["regular"] });
 }, /colorArray/, "colorArray must reject monochrome variants");
 assert.throws(function () {
-  createBlocksSystem({ colorVary: 1.01 });
-}, /colorVary/, "colorVary must stay inside the normalized probability range");
+  createBlocksSystem({ colorVariation: 1.01 });
+}, /colorVariation/, "colorVariation must stay inside the normalized probability range");
+assert.throws(function () {
+  createBlocksSystem({ inversionVariation: -0.01 });
+}, /inversionVariation/, "inversionVariation must stay inside the normalized probability range");
+assert.throws(function () {
+  createBlocksSystem({ colorVary: 0.2 });
+}, /colorVary heet nu colorVariation/, "the retired colorVary option must fail with its replacement name");
 const minConfigured = createMinBlocksSystem({
   snap: true,
   draggable: false,
   colorArray: ["yellow", "blue", "yellow"],
-  colorVary: 0.2,
+  colorVariation: 0.2,
+  inversionVariation: 0.5,
   blockDefaults: { menu: { close: true } }
 });
 const minConfiguredField = new TestElement();
@@ -203,13 +214,15 @@ const minDefaultMenuBlock = minConfigured.add("<p>min default menu</p>", {
 assert.equal(minConfigured.snap, configured.snap, "source and minified creation-time snap must match");
 assert.equal(minConfigured.draggable, configured.draggable, "source and minified creation-time dragging must match");
 assert.deepEqual(minConfigured.colorArray, configured.colorArray, "source and minified creation-time color arrays must match");
-assert.equal(minConfigured.colorVary, configured.colorVary, "source and minified creation-time color variation must match");
+assert.equal(minConfigured.colorVariation, configured.colorVariation, "source and minified creation-time color variation must match");
+assert.equal(minConfigured.inversionVariation, configured.inversionVariation, "source and minified creation-time inversion variation must match");
 assert.equal(minDefaultMenuBlock.element.children[0].children[1].children.length, 2, "source and minified block menu defaults must match");
 
 const colorSamples = [0, 0.199999, 0.2, 0.999999];
 const colorful = createBlocksSystem({
   colorArray: ["yellow", "blue"],
-  colorVary: 0.2,
+  colorVariation: 0.2,
+  inversionVariation: 1 / 3,
   random: () => colorSamples.shift()
 });
 const colorfulField = new TestElement();
@@ -223,16 +236,34 @@ const explicitColor = colorful.add("<p>explicit</p>", { id: "explicit-color", va
 assert.deepEqual(
   [yellowRandom.variant, blueRandom.variant, regularRandom.variant, inverseRandom.variant, explicitColor.variant],
   ["yellow", "blue", "regular", "inverse", "magenta"],
-  "colorVary must divide one stable random range between colorArray and the existing monochrome distribution"
+  "colorVariation and inversionVariation must divide one stable random range without affecting explicit variants"
 );
 colorful.colorArray = ["cyan", "cyan"];
-colorful.colorVary = 1;
+colorful.colorVariation = 1;
 assert.deepEqual(colorful.colorArray, ["cyan"], "runtime color arrays must stay normalized and deduplicated");
-assert.equal(colorful.colorVary, 1, "runtime color variation must remain writable for future blocks");
+assert.equal(colorful.colorVariation, 1, "runtime color variation must remain writable for future blocks");
 assert.equal(yellowRandom.variant, "yellow", "changing system color settings must not recolor existing blocks");
 assert.equal(colorful.add("<p>cyan</p>", { id: "cyan-random" }).variant, "cyan", "runtime color settings must apply to future random blocks");
+colorful.colorVariation = 0;
+colorful.inversionVariation = 1;
+assert.equal(colorful.add("<p>inverse</p>", { id: "future-inverse" }).variant, "inverse", "runtime inversion variation must apply to future monochrome blocks");
 assert.throws(function () { colorful.colorArray = ["random"]; }, /colorArray/, "runtime color arrays must reject random");
-assert.throws(function () { colorful.colorVary = "0.2"; }, /colorVary/, "runtime color variation must require a number");
+assert.throws(function () { colorful.colorVariation = "0.2"; }, /colorVariation/, "runtime color variation must require a number");
+assert.throws(function () { colorful.inversionVariation = "0.2"; }, /inversionVariation/, "runtime inversion variation must require a number");
+
+const inversionSamples = [0, 0.799999, 0.8, 0.999999];
+const monochrome = createBlocksSystem({
+  colorVariation: 0,
+  inversionVariation: 0.2,
+  random: () => inversionSamples.shift()
+});
+const monochromeField = new TestElement();
+monochrome.attach(monochromeField);
+assert.deepEqual(
+  ["a", "b", "c", "d"].map((id) => monochrome.add("<p>mono</p>", { id }).variant),
+  ["regular", "regular", "inverse", "inverse"],
+  "inversionVariation must reserve the upper share of the non-color range for inverse blocks"
+);
 
 const adapterHost = new TestElement();
 const mountedNode = await local.mount("plain-html", adapterHost, { value: "ready" });

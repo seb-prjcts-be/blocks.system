@@ -104,7 +104,8 @@ export interface BlocksSystemOptions {
   labels?: Partial<BlocksLabels>;
   variant?: string;
   colorArray?: readonly string[];
-  colorVary?: number;
+  colorVariation?: number;
+  inversionVariation?: number;
   blockDefaults?: BlockDefaults;
   blocks?: BlockDefinition[];
 }
@@ -116,7 +117,8 @@ export interface BlocksSystem {
   variant: string;
   readonly variants: readonly string[];
   colorArray: readonly string[];
-  colorVary: number;
+  colorVariation: number;
+  inversionVariation: number;
   readonly labels: Readonly<BlocksLabels>;
   readonly field: Element | null;
   register(definition: BlockDefinition, options?: RegisterOptions): BlocksSystem;

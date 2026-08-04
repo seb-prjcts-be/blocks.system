@@ -19,7 +19,8 @@ addressable HTML, SVG, canvas, custom elements and adapter-driven content.
   const blocks = createBlocksSystem({
     snap: true,
     colorArray: ["red", "green", "blue", "cyan", "magenta", "yellow"],
-    colorVary: 0.2,
+    colorVariation: 0.2,
+    inversionVariation: 0.5,
     blockDefaults: { menu: { close: true } }
   });
 
@@ -39,9 +40,11 @@ Naming is deliberate: `blocks` is the configured system; every returned
 controller starts with `block`. For zero-config use, the module also exports the
 shared `system` and exposes it as `window.blocks.system`.
 
-`colorVary` applies only to new blocks whose variant resolves from `random`:
-`0.2` gives the variants in `colorArray` twenty percent of that range. The
-remaining eighty percent keeps the existing regular/inverse distribution.
+`colorVariation` applies only to new blocks whose variant resolves from
+`random`: `0.2` gives the variants in `colorArray` twenty percent of the range.
+`inversionVariation: 0.5` makes half of the remaining monochrome blocks
+`inverse`; the other half stays `regular`. The defaults are `0` for colour and
+`1 / 3` for inversion, preserving the earlier monochrome distribution.
 Explicit block variants always win, and existing blocks never recolour.
 
 ## Middle
@@ -98,9 +101,9 @@ blocks.register({
 
 ## API map
 
-- Creation: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVary, blockDefaults })`.
+- Creation: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
 - Shared system: `attach`, `setGrid`, `snap`, `draggable`, `font`, `variant`,
-  `variants`, `colorArray`, `colorVary`, `add`.
+  `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
 - One block: `menu`, `minimized`, `span`, `place`, `flow`, `variant`, `color`, `remove`.

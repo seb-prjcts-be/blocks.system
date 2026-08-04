@@ -41,7 +41,7 @@ for (const page of pages) {
 
 const readme = await readFile(resolve(root, "README.md"), "utf8");
 const readmeNl = await readFile(resolve(root, "README_NL.md"), "utf8");
-for (const apiName of ["createBlocksSystem", "blockDefaults", "attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVary", "add", "registerAdapter", "menu", "span", "place", "flow", "minimized", "color"]) {
+for (const apiName of ["createBlocksSystem", "blockDefaults", "attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "add", "registerAdapter", "menu", "span", "place", "flow", "minimized", "color"]) {
   assert.ok(readme.includes(apiName), `README.md misses ${apiName}`);
   assert.ok(readmeNl.includes(apiName), `README_NL.md misses ${apiName}`);
 }
@@ -59,6 +59,7 @@ const declarations = await readFile(resolve(root, "blocks.system.d.ts"), "utf8")
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
 const librarySource = await readFile(resolve(root, "blocks.system.mjs"), "utf8");
+const mediaPoster = await readFile(resolve(root, "docs", "references", "media-contract-poster.svg"), "utf8");
 const apiHtml = await readFile(resolve(root, "docs", "api.html"), "utf8");
 const manualHtml = await readFile(resolve(root, "docs", "index.html"), "utf8");
 const homeHtml = await readFile(resolve(root, "index.html"), "utf8");
@@ -109,13 +110,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.5", "docs/style.css?v=0.1.4"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.5", "style.css?v=0.1.4"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.5", "style.css?v=0.1.4"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.5", "docs/style.css?v=0.1.5"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.5", "style.css?v=0.1.5"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.5", "style.css?v=0.1.5"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.5", "../../docs/style.css?v=0.1.4"]
+    ["../../blocks.system.css?v=0.1.5", "../../docs/style.css?v=0.1.5"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -154,7 +155,7 @@ for (const file of retiredAssets) {
 
 assert.equal(manifest.version, packageData.version, "manifest and package version must match");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
-assert.ok(["attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVary", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
+assert.ok(["attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose the TypeScript declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "the published file list must include the TypeScript declarations");
 for (const declaration of ["BlocksSystem", "BlockController", "BlockDefaults", "BlocksLabels", "BlocksReorderDetail", "createBlocksSystem"]) {
@@ -217,8 +218,9 @@ for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "ye
 }
 assert.match(libraryCss, /data-block-variant="yellow"\]\s*\{[^}]*--block-color:\s*rgb\(0, 0, 255\);[^}]*--block-paper-color:\s*rgb\(255, 255, 0\);[^}]*--block-content-color:\s*rgb\(0, 0, 255\);/s, "yellow must restore the blue block chrome and ink on yellow content");
 assert.match(readme + readmeNl, /variant\s*=\s*"yellow"[\s\S]*color\s*=\s*"rgb\(0, 0, 255\)"/, "README examples must demonstrate the blue-yellow reversal");
-assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes('blockItem.variant = "magenta"'), "the basic grid must demonstrate magenta as its single explicit variant");
-assert.match(standaloneExamples["basic-grid"], /one magenta exception/, "the basic example copy must name its actual accent");
+assert.match(siteDemos["examples/basic-grid/demo.mjs"], /colorVariation:\s*0\.25,[\s\S]*inversionVariation:\s*0\.25,[\s\S]*random:/, "the basic grid must demonstrate reproducible system-level variation");
+assert.doesNotMatch(siteDemos["examples/basic-grid/demo.mjs"], /blockItem\.variant\s*=/, "the basic grid must obtain variants from the configured system instead of local block exceptions");
+assert.match(standaloneExamples["basic-grid"], /system-level color and inversion variation/, "the basic example copy must name its actual variation mode");
 assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes("blockItem.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.match(standaloneExamples[example], /href="demo\.mjs" download/, `${example} must offer its copyable module explicitly`);
@@ -246,13 +248,14 @@ for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
 }
 assert.match(JSON.stringify(docsContent.manual), /textContent/, "the manual content must preserve the untrusted-text safety note");
 assert.match(siteDemos["docs/manual.mjs"], /blockDefaults:\s*\{[\s\S]*menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the manual must configure its shared block menu once");
+assert.match(siteDemos["docs/manual.mjs"], /colorVariation:\s*0\.2,[\s\S]*inversionVariation:\s*0\.2,[\s\S]*random:/, "the manual must visibly demonstrate reproducible system-level variation");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;[\s\S]*quantizeSurface/, "the manual must not repeat the library's initial draggable default");
 assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "the experimental manual must demonstrate responsive runtime content");
 assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");
 assert.match(siteDemos["docs/shell.mjs"], /Math\.floor\(\(available - borders - gap \* \(columns - 1\)\) \/ columns\)/, "the docs shell must quantize tracks to whole CSS pixels");
 assert.match(siteDemos["docs/manual.mjs"], /document\.createElement\("video"\)[\s\S]*\.controls = true[\s\S]*\.muted = true[\s\S]*\.preload = "none"/, "the experimental manual must make the pending video contract visible");
 assert.match(siteDemos["docs/manual.mjs"], /dataset\.videoLifecycle = "pause-on-minimize-remove-pagehide"/, "manual video must publish its tested lifecycle convention");
-assert.match(siteDemos["docs/manual.mjs"], /\.poster = "references\/media-contract-poster\.svg"/, "manual video must use the restrained form poster");
+assert.match(siteDemos["docs/manual.mjs"], /\.poster = "references\/media-contract-poster\.svg\?v=0\.1\.1"/, "manual video must use the restrained form poster");
 assert.match(siteDemos["docs/manual.mjs"], /new MutationObserver\([\s\S]*blockMedia\.minimized\) pauseMedia\(\)/, "manual video must pause when minimized or removed");
 assert.match(siteDemos["docs/manual.mjs"], /addEventListener\("pagehide", pauseMedia\)/, "manual video must pause when the document exits");
 assert.doesNotMatch(siteDemos["docs/shell.mjs"], /data-section-navigation|hashchange|location\.hash|initSectionNavigation/, "the shared main navigation must not own fragment state");
@@ -277,11 +280,19 @@ assert.deepEqual(docsContent.manual["manual-forms"].items.map(({ shape, caption 
 assert.match(siteDemos["docs/manual.mjs"], /new Set\(\["circle", "rectangle", "triangle"\]\)/, "the manual composition must render exactly the three known forms");
 assert.match(siteCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
 assert.match(siteCss, /\.manual-rectangle\s*\{[^}]*background:\s*#000;/s, "the Munari rectangle must remain black");
-assert.match(siteCss, /--manual-accent:\s*rgb\(255, 0, 255\);/, "the manual must define magenta as its one accent");
-assert.match(siteCss, /\.manual-circle\s*\{[^}]*background:\s*var\(--manual-accent\);/s, "the Munari circle must carry the isolated magenta accent");
+assert.match(siteCss, /\.manual-circle\s*\{[^}]*background:\s*#000;/s, "the Munari circle must remain neutral black");
 assert.match(siteCss, /\.manual-triangle\s*\{[^}]*background:\s*#000;/s, "the Munari triangle must remain neutral black");
-for (const color of ["rgb(255, 0, 0)", "rgb(0, 255, 0)", "rgb(0, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"]) {
-  assert.ok(!siteCss.includes(color) && !siteDemos["docs/manual.mjs"].includes(color), `the manual combines magenta with ${color}`);
+assert.doesNotMatch(docsContent.manual["manual-forms"].items.map(({ label }) => label).join(" "), /\b(?:red|green|blue|cyan|magenta|yellow)\b/i, "form labels must not assign block colors to content");
+assert.match(siteDemos["examples/mixed-content/demo.mjs"], /context\.strokeStyle = "#000";/, "the mixed-content canvas must draw with neutral ink");
+assert.match(standaloneExamples["mixed-content"], /content stays neutral[\s\S]*RGB\/CMY belongs to block variants/, "the mixed-content note must state the color ownership boundary");
+const pureBlockColor = /(?:#(?:ff0000|00ff00|0000ff|00ffff|ff00ff|ffff00)|rgb\(\s*(?:255\s*,\s*0\s*,\s*0|0\s*,\s*255\s*,\s*0|0\s*,\s*0\s*,\s*255|0\s*,\s*255\s*,\s*255|255\s*,\s*0\s*,\s*255|255\s*,\s*255\s*,\s*0)\s*\))/i;
+for (const [owner, source] of [
+  ["consumer CSS", siteCss],
+  ["manual canvas", siteDemos["docs/manual.mjs"]],
+  ["mixed-content canvas", siteDemos["examples/mixed-content/demo.mjs"]],
+  ["media poster", mediaPoster]
+]) {
+  assert.doesNotMatch(source, pureBlockColor, `${owner} must not use an RGB/CMY block color inside rendered content`);
 }
 assert.match(siteCss, /\.manual-media video\s*\{[^}]*object-fit:\s*contain;/s, "video must use an explicit contain prototype");
 assert.match(siteCss, /@media \(max-width: 900px\)[\s\S]*\.docs-board\.blocks-system-surface[^}]*repeat\(3, minmax\(0, 1fr\)\)/, "the docs shell must collapse to three tablet columns");
@@ -334,7 +345,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.1", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.3", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
@@ -346,7 +357,7 @@ assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the 
 for (const anchor of ["shared-system", "block-controller", "adapters", "definition", "css-hooks", "errors"]) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);
 }
-for (const apiName of ["createBlocksSystem(options)", "attach(target)", "setGrid(x, y)", "draggable", "labels", "colorArray", "colorVary", "add(content, options)", "menu(name, options)", "span(x, y)", "place(x, y)", "flow()", "registerAdapter(id, adapter)", "mount(id, target, overrides)", "unmount(target)", "address(id)"]) {
+for (const apiName of ["createBlocksSystem(options)", "attach(target)", "setGrid(x, y)", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation", "add(content, options)", "menu(name, options)", "span(x, y)", "place(x, y)", "flow()", "registerAdapter(id, adapter)", "mount(id, target, overrides)", "unmount(target)", "address(id)"]) {
   assert.ok(serializedReferenceContent.includes(apiName), `the reference content misses ${apiName}`);
 }
 for (const hook of [".blocks-system-surface", ".blocks-system-object", ".blocks-system-menu", ".blocks-system-content", ".blocks-system-drop-preview", "[data-block-object]", "[data-block-variant]", "[data-block-minimized]", "[data-draggable]"]) {
@@ -357,6 +368,6 @@ assert.doesNotMatch(libraryCss, /\.reference-/, "the reusable library stylesheet
 
 const canonicalDemos = ["docs/home.mjs", "docs/manual.mjs", "docs/reference.mjs"]
   .map((file) => siteDemos[file]).join("\n");
-assert.match(canonicalDemos, /255, 0, 255/, "canonical docs must retain their current magenta form accent");
+assert.doesNotMatch(canonicalDemos, pureBlockColor, "canonical docs must not assign RGB/CMY block colors to rendered content");
 
 console.log(`blocks.system site — ok (${pages.length} pages, ${exampleDirectories.length} examples)`);

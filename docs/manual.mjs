@@ -1,13 +1,19 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.5";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.4";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.6";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.6";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");
 const lock = document.querySelector("#manual-lock");
 const reset = document.querySelector("#manual-reset");
+const manualVariationSamples = [0.35, 0.02, 0.45, 0.88, 0.52, 0.10, 0.62, 0.72, 0.30, 0.18, 0.92, 0.55];
+let manualVariationIndex = 0;
 
 const blocks = createBlocksSystem({
-  variant: "regular",
+  variant: "random",
+  colorArray: ["red", "green", "blue", "cyan", "magenta", "yellow"],
+  colorVariation: 0.2,
+  inversionVariation: 0.2,
+  random: () => manualVariationSamples[manualVariationIndex++ % manualVariationSamples.length],
   snap: true,
   blockDefaults: {
     menu: { minimize: true, close: true }
@@ -247,9 +253,7 @@ function drawCanvas() {
   context.strokeRect(width * 0.08, height * 0.24, size, size);
   context.beginPath();
   context.arc(width * 0.58, height * 0.5, size * 0.5, 0, Math.PI * 2);
-  context.fillStyle = "rgb(255, 0, 255)";
   context.fill();
-  context.fillStyle = "#000";
   context.beginPath();
   context.moveTo(width * 0.82, height * 0.22);
   context.lineTo(width * 0.95, height * 0.78);
@@ -326,7 +330,7 @@ const mediaVideoElement = document.createElement("video");
 mediaVideoElement.controls = true;
 mediaVideoElement.muted = true;
 mediaVideoElement.preload = "none";
-mediaVideoElement.poster = "references/media-contract-poster.svg";
+mediaVideoElement.poster = "references/media-contract-poster.svg?v=0.1.1";
 mediaVideoElement.setAttribute("aria-label", mediaContent.label);
 mediaVideoElement.dataset.videoLifecycle = "pause-on-minimize-remove-pagehide";
 const mediaCopy = document.createElement("div");

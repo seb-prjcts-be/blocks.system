@@ -1,6 +1,5 @@
-import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.5";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.6";
 
-const accent = [255, 0, 255];
 const blocks = createBlocksSystem({
   snap: true,
   blockDefaults: { menu: { close: true } }
@@ -20,7 +19,7 @@ blockCanvasNode.height = 180;
 const context = blockCanvasNode.getContext("2d");
 context.fillStyle = "#f5f5f2";
 context.fillRect(0, 0, blockCanvasNode.width, blockCanvasNode.height);
-context.strokeStyle = `rgb(${accent.join(", ")})`;
+context.strokeStyle = "#000";
 context.lineWidth = 4;
 context.beginPath();
 for (let x = 0; x <= blockCanvasNode.width; x += 3) {

@@ -16,7 +16,7 @@ const BUILT_IN_VARIANTS = Object.freeze([
     "yellow"
 ]);
 const COLOR_VARIANTS = Object.freeze(BUILT_IN_VARIANTS.slice(2));
-const RANDOM_VARIANTS = Object.freeze(["regular", "regular", "inverse"]);
+const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
 const DEFAULT_MENU_OPTIONS = Object.freeze({ close: false, minimize: true });
@@ -134,10 +134,10 @@ function normalizeColorArray(value) {
     return Object.freeze(variants);
 }
 
-function normalizeColorVary(value) {
-    if (value === undefined) return 0;
+function normalizeVariation(value, property, fallback) {
+    if (value === undefined) return fallback;
     if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1) {
-        throw new TypeError("blocks.system.colorVary verwacht een getal van 0 tot en met 1.");
+        throw new TypeError(`blocks.system.${property} verwacht een getal van 0 tot en met 1.`);
     }
     return value;
 }
@@ -309,6 +309,9 @@ function createBlockCatalog(options = {}) {
 }
 
 export function createBlocksSystem(options = {}) {
+    if (Object.hasOwn(options, "colorVary")) {
+        throw new TypeError("blocks.system.colorVary heet nu colorVariation.");
+    }
     const catalog = createBlockCatalog({ catalogUrl: options.catalogUrl });
     const { address, get, list, listAdapters, mount, remount, snippet, unmount } = catalog;
     const objects = new Map();
@@ -326,7 +329,8 @@ export function createBlocksSystem(options = {}) {
     const blockDefaults = normalizeBlockDefaults(options.blockDefaults);
     let variantMode = normalizeVariant(options.variant);
     let colorArrayState = normalizeColorArray(options.colorArray);
-    let colorVaryState = normalizeColorVary(options.colorVary);
+    let colorVariationState = normalizeVariation(options.colorVariation, "colorVariation", 0);
+    let inversionVariationState = normalizeVariation(options.inversionVariation, "inversionVariation", DEFAULT_INVERSION_VARIATION);
     let objectIndex = 0;
     let api;
 
@@ -335,14 +339,14 @@ export function createBlocksSystem(options = {}) {
         if (name !== "random") return name;
         const raw = Number(randomSource());
         const unit = Number.isFinite(raw) ? Math.max(0, Math.min(0.999999999, raw)) : 0;
-        if (colorVaryState > 0 && unit < colorVaryState) {
-            const colorUnit = unit / colorVaryState;
+        if (colorVariationState > 0 && unit < colorVariationState) {
+            const colorUnit = unit / colorVariationState;
             return colorArrayState[Math.floor(colorUnit * colorArrayState.length)];
         }
-        const monochromeUnit = colorVaryState === 0
+        const monochromeUnit = colorVariationState === 0
             ? unit
-            : (unit - colorVaryState) / (1 - colorVaryState);
-        return RANDOM_VARIANTS[Math.floor(monochromeUnit * RANDOM_VARIANTS.length)];
+            : (unit - colorVariationState) / (1 - colorVariationState);
+        return monochromeUnit >= 1 - inversionVariationState ? "inverse" : "regular";
     }
 
     function register(definition, registerOptions = {}) {
@@ -1261,11 +1265,18 @@ export function createBlocksSystem(options = {}) {
                 colorArrayState = normalizeColorArray(value);
             }
         },
-        colorVary: {
+        colorVariation: {
             enumerable: true,
-            get: () => colorVaryState,
+            get: () => colorVariationState,
             set(value) {
-                colorVaryState = normalizeColorVary(value);
+                colorVariationState = normalizeVariation(value, "colorVariation", 0);
+            }
+        },
+        inversionVariation: {
+            enumerable: true,
+            get: () => inversionVariationState,
+            set(value) {
+                inversionVariationState = normalizeVariation(value, "inversionVariation", DEFAULT_INVERSION_VARIATION);
             }
         },
         labels: {

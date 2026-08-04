@@ -28,7 +28,8 @@
         "const blocks = createBlocksSystem({",
         "  snap: true,",
         "  colorArray: [\"red\", \"green\", \"blue\", \"cyan\", \"magenta\", \"yellow\"],",
-        "  colorVary: 0.2,",
+        "  colorVariation: 0.2,",
+        "  inversionVariation: 0.5,",
         "  blockDefaults: { menu: { close: true } }",
         "});",
         "",
@@ -51,7 +52,7 @@
       "items": [
         {
           "shape": "circle",
-          "label": "Magenta circle: live state, cycle and interaction",
+          "label": "Circle: live state, cycle and interaction",
           "caption": "state / circle"
         },
         {
@@ -201,7 +202,7 @@
           "id": "api-create",
           "member": "createBlocksSystem(options)",
           "returns": "blocks",
-          "purpose": "Create an independent system with optional initial snap, dragging, variant, colorArray, colorVary, font, labels, shared blockDefaults.menu, catalog URL, random source and definitions."
+          "purpose": "Create an independent system with optional initial snap, dragging, variant, colorArray, colorVariation, inversionVariation, font, labels, shared blockDefaults.menu, catalog URL, random source and definitions."
         },
         {
           "id": "api-attach",
@@ -262,10 +263,16 @@
           "purpose": "Color variants available to future random blocks; defaults to the six RGB/CMY names and accepts custom variant names."
         },
         {
-          "id": "api-color-vary",
-          "member": "colorVary",
+          "id": "api-color-variation",
+          "member": "colorVariation",
           "returns": "number",
           "purpose": "Share of the random range assigned to colorArray, from 0 to 1; default 0 preserves monochrome automatic variants."
+        },
+        {
+          "id": "api-inversion-variation",
+          "member": "inversionVariation",
+          "returns": "number",
+          "purpose": "Share of the remaining monochrome range assigned to inverse, from 0 to 1; default 1/3 preserves the earlier regular/inverse distribution."
         },
         {
           "id": "api-field",

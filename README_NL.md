@@ -19,7 +19,8 @@ adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
   const blocks = createBlocksSystem({
     snap: true,
     colorArray: ["red", "green", "blue", "cyan", "magenta", "yellow"],
-    colorVary: 0.2,
+    colorVariation: 0.2,
+    inversionVariation: 0.5,
     blockDefaults: { menu: { close: true } }
   });
 
@@ -40,11 +41,12 @@ teruggegeven controller begint met `block`. Voor gebruik zonder configuratie
 exporteert de module ook het gedeelde `system`, globaal als
 `window.blocks.system`.
 
-`colorVary` geldt alleen voor nieuwe blocks waarvan de variant uit `random`
-wordt bepaald: `0.2` geeft de varianten uit `colorArray` twintig procent van dat
-bereik. De overige tachtig procent behoudt de bestaande regular/inverse-
-verdeling. Een expliciete blockvariant wint altijd en bestaande blocks
-verkleuren nooit achteraf.
+`colorVariation` geldt alleen voor nieuwe blocks waarvan de variant uit `random`
+wordt bepaald: `0.2` geeft de varianten uit `colorArray` twintig procent van het
+bereik. `inversionVariation: 0.5` maakt de helft van de overige monochrome
+blocks `inverse`; de andere helft blijft `regular`. Standaard is kleur `0` en
+inversie `1 / 3`, gelijk aan de eerdere zwart-witverdeling. Een expliciete
+blockvariant wint altijd en bestaande blocks verkleuren nooit achteraf.
 
 ## Midden
 
@@ -101,9 +103,9 @@ blocks.register({
 
 ## API-overzicht
 
-- Aanmaak: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVary, blockDefaults })`.
+- Aanmaak: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
 - Gedeeld systeem: `attach`, `setGrid`, `snap`, `draggable`, `font`, `variant`,
-  `variants`, `colorArray`, `colorVary`, `add`.
+  `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
 - Eén block: `menu`, `minimized`, `span`, `place`, `flow`, `variant`, `color`, `remove`.

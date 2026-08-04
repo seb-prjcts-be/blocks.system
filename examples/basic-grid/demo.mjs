@@ -1,6 +1,12 @@
-import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.5";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.6";
 
+const variationSamples = [0.4, 0.9, 0.1, 0.5];
+let variationIndex = 0;
 const blocks = createBlocksSystem({
+  colorArray: ["red", "green", "blue", "cyan", "magenta", "yellow"],
+  colorVariation: 0.25,
+  inversionVariation: 0.25,
+  random: () => variationSamples[variationIndex++ % variationSamples.length],
   snap: true,
   blockDefaults: { menu: { close: true } }
 });
@@ -15,7 +21,6 @@ for (let index = 0; index < 4; index += 1) {
     title: `block ${number}`
   });
   blockItem.minimized = index === 1;
-  if (index === 3) blockItem.variant = "magenta";
 }
 
 document.querySelector("#field").setAttribute("data-example-ready", "true");

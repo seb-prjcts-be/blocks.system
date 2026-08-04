@@ -87,7 +87,8 @@ async function measureYellowVariant() {
           snap: true,
           draggable: false,
           colorArray: ["yellow"],
-          colorVary: 1,
+          colorVariation: 1,
+          inversionVariation: 0,
           random: function () { return 0.5; }
         });
         blocks.attach(field);
@@ -239,6 +240,7 @@ async function measureManual(width, height, dpr = 1) {
       return {
         blockCount: objects.length,
         ids: objects.map(function (block) { return block.dataset.blockObject; }),
+        variants: objects.map(function (block) { return block.dataset.blockVariant; }),
         columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         documentHeight: document.documentElement.scrollHeight,
@@ -613,6 +615,7 @@ try {
     manualMeasurements.push(manual);
     assert.equal(manual.blockCount, 13, `manual mist directe blocks op ${width}px @${dpr}x`);
     assert.equal(manual.ids[0], "manual-start", `manual begint niet met de concrete start op ${width}px @${dpr}x`);
+    assert.deepEqual(manual.variants, ["regular", "red", "regular", "inverse", "regular", "cyan", "regular", "regular", "regular", "yellow", "inverse", "regular", "inverse"], `manual toont niet de vaste blockvariatie op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
     assert.equal(manual.columnCount, documentColumns, `manual gebruikt ${manual.columnCount} in plaats van ${documentColumns} kolommen op ${width}px`);
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
@@ -630,7 +633,7 @@ try {
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
     assert.deepEqual(manual.formBlocks.map(function (form) { return form.id; }), ["state / circle", "content / rectangle", "direction / triangle"], `manual verliest de semantische vormvolgorde op ${width}px`);
-    assert.deepEqual(manual.formBlocks.map(function (form) { return form.color; }), ["rgb(255, 0, 255)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual verliest magenta als enige vormaccent op ${width}px`);
+    assert.deepEqual(manual.formBlocks.map(function (form) { return form.color; }), ["rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual gebruikt een blockkleur in de voorbeeldvormen op ${width}px`);
     assert.equal(manual.scrollbarWidth, "thin", `manual gebruikt geen dunne OS-scrollbar op ${width}px`);
     assert.match(manual.scrollbarColor, /rgba\(17, 17, 17, 0\.58\)/, `manual gebruikt geen neutrale scrollbar op ${width}px`);
     assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockTop; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockTop; })) <= 0.5, `manual zet de drie vormen niet op één rij op ${width}px`);
@@ -728,7 +731,10 @@ try {
             headingFont: getComputedStyle(document.querySelector("h1")).fontFamily,
             navigationFont: getComputedStyle(document.querySelector(".nav-logo")).fontFamily,
             blockFont: getComputedStyle(field.querySelector(".blocks-system-menu")).fontFamily,
-            configuredBlockFont: getComputedStyle(field).getPropertyValue("--blocks-font-family").trim()
+            configuredBlockFont: getComputedStyle(field).getPropertyValue("--blocks-font-family").trim(),
+            variants: Array.from(field.querySelectorAll(":scope > .blocks-system-object"), function (block) {
+              return block.dataset.blockVariant;
+            })
           };
         })()`,
         awaitPromise: true,
@@ -745,6 +751,9 @@ try {
         assert.match(font, /Instrument Sans/, `${example} gebruikt Instrument Sans niet voor ${part} op ${width}px`);
       }
       assert.equal(exampleStyle.configuredBlockFont, '"Instrument Sans"', `${example} configureert de librarytypografie niet via haar publieke CSS-hook`);
+      if (example === "basic-grid") {
+        assert.deepEqual(exampleStyle.variants, ["regular", "inverse", "blue", "regular"], `basic-grid toont niet de vaste system-level variatie op ${width}px`);
+      }
     }
   }
 
