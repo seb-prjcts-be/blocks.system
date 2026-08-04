@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.13";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.14";
 
 const board = document.querySelector("#manual-board");
 const manualVariationSamples = [0.05, 0.4, 0.8, 0.05, 0.25, 0.45, 0.55, 0.75, 0.6];
@@ -78,6 +78,62 @@ function createLessonContent({ eyebrow, statement, body, code }) {
   return root;
 }
 
+function createTrustedHtmlContent({ eyebrow, statement, footer }) {
+  return `
+    <article class="manual-content-demo manual-content-html-demo">
+      <small>${eyebrow}</small>
+      <strong>${statement}</strong>
+      <span>${footer}</span>
+    </article>
+  `;
+}
+
+function createImageObjectContent({ alt, caption }) {
+  const figure = document.createElement("figure");
+  figure.className = "manual-content-demo manual-content-image-demo";
+  const image = document.createElement("img");
+  image.src = new URL("./img/pexels-peter-dyllong-2158803154-37352130.jpg", import.meta.url).href;
+  image.width = 5184;
+  image.height = 3456;
+  image.alt = alt;
+  image.decoding = "async";
+  figure.append(image, createTextElement("figcaption", caption));
+  return figure;
+}
+
+function createFactoryContent({ eyebrow, states, action }) {
+  if (!Array.isArray(states) || states.length === 0) throw new TypeError("Factory content needs visible states.");
+  return function createFreshElement() {
+    const root = document.createElement("article");
+    root.className = "manual-content-demo manual-content-factory-demo";
+    const label = createTextElement("small", eyebrow);
+    const readout = document.createElement("div");
+    readout.className = "manual-factory-readout";
+    const index = createTextElement("span", "", "manual-factory-index");
+    index.setAttribute("aria-hidden", "true");
+    const state = createTextElement("strong", "", "manual-factory-state");
+    state.setAttribute("aria-live", "polite");
+    const button = createTextElement("button", action, "manual-factory-action");
+    button.type = "button";
+    let activeIndex = 0;
+
+    function renderState() {
+      index.textContent = String(activeIndex + 1).padStart(2, "0");
+      state.textContent = states[activeIndex];
+      root.dataset.state = states[activeIndex];
+    }
+
+    button.addEventListener("click", function () {
+      activeIndex = (activeIndex + 1) % states.length;
+      renderState();
+    });
+    renderState();
+    readout.append(index, state);
+    root.append(label, readout, button);
+    return root;
+  };
+}
+
 function createNextContent({ eyebrow, statement, body, items }) {
   const root = createLessonContent({ eyebrow, statement, body });
   const links = document.createElement("div");
@@ -116,7 +172,7 @@ addBlock({
 addBlock({
   id: "manual-content-html",
   title: content["manual-content-html"].title,
-  content: createLessonContent(content["manual-content-html"]),
+  content: createTrustedHtmlContent(content["manual-content-html"]),
   span: [2, 2],
   place: [1, 4],
   classes: ["manual-third"]
@@ -125,7 +181,7 @@ addBlock({
 addBlock({
   id: "manual-content-object",
   title: content["manual-content-object"].title,
-  content: createLessonContent(content["manual-content-object"]),
+  content: createImageObjectContent(content["manual-content-object"]),
   span: [2, 2],
   place: [3, 4],
   classes: ["manual-third"]
@@ -134,9 +190,10 @@ addBlock({
 addBlock({
   id: "manual-content-factory",
   title: content["manual-content-factory"].title,
-  content: createLessonContent(content["manual-content-factory"]),
+  content: createFactoryContent(content["manual-content-factory"]),
   span: [2, 2],
   place: [5, 4],
+  variant: "inverse",
   classes: ["manual-third"]
 });
 

@@ -487,6 +487,122 @@ footer a { color: var(--ink); }
   line-height: 1.45;
 }
 
+.manual-content-demo {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+
+.manual-content-html-demo,
+.manual-content-factory-demo {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  padding: clamp(16px, 2vw, 28px);
+  overflow: hidden;
+}
+
+.manual-content-html-demo {
+  gap: 6px;
+  padding-block: 16px;
+}
+
+.manual-content-html-demo small,
+.manual-content-image-demo figcaption,
+.manual-content-factory-demo small {
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.manual-content-html-demo strong {
+  align-self: end;
+  max-width: 9ch;
+  font: 600 clamp(2rem, 3.35vw, 4rem)/0.82 "Instrument Sans", sans-serif;
+  letter-spacing: -0.055em;
+  text-transform: lowercase;
+}
+
+.manual-content-html-demo > span {
+  border-top: 1px solid currentColor;
+  padding-top: 6px;
+  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.manual-content-image-demo {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.manual-content-image-demo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 58%;
+}
+
+.manual-content-image-demo figcaption {
+  position: absolute;
+  inset: auto auto 0 0;
+  padding: 5px 7px;
+  background: #000;
+  color: var(--paper);
+}
+
+.manual-factory-readout {
+  align-self: end;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: 10px;
+}
+
+.manual-factory-index {
+  font: 600 clamp(4rem, 7.4vw, 8rem)/0.72 "Instrument Sans", sans-serif;
+  letter-spacing: -0.07em;
+}
+
+.manual-factory-state {
+  min-width: 0;
+  padding-bottom: 0.15em;
+  font: 600 clamp(1.2rem, 2vw, 2.4rem)/0.9 "Instrument Sans", sans-serif;
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
+  text-transform: lowercase;
+}
+
+.manual-factory-action {
+  appearance: none;
+  width: 100%;
+  margin: 0;
+  padding: 7px 0 0;
+  border: 0;
+  border-top: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  font: 500 10px/1.25 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.manual-factory-action::after { content: " \2192"; }
+.manual-factory-action:hover,
+.manual-factory-action:focus-visible {
+  background: var(--block-color);
+  color: var(--block-paper-color);
+  outline: none;
+}
+
 .manual-card-code {
   margin: 0;
   overflow: auto;
@@ -556,6 +672,17 @@ footer a { color: var(--ink); }
   .manual-board > .manual-code-block { min-height: 360px; }
   .manual-lesson-code { grid-template-columns: 1fr; }
   .manual-explanation { align-self: start; }
+  .manual-content-html-demo,
+  .manual-content-factory-demo { gap: 5px; padding: 10px 12px; }
+  .manual-content-html-demo strong { font-size: clamp(1.7rem, 9vw, 2.3rem); line-height: 0.86; }
+  .manual-content-html-demo small,
+  .manual-content-html-demo > span,
+  .manual-content-image-demo figcaption,
+  .manual-content-factory-demo small,
+  .manual-factory-action { font-size: 9px; }
+  .manual-factory-index { font-size: 3.4rem; }
+  .manual-factory-state { font-size: 1.05rem; }
+  .manual-factory-action { padding-top: 4px; }
   .manual-sixth .manual-result strong { font-size: 1.8rem; }
   .manual-foot { flex-direction: column; padding-inline: 8px; }
 }

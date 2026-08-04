@@ -113,7 +113,7 @@ const navigationPages = [
 
 const canonicalStylesheets = [
   ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.2.1"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.2.0"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.2.2"]],
   ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.2.0"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
@@ -256,7 +256,7 @@ for (const anchor of ["start", "result", "layout", "colors", "random", "next"]) 
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.ok(JSON.stringify(docsContent.manual).includes(`../examples/${example}/`), `the manual content misses the ${example} route`);
 }
-assert.match(JSON.stringify(docsContent.manual), /textContent/, "the manual content must preserve the untrusted-text safety note");
+assert.match(siteDemos["docs/manual.mjs"], /function createTextElement[\s\S]*element\.textContent\s*=\s*text/, "dynamic manual text must still use textContent without turning the content card into an explanation");
 assert.match(siteDemos["docs/manual.mjs"], /variant:\s*"regular"[\s\S]*draggable:\s*false[\s\S]*menu:\s*\{\s*minimize:\s*false,\s*close:\s*false\s*\}/, "the manual itself must stay fixed and monochrome");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.colorArray\s*=\s*\["cyan",\s*"magenta",\s*"yellow"\][\s\S]*blocks\.colorVariation\s*=\s*1/, "the manual must introduce user colors only inside the color example");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.variant\s*=\s*"random"[\s\S]*blocks\.colorVariation\s*=\s*0\.5[\s\S]*blocks\.inversionVariation\s*=\s*0\.5/, "the manual must demonstrate reproducible random variation after fixed variants");
@@ -281,6 +281,12 @@ const manualFactoryPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-
 const manualFinishPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-finish"');
 assert.ok(manualStartPosition >= 0 && manualHtmlPosition > manualStartPosition && manualObjectPosition > manualHtmlPosition && manualFactoryPosition > manualObjectPosition && manualFinishPosition > manualFactoryPosition,
 "the manual must read start code, three content forms, then finish code");
+assert.match(siteDemos["docs/manual.mjs"], /function createTrustedHtmlContent[\s\S]*return `[\s\S]*manual-content-html-demo/, "trusted HTML must render as the first content example");
+assert.match(siteDemos["docs/manual.mjs"], /function createImageObjectContent[\s\S]*document\.createElement\("figure"\)[\s\S]*pexels-peter-dyllong-2158803154-37352130\.jpg/, "an actual image object must render as the second content example");
+assert.match(siteDemos["docs/manual.mjs"], /function createFactoryContent[\s\S]*return function createFreshElement\(\)[\s\S]*addEventListener\("click"/, "an interactive fresh element must render as the factory example");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createLessonContent\(content\["manual-content-(?:html|object|factory)"\]\)/, "content examples must not fall back to explanatory lesson cards");
+await access(resolve(root, "docs", "img", "pexels-peter-dyllong-2158803154-37352130.jpg"));
+assert.match(siteCss, /\.manual-content-image-demo img\s*\{[^}]*object-fit:\s*cover;/s, "the object example must present the supplied image as full-bleed content");
 assert.match(siteCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
 assert.match(siteCss, /\.manual-chapter-start\s*\{[^}]*margin-top:/s, "chapter starts must create visible breathing room when explicit grid rows collapse");
 assert.match(siteCss, /\.manual-code-block\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;/s, "lesson code must use the complete editorial width");
@@ -367,7 +373,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.0", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.1", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

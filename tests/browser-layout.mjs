@@ -245,6 +245,11 @@ async function measureManual(width, height, dpr = 1) {
           blockWidth: blockRect.width
         };
       });
+      const trustedDemo = board.querySelector(".manual-content-html-demo");
+      const imageDemo = board.querySelector(".manual-content-image-demo");
+      const image = imageDemo.querySelector("img");
+      const factoryDemo = board.querySelector(".manual-content-factory-demo");
+      const factoryButton = factoryDemo.querySelector("button");
       const chapterIds = ["result", "layout", "colors", "random", "next"];
       const chapterGaps = chapterIds.map(function (id) {
         const block = document.getElementById(id);
@@ -302,12 +307,46 @@ async function measureManual(width, height, dpr = 1) {
         scrollbarColor: rootStyle.scrollbarColor,
         boardWidth: boardRect.width,
         contentOptions,
+        contentExamples: {
+          trusted: {
+            tag: trustedDemo.tagName,
+            text: trustedDemo.textContent.replace(/\\s+/g, " ").trim()
+          },
+          object: {
+            tag: imageDemo.tagName,
+            source: new URL(image.src).pathname,
+            alt: image.alt,
+            fit: getComputedStyle(image).objectFit
+          },
+          factory: {
+            tag: factoryDemo.tagName,
+            state: factoryDemo.dataset.state,
+            index: factoryDemo.querySelector(".manual-factory-index").textContent,
+            button: factoryButton.textContent
+          }
+        },
         chapterGaps,
         codeBlockWidths,
         colorContentColors
       };
     })()`,
     awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function exerciseManualFactory() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(function () {
+      const factory = document.querySelector(".manual-content-factory-demo");
+      const index = factory.querySelector(".manual-factory-index");
+      const button = factory.querySelector(".manual-factory-action");
+      const beforeState = factory.dataset.state;
+      const beforeIndex = index.textContent;
+      button.click();
+      return { beforeState, beforeIndex, afterState: factory.dataset.state, afterIndex: index.textContent };
+    })()`,
     returnByValue: true
   });
   return result.result.value;
@@ -545,7 +584,7 @@ try {
       "manual-random-1", "manual-random-2", "manual-random-3", "manual-random-4", "manual-random-5", "manual-random-6", "manual-next"
     ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.variants, [
-      "regular", "regular", "regular", "regular", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular",
+      "regular", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular",
       "color", "color", "color", "regular", "color", "color", "color", "regular", "inverse", "regular", "inverse"
     ], `manual beperkt kleur en omkering niet tot de bedoelde resultaten op ${width}px @${dpr}x`);
     assert.deepEqual(manual.colors, [
@@ -571,6 +610,18 @@ try {
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
     assert.deepEqual(manual.colorContentColors, ["rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual laat gebruikerskleuren in de voorbeeldinhoud lekken op ${width}px`);
+    assert.equal(manual.contentExamples.trusted.tag, "ARTICLE", `manual toont trusted HTML niet als echte inhoud op ${width}px`);
+    assert.match(manual.contentExamples.trusted.text, /Structure makes movement visible\./, `manual mist de typografische HTML-inhoud op ${width}px`);
+    assert.equal(manual.contentExamples.object.tag, "FIGURE", `manual toont de foto niet als echt object op ${width}px`);
+    assert.match(manual.contentExamples.object.source, /\/docs\/img\/pexels-peter-dyllong-2158803154-37352130\.jpg$/, `manual gebruikt niet de opgegeven foto op ${width}px`);
+    assert.equal(manual.contentExamples.object.alt, "Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail.", `manual mist de beschrijvende foto-alttekst op ${width}px`);
+    assert.equal(manual.contentExamples.object.fit, "cover", `manual plaatst de foto niet beeldvullend op ${width}px`);
+    assert.deepEqual(manual.contentExamples.factory, {
+      tag: "ARTICLE",
+      state: "structure",
+      index: "01",
+      button: "next state"
+    }, `manual start niet met een vers interactief factory-element op ${width}px`);
     assert.equal(manual.scrollbarWidth, "thin", `manual gebruikt geen dunne OS-scrollbar op ${width}px`);
     assert.match(manual.scrollbarColor, /rgba\(17, 17, 17, 0\.58\)/, `manual gebruikt geen neutrale scrollbar op ${width}px`);
     if (width > 560) {
@@ -581,6 +632,13 @@ try {
     assert.notEqual(manual.boardOverflowY, "scroll", `manual maakt het volledige board scrollbaar op ${width}px`);
     }
   }
+
+  assert.deepEqual(await exerciseManualFactory(), {
+    beforeState: "structure",
+    beforeIndex: "01",
+    afterState: "contrast",
+    afterIndex: "02"
+  }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
 
   const mobileNavigation = await exerciseMobileNavigation();
   assert.deepEqual(mobileNavigation.opened, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie publiceert haar open toestand niet volledig");

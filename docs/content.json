@@ -42,24 +42,20 @@
     },
     "manual-content-html": {
       "title": "content / trusted html",
-      "eyebrow": "option 1 / string",
-      "statement": "Use a string for HTML you trust.",
-      "body": "The string becomes the content inside the block.",
-      "code": "const content = \"<p>Hello block.</p>\";"
+      "eyebrow": "01 / statement",
+      "statement": "Structure makes movement visible.",
+      "footer": "type · interval · contrast"
     },
     "manual-content-object": {
       "title": "content / object",
-      "eyebrow": "option 2 / object",
-      "statement": "Use an element object for text or controls.",
-      "body": "Set textContent when text comes from a visitor, file or API.",
-      "code": "const content = document.createElement(\"p\");\ncontent.textContent = userText;"
+      "caption": "02 / direction",
+      "alt": "Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail."
     },
     "manual-content-factory": {
       "title": "content / factory",
-      "eyebrow": "option 3 / function",
-      "statement": "Use a function for a fresh element object.",
-      "body": "The function runs when the block is added.",
-      "code": "const content = () => {\n  const button = document.createElement(\"button\");\n  button.textContent = \"click me\";\n  return button;\n};"
+      "eyebrow": "03 / live",
+      "states": ["structure", "contrast", "rhythm", "space"],
+      "action": "next state"
     },
     "manual-finish": {
       "title": "02 / add the block",
