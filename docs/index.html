@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Learn blocks.system through one living manual made from direct draggable blocks.">
+  <meta name="description" content="Learn blocks.system from one block to layout, color and controlled random variation.">
   <title>manual · blocks.system</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../blocks.system.css?v=0.1.7">
-  <link rel="stylesheet" href="style.css?v=0.1.5">
+  <link rel="stylesheet" href="style.css?v=0.1.6">
 </head>
 <body class="docs-page manual-page">
   <nav id="navbar" aria-label="main navigation">
@@ -22,20 +22,23 @@
   </nav>
 
   <main class="docs-main manual-main">
-    <header id="system" class="docs-masthead manual-masthead manual-anchor">
-      <span>manual / start · compose · arrange · connect</span>
-      <h1>the manual is the system.</h1>
-      <p>Start with one object. Compose real content, arrange it directly, and add a runtime only when the DOM is not enough.</p>
+    <header class="docs-masthead manual-masthead">
+      <span>manual / one clear route</span>
+      <h1>make one block.</h1>
+      <div class="manual-intro">
+        <p>Begin with one working block. Then change its size, appearance and variation—one decision at a time.</p>
+        <ol class="docs-chapters">
+          <li><a href="#start">start</a></li>
+          <li><a href="#result">result</a></li>
+          <li><a href="#layout">layout</a></li>
+          <li><a href="#colors">colors</a></li>
+          <li><a href="#random">random</a></li>
+        </ol>
+      </div>
     </header>
 
-    <div class="manual-toolbar" aria-label="layout controls">
-      <button id="manual-lock" type="button" aria-pressed="false">lock layout</button>
-      <button id="manual-reset" type="button">reset</button>
-    </div>
-
-    <section aria-label="self-documenting blocks manual">
-      <div id="manual-board" class="docs-board manual-board" aria-label="draggable manual composition"></div>
-      <p id="manual-status" class="manual-status" role="status">loading manual…</p>
+    <section aria-label="blocks.system beginner manual">
+      <div id="manual-board" class="docs-board manual-board" aria-label="manual examples"></div>
     </section>
   </main>
 
@@ -44,7 +47,7 @@
     <a href="api.html">open the complete reference →</a>
   </footer>
 
-  <script type="module" src="shell.mjs?v=0.1.10"></script>
-  <script type="module" src="manual.mjs?v=0.1.19"></script>
+  <script type="module" src="shell.mjs?v=0.1.11"></script>
+  <script type="module" src="manual.mjs?v=0.1.20"></script>
 </body>
 </html>

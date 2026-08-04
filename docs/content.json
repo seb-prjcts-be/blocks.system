@@ -16,462 +16,336 @@
   },
   "manual": {
     "manual-start": {
-      "title": "01 / start",
+      "title": "01 / start the system",
+      "intro": "Load the two library files, create one system and attach it to an empty field.",
       "code": [
         "<link rel=\"stylesheet\" href=\"./blocks.system.css\">",
         "<div id=\"blocks-field\"></div>",
         "",
         "<script type=\"module\">",
-        "import { createBlocksSystem } from",
-        "\"./blocks.system.mjs\";",
+        "import { createBlocksSystem } from \"./blocks.system.mjs\";",
         "",
         "const blocks = createBlocksSystem({",
         "  snap: true,",
-        "  colorArray: [\"cyan\", \"magenta\", \"yellow\"],",
-        "  colorVariation: 0.2,",
-        "  inversionVariation: 0.5,",
-        "  blockDefaults: { menu: { close: true } }",
+        "  variant: \"regular\"",
         "});",
         "",
         "blocks.attach(\"#blocks-field\");",
-        "blocks.setGrid(6, 8);",
-        "",
-        "const blockHello = blocks.add(\"<p>hello</p>\", {",
+        "blocks.setGrid(6, 4);"
+      ]
+    },
+    "manual-content-html": {
+      "title": "content / trusted html",
+      "eyebrow": "option 1 / string",
+      "statement": "Use a string for HTML you trust.",
+      "body": "The string becomes the content inside the block.",
+      "code": "const content = \"<p>Hello block.</p>\";"
+    },
+    "manual-content-node": {
+      "title": "content / dom node",
+      "eyebrow": "option 2 / node",
+      "statement": "Use a node for text or controls.",
+      "body": "Set textContent when text comes from a visitor, file or API.",
+      "code": "const content = document.createElement(\"p\");\ncontent.textContent = userText;"
+    },
+    "manual-content-factory": {
+      "title": "content / factory",
+      "eyebrow": "option 3 / function",
+      "statement": "Use a function for a fresh node.",
+      "body": "The function runs when the block is added.",
+      "code": "const content = () => {\n  const button = document.createElement(\"button\");\n  button.textContent = \"click me\";\n  return button;\n};"
+    },
+    "manual-finish": {
+      "title": "02 / add the block",
+      "intro": "Choose one content form above. Add it, give it a stable id, then size and place it on the grid.",
+      "code": [
+        "const block = blocks.add(content, {",
         "  id: \"block-hello\",",
         "  title: \"hello\"",
         "});",
         "",
-        "blockHello.span(2, 1);",
-        "blockHello.place(1, 1);",
+        "block.span(3, 2);",
+        "block.place(1, 1);",
         "</script>"
       ]
     },
-    "manual-forms": {
-      "title": "form / state · content · direction",
-      "groupLabel": "Visual language: state, content and direction",
-      "items": [
-        {
-          "shape": "circle",
-          "label": "Circle: live state, cycle and interaction",
-          "caption": "state / circle"
-        },
-        {
-          "shape": "rectangle",
-          "label": "Black rectangle: information, code and content",
-          "caption": "content / rectangle"
-        },
-        {
-          "shape": "triangle",
-          "label": "Black triangle: direction, action and next step",
-          "caption": "direction / triangle"
-        }
-      ]
+    "manual-result-regular": {
+      "title": "result / regular",
+      "eyebrow": "standard",
+      "statement": "Black ink on paper.",
+      "body": "This is the regular built-in appearance."
     },
-    "manual-content-contract": {
-      "title": "02 / content",
-      "eyebrow": "trusted html / dom node / content factory",
-      "statement": "content is content.",
-      "body": [
-        { "text": "Use " },
-        { "code": "textContent" },
-        { "text": " for untrusted text. One host contract keeps renderer knowledge outside the core." }
-      ],
-      "number": "3"
+    "manual-result-inverse": {
+      "title": "result / inverse",
+      "eyebrow": "built in",
+      "statement": "Paper on black ink.",
+      "body": "Set variant to inverse when you add a block."
     },
-    "manual-html": {
-      "title": "html / interactive",
-      "button": {
-        "idle": "native html control",
-        "active": "clicked · still html"
-      }
-    },
-    "manual-canvas": {
-      "title": "canvas / resize observer",
-      "label": "Responsive canvas showing its live content-box dimensions"
-    },
-    "manual-compose": {
-      "title": "03 / arrange",
-      "items": [
-        { "eyebrow": "size", "statement": "span", "code": "block.span(x, y)" },
-        { "eyebrow": "place", "statement": "grid", "code": "block.place(x, y)" },
-        { "eyebrow": "state", "statement": "menu", "code": "close / minimize" },
-        { "eyebrow": "tone", "statement": "variant", "code": "block.variant" },
-        { "eyebrow": "move", "statement": "drag", "code": "header / keyboard" },
-        { "eyebrow": "remove", "statement": "close", "code": "block.remove()" }
-      ]
-    },
-    "manual-connect": {
-      "title": "04 / connect",
-      "eyebrow": "adapter mount() / live state",
-      "statement": "extend the contract.",
-      "initial": 3,
-      "action": "increment"
-    },
-    "manual-reference": {
-      "title": "05 / reference",
-      "eyebrow": "shared system / one controller",
-      "members": [
-        "blocks.attach()",
-        "block.menu()",
-        "blocks.setGrid()",
-        "block.span()",
-        "blocks.snap",
-        "block.place()",
-        "block.flow()",
-        "blocks.draggable",
-        "block.minimized",
-        "blocks.add()",
-        "block.variant",
-        "blocks.register()",
-        "block.color",
-        "blocks.mount()",
-        "block.remove()"
-      ],
-      "action": {
-        "label": "complete signatures →",
-        "href": "api.html"
-      }
-    },
-    "manual-hooks": {
-      "title": "advanced / css hooks",
-      "eyebrow": "candidate stable styling hooks / audit before promise",
+    "manual-layout": {
+      "title": "03 / size and position",
+      "intro": "A block occupies whole grid units. span() sets its size; place() sets its one-based position. flow() returns it to automatic order.",
       "code": [
-        ".blocks-system-surface",
-        ".blocks-system-object",
-        ".blocks-system-menu",
-        ".blocks-system-content",
+        "block.span(4, 2);       // columns, rows",
+        "block.place(1, 1);      // column, row",
         "",
-        "[data-block-object=\"block-id\"]",
-        "[data-block-variant=\"color\"][data-block-color]",
-        "[data-block-color=\"magenta\"]",
-        "[data-block-minimized=\"true\"]",
-        "[data-draggable=\"true\"]"
+        "block.flow();           // back to document order"
       ]
     },
-    "manual-media": {
-      "title": "media / bounded lifecycle",
-      "label": "Video content sizing prototype",
-      "eyebrow": "natural / contain / cover",
-      "statement": "media keeps its lifecycle.",
-      "body": "The consumer owns source and captions. The manual proves contain sizing and pauses on minimize, removal and page exit."
+    "manual-layout-wide": {
+      "title": "result / 4 × 2",
+      "eyebrow": "span(4, 2)",
+      "statement": "A wide block carries the main idea.",
+      "body": "Use more columns for code, media or longer reading."
     },
-    "manual-examples": {
-      "title": "examples / run the source",
+    "manual-layout-small": {
+      "title": "result / 2 × 2",
+      "eyebrow": "span(2, 2)",
+      "statement": "A small block supports it.",
+      "body": "The same grid keeps both aligned."
+    },
+    "manual-colors": {
+      "title": "04 / add your colors",
+      "intro": "The library has no named palette. You supply CSS colors in colorArray. colorVariation controls how often random blocks choose from that array.",
+      "code": [
+        "blocks.colorArray = [\"cyan\", \"magenta\", \"yellow\"];",
+        "blocks.colorVariation = 1;",
+        "blocks.variant = \"random\";"
+      ]
+    },
+    "manual-color-cyan": {
+      "title": "result / first color",
+      "eyebrow": "from your array",
+      "statement": "cyan",
+      "body": "Color belongs to the block. Its content stays neutral."
+    },
+    "manual-color-magenta": {
+      "title": "result / second color",
+      "eyebrow": "from your array",
+      "statement": "magenta",
+      "body": "Replace these example colors with your own CSS values."
+    },
+    "manual-color-yellow": {
+      "title": "result / third color",
+      "eyebrow": "from your array",
+      "statement": "yellow",
+      "body": "The array is supplied by the user, never by the library."
+    },
+    "manual-random": {
+      "title": "05 / mix random variations",
+      "intro": "Random mode can mix your colors with regular and inverse blocks. First reserve a share for color; inversionVariation divides the remaining monochrome share.",
+      "code": [
+        "blocks.variant = \"random\";",
+        "blocks.colorVariation = 0.5;",
+        "blocks.inversionVariation = 0.5;",
+        "",
+        "// 50% user colors",
+        "// remaining 50%: half regular, half inverse"
+      ]
+    },
+    "manual-random-1": {
+      "title": "random / 01",
+      "eyebrow": "one possible result",
+      "statement": "color",
+      "body": "Chosen from colorArray."
+    },
+    "manual-random-2": {
+      "title": "random / 02",
+      "eyebrow": "one possible result",
+      "statement": "color",
+      "body": "Chosen from colorArray."
+    },
+    "manual-random-3": {
+      "title": "random / 03",
+      "eyebrow": "one possible result",
+      "statement": "color",
+      "body": "Chosen from colorArray."
+    },
+    "manual-random-4": {
+      "title": "random / 04",
+      "eyebrow": "one possible result",
+      "statement": "regular",
+      "body": "From the monochrome share."
+    },
+    "manual-random-5": {
+      "title": "random / 05",
+      "eyebrow": "one possible result",
+      "statement": "inverse",
+      "body": "From the monochrome share."
+    },
+    "manual-random-6": {
+      "title": "random / 06",
+      "eyebrow": "one possible result",
+      "statement": "regular",
+      "body": "Each new random block resolves once."
+    },
+    "manual-next": {
+      "title": "06 / continue",
+      "eyebrow": "copy a complete example",
+      "statement": "Start small. Add only what your content needs.",
+      "body": "The examples cover a basic grid, mixed HTML and canvas content, and a custom runtime adapter.",
       "items": [
-        {
-          "eyebrow": "01 / start",
-          "statement": "basic grid",
-          "run": { "label": "run", "href": "../examples/basic-grid/" },
-          "download": { "label": "module ↓", "href": "../examples/basic-grid/demo.mjs" }
-        },
-        {
-          "eyebrow": "02 / compose",
-          "statement": "mixed content",
-          "run": { "label": "run", "href": "../examples/mixed-content/" },
-          "download": { "label": "module ↓", "href": "../examples/mixed-content/demo.mjs" }
-        },
-        {
-          "eyebrow": "03 / connect",
-          "statement": "custom adapter",
-          "run": { "label": "run", "href": "../examples/custom-adapter/" },
-          "download": { "label": "module ↓", "href": "../examples/custom-adapter/demo.mjs" }
-        }
+        { "label": "basic grid →", "href": "../examples/basic-grid/" },
+        { "label": "mixed content →", "href": "../examples/mixed-content/" },
+        { "label": "custom adapter →", "href": "../examples/custom-adapter/" },
+        { "label": "complete reference →", "href": "api.html" }
       ]
-    },
-    "manual-about": {
-      "title": "about / boundary",
-      "eyebrow": "from visual elements to one object model",
-      "statement": "the core knows blocks, not renderers.",
-      "body": "HTML, canvas, video and future runtimes keep their own lifecycle. Concept and direction by Sebastien Vanblaere."
-    },
-    "manual-source": {
-      "title": "source / continue",
-      "eyebrow": "mit / native esm / source first",
-      "statement": "build the next block.",
-      "action": {
-        "label": "view source →",
-        "href": "https://github.com/seb-prjcts-be/blocks.system"
-      }
     }
   },
   "reference": {
-    "reference-system": {
-      "title": "01 / blocks · shared system",
+    "reference-exports": {
+      "title": "01 / exports",
+      "intro": "Import a factory for an independent system, or use the shared system export.",
       "headers": ["member", "returns", "purpose"],
       "rows": [
-        {
-          "id": "api-create",
-          "member": "createBlocksSystem(options)",
-          "returns": "blocks",
-          "purpose": "Create an independent system with optional initial snap, dragging, variant, colorArray, colorVariation, inversionVariation, font, labels, shared blockDefaults.menu, catalog URL, random source and definitions."
-        },
-        {
-          "id": "api-attach",
-          "member": "attach(target)",
-          "returns": "blocks",
-          "purpose": "Attach to a selector or DOM element."
-        },
-        {
-          "id": "api-set-grid",
-          "member": "setGrid(x, y)",
-          "returns": "blocks",
-          "purpose": "Set positive integer columns and rows."
-        },
-        {
-          "id": "api-snap",
-          "member": "snap",
-          "returns": "boolean",
-          "purpose": "Read or change grid snapping."
-        },
-        {
-          "id": "api-draggable",
-          "member": "draggable",
-          "returns": "boolean",
-          "purpose": "Move by pointer or arrow keys on the menu header; snapped collisions push downward on drop."
-        },
-        {
-          "id": "api-font",
-          "member": "font",
-          "returns": "object|null",
-          "purpose": "Load one font stylesheet and set its family."
-        },
-        {
-          "id": "api-labels",
-          "member": "labels",
-          "returns": "object",
-          "purpose": "Read the accessible move, minimize, restore and close labels. Defaults follow the document language; creation options can override them."
-        },
-        {
-          "id": "api-variant",
-          "member": "variant",
-          "returns": "string",
-          "purpose": [
-            { "text": "Variant for new blocks; default " },
-            { "code": "random" },
-            { "text": "." }
-          ]
-        },
-        {
-          "id": "api-variants",
-          "member": "variants",
-          "returns": "array",
-          "purpose": "The built-in variants are regular and inverse. Other explicit names are unstyled consumer CSS hooks; automatically selected user colors use the generic color state."
-        },
-        {
-          "id": "api-color-array",
-          "member": "colorArray",
-          "returns": "array",
-          "purpose": "User-owned CSS colors available to future random blocks. The array defaults to empty; the CMY values in this manual are only an example supplied by the manual."
-        },
-        {
-          "id": "api-color-variation",
-          "member": "colorVariation",
-          "returns": "number",
-          "purpose": "Share of the random range assigned to colorArray, from 0 to 1. Default 0 preserves monochrome automatic variants; a positive value requires a non-empty user array."
-        },
-        {
-          "id": "api-inversion-variation",
-          "member": "inversionVariation",
-          "returns": "number",
-          "purpose": "Share of the remaining monochrome range assigned to inverse, from 0 to 1; default 1/3 preserves the earlier regular/inverse distribution."
-        },
-        {
-          "id": "api-field",
-          "member": "field",
-          "returns": "element|null",
-          "purpose": "Read the attached field."
-        },
-        {
-          "id": "api-add",
-          "member": "add(content, options)",
-          "returns": "block",
-          "purpose": "Add trusted HTML, a DOM node or factory, with an optional id, title, menu override, variant or minimized state."
-        }
+        { "id": "api-create", "cells": ["createBlocksSystem(options?)", "BlocksSystem", "Create an independent blocks system."] },
+        { "id": "api-system", "cells": ["system", "BlocksSystem", "The shared module instance."] },
+        { "id": "api-window", "cells": ["window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] }
+      ]
+    },
+    "reference-options": {
+      "title": "02 / creation options",
+      "intro": "All creation options are optional. These are their initial values.",
+      "headers": ["option", "initial value", "purpose"],
+      "rows": [
+        { "cells": ["catalogUrl", "null", "Base URL used by address()."] },
+        { "cells": ["random", "Math.random", "Source used when variant is random."] },
+        { "cells": ["snap", "false", "Snap blocks to the configured grid."] },
+        { "cells": ["draggable", "true", "Allow pointer and keyboard reordering."] },
+        { "cells": ["font", "null", "Optional font family and stylesheet URL."] },
+        { "cells": ["labels", "document language", "Override accessible move, restore, minimize and close labels."] },
+        { "cells": ["variant", "random", "Appearance used for new blocks."] },
+        { "cells": ["colorArray", "[]", "User-owned CSS colors; defaults to empty."] },
+        { "cells": ["colorVariation", "0", "Share of random blocks that use colorArray."] },
+        { "cells": ["inversionVariation", "1 / 3", "Inverse share inside the remaining monochrome range."] },
+        { "cells": ["blockDefaults", "no menu", "Shared menu settings for new blocks."] },
+        { "cells": ["blocks", "[]", "Definitions registered during creation."] }
+      ]
+    },
+    "reference-state": {
+      "title": "03 / system state",
+      "headers": ["member", "type", "notes"],
+      "rows": [
+        { "cells": ["snap", "boolean", "Readable and writable."] },
+        { "cells": ["draggable", "boolean", "Readable and writable."] },
+        { "cells": ["font", "object | null", "Readable and writable."] },
+        { "cells": ["variant", "string", "Readable and writable; built-in variants are regular and inverse, plus random selection."] },
+        { "cells": ["variants", "readonly string[]", "The built-in list: regular and inverse."] },
+        { "cells": ["colorArray", "readonly string[]", "User-owned CSS colors for future random blocks."] },
+        { "cells": ["colorVariation", "number", "From 0 to 1; a positive value needs a non-empty colorArray."] },
+        { "cells": ["inversionVariation", "number", "From 0 to 1."] },
+        { "cells": ["labels", "readonly object", "Resolved accessible labels."] },
+        { "cells": ["field", "Element | null", "The currently attached field."] }
+      ]
+    },
+    "reference-methods": {
+      "title": "04 / system methods",
+      "headers": ["method", "returns", "purpose"],
+      "rows": [
+        { "id": "api-register", "cells": ["register(definition, options?)", "blocks", "Register a reusable block definition."] },
+        { "id": "api-register-adapter", "cells": ["registerAdapter(id, adapter, options?)", "blocks", "Register a lifecycle adapter."] },
+        { "cells": ["listAdapters()", "string[]", "List registered adapter ids."] },
+        { "cells": ["list(filters?)", "definition[]", "Filter definitions by query, adapter, medium or category."] },
+        { "cells": ["get(id)", "definition | null", "Read one registered definition."] },
+        { "id": "api-attach", "cells": ["attach(target)", "blocks", "Attach to a selector or Element."] },
+        { "id": "api-set-grid", "cells": ["setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
+        { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, a Node or a content factory."] },
+        { "id": "api-mount", "cells": ["mount(id, target, overrides?)", "Promise<Element>", "Mount a registered definition through its adapter."] },
+        { "id": "api-unmount", "cells": ["unmount(target)", "boolean", "Run optional cleanup and remove mounted content."] },
+        { "cells": ["remount(id, target, overrides?)", "Promise<Element>", "Unmount and mount again with new settings."] },
+        { "cells": ["snippet(id, overrides?)", "string", "Ask the adapter for a reusable snippet."] },
+        { "id": "api-address", "cells": ["address(id)", "string", "Build a catalog URL ending in ?block=id."] }
       ]
     },
     "reference-block": {
-      "title": "02 / block… · one controller",
-      "headers": ["member", "returns", "purpose"],
+      "title": "05 / block controller",
+      "intro": "add() returns one controller for one block.",
+      "headers": ["member", "type or return", "purpose"],
       "rows": [
-        {
-          "id": "api-block-id",
-          "member": "id",
-          "returns": "string",
-          "purpose": "Stable lowercase kebab-case id."
-        },
-        {
-          "id": "api-element",
-          "member": "element",
-          "returns": "section",
-          "purpose": "Outer block element."
-        },
-        {
-          "id": "api-content",
-          "member": "content",
-          "returns": "div",
-          "purpose": "Content host inside the block."
-        },
-        {
-          "id": "api-menu",
-          "member": "menu(name, options)",
-          "returns": "block",
-          "purpose": "Title bar with minimize and optional close."
-        },
-        {
-          "id": "api-span",
-          "member": "span(x, y)",
-          "returns": "block",
-          "purpose": "Occupy whole grid units."
-        },
-        {
-          "id": "api-place",
-          "member": "place(x, y)",
-          "returns": "block",
-          "purpose": "Use one-based coordinates without overlap."
-        },
-        {
-          "id": "api-flow",
-          "member": "flow()",
-          "returns": "block",
-          "purpose": "Clear fixed coordinates and return to CSS auto-flow."
-        },
-        {
-          "id": "api-minimized",
-          "member": "minimized",
-          "returns": "boolean",
-          "purpose": "Show only the menu while preserving layout."
-        },
-        {
-          "id": "api-block-variant",
-          "member": "variant",
-          "returns": "string",
-          "purpose": "Read or set the resolved variant."
-        },
-        {
-          "id": "api-color",
-          "member": "color",
-          "returns": "string",
-          "purpose": "Read or set the block CSS colour."
-        },
-        {
-          "id": "api-remove",
-          "member": "remove()",
-          "returns": "true",
-          "purpose": "Remove the block and release its layout."
-        }
+        { "cells": ["id", "readonly string", "Stable lowercase kebab-case id."] },
+        { "cells": ["element", "readonly HTMLElement", "The outer block element."] },
+        { "cells": ["content", "readonly HTMLDivElement", "The content host inside the block."] },
+        { "cells": ["color", "string", "Read or set its CSS color."] },
+        { "cells": ["variant", "string", "Read or set its resolved appearance."] },
+        { "cells": ["minimized", "boolean", "Read or set its minimized state."] },
+        { "id": "api-menu", "cells": ["menu(name, options?)", "block", "Add or update the title bar."] },
+        { "id": "api-span", "cells": ["span(columns, rows)", "block", "Set the size in whole grid units."] },
+        { "id": "api-place", "cells": ["place(column, row)", "block", "Set one-based grid coordinates."] },
+        { "id": "api-flow", "cells": ["flow()", "block", "Return to CSS automatic order."] },
+        { "cells": ["remove()", "true", "Remove the block and release its layout."] }
+      ]
+    },
+    "reference-add-options": {
+      "title": "06 / add and menu options",
+      "headers": ["option", "type", "purpose"],
+      "rows": [
+        { "cells": ["id", "string", "Stable id; generated when omitted."] },
+        { "cells": ["title", "string", "Title shown when a menu exists."] },
+        { "cells": ["menu", "boolean | object", "Enable, disable or configure a menu for this block."] },
+        { "cells": ["variant", "string", "Override the system appearance for this block."] },
+        { "cells": ["minimized", "boolean", "Initial minimized state."] },
+        { "cells": ["menu.close", "boolean", "Show a remove button."] },
+        { "cells": ["menu.minimize", "boolean", "Show a minimize and restore button."] }
       ]
     },
     "reference-adapters": {
-      "title": "03 / definitions and adapters",
-      "headers": ["member", "returns", "purpose"],
-      "rows": [
-        {
-          "id": "api-register",
-          "member": "register(definition)",
-          "returns": "blocks",
-          "purpose": "Register a reusable definition."
-        },
-        {
-          "id": "api-register-adapter",
-          "member": "registerAdapter(id, adapter)",
-          "returns": "blocks",
-          "purpose": [
-            { "text": "Register a lifecycle adapter with " },
-            { "code": "mount()" },
-            { "text": "." }
-          ]
-        },
-        {
-          "id": "api-list",
-          "member": "list(filters)",
-          "returns": "array",
-          "purpose": "Filter by query, adapter, medium or category."
-        },
-        {
-          "id": "api-get",
-          "member": "get(id)",
-          "returns": "definition|null",
-          "purpose": "Read one registered definition."
-        },
-        {
-          "id": "api-list-adapters",
-          "member": "listAdapters()",
-          "returns": "array",
-          "purpose": "List registered adapter ids."
-        },
-        {
-          "id": "api-mount",
-          "member": "mount(id, target, overrides)",
-          "returns": "promise<element>",
-          "purpose": "Mount through the registered adapter."
-        },
-        {
-          "id": "api-unmount",
-          "member": "unmount(target)",
-          "returns": "boolean",
-          "purpose": "Run optional cleanup and remove mounted content."
-        },
-        {
-          "id": "api-remount",
-          "member": "remount(id, target, overrides)",
-          "returns": "promise<element>",
-          "purpose": "Mount again with new settings."
-        },
-        {
-          "id": "api-snippet",
-          "member": "snippet(id, overrides)",
-          "returns": "string",
-          "purpose": "Ask the adapter for a reusable snippet."
-        },
-        {
-          "id": "api-address",
-          "member": "address(id)",
-          "returns": "url",
-          "purpose": [
-            { "text": "Create a catalog URL with " },
-            { "code": "?block=id" },
-            { "text": "." }
-          ]
-        }
-      ]
-    },
-    "reference-definition": {
-      "title": "04 / definition shape",
+      "title": "07 / definitions and adapters",
+      "intro": "Definitions describe reusable content. Adapters own its mount and cleanup lifecycle.",
       "code": [
-        "{",
-        "  id: \"block-welcome\",",
-        "  label: \"welcome\",",
-        "  adapter: \"block-note\",",
+        "const definition = {",
+        "  id: \"block-note\",",
+        "  adapter: \"note\",",
+        "  label: \"note\",",
         "  medium: \"html\",",
         "  category: \"text\",",
         "  description: \"a small note\",",
         "  defaults: { text: \"hello\" },",
         "  attributes: [],",
         "  requires: []",
-        "}"
+        "};"
+      ],
+      "headers": ["adapter member", "required", "purpose"],
+      "rows": [
+        { "cells": ["mount(context)", "yes", "Return an Element or { node }, directly or through a Promise."] },
+        { "cells": ["ready(context)", "no", "Prepare before mount."] },
+        { "cells": ["unmount(mounted)", "no", "Release listeners or resources."] },
+        { "cells": ["snippet(context)", "no", "Return reusable source text."] },
+        { "cells": ["context", "—", "Contains block, host, settings and adapter."] }
       ]
     },
+    "reference-event": {
+      "title": "08 / reorder event",
+      "intro": "The field dispatches blocks:reorder after pointer or keyboard reordering.",
+      "code": [
+        "field.addEventListener(\"blocks:reorder\", (event) => {",
+        "  const {",
+        "    id, input, mode, key,",
+        "    fromIndex, toIndex, from, to, direction",
+        "  } = event.detail;",
+        "});"
+      ],
+      "details": "input is pointer or keyboard. mode is grid or flow. direction is up, right, down, left or still. Positions are { column, row } or null."
+    },
     "reference-hooks": {
-      "title": "05 / stable css hooks",
-      "items": [
-        { "term": ".blocks-system-surface", "description": "surface tokens and layout" },
-        { "term": ".blocks-system-object", "description": "one outer block" },
-        { "term": ".blocks-system-menu", "description": "header and drag handle" },
-        { "term": ".blocks-system-content", "description": "content host and overflow" },
-        { "term": ".blocks-system-drop-preview", "description": "magnetic landing cell; solid ↓ means downward displacement" },
-        { "term": "[data-block-object]", "description": "one stable object id" },
-        { "term": "[data-block-variant]", "description": "resolved visual variant" },
-        { "term": "[data-block-color]", "description": "CSS color selected from the consumer-owned colorArray" },
-        { "term": "[data-block-minimized]", "description": "restored or minimized state" },
-        { "term": "[data-draggable]", "description": "surface drag state" },
-        { "term": "blocks:reorder", "description": "stable detail: id, input, mode, key, indices, grid positions and direction" }
+      "title": "09 / css hooks",
+      "headers": ["hook", "purpose"],
+      "rows": [
+        { "cells": [".blocks-system-surface", "The attached field and its layout tokens."] },
+        { "cells": [".blocks-system-object", "One outer block."] },
+        { "cells": [".blocks-system-menu", "Title bar and drag handle."] },
+        { "cells": [".blocks-system-content", "Content host."] },
+        { "cells": [".blocks-system-drop-preview", "Pointer landing preview."] },
+        { "cells": ["[data-block-object]", "Stable block id."] },
+        { "cells": ["[data-block-variant]", "Resolved appearance."] },
+        { "cells": ["[data-block-color]", "Color selected from the user's array."] },
+        { "cells": ["[data-block-minimized]", "Minimized state."] },
+        { "cells": ["[data-draggable]", "Surface drag state."] }
       ]
     },
     "reference-errors": {
-      "title": "06 / errors and defaults",
-      "eyebrow": "fail early / catch only recoverable errors",
-      "statement": "invalid ids, missing fields, grid overflow, overlap, duplicate registration, unknown definitions and incomplete adapters throw.",
-      "details": "Defaults: drag on · snap off · no automatic menu · 1 × 1 grid · random monochrome variant · empty colorArray · no attached field · English labels unless the document language is Dutch. Creation options can set shared initial behavior."
+      "title": "10 / errors and boundaries",
+      "eyebrow": "fail early",
+      "statement": "Invalid input throws.",
+      "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from."
     }
   }
 }

@@ -66,13 +66,13 @@ const apiHtml = await readFile(resolve(root, "docs", "api.html"), "utf8");
 const manualHtml = await readFile(resolve(root, "docs", "index.html"), "utf8");
 const homeHtml = await readFile(resolve(root, "index.html"), "utf8");
 const aliasTargets = {
-  "manual.html": "system",
-  "system.html": "system",
-  "examples.html": "examples",
+  "manual.html": "start",
+  "system.html": "start",
+  "examples.html": "next",
   "guide.html": "start",
-  "guide-blocks.html": "compose",
-  "guide-finish.html": "connect",
-  "about.html": "boundary"
+  "guide-blocks.html": "result",
+  "guide-finish.html": "next",
+  "about.html": "next"
 };
 for (const [file, anchor] of Object.entries(aliasTargets)) {
   const alias = await readFile(resolve(root, "docs", file), "utf8");
@@ -112,13 +112,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.5"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.5"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.5"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.6"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.6"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.6"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.5"]
+    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.6"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -240,34 +240,24 @@ assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one
 assert.match(manualHtml, /href="api\.html">open the complete reference/, "the manual must lead to its complete reference owner");
 assert.match(manualHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item index navigation");
 assert.doesNotMatch(manualHtml.match(/<nav id="navbar"[\s\S]*?<\/nav>/)?.[0] || "", /href="[^"]*#/, "the manual main navigation must not use chapter fragments");
-assert.doesNotMatch(manualHtml, /manual-commandbar|manual-index/, "the retired second menu must not return");
+assert.match(manualHtml, /class="docs-chapters"[\s\S]*#start[\s\S]*#result[\s\S]*#layout[\s\S]*#colors[\s\S]*#random/, "the manual masthead must expose a short beginner path");
+assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/, "the beginner manual must not present layout tooling before the lesson");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
-assert.equal((siteDemos["docs/manual.mjs"].match(/^(?:addBlock|const block(?:Canvas|Media) = addBlock)\(\{/gm) || []).length, 13, "the canonical manual must keep its concise direct-block composition");
-for (const anchor of ["start", "compose", "arrange", "connect", "examples", "reference", "boundary"]) {
+assert.equal((siteDemos["docs/manual.mjs"].match(/^addBlock\(\{/gm) || []).length, 22, "the manual must build the approved beginner sequence from direct blocks");
+for (const anchor of ["start", "result", "layout", "colors", "random", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
 }
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.ok(JSON.stringify(docsContent.manual).includes(`../examples/${example}/`), `the manual content misses the ${example} route`);
-  assert.ok(JSON.stringify(docsContent.manual).includes(`../examples/${example}/demo.mjs`), `the manual content misses the ${example} module download`);
 }
 assert.match(JSON.stringify(docsContent.manual), /textContent/, "the manual content must preserve the untrusted-text safety note");
-assert.match(siteDemos["docs/manual.mjs"], /blockDefaults:\s*\{[\s\S]*menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the manual must configure its shared block menu once");
-assert.match(siteDemos["docs/manual.mjs"], /colorVariation:\s*0\.2,[\s\S]*inversionVariation:\s*0\.2,[\s\S]*random:/, "the manual must visibly demonstrate reproducible system-level variation");
-assert.match(siteDemos["docs/manual.mjs"], /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "the manual must supply its own CMY example array");
+assert.match(siteDemos["docs/manual.mjs"], /variant:\s*"regular"[\s\S]*draggable:\s*false[\s\S]*menu:\s*\{\s*minimize:\s*false,\s*close:\s*false\s*\}/, "the manual itself must stay fixed and monochrome");
+assert.match(siteDemos["docs/manual.mjs"], /blocks\.colorArray\s*=\s*\["cyan",\s*"magenta",\s*"yellow"\][\s\S]*blocks\.colorVariation\s*=\s*1/, "the manual must introduce user colors only inside the color example");
+assert.match(siteDemos["docs/manual.mjs"], /blocks\.variant\s*=\s*"random"[\s\S]*blocks\.colorVariation\s*=\s*0\.5[\s\S]*blocks\.inversionVariation\s*=\s*0\.5/, "the manual must demonstrate reproducible random variation after fixed variants");
 assert.match(siteDemos["examples/basic-grid/demo.mjs"], /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "the basic example must supply its own CMY example array");
-assert.doesNotMatch(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;[\s\S]*quantizeSurface/, "the manual must not repeat the library's initial draggable default");
-assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "the experimental manual must demonstrate responsive runtime content");
-assert.match(siteDemos["docs/manual.mjs"], /canvas\.dataset\.canvasWidth[\s\S]*canvas\.dataset\.canvasHeight/, "the resize canvas must expose the observed content-box dimensions");
-assert.match(siteDemos["docs/manual.mjs"], /RESIZE OBSERVER[\s\S]*CONTENT BOX/, "the resize canvas must draw its own measurement content");
-assert.doesNotMatch(siteDemos["docs/manual.mjs"], /context\.arc\(|context\.lineTo\(width \* 0\.95/, "the resize canvas must not repeat the form specimen shapes");
-assert.match(docsContent.manual["manual-canvas"].label, /live content-box dimensions/i, "the resize canvas needs an accessible description of its new content");
 assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");
 assert.match(siteDemos["docs/shell.mjs"], /Math\.floor\(\(available - borders - gap \* \(columns - 1\)\) \/ columns\)/, "the docs shell must quantize tracks to whole CSS pixels");
-assert.match(siteDemos["docs/manual.mjs"], /document\.createElement\("video"\)[\s\S]*\.controls = true[\s\S]*\.muted = true[\s\S]*\.preload = "none"/, "the experimental manual must make the pending video contract visible");
-assert.match(siteDemos["docs/manual.mjs"], /dataset\.videoLifecycle = "pause-on-minimize-remove-pagehide"/, "manual video must publish its tested lifecycle convention");
-assert.match(siteDemos["docs/manual.mjs"], /\.poster = "references\/media-contract-poster\.svg\?v=0\.1\.1"/, "manual video must use the restrained form poster");
-assert.match(siteDemos["docs/manual.mjs"], /new MutationObserver\([\s\S]*blockMedia\.minimized\) pauseMedia\(\)/, "manual video must pause when minimized or removed");
-assert.match(siteDemos["docs/manual.mjs"], /addEventListener\("pagehide", pauseMedia\)/, "manual video must pause when the document exits");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /ResizeObserver|MutationObserver|registerAdapter|document\.createElement\("video"\)/, "advanced lifecycle demonstrations belong in examples, not the beginner route");
 assert.doesNotMatch(siteDemos["docs/shell.mjs"], /data-section-navigation|hashchange|location\.hash|initSectionNavigation/, "the shared main navigation must not own fragment state");
 for (const [page, html] of [["home", homeHtml], ["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /class="nav-hamburger"[^>]*aria-controls="primary-navigation"/, `${page} hamburger must identify the controlled navigation`);
@@ -279,20 +269,15 @@ assert.match(siteDemos["docs/shell.mjs"], /mobileNavigation\.addEventListener\("
 assert.match(siteCss, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*scroll-behavior:\s*auto/, "smooth anchor scrolling must respect reduced motion");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createBlocksSystem\([\s\S]*createBlocksSystem\(/, "the experimental manual must not create a nested blocks system");
 const manualStartPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-start"');
-const manualFormsPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-forms"');
-assert.ok(manualStartPosition >= 0 && manualFormsPosition > manualStartPosition,
-"the manual must put the first instruction before its visual language specimen");
-assert.deepEqual(docsContent.manual["manual-forms"].items.map(({ shape, caption }) => [shape, caption]), [
-  ["circle", "state / circle"],
-  ["rectangle", "content / rectangle"],
-  ["triangle", "direction / triangle"]
-], "the form specimen content must explain what each shape communicates");
-assert.match(siteDemos["docs/manual.mjs"], /new Set\(\["circle", "rectangle", "triangle"\]\)/, "the manual composition must render exactly the three known forms");
+const manualHtmlPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-content-html"');
+const manualNodePosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-content-node"');
+const manualFactoryPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-content-factory"');
+const manualFinishPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-finish"');
+assert.ok(manualStartPosition >= 0 && manualHtmlPosition > manualStartPosition && manualNodePosition > manualHtmlPosition && manualFactoryPosition > manualNodePosition && manualFinishPosition > manualFactoryPosition,
+"the manual must read start code, three content forms, then finish code");
 assert.match(siteCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
-assert.match(siteCss, /\.manual-rectangle\s*\{[^}]*background:\s*#000;/s, "the Munari rectangle must remain black");
-assert.match(siteCss, /\.manual-circle\s*\{[^}]*background:\s*#000;/s, "the Munari circle must remain neutral black");
-assert.match(siteCss, /\.manual-triangle\s*\{[^}]*background:\s*#000;/s, "the Munari triangle must remain neutral black");
-assert.doesNotMatch(docsContent.manual["manual-forms"].items.map(({ label }) => label).join(" "), /\b(?:red|green|blue|cyan|magenta|yellow)\b/i, "form labels must not assign block colors to content");
+assert.match(siteCss, /\.manual-chapter-start\s*\{[^}]*margin-top:/s, "chapter starts must create visible breathing room when explicit grid rows collapse");
+assert.match(siteCss, /\.manual-code-block\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;/s, "lesson code must use the complete editorial width");
 assert.match(siteDemos["examples/mixed-content/demo.mjs"], /context\.strokeStyle = "#000";/, "the mixed-content canvas must draw with neutral ink");
 assert.match(standaloneExamples["mixed-content"], /content stays neutral[\s\S]*(?:user|consumer) owns colorArray/i, "the mixed-content note must state that the consumer owns the block colors");
 const pureBlockColor = /(?:#(?:ff0000|00ff00|0000ff|00ffff|ff00ff|ffff00)|rgb\(\s*(?:255\s*,\s*0\s*,\s*0|0\s*,\s*255\s*,\s*0|0\s*,\s*0\s*,\s*255|0\s*,\s*255\s*,\s*255|255\s*,\s*0\s*,\s*255|255\s*,\s*255\s*,\s*0)\s*\))/i;
@@ -304,39 +289,52 @@ for (const [owner, source] of [
 ]) {
   assert.doesNotMatch(source, pureBlockColor, `${owner} must not use an RGB/CMY block color inside rendered content`);
 }
-assert.match(siteCss, /\.manual-media video\s*\{[^}]*object-fit:\s*contain;/s, "video must use an explicit contain prototype");
 assert.match(siteCss, /@media \(max-width: 900px\)[\s\S]*\.docs-board\.blocks-system-surface[^}]*repeat\(3, minmax\(0, 1fr\)\)/, "the docs shell must collapse to three tablet columns");
 assert.match(siteCss, /@media \(max-width: 560px\)[\s\S]*\.docs-board\.blocks-system-surface[^}]*grid-template-columns:\s*1fr;/, "the docs shell must collapse to one mobile column");
 assert.doesNotMatch(libraryCss, /\.manual-/, "the reusable library stylesheet must not absorb the experimental manual composition");
 
 assert.match(apiHtml, /<body class="docs-page reference-page">/, "the API route must use the shared docs shell and reference surface");
 assert.match(apiHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the reference must use the four-item shared navigation");
+assert.match(apiHtml, /class="reference-index"[\s\S]*#exports[\s\S]*#options[\s\S]*#system-state[\s\S]*#system-methods[\s\S]*#block-controller[\s\S]*#adapters[\s\S]*#reorder-event[\s\S]*#css-hooks[\s\S]*#errors/, "the reference masthead must expose a complete lookup index");
 assert.equal(docsContent.schema, "blocks.system/docs-content@2", "docs content must publish its supported schema");
 assert.deepEqual(Object.keys(docsContent), ["schema", "home", "manual", "reference"], "docs content must expose only the three canonical block sections");
 assert.deepEqual(Object.keys(docsContent.home), ["home-title", "home-intro"], "home content must own exactly two blocks in canonical reading order");
 assert.deepEqual(Object.keys(docsContent.manual), [
   "manual-start",
-  "manual-forms",
-  "manual-content-contract",
-  "manual-html",
-  "manual-canvas",
-  "manual-compose",
-  "manual-connect",
-  "manual-reference",
-  "manual-hooks",
-  "manual-media",
-  "manual-examples",
-  "manual-about",
-  "manual-source"
-], "manual content must own exactly thirteen blocks in canonical reading order");
+  "manual-content-html",
+  "manual-content-node",
+  "manual-content-factory",
+  "manual-finish",
+  "manual-result-regular",
+  "manual-result-inverse",
+  "manual-layout",
+  "manual-layout-wide",
+  "manual-layout-small",
+  "manual-colors",
+  "manual-color-cyan",
+  "manual-color-magenta",
+  "manual-color-yellow",
+  "manual-random",
+  "manual-random-1",
+  "manual-random-2",
+  "manual-random-3",
+  "manual-random-4",
+  "manual-random-5",
+  "manual-random-6",
+  "manual-next"
+], "manual content must own the complete beginner sequence in reading order");
 assert.deepEqual(Object.keys(docsContent.reference), [
-  "reference-system",
+  "reference-exports",
+  "reference-options",
+  "reference-state",
+  "reference-methods",
   "reference-block",
+  "reference-add-options",
   "reference-adapters",
-  "reference-definition",
+  "reference-event",
   "reference-hooks",
   "reference-errors"
-], "the reference content must own exactly six blocks in canonical reading order");
+], "the reference content must own the complete lookup sequence in reading order");
 const docsContentKeys = new Set();
 JSON.stringify(docsContent, function (key, value) {
   if (key) docsContentKeys.add(key);
@@ -345,7 +343,7 @@ JSON.stringify(docsContent, function (key, value) {
 for (const forbiddenKey of ["adapter", "anchor", "class", "className", "defaults", "html", "lifecycle", "minimized", "renderer", "span", "variant"]) {
   assert.equal(docsContentKeys.has(forbiddenKey), false, `docs content must not own ${forbiddenKey}`);
 }
-assert.equal(Object.values(docsContent).slice(1).reduce((total, section) => total + Object.keys(section).length, 0), 21, "docs content must cover every living docblock exactly once");
+assert.equal(Object.values(docsContent).slice(1).reduce((total, section) => total + Object.keys(section).length, 0), 34, "docs content must cover every living docblock exactly once");
 for (const [sectionName, section] of Object.entries({ home: docsContent.home, manual: docsContent.manual, reference: docsContent.reference })) {
   for (const [id, block] of Object.entries(section)) {
     assert.equal(typeof block.title, "string", `${sectionName}.${id} needs one visible title`);
@@ -355,7 +353,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.7", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.8", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
@@ -364,10 +362,10 @@ assert.doesNotMatch(siteDemos["docs/reference.mjs"], /Create an independent syst
 assert.equal((siteDemos["docs/reference.mjs"].match(/const blocks = createBlocksSystem\(/g) || []).length, 1, "the reference must use one shared blocks system");
 assert.match(siteDemos["docs/reference.mjs"], /draggable:\s*false/, "the lookup reference must configure its canonical reading order at creation");
 assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the reference must use the shared whole-pixel geometry");
-for (const anchor of ["shared-system", "block-controller", "adapters", "definition", "css-hooks", "errors"]) {
+for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);
 }
-for (const apiName of ["createBlocksSystem(options)", "attach(target)", "setGrid(x, y)", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation", "add(content, options)", "menu(name, options)", "span(x, y)", "place(x, y)", "flow()", "registerAdapter(id, adapter)", "mount(id, target, overrides)", "unmount(target)", "address(id)"]) {
+for (const apiName of ["createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation", "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)", "flow()", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)", "unmount(target)", "address(id)", "blocks:reorder"]) {
   assert.ok(serializedReferenceContent.includes(apiName), `the reference content misses ${apiName}`);
 }
 assert.match(serializedReferenceContent, /User-owned CSS colors[\s\S]*?defaults to empty/i, "the reference must identify colorArray as empty and consumer-owned");

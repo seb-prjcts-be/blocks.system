@@ -1,44 +1,48 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.10";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.11";
 
 const board = document.querySelector("#manual-board");
-const status = document.querySelector("#manual-status");
-const lock = document.querySelector("#manual-lock");
-const reset = document.querySelector("#manual-reset");
-const manualVariationSamples = [0.35, 0.02, 0.45, 0.88, 0.52, 0.10, 0.62, 0.72, 0.30, 0.18, 0.92, 0.55];
+const manualVariationSamples = [0.05, 0.4, 0.8, 0.05, 0.25, 0.45, 0.55, 0.75, 0.6];
 let manualVariationIndex = 0;
 
 const blocks = createBlocksSystem({
-  variant: "random",
-  colorArray: ["cyan", "magenta", "yellow"],
-  colorVariation: 0.2,
-  inversionVariation: 0.2,
-  random: () => manualVariationSamples[manualVariationIndex++ % manualVariationSamples.length],
+  variant: "regular",
   snap: true,
+  draggable: false,
+  random: () => manualVariationSamples[manualVariationIndex++ % manualVariationSamples.length],
   blockDefaults: {
-    menu: { minimize: true, close: true }
+    menu: { minimize: false, close: false }
   }
 });
-const controllers = [];
+
 const manualIds = [
   "manual-start",
-  "manual-forms",
-  "manual-content-contract",
-  "manual-html",
-  "manual-canvas",
-  "manual-compose",
-  "manual-connect",
-  "manual-reference",
-  "manual-hooks",
-  "manual-media",
-  "manual-examples",
-  "manual-about",
-  "manual-source"
+  "manual-content-html",
+  "manual-content-node",
+  "manual-content-factory",
+  "manual-finish",
+  "manual-result-regular",
+  "manual-result-inverse",
+  "manual-layout",
+  "manual-layout-wide",
+  "manual-layout-small",
+  "manual-colors",
+  "manual-color-cyan",
+  "manual-color-magenta",
+  "manual-color-yellow",
+  "manual-random",
+  "manual-random-1",
+  "manual-random-2",
+  "manual-random-3",
+  "manual-random-4",
+  "manual-random-5",
+  "manual-random-6",
+  "manual-next"
 ];
 const content = await loadDocsContent("manual", manualIds);
 
 blocks.attach(board);
-blocks.setGrid(6, 24);
+blocks.setGrid(6, 28);
 quantizeSurface(board);
 
 function createTextElement(name, text, className = "") {
@@ -48,406 +52,273 @@ function createTextElement(name, text, className = "") {
   return element;
 }
 
-function createAction({ label, href }, { download = false } = {}) {
-  const action = createTextElement("a", label);
-  action.href = href;
-  if (download) action.download = "";
-  return action;
-}
-
-function appendInlineContent(target, parts) {
-  if (!Array.isArray(parts)) throw new Error("Manual inline content must be an array.");
-  for (const part of parts) {
-    if (typeof part?.text === "string") {
-      target.append(document.createTextNode(part.text));
-    } else if (typeof part?.code === "string") {
-      target.append(createTextElement("code", part.code));
-    } else {
-      throw new Error("Manual inline content parts must contain text or code.");
-    }
-  }
-}
-
-function createStartContent({ code }) {
+function createCodeContent({ intro, code }) {
+  const root = document.createElement("div");
+  root.className = "manual-lesson manual-lesson-code";
+  if (intro) root.append(createTextElement("p", intro, "manual-explanation"));
   const pre = document.createElement("pre");
   pre.className = "manual-code";
-  pre.append(createTextElement("code", code.join("\n")));
-  return pre;
-}
-
-function createFormsContent({ groupLabel, items }) {
-  const root = document.createElement("div");
-  root.className = "manual-forms";
-  root.setAttribute("role", "group");
-  root.setAttribute("aria-label", groupLabel);
-
-  const knownShapes = new Set(["circle", "rectangle", "triangle"]);
-  for (const item of items) {
-    if (!knownShapes.has(item.shape)) throw new Error(`Unknown manual form: ${item.shape}.`);
-    const figure = document.createElement("figure");
-    figure.className = "manual-form-item";
-    const stage = document.createElement("div");
-    stage.className = "manual-form-stage";
-    stage.setAttribute("role", "img");
-    stage.setAttribute("aria-label", item.label);
-    const shape = document.createElement("div");
-    shape.className = `manual-${item.shape}`;
-    shape.setAttribute("aria-hidden", "true");
-    stage.append(shape);
-    figure.append(stage, createTextElement("figcaption", item.caption));
-    root.append(figure);
-  }
+  pre.append(createTextElement("code", Array.isArray(code) ? code.join("\n") : code));
+  root.append(pre);
   return root;
 }
 
-function createStatementContent({ eyebrow, statement, body, number }) {
+function createLessonContent({ eyebrow, statement, body, code }) {
   const root = document.createElement("div");
-  root.className = "manual-statement";
-  const paragraph = document.createElement("p");
-  appendInlineContent(paragraph, body);
-  root.append(
-    createTextElement("small", eyebrow),
-    createTextElement("strong", statement),
-    paragraph,
-    createTextElement("b", number)
-  );
-  return root;
-}
-
-function createGridLanguage({ items }) {
-  const root = document.createElement("div");
-  root.className = "manual-grid-language";
-  for (const item of items) {
-    const line = document.createElement("div");
-    line.append(
-      createTextElement("small", item.eyebrow),
-      createTextElement("strong", item.statement),
-      createTextElement("code", item.code)
-    );
-    root.append(line);
-  }
-  return root;
-}
-
-function createReferenceContent({ eyebrow, members, action }) {
-  const root = document.createElement("div");
-  root.className = "manual-api";
-  const list = document.createElement("ul");
-  for (const member of members) list.append(createTextElement("li", member));
-  root.append(createTextElement("small", eyebrow), list, createAction(action));
-  return root;
-}
-
-function createHooksContent({ eyebrow, code }) {
-  const root = document.createElement("div");
-  root.className = "manual-hooks";
-  const pre = document.createElement("pre");
-  pre.append(createTextElement("code", code.join("\n")));
-  root.append(createTextElement("small", eyebrow), pre);
-  return root;
-}
-
-function createExamplesContent({ items }) {
-  const root = document.createElement("div");
-  root.className = "manual-examples";
-  for (const item of items) {
-    const example = document.createElement("div");
-    const actions = document.createElement("div");
-    actions.className = "manual-example-actions";
-    actions.append(createAction(item.run), createAction(item.download, { download: true }));
-    example.append(
-      createTextElement("small", item.eyebrow),
-      createTextElement("strong", item.statement),
-      actions
-    );
-    root.append(example);
-  }
-  return root;
-}
-
-function createAboutContent({ eyebrow, statement, body, action }) {
-  const root = document.createElement("div");
-  root.className = "manual-about";
-  root.append(createTextElement("small", eyebrow), createTextElement("strong", statement));
+  root.className = "manual-lesson manual-result";
+  if (eyebrow) root.append(createTextElement("small", eyebrow));
+  if (statement) root.append(createTextElement("strong", statement));
   if (body) root.append(createTextElement("p", body));
-  if (action) root.append(createAction(action));
+  if (code) {
+    const pre = document.createElement("pre");
+    pre.className = "manual-card-code";
+    pre.append(createTextElement("code", code));
+    root.append(pre);
+  }
   return root;
 }
 
-function addBlock({ id, title, content, span, variant, anchor = "" }) {
-  const block = blocks.add(content, { id, title, variant });
-  if (span) block.span(...span);
+function createNextContent({ eyebrow, statement, body, items }) {
+  const root = createLessonContent({ eyebrow, statement, body });
+  const links = document.createElement("div");
+  links.className = "manual-next-links";
+  for (const item of items) {
+    const link = createTextElement("a", item.label);
+    link.href = item.href;
+    links.append(link);
+  }
+  root.append(links);
+  return root;
+}
+
+function addBlock({ id, title, content: blockContent, span, place, variant, anchor = "", classes = [] }) {
+  const block = blocks.add(blockContent, { id, title, variant });
+  block.span(...span);
+  block.place(...place);
+  block.element.classList.add(...classes);
   if (anchor) {
     block.element.id = anchor;
     block.element.classList.add("manual-anchor");
   }
-  controllers.push({ block, minimized: block.minimized });
   return block;
 }
 
 addBlock({
   id: "manual-start",
   title: content["manual-start"].title,
-  span: [3, 2],
+  content: createCodeContent(content["manual-start"]),
+  span: [6, 3],
+  place: [1, 1],
   anchor: "start",
-  content: createStartContent(content["manual-start"])
+  classes: ["manual-code-block"]
 });
 
 addBlock({
-  id: "manual-forms",
-  title: content["manual-forms"].title,
-  span: [3, 2],
-  content: createFormsContent(content["manual-forms"])
-});
-
-addBlock({
-  id: "manual-content-contract",
-  title: content["manual-content-contract"].title,
-  span: [3, 1],
-  anchor: "compose",
-  content: createStatementContent(content["manual-content-contract"])
-});
-
-const htmlContent = content["manual-html"];
-const htmlDemo = document.createElement("div");
-htmlDemo.className = "manual-html-demo";
-const htmlButton = createTextElement("button", htmlContent.button.idle);
-htmlButton.type = "button";
-htmlButton.addEventListener("click", (event) => {
-  event.currentTarget.textContent = event.currentTarget.textContent === htmlContent.button.idle
-    ? htmlContent.button.active
-    : htmlContent.button.idle;
-});
-htmlDemo.append(htmlButton);
-addBlock({
-  id: "manual-html",
-  title: htmlContent.title,
-  content: htmlDemo
-});
-
-const canvas = document.createElement("canvas");
-canvas.className = "manual-canvas";
-const canvasDescription = content["manual-canvas"].label;
-canvas.setAttribute("aria-label", canvasDescription);
-const blockCanvas = addBlock({
-  id: "manual-canvas",
-  title: content["manual-canvas"].title,
-  span: [2, 1],
-  content: canvas
-});
-
-function drawCanvas() {
-  const bounds = blockCanvas.content.getBoundingClientRect();
-  const scale = Math.max(1, window.devicePixelRatio || 1);
-  const width = Math.max(1, Math.round(bounds.width));
-  const height = Math.max(1, Math.round(bounds.height));
-  canvas.width = Math.round(width * scale);
-  canvas.height = Math.round(height * scale);
-  canvas.dataset.canvasWidth = String(width);
-  canvas.dataset.canvasHeight = String(height);
-  canvas.setAttribute("aria-label", `${canvasDescription}: ${width} × ${height} CSS pixels`);
-  const context = canvas.getContext("2d");
-  context.setTransform(scale, 0, 0, scale, 0, 0);
-  context.fillStyle = "#efeee8";
-  context.fillRect(0, 0, width, height);
-  context.strokeStyle = "#000";
-  context.fillStyle = "#000";
-  context.lineWidth = 1;
-
-  const inset = Math.max(12, Math.min(22, Math.min(width, height) * 0.1));
-  const left = inset;
-  const right = width - inset;
-  const rulerY = Math.round(height * 0.48) + 0.5;
-  const divisions = Math.max(4, Math.floor((right - left) / 24));
-
-  context.font = '600 10px "Instrument Sans", sans-serif';
-  context.textBaseline = "top";
-  context.textAlign = "left";
-  context.fillText("RESIZE OBSERVER", left, inset);
-
-  context.beginPath();
-  context.moveTo(left, rulerY);
-  context.lineTo(right, rulerY);
-  for (let index = 0; index <= divisions; index += 1) {
-    const x = left + (right - left) * (index / divisions);
-    const tick = index % 2 === 0 ? 9 : 5;
-    context.moveTo(Math.round(x) + 0.5, rulerY - tick);
-    context.lineTo(Math.round(x) + 0.5, rulerY + tick);
-  }
-  context.stroke();
-
-  const baseline = height - inset;
-  context.textBaseline = "alphabetic";
-  context.font = '600 10px "Instrument Sans", sans-serif';
-  context.fillText("CONTENT BOX", left, baseline);
-  context.textAlign = "right";
-  context.font = `600 ${Math.max(16, Math.min(28, width * 0.07))}px "Instrument Sans", sans-serif`;
-  context.fillText(`${width} × ${height}`, right, baseline);
-}
-
-const canvasObserver = new ResizeObserver(drawCanvas);
-canvasObserver.observe(blockCanvas.content);
-window.addEventListener("resize", drawCanvas, { passive: true });
-
-addBlock({
-  id: "manual-compose",
-  title: content["manual-compose"].title,
+  id: "manual-content-html",
+  title: content["manual-content-html"].title,
+  content: createLessonContent(content["manual-content-html"]),
   span: [2, 2],
-  anchor: "arrange",
-  content: createGridLanguage(content["manual-compose"])
+  place: [1, 4],
+  classes: ["manual-third"]
 });
 
-const connectContent = content["manual-connect"];
-blocks.registerAdapter("manual-counter", {
-  mount({ host, settings }) {
-    const root = document.createElement("div");
-    root.className = "manual-adapter";
-    const output = document.createElement("output");
-    output.value = String(settings.start);
-    const button = createTextElement("button", connectContent.action);
-    button.type = "button";
-    button.addEventListener("click", () => {
-      output.value = String(Number(output.value) + 1);
-    });
-    root.append(
-      createTextElement("small", connectContent.eyebrow),
-      createTextElement("strong", connectContent.statement),
-      output,
-      button
-    );
-    host.appendChild(root);
-    return root;
-  }
-});
-blocks.register({ id: "manual-live-counter", adapter: "manual-counter", defaults: { start: connectContent.initial } });
-const adapterHost = document.createElement("div");
-adapterHost.className = "manual-adapter-host";
 addBlock({
-  id: "manual-connect",
-  title: connectContent.title,
+  id: "manual-content-node",
+  title: content["manual-content-node"].title,
+  content: createLessonContent(content["manual-content-node"]),
   span: [2, 2],
-  anchor: "connect",
-  content: adapterHost
+  place: [3, 4],
+  classes: ["manual-third"]
 });
-await blocks.mount("manual-live-counter", adapterHost);
 
 addBlock({
-  id: "manual-reference",
-  title: content["manual-reference"].title,
+  id: "manual-content-factory",
+  title: content["manual-content-factory"].title,
+  content: createLessonContent(content["manual-content-factory"]),
   span: [2, 2],
-  anchor: "reference",
-  content: createReferenceContent(content["manual-reference"])
+  place: [5, 4],
+  classes: ["manual-third"]
 });
 
 addBlock({
-  id: "manual-hooks",
-  title: content["manual-hooks"].title,
+  id: "manual-finish",
+  title: content["manual-finish"].title,
+  content: createCodeContent(content["manual-finish"]),
+  span: [6, 2],
+  place: [1, 6],
+  classes: ["manual-code-block"]
+});
+
+addBlock({
+  id: "manual-result-regular",
+  title: content["manual-result-regular"].title,
+  content: createLessonContent(content["manual-result-regular"]),
   span: [3, 2],
-  content: createHooksContent(content["manual-hooks"])
+  place: [1, 9],
+  variant: "regular",
+  anchor: "result",
+  classes: ["manual-half", "manual-chapter-start"]
 });
 
-const mediaContent = content["manual-media"];
-const mediaRoot = document.createElement("div");
-mediaRoot.className = "manual-media";
-const mediaVideoElement = document.createElement("video");
-mediaVideoElement.controls = true;
-mediaVideoElement.muted = true;
-mediaVideoElement.preload = "none";
-mediaVideoElement.poster = "references/media-contract-poster.svg?v=0.1.1";
-mediaVideoElement.setAttribute("aria-label", mediaContent.label);
-mediaVideoElement.dataset.videoLifecycle = "pause-on-minimize-remove-pagehide";
-const mediaCopy = document.createElement("div");
-mediaCopy.append(
-  createTextElement("small", mediaContent.eyebrow),
-  createTextElement("strong", mediaContent.statement),
-  createTextElement("p", mediaContent.body)
-);
-mediaRoot.append(mediaVideoElement, mediaCopy);
-const blockMedia = addBlock({
-  id: "manual-media",
-  title: mediaContent.title,
+addBlock({
+  id: "manual-result-inverse",
+  title: content["manual-result-inverse"].title,
+  content: createLessonContent(content["manual-result-inverse"]),
   span: [3, 2],
-  content: mediaRoot
-});
-
-addBlock({
-  id: "manual-examples",
-  title: content["manual-examples"].title,
-  span: [3, 2],
-  anchor: "examples",
-  content: createExamplesContent(content["manual-examples"])
-});
-
-addBlock({
-  id: "manual-about",
-  title: content["manual-about"].title,
-  span: [2, 2],
-  anchor: "boundary",
-  content: createAboutContent(content["manual-about"])
-});
-
-addBlock({
-  id: "manual-source",
-  title: content["manual-source"].title,
-  span: [2, 1],
+  place: [4, 9],
   variant: "inverse",
-  content: createAboutContent(content["manual-source"])
+  classes: ["manual-half", "manual-chapter-start"]
 });
 
-const initialOrder = controllers.map(({ block }) => block.element);
-const mediaVideo = blockMedia.content.querySelector("video");
-
-function pauseMedia() {
-  mediaVideo?.pause();
-}
-
-const mediaLifecycle = new MutationObserver(() => {
-  if (!blockMedia.element.isConnected || blockMedia.minimized) pauseMedia();
-});
-mediaLifecycle.observe(board, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-block-minimized"] });
-window.addEventListener("pagehide", pauseMedia);
-
-function updateLock() {
-  const locked = !blocks.draggable;
-  lock.setAttribute("aria-pressed", String(locked));
-  lock.textContent = locked ? "unlock layout" : "lock layout";
-}
-
-function updateStatus(message) {
-  const names = Array.from(board.children)
-    .filter((node) => node.matches(".blocks-system-object"))
-    .map((node) => node.getAttribute("data-block-object"));
-  status.textContent = message || `${names.length} direct blocks · ${blocks.draggable ? "drag on" : "layout locked"} · ${names.join(" → ")}`;
-}
-
-lock.addEventListener("click", () => {
-  blocks.draggable = !blocks.draggable;
-  updateLock();
-  updateStatus();
+addBlock({
+  id: "manual-layout",
+  title: content["manual-layout"].title,
+  content: createCodeContent(content["manual-layout"]),
+  span: [6, 2],
+  place: [1, 12],
+  anchor: "layout",
+  classes: ["manual-code-block", "manual-chapter-start"]
 });
 
-reset.addEventListener("click", () => {
-  if (controllers.some(({ block }) => !block.element.isConnected)) {
-    window.location.reload();
-    return;
-  }
-  controllers.forEach(({ block }) => block.flow());
-  initialOrder.forEach((element) => board.appendChild(element));
-  blocks.setGrid(6, 24);
-  controllers.forEach(({ block, minimized }) => { block.minimized = minimized; });
-  blocks.draggable = true;
-  updateLock();
-  updateStatus("layout reset · drag on");
+addBlock({
+  id: "manual-layout-wide",
+  title: content["manual-layout-wide"].title,
+  content: createLessonContent(content["manual-layout-wide"]),
+  span: [4, 2],
+  place: [1, 14],
+  classes: ["manual-two-thirds"]
 });
 
-for (const eventName of ["pointerup", "pointercancel", "lostpointercapture"]) {
-  board.addEventListener(eventName, () => requestAnimationFrame(() => updateStatus()));
-}
-board.addEventListener("blocks:reorder", () => updateStatus("keyboard reorder · drag on"));
-board.addEventListener("click", (event) => {
-  if (event.target.closest(".blocks-system-close")) requestAnimationFrame(() => updateStatus());
+addBlock({
+  id: "manual-layout-small",
+  title: content["manual-layout-small"].title,
+  content: createLessonContent(content["manual-layout-small"]),
+  span: [2, 2],
+  place: [5, 14],
+  variant: "inverse",
+  classes: ["manual-third"]
 });
 
-updateLock();
-updateStatus();
+addBlock({
+  id: "manual-colors",
+  title: content["manual-colors"].title,
+  content: createCodeContent(content["manual-colors"]),
+  span: [6, 2],
+  place: [1, 17],
+  variant: "regular",
+  anchor: "colors",
+  classes: ["manual-code-block", "manual-chapter-start"]
+});
+
+blocks.colorArray = ["cyan", "magenta", "yellow"];
+blocks.colorVariation = 1;
+blocks.variant = "random";
+
+addBlock({
+  id: "manual-color-cyan",
+  title: content["manual-color-cyan"].title,
+  content: createLessonContent(content["manual-color-cyan"]),
+  span: [2, 2],
+  place: [1, 19],
+  classes: ["manual-third"]
+});
+
+addBlock({
+  id: "manual-color-magenta",
+  title: content["manual-color-magenta"].title,
+  content: createLessonContent(content["manual-color-magenta"]),
+  span: [2, 2],
+  place: [3, 19],
+  classes: ["manual-third"]
+});
+
+addBlock({
+  id: "manual-color-yellow",
+  title: content["manual-color-yellow"].title,
+  content: createLessonContent(content["manual-color-yellow"]),
+  span: [2, 2],
+  place: [5, 19],
+  classes: ["manual-third"]
+});
+
+addBlock({
+  id: "manual-random",
+  title: content["manual-random"].title,
+  content: createCodeContent(content["manual-random"]),
+  span: [6, 2],
+  place: [1, 22],
+  variant: "regular",
+  anchor: "random",
+  classes: ["manual-code-block", "manual-chapter-start"]
+});
+
+blocks.variant = "random";
+blocks.colorVariation = 0.5;
+blocks.inversionVariation = 0.5;
+
+addBlock({
+  id: "manual-random-1",
+  title: content["manual-random-1"].title,
+  content: createLessonContent(content["manual-random-1"]),
+  span: [1, 2],
+  place: [1, 24],
+  classes: ["manual-sixth"]
+});
+
+addBlock({
+  id: "manual-random-2",
+  title: content["manual-random-2"].title,
+  content: createLessonContent(content["manual-random-2"]),
+  span: [1, 2],
+  place: [2, 24],
+  classes: ["manual-sixth"]
+});
+
+addBlock({
+  id: "manual-random-3",
+  title: content["manual-random-3"].title,
+  content: createLessonContent(content["manual-random-3"]),
+  span: [1, 2],
+  place: [3, 24],
+  classes: ["manual-sixth"]
+});
+
+addBlock({
+  id: "manual-random-4",
+  title: content["manual-random-4"].title,
+  content: createLessonContent(content["manual-random-4"]),
+  span: [1, 2],
+  place: [4, 24],
+  classes: ["manual-sixth"]
+});
+
+addBlock({
+  id: "manual-random-5",
+  title: content["manual-random-5"].title,
+  content: createLessonContent(content["manual-random-5"]),
+  span: [1, 2],
+  place: [5, 24],
+  classes: ["manual-sixth"]
+});
+
+addBlock({
+  id: "manual-random-6",
+  title: content["manual-random-6"].title,
+  content: createLessonContent(content["manual-random-6"]),
+  span: [1, 2],
+  place: [6, 24],
+  classes: ["manual-sixth"]
+});
+
+addBlock({
+  id: "manual-next",
+  title: content["manual-next"].title,
+  content: createNextContent(content["manual-next"]),
+  span: [6, 2],
+  place: [1, 27],
+  variant: "inverse",
+  anchor: "next",
+  classes: ["manual-code-block", "manual-chapter-start"]
+});
+
 board.dataset.manualReady = "true";

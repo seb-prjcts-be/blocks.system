@@ -210,34 +210,30 @@ async function measureManual(width, height, dpr = 1) {
       const board = document.querySelector("#manual-board");
       const boardRect = board.getBoundingClientRect();
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
-      const canvas = board.querySelector(".manual-canvas");
-      const canvasRect = canvas.getBoundingClientRect();
-      const video = board.querySelector(".manual-media video");
-      const videoRect = video.getBoundingClientRect();
       const code = board.querySelector(".manual-code");
       const rootStyle = getComputedStyle(document.documentElement);
-      const navbar = document.querySelector("#navbar");
-      const logo = navbar.querySelector(".nav-logo");
-      const navigation = navbar.querySelector(".nav-links");
-      const toolbar = document.querySelector(".manual-toolbar");
-      const intersects = function (first, second) {
-        const a = first.getBoundingClientRect();
-        const b = second.getBoundingClientRect();
-        return Math.max(a.left, b.left) < Math.min(a.right, b.right) &&
-          Math.max(a.top, b.top) < Math.min(a.bottom, b.bottom);
-      };
-      const formBlocks = Array.from(board.querySelectorAll('[data-block-object="manual-forms"] .manual-form-item')).map(function (item) {
-        const blockRect = item.getBoundingClientRect();
-        const shape = item.querySelector(".manual-circle, .manual-rectangle, .manual-triangle");
-        const shapeRect = shape.getBoundingClientRect();
+      const contentOptions = ["manual-content-html", "manual-content-node", "manual-content-factory"].map(function (id) {
+        const blockRect = board.querySelector('[data-block-object="' + id + '"]').getBoundingClientRect();
         return {
-          id: item.querySelector("figcaption").textContent.trim(),
+          id,
           blockTop: blockRect.top,
-          blockWidth: blockRect.width,
-          shapeCenterY: shapeRect.top + shapeRect.height / 2,
-          color: getComputedStyle(shape).backgroundColor
+          blockWidth: blockRect.width
         };
       });
+      const chapterIds = ["result", "layout", "colors", "random", "next"];
+      const chapterGaps = chapterIds.map(function (id) {
+        const block = document.getElementById(id);
+        const previous = block.previousElementSibling;
+        return { id, gap: block.getBoundingClientRect().top - previous.getBoundingClientRect().bottom };
+      });
+      const codeBlockWidths = Array.from(board.querySelectorAll(":scope > .manual-code-block"), function (block) {
+        return { id: block.dataset.blockObject, width: block.getBoundingClientRect().width };
+      });
+      const colorContentColors = ["manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random-1", "manual-random-2", "manual-random-3"].map(function (id) {
+        const block = board.querySelector('[data-block-object="' + id + '"]');
+        return getComputedStyle(block.querySelector(":scope > .blocks-system-content")).color;
+      });
+      const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu");
       return {
         blockCount: objects.length,
         ids: objects.map(function (block) { return block.dataset.blockObject; }),
@@ -269,30 +265,21 @@ async function measureManual(width, height, dpr = 1) {
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
         pageSurfaceCount: document.querySelectorAll(".blocks-system-surface").length,
         navigationCount: document.querySelectorAll("nav").length,
-        logoNavigationOverlap: getComputedStyle(navigation).display !== "none" && intersects(logo, navigation),
-        navigationToolbarOverlap: intersects(navbar, toolbar),
         draggable: board.dataset.draggable,
+        lockedHandleState: {
+          tabIndex: firstHandle.tabIndex,
+          ariaLabel: firstHandle.getAttribute("aria-label")
+        },
+        menuActionCount: board.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
         devicePixelRatio: window.devicePixelRatio,
         codeOverflow: getComputedStyle(code).overflowX,
         scrollbarWidth: rootStyle.scrollbarWidth,
         scrollbarColor: rootStyle.scrollbarColor,
-        formBlocks,
-        canvas: {
-          cssWidth: canvasRect.width,
-          cssHeight: canvasRect.height,
-          bitmapWidth: canvas.width,
-          bitmapHeight: canvas.height,
-          reportedWidth: Number(canvas.dataset.canvasWidth),
-          reportedHeight: Number(canvas.dataset.canvasHeight),
-          label: canvas.getAttribute("aria-label")
-        },
-        video: {
-          width: videoRect.width,
-          height: videoRect.height,
-          controls: video.controls,
-          fit: getComputedStyle(video).objectFit,
-          preload: video.preload
-        }
+        boardWidth: boardRect.width,
+        contentOptions,
+        chapterGaps,
+        codeBlockWidths,
+        colorContentColors
       };
     })()`,
     awaitPromise: true,
@@ -326,6 +313,7 @@ async function measureReference(width, height, dpr = 1) {
       const firstPurpose = firstTableRow.querySelector("td:last-child");
       return {
         blockCount: objects.length,
+        ids: objects.map(function (block) { return block.dataset.blockObject; }),
         columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         pageScrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight,
@@ -335,6 +323,7 @@ async function measureReference(width, height, dpr = 1) {
         draggable: board.dataset.draggable,
         devicePixelRatio: window.devicePixelRatio,
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
+        menuActionCount: board.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
         outsideBoard: objects.filter(function (block) {
           const rect = block.getBoundingClientRect();
           return rect.left < boardRect.left - 0.5 || rect.right > boardRect.right + 0.5;
@@ -345,7 +334,7 @@ async function measureReference(width, height, dpr = 1) {
             return Math.abs(value - Math.round(value)) > 0.01;
           });
         }).map(function (block) { return block.dataset.blockObject; }),
-        missingAnchors: ["shared-system", "block-controller", "adapters", "definition", "css-hooks", "errors"].filter(function (id) {
+        missingAnchors: ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"].filter(function (id) {
           return !document.getElementById(id);
         }),
         lockedHandleState: {
@@ -354,8 +343,11 @@ async function measureReference(width, height, dpr = 1) {
         },
         tableOverflowModes: Array.from(board.querySelectorAll(".reference-table-wrap"))
           .map(function (node) { return getComputedStyle(node).overflow; }),
-        localOverflowModes: Array.from(board.querySelectorAll(".reference-code, .reference-hooks"))
+        localOverflowModes: Array.from(board.querySelectorAll(".reference-code"))
           .map(function (node) { return getComputedStyle(node).overflow; }),
+        fullWidthDifferences: objects.map(function (block) {
+          return Math.abs(block.getBoundingClientRect().width - boardRect.width);
+        }),
         table: {
           fontSize: getComputedStyle(firstTable).fontSize,
           rowDisplay: getComputedStyle(firstTableRow).display,
@@ -367,115 +359,6 @@ async function measureReference(width, height, dpr = 1) {
     returnByValue: true
   });
   return result.result.value;
-}
-
-async function exerciseManual() {
-  const pointResult = await protocol.send("Runtime.evaluate", {
-    expression: `(() => {
-      const center = function (element, xFactor) {
-        const rect = element.getBoundingClientRect();
-        return { x: rect.left + rect.width * xFactor, y: rect.top + rect.height / 2 };
-      };
-      const board = document.querySelector("#manual-board");
-      window.__manualPointerReorder = null;
-      board.addEventListener("blocks:reorder", function captureReorder(event) {
-        window.__manualPointerReorder = event.detail;
-        board.removeEventListener("blocks:reorder", captureReorder);
-      });
-      return {
-        start: center(document.querySelector('[data-block-object="manual-start"] > .blocks-system-menu'), 0.5),
-        target: center(document.querySelector('[data-block-object="manual-forms"] > .blocks-system-menu'), 0.8),
-        beforeGeometry: Object.fromEntries(["manual-start", "manual-forms"].map(function (id) {
-          const rect = document.querySelector('[data-block-object="' + id + '"]').getBoundingClientRect();
-          return [id, [rect.left, rect.top]];
-        }))
-      };
-    })()`,
-    returnByValue: true
-  });
-  const { start, target, beforeGeometry } = pointResult.result.value;
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseMoved", x: start.x, y: start.y });
-  await protocol.send("Input.dispatchMouseEvent", { type: "mousePressed", x: start.x, y: start.y, button: "left", buttons: 1, clickCount: 1 });
-  for (let step = 1; step <= 8; step += 1) {
-    const progress = step / 8;
-    await protocol.send("Input.dispatchMouseEvent", {
-      type: "mouseMoved",
-      x: start.x + (target.x - start.x) * progress,
-      y: start.y + (target.y - start.y) * progress,
-      button: "left",
-      buttons: 1
-    });
-  }
-  await protocol.send("Input.dispatchMouseEvent", { type: "mouseReleased", x: target.x, y: target.y, button: "left", buttons: 0, clickCount: 1 });
-
-  const result = await protocol.send("Runtime.evaluate", {
-    expression: `(async function () {
-      await new Promise(function (resolveFrame) {
-        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
-      });
-      const board = document.querySelector("#manual-board");
-      const settling = Array.from(board.querySelectorAll(":scope > .blocks-system-object")).filter(function (block) {
-        return block.getAnimations().length > 0;
-      }).map(function (block) { return block.dataset.blockObject; });
-      await new Promise(function (resolveWait) { setTimeout(resolveWait, 180); });
-      const order = function () {
-        return Array.from(board.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
-          return block.dataset.blockObject;
-        });
-      };
-      const media = board.querySelector('[data-block-object="manual-media"]');
-      const video = media.querySelector("video");
-      video.dataset.pauseCalls = "0";
-      video.pause = function () { video.dataset.pauseCalls = String(Number(video.dataset.pauseCalls) + 1); };
-      media.querySelector(".blocks-system-minimize").click();
-      await Promise.resolve();
-      const mediaPauseCalls = Number(video.dataset.pauseCalls);
-      media.querySelector(".blocks-system-minimize").click();
-      const draggedOrder = order();
-      const draggedGeometry = Object.fromEntries(["manual-start", "manual-forms"].map(function (id) {
-        const rect = board.querySelector('[data-block-object="' + id + '"]').getBoundingClientRect();
-        return [id, [rect.left, rect.top]];
-      }));
-      const dragCleanedUp = !board.hasAttribute("data-dragging") && !board.querySelector(".is-dragging");
-      document.querySelector("#manual-lock").click();
-      const locked = board.dataset.draggable === "false" && document.querySelector("#manual-lock").getAttribute("aria-pressed") === "true";
-      const lockedHandle = board.querySelector(":scope > .blocks-system-object > .blocks-system-menu");
-      const lockedHandleState = { tabIndex: lockedHandle.tabIndex, ariaLabel: lockedHandle.getAttribute("aria-label") };
-      document.querySelector("#manual-reset").click();
-      const keyboardHandle = board.querySelector(":scope > .blocks-system-object > .blocks-system-menu");
-      const keyboardBeforeRect = keyboardHandle.parentElement.getBoundingClientRect();
-      keyboardHandle.focus();
-      const keyboardEvent = new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true, cancelable: true });
-      keyboardHandle.dispatchEvent(keyboardEvent);
-      await new Promise(function (resolveWait) { setTimeout(resolveWait, 180); });
-      const keyboardAfterRect = keyboardHandle.parentElement.getBoundingClientRect();
-      const keyboardOrder = order();
-      document.querySelector("#manual-reset").click();
-      return {
-        draggedOrder,
-        draggedGeometry,
-        settling,
-        dragCleanedUp,
-        locked,
-        lockedHandleState,
-        keyboardOrder,
-        keyboardGeometry: {
-          before: [keyboardBeforeRect.left, keyboardBeforeRect.top],
-          after: [keyboardAfterRect.left, keyboardAfterRect.top]
-        },
-        keyboardPrevented: keyboardEvent.defaultPrevented,
-        keyboardHandleLabel: keyboardHandle.getAttribute("aria-label"),
-        pointerReorder: window.__manualPointerReorder,
-        mediaPauseCalls,
-        resetOrder: order(),
-        resetDraggable: board.dataset.draggable,
-        resetStatus: document.querySelector("#manual-status").textContent
-      };
-    })()`,
-    awaitPromise: true,
-    returnByValue: true
-  });
-  return { beforeGeometry, ...result.result.value };
 }
 
 async function exerciseMobileNavigation() {
@@ -614,15 +497,24 @@ try {
 
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
-  const manualMeasurements = [];
   for (const [width, height, , documentColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
-    manualMeasurements.push(manual);
-    assert.equal(manual.blockCount, 13, `manual mist directe blocks op ${width}px @${dpr}x`);
-    assert.equal(manual.ids[0], "manual-start", `manual begint niet met de concrete start op ${width}px @${dpr}x`);
-    assert.deepEqual(manual.variants, ["regular", "color", "regular", "inverse", "regular", "color", "regular", "regular", "regular", "color", "inverse", "regular", "inverse"], `manual gebruikt niet één generieke variant voor de door de gebruiker gekozen kleuren op ${width}px @${dpr}x`);
-    assert.deepEqual(manual.colors, [null, "cyan", null, null, null, "magenta", null, null, null, "yellow", null, null, null], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
+    assert.equal(manual.blockCount, 22, `manual mist directe lesblokken op ${width}px @${dpr}x`);
+    assert.deepEqual(manual.ids, [
+      "manual-start", "manual-content-html", "manual-content-node", "manual-content-factory", "manual-finish",
+      "manual-result-regular", "manual-result-inverse", "manual-layout", "manual-layout-wide", "manual-layout-small",
+      "manual-colors", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random",
+      "manual-random-1", "manual-random-2", "manual-random-3", "manual-random-4", "manual-random-5", "manual-random-6", "manual-next"
+    ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
+    assert.deepEqual(manual.variants, [
+      "regular", "regular", "regular", "regular", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular",
+      "color", "color", "color", "regular", "color", "color", "color", "regular", "inverse", "regular", "inverse"
+    ], `manual beperkt kleur en omkering niet tot de bedoelde resultaten op ${width}px @${dpr}x`);
+    assert.deepEqual(manual.colors, [
+      null, null, null, null, null, null, null, null, null, null, null,
+      "cyan", "magenta", "yellow", null, "cyan", "magenta", "yellow", null, null, null, null
+    ], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
     assert.equal(manual.columnCount, documentColumns, `manual gebruikt ${manual.columnCount} in plaats van ${documentColumns} kolommen op ${width}px`);
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
@@ -631,49 +523,27 @@ try {
     assert.equal(manual.nestedSurfaces, 0, `manual bevat ${manual.nestedSurfaces} geneste blocks-grids op ${width}px`);
     assert.equal(manual.pageSurfaceCount, 1, `manual bevat ${manual.pageSurfaceCount} systemen op ${width}px`);
     assert.equal(manual.navigationCount, 1, `manual bevat ${manual.navigationCount} menu's op ${width}px`);
-    assert.equal(manual.logoNavigationOverlap, false, `manual laat logo en menu overlappen op ${width}px`);
-    assert.equal(manual.navigationToolbarOverlap, false, `manual laat menu en layoutbediening overlappen op ${width}px`);
-    assert.equal(manual.draggable, "true", `manual start niet versleepbaar op ${width}px`);
+    assert.equal(manual.draggable, "false", `manual bewaart zijn vaste leesvolgorde niet op ${width}px`);
+    assert.deepEqual(manual.lockedHandleState, { tabIndex: -1, ariaLabel: null }, `manual biedt geen schijnbare verplaatsbediening op ${width}px`);
+    assert.equal(manual.menuActionCount, 0, `manual toont nog minimaliseer- of sluitknoppen op ${width}px`);
     assert.equal(manual.boardBackgroundImage, "none", `manual tekent nog een achtergrondgrid op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
-    assert.deepEqual(manual.formBlocks.map(function (form) { return form.id; }), ["state / circle", "content / rectangle", "direction / triangle"], `manual verliest de semantische vormvolgorde op ${width}px`);
-    assert.deepEqual(manual.formBlocks.map(function (form) { return form.color; }), ["rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual gebruikt een blockkleur in de voorbeeldvormen op ${width}px`);
+    assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
+    assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
+    assert.deepEqual(manual.colorContentColors, ["rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual laat gebruikerskleuren in de voorbeeldinhoud lekken op ${width}px`);
     assert.equal(manual.scrollbarWidth, "thin", `manual gebruikt geen dunne OS-scrollbar op ${width}px`);
     assert.match(manual.scrollbarColor, /rgba\(17, 17, 17, 0\.58\)/, `manual gebruikt geen neutrale scrollbar op ${width}px`);
-    assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockTop; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockTop; })) <= 0.5, `manual zet de drie vormen niet op één rij op ${width}px`);
-    assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.blockWidth; })) - Math.min(...manual.formBlocks.map(function (form) { return form.blockWidth; })) <= 0.5, `manual geeft de drie vormvelden geen gelijke breedte op ${width}px`);
-    assert.ok(Math.max(...manual.formBlocks.map(function (form) { return form.shapeCenterY; })) - Math.min(...manual.formBlocks.map(function (form) { return form.shapeCenterY; })) <= 0.5, `manual centreert de drie vormen niet op één optische lijn op ${width}px`);
+    if (width > 560) {
+      assert.ok(Math.max(...manual.contentOptions.map(function (item) { return item.blockTop; })) - Math.min(...manual.contentOptions.map(function (item) { return item.blockTop; })) <= 0.5, `manual zet de drie inhoudsvormen niet op één rij op ${width}px`);
+      assert.ok(Math.max(...manual.contentOptions.map(function (item) { return item.blockWidth; })) - Math.min(...manual.contentOptions.map(function (item) { return item.blockWidth; })) <= 0.5, `manual geeft de drie inhoudsvormen geen gelijke breedte op ${width}px`);
+    }
     assert.ok(manual.pageScrollable && manual.documentHeight > height, `manual gebruikt geen natuurlijke paginascroll op ${width}px`);
     assert.notEqual(manual.boardOverflowY, "scroll", `manual maakt het volledige board scrollbaar op ${width}px`);
-    assert.ok(manual.canvas.cssWidth > 0 && manual.canvas.cssHeight > 0 && manual.canvas.bitmapWidth > 0 && manual.canvas.bitmapHeight > 0, `manual canvas herschaalt niet op ${width}px`);
-    assert.equal(manual.canvas.bitmapWidth, Math.round(manual.canvas.reportedWidth * dpr), `canvasbitmap volgt de gemeten contentbreedte niet op ${width}px @${dpr}x`);
-    assert.equal(manual.canvas.bitmapHeight, Math.round(manual.canvas.reportedHeight * dpr), `canvasbitmap volgt de gemeten contenthoogte niet op ${width}px @${dpr}x`);
-    assert.match(manual.canvas.label, new RegExp(`${manual.canvas.reportedWidth} × ${manual.canvas.reportedHeight}`), `canvas maakt zijn actuele ResizeObserver-maat niet toegankelijk op ${width}px @${dpr}x`);
-    assert.ok(manual.video.width > 0 && manual.video.height > 0, `manual video heeft geen bruikbare maat op ${width}px`);
-    assert.equal(manual.video.controls, true, `manual video mist controls op ${width}px`);
-    assert.equal(manual.video.fit, "contain", `manual video gebruikt geen contain op ${width}px`);
-    assert.equal(manual.video.preload, "none", `manual video preload is niet terughoudend op ${width}px`);
     }
   }
-  assert.notEqual(manualMeasurements[0].canvas.cssWidth, manualMeasurements.at(-1).canvas.cssWidth, "manual canvas reageert niet op viewportbreedte");
-  await measureManual(1280, 720);
-  const manualInteraction = await exerciseManual();
-  assert.notDeepEqual(manualInteraction.draggedGeometry["manual-start"], manualInteraction.beforeGeometry["manual-start"], "manual drag verplaatst het gesleepte block niet over het raster");
-  assert.ok(manualInteraction.settling.length >= 2, "manual drag settelt de botsingscascade niet als één beweging");
-  assert.equal(manualInteraction.dragCleanedUp, true, "manual drag laat een pointer/dragtoestand hangen");
-  assert.equal(manualInteraction.locked, true, "manual layout lock schakelt dragging niet uit");
-  assert.deepEqual(manualInteraction.lockedHandleState, { tabIndex: -1, ariaLabel: null }, "manual verwijdert verplaatsbediening niet uit de tabvolgorde wanneer de layout op slot staat");
-  assert.notDeepEqual(manualInteraction.keyboardGeometry.after, manualInteraction.keyboardGeometry.before, "manual pijltjestoetsen verplaatsen het gefocuste block niet over het raster");
-  assert.equal(manualInteraction.keyboardPrevented, true, "manual keyboard drag laat de pagina meescrollen");
-  assert.match(manualInteraction.keyboardHandleLabel, /arrow keys/, "manual keyboard handle gebruikt niet de gedocumenteerde Engelse standaardtekst");
-  assert.deepEqual(Object.keys(manualInteraction.pointerReorder).sort(), ["direction", "from", "fromIndex", "id", "input", "key", "mode", "to", "toIndex"], "manual pointerdrop publiceert niet het stabiele reorder-contract");
-  assert.ok(manualInteraction.mediaPauseCalls >= 1, "manual video pauzeert niet bij minimaliseren");
-  assert.equal(manualInteraction.resetOrder[0], "manual-start", "manual reset herstelt de oorspronkelijke volgorde niet");
-  assert.equal(manualInteraction.resetDraggable, "true", "manual reset zet dragging niet opnieuw aan");
-  assert.match(manualInteraction.resetStatus, /layout reset · drag on/, "manual resetstatus is niet duidelijk");
 
   const mobileNavigation = await exerciseMobileNavigation();
   assert.deepEqual(mobileNavigation.opened, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie publiceert haar open toestand niet volledig");
@@ -688,7 +558,11 @@ try {
   for (const [width, height, , documentColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
       const reference = await measureReference(width, height, dpr);
-      assert.equal(reference.blockCount, 6, `reference mist directe blocks op ${width}px @${dpr}x`);
+      assert.equal(reference.blockCount, 10, `reference mist opzoekhoofdstukken op ${width}px @${dpr}x`);
+      assert.deepEqual(reference.ids, [
+        "reference-exports", "reference-options", "reference-state", "reference-methods", "reference-block",
+        "reference-add-options", "reference-adapters", "reference-event", "reference-hooks", "reference-errors"
+      ], `reference bewaart zijn volledige opzoekvolgorde niet op ${width}px @${dpr}x`);
       assert.equal(reference.columnCount, documentColumns, `reference gebruikt ${reference.columnCount} in plaats van ${documentColumns} kolommen op ${width}px @${dpr}x`);
       assert.equal(reference.devicePixelRatio, dpr, `reference test niet werkelijk op DPR ${dpr}`);
       assert.ok(reference.horizontalOverflow <= 0.5, `reference heeft ${reference.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
@@ -697,10 +571,12 @@ try {
       assert.ok(Number.isInteger(reference.trackWidth) && reference.trackWidth > 0, `reference gebruikt geen hele trackbreedte op ${width}px @${dpr}x`);
       assert.equal(reference.draggable, "false", `reference bewaart zijn leesvolgorde niet op ${width}px @${dpr}x`);
       assert.deepEqual(reference.lockedHandleState, { tabIndex: -1, ariaLabel: null }, `reference zet een niet-werkende verplaatsheader in de tabvolgorde op ${width}px @${dpr}x`);
+      assert.equal(reference.menuActionCount, 0, `reference toont nog minimaliseer- of sluitknoppen op ${width}px @${dpr}x`);
       assert.equal(reference.nestedSurfaces, 0, `reference bevat ${reference.nestedSurfaces} geneste grids op ${width}px @${dpr}x`);
       assert.deepEqual(reference.outsideBoard, [], `reference plaatst blocks buiten het board op ${width}px @${dpr}x: ${reference.outsideBoard.join(", ")}`);
       assert.deepEqual(reference.nonIntegerHorizontalGeometry, [], `reference laat fractionele geometrie achter op ${width}px @${dpr}x: ${reference.nonIntegerHorizontalGeometry.join(", ")}`);
       assert.deepEqual(reference.missingAnchors, [], `reference mist anchors op ${width}px @${dpr}x: ${reference.missingAnchors.join(", ")}`);
+      assert.ok(reference.fullWidthDifferences.every(function (difference) { return difference <= 2; }), `reference gebruikt niet voor elk hoofdstuk de volledige breedte op ${width}px @${dpr}x`);
       assert.ok(reference.localOverflowModes.every((mode) => mode === "auto"), `reference code gebruikt geen lokale overflow op ${width}px @${dpr}x`);
       if (width <= 560) {
         assert.ok(reference.tableOverflowModes.every((mode) => mode === "visible"), `reference laat gestapelde tabellen niet natuurlijk groeien op ${width}px @${dpr}x`);
@@ -772,13 +648,13 @@ try {
   }
 
   const aliases = {
-    "manual.html": "system",
-    "system.html": "system",
-    "examples.html": "examples",
+    "manual.html": "start",
+    "system.html": "start",
+    "examples.html": "next",
     "guide.html": "start",
-    "guide-blocks.html": "compose",
-    "guide-finish.html": "connect",
-    "about.html": "boundary"
+    "guide-blocks.html": "result",
+    "guide-finish.html": "next",
+    "about.html": "next"
   };
   for (const [file, anchor] of Object.entries(aliases)) {
     await navigateTo(`${pageUrl}docs/${file}?legacy=1`);

@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.10";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.11";
 
 const board = document.querySelector("#reference-board");
 const blocks = createBlocksSystem({
@@ -7,128 +7,83 @@ const blocks = createBlocksSystem({
   snap: true,
   draggable: false,
   blockDefaults: {
-    menu: { minimize: true, close: true }
+    menu: { minimize: false, close: false }
   }
 });
 
 const referenceBlocks = [
-  { id: "reference-system", anchor: "shared-system", span: [3, 3], render: createReferenceTable },
-  { id: "reference-block", anchor: "block-controller", span: [3, 3], render: createReferenceTable },
-  { id: "reference-adapters", anchor: "adapters", span: [4, 4], render: createReferenceTable },
-  { id: "reference-definition", anchor: "definition", span: [2, 2], render: createReferenceCode },
-  { id: "reference-hooks", anchor: "css-hooks", span: [3, 2], render: createReferenceHooks },
-  { id: "reference-errors", anchor: "errors", span: [3, 2], render: createReferenceErrors }
+  { id: "reference-exports", anchor: "exports", span: [6, 2], place: [1, 1] },
+  { id: "reference-options", anchor: "options", span: [6, 4], place: [1, 4] },
+  { id: "reference-state", anchor: "system-state", span: [6, 4], place: [1, 9] },
+  { id: "reference-methods", anchor: "system-methods", span: [6, 5], place: [1, 14] },
+  { id: "reference-block", anchor: "block-controller", span: [6, 5], place: [1, 20] },
+  { id: "reference-add-options", anchor: "add-options", span: [6, 3], place: [1, 26] },
+  { id: "reference-adapters", anchor: "adapters", span: [6, 5], place: [1, 30] },
+  { id: "reference-event", anchor: "reorder-event", span: [6, 3], place: [1, 36] },
+  { id: "reference-hooks", anchor: "css-hooks", span: [6, 4], place: [1, 40] },
+  { id: "reference-errors", anchor: "errors", span: [6, 2], place: [1, 45] }
 ];
+const referenceContent = await loadDocsContent("reference", referenceBlocks.map(({ id }) => id));
 
 blocks.attach(board);
-blocks.setGrid(6, 20);
+blocks.setGrid(6, 46);
 quantizeSurface(board);
 
-function addReference({ id, title, anchor, span, content }) {
-  const block = blocks.add(content, { id, title });
-  block.span(...span);
-  block.element.id = anchor;
-  block.element.classList.add("reference-anchor");
-  return block;
+function createTextElement(name, text, className = "") {
+  const element = document.createElement(name);
+  if (className) element.className = className;
+  element.textContent = text;
+  return element;
 }
 
-function appendInlineContent(target, content) {
-  if (typeof content === "string") {
-    target.textContent = content;
-    return;
-  }
-  if (!Array.isArray(content)) throw new Error("Reference purpose must be text or an array of text/code parts.");
-
-  for (const part of content) {
-    if (typeof part?.text === "string") {
-      target.append(document.createTextNode(part.text));
-    } else if (typeof part?.code === "string") {
-      const code = document.createElement("code");
-      code.textContent = part.code;
-      target.append(code);
-    } else {
-      throw new Error("Reference purpose parts must contain text or code.");
-    }
-  }
-}
-
-function createReferenceTable({ headers, rows }) {
+function createReferenceTable(headers, rows) {
   const wrapper = document.createElement("div");
   wrapper.className = "reference-table-wrap";
-
   const table = document.createElement("table");
   table.className = "reference-table";
-  const head = table.createTHead();
-  const headRow = head.insertRow();
-  for (const label of headers) {
-    const cell = document.createElement("th");
-    cell.textContent = label;
-    headRow.append(cell);
-  }
+  const headRow = table.createTHead().insertRow();
+  for (const label of headers) headRow.append(createTextElement("th", label));
 
   const body = table.createTBody();
   for (const row of rows) {
     const tableRow = body.insertRow();
-    tableRow.id = row.id;
-    for (const value of [row.member, row.returns]) {
+    if (row.id) tableRow.id = row.id;
+    for (const [index, value] of row.cells.entries()) {
       const cell = tableRow.insertCell();
+      cell.dataset.label = headers[index];
       cell.textContent = value;
     }
-    appendInlineContent(tableRow.insertCell(), row.purpose);
   }
-
   wrapper.append(table);
   return wrapper;
 }
 
-function createReferenceCode({ code }) {
-  const pre = document.createElement("pre");
-  pre.className = "reference-code";
-  const codeElement = document.createElement("code");
-  codeElement.textContent = code.join("\n");
-  pre.append(codeElement);
-  return pre;
-}
-
-function createReferenceHooks({ items }) {
+function createReferenceContent(entry) {
   const root = document.createElement("div");
-  root.className = "reference-hooks";
-  for (const item of items) {
-    const line = document.createElement("p");
-    const term = document.createElement("code");
-    const description = document.createElement("span");
-    term.textContent = item.term;
-    description.textContent = item.description;
-    line.append(term, description);
-    root.append(line);
+  root.className = "reference-entry";
+  if (entry.intro) root.append(createTextElement("p", entry.intro, "reference-intro"));
+  if (entry.eyebrow) root.append(createTextElement("small", entry.eyebrow));
+  if (entry.statement) root.append(createTextElement("strong", entry.statement));
+  if (entry.code) {
+    const pre = document.createElement("pre");
+    pre.className = "reference-code";
+    pre.append(createTextElement("code", entry.code.join("\n")));
+    root.append(pre);
   }
+  if (entry.headers && entry.rows) root.append(createReferenceTable(entry.headers, entry.rows));
+  if (entry.details) root.append(createTextElement("p", entry.details, "reference-details"));
   return root;
 }
 
-function createReferenceErrors({ eyebrow, statement, details }) {
-  const root = document.createElement("div");
-  root.className = "reference-errors";
-  const small = document.createElement("small");
-  const strong = document.createElement("strong");
-  const paragraph = document.createElement("p");
-  small.textContent = eyebrow;
-  strong.textContent = statement;
-  paragraph.textContent = details;
-  root.append(small, strong, paragraph);
-  return root;
+function addReference({ id, anchor, span, place }) {
+  const entry = referenceContent[id];
+  const block = blocks.add(createReferenceContent(entry), { id, title: entry.title });
+  block.span(...span);
+  block.place(...place);
+  block.element.id = anchor;
+  block.element.classList.add("reference-anchor", "reference-full");
 }
 
-const referenceContent = await loadDocsContent("reference", referenceBlocks.map(({ id }) => id));
-
-for (const definition of referenceBlocks) {
-  const content = referenceContent[definition.id];
-  addReference({
-    id: definition.id,
-    title: content.title,
-    anchor: definition.anchor,
-    span: definition.span,
-    content: definition.render(content)
-  });
-}
+for (const definition of referenceBlocks) addReference(definition);
 
 board.dataset.referenceReady = "true";
