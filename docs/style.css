@@ -137,7 +137,6 @@ footer a { color: var(--ink); }
 .home-board {
   --blocks-columns: 6;
   --blocks-rows: 8;
-  --blocks-gap: 0px;
   --blocks-content-padding: 0;
   --blocks-font-family: "Instrument Sans";
   width: 100%;

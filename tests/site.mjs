@@ -112,13 +112,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.8"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.8"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.8"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.9"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.9"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.9"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.8"]
+    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.9"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -184,6 +184,7 @@ assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*photo\.span
 assert.match(siteDemos["docs/home.mjs"], /new URL\("\.\/img\/pexels-peter-dyllong-2158803154-37466849\.jpg", import\.meta\.url\)/, "home must load the selected photograph relative to its module");
 assert.match(siteCss, /\.home-board\s*\{[^}]*background-image\s*:[^}]*linear-gradient/s, "home must expose the grid because the system itself is the subject");
 assert.match(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*6/s, "home must start from six columns");
+assert.doesNotMatch(siteCss, /\.home-board\s*\{[^}]*--blocks-gap:/s, "home must demonstrate the library's default block interval without an opening exception");
 assert.match(siteCss, /\.home-title\s*\{[^}]*justify-self:\s*start;/s, "home must align its hero title with the left edge of its content area");
 assert.match(siteCss, /\.home-photo\s*\{[^}]*overflow:\s*hidden;/s, "home photograph must own a bounded block content frame");
 assert.match(siteCss, /\.home-photo img\s*\{[^}]*object-fit:\s*cover;/s, "home photograph must crop inside its 1 by 3 block");

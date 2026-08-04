@@ -35,9 +35,12 @@ async function measureHome(width, height, dpr = 1) {
     const photoFrame = field.querySelector(".home-photo");
     const photoBlockRect = photoFrame.closest(".blocks-system-object").getBoundingClientRect();
     const photoImage = photoFrame.querySelector("img");
+    const fieldStyle = getComputedStyle(field);
     return {
       blockCount: objects.length,
-      columnCount: getComputedStyle(field).gridTemplateColumns.split(" ").length,
+      columnCount: fieldStyle.gridTemplateColumns.split(" ").length,
+      gridWidth: field.clientWidth,
+      columnGap: parseFloat(fieldStyle.columnGap),
       horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       backgroundImage: getComputedStyle(field).backgroundImage,
       draggable: field.dataset.draggable,
@@ -472,10 +475,12 @@ try {
       assert.match(home.title.fontFamily, /Instrument Sans/, `home gebruikt Instrument Sans niet voor de hoofdboodschap op ${width}px @${dpr}x`);
       assert.equal(home.title.whiteSpace, "pre-line", `home bewaart de titelregeleinde niet op ${width}px @${dpr}x`);
       assert.ok(Math.abs(home.title.leftOffset) <= 0.5, `home lijnt de hero-titel niet links uit op ${width}px @${dpr}x: ${home.title.leftOffset}px`);
-      assert.ok(Math.abs(home.photo.blockLeft - home.photo.titleBlockRight) <= 0.5, `home plaatst het fotoblock niet direct naast het titelblock op ${width}px @${dpr}x`);
+      assert.equal(home.columnGap, 6, `home erft niet de standaardafstand van 6px op ${width}px @${dpr}x`);
+      assert.ok(Math.abs(home.photo.blockLeft - home.photo.titleBlockRight - home.columnGap) <= 0.5, `home bewaart de standaardafstand niet tussen titel en foto op ${width}px @${dpr}x`);
       assert.ok(Math.abs(home.photo.blockTop - home.photo.titleBlockTop) <= 0.5, `home lijnt titel- en fotoblock niet bovenaan uit op ${width}px @${dpr}x`);
       assert.ok(Math.abs(home.photo.blockHeight - home.photo.titleBlockHeight) <= 0.5, `home maakt het fotoblock niet dezelfde drie rijen hoog als de hero op ${width}px @${dpr}x`);
-      assert.ok(Math.abs(home.photo.blockWidth - (width / homeColumns)) <= 1, `home geeft de foto niet exact één rasterkolom op ${width}px @${dpr}x`);
+      const expectedColumnWidth = (home.gridWidth - (homeColumns - 1) * home.columnGap) / homeColumns;
+      assert.ok(Math.abs(home.photo.blockWidth - expectedColumnWidth) <= 1, `home geeft de foto niet exact één rasterkolom op ${width}px @${dpr}x`);
       assert.ok(home.photo.source.endsWith("/docs/img/pexels-peter-dyllong-2158803154-37466849.jpg"), `home laadt niet de gekozen foto op ${width}px @${dpr}x`);
       assert.equal(home.photo.alt, "Black-and-white landscape with a solitary tree beneath large clouds.", `home foto mist bruikbare alttekst op ${width}px @${dpr}x`);
       assert.equal(home.photo.fit, "cover", `home foto vult zijn block niet op ${width}px @${dpr}x`);
