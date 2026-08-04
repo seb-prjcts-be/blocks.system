@@ -577,12 +577,12 @@ try {
   assert.deepEqual(yellowVariant, {
     variant: "yellow",
     objectBackground: "rgb(255, 255, 0)",
-    objectColor: "rgb(0, 0, 255)",
-    borderColor: "rgb(0, 0, 255)",
-    menuBackground: "rgb(0, 0, 255)",
+    objectColor: "rgb(0, 0, 0)",
+    borderColor: "rgb(0, 0, 0)",
+    menuBackground: "rgb(0, 0, 0)",
     menuColor: "rgb(255, 255, 0)",
-    contentColor: "rgb(0, 0, 255)"
-  }, "de gele variant moet blauwe blockkleur en inkt gebruiken en die kleuren in het menu omdraaien");
+    contentColor: "rgb(0, 0, 0)"
+  }, "de gele variant moet neutrale zwarte blockinkt gebruiken en zwart/geel in het menu omdraaien");
 
   await measureHome(1280, 900);
   const beforeHover = await hoverSignature();

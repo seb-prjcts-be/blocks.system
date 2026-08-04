@@ -65,15 +65,15 @@ blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
 blockCanvas.variant = "yellow";
 blockCanvas.minimized = false;
-blockCanvas.color = "rgb(0, 0, 255)";
+blockCanvas.color = "#000";
 blockCanvas.remove();
 ```
 
 CMY is the default series for automatic colour variation. RGB variants remain
 available as explicit compatibility choices but are not selected automatically.
 In the canonical documentation, accent-coloured blocks may share a surface but
-do not sit directly beside one another. Yellow intentionally uses blue block
-chrome and ink on `#ffff00`; its menu reverses this to yellow on blue.
+do not sit directly beside one another. Yellow uses neutral black block chrome
+and ink on `#ffff00`; its menu reverses this to yellow on black.
 
 ## End
 

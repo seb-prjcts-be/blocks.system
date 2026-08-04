@@ -66,7 +66,7 @@ blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
 blockCanvas.variant = "yellow";
 blockCanvas.minimized = false;
-blockCanvas.color = "rgb(0, 0, 255)";
+blockCanvas.color = "#000";
 blockCanvas.remove();
 ```
 
@@ -74,8 +74,8 @@ CMY is de standaardreeks voor automatische kleurvariatie. De RGB-varianten
 blijven beschikbaar als expliciete compatibiliteitskeuze, maar worden niet
 automatisch gekozen. Blocks met een steunkleur mogen dezelfde surface delen,
 maar staan in de canonieke documentatie niet rechtstreeks naast elkaar. Geel
-gebruikt bewust blauwe blockranden en inkt op `#ffff00`; het menu draait dit om
-naar geel op blauw.
+gebruikt neutrale zwarte blockranden en inkt op `#ffff00`; het menu draait dit
+om naar geel op zwart.
 
 ## Einde
 

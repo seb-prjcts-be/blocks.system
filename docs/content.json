@@ -254,7 +254,7 @@
           "id": "api-variants",
           "member": "variants",
           "returns": "array",
-          "purpose": "Regular and inverse plus equal, explicit RGB/CMY variants; yellow intentionally combines blue block chrome and ink with yellow content."
+          "purpose": "Regular and inverse plus explicit RGB/CMY variants; automatic variation defaults to CMY, and yellow uses neutral black chrome and ink."
         },
         {
           "id": "api-color-array",

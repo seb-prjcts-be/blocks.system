@@ -112,13 +112,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.5", "docs/style.css?v=0.1.5"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.5", "style.css?v=0.1.5"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.5", "style.css?v=0.1.5"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.6", "docs/style.css?v=0.1.5"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.6", "style.css?v=0.1.5"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.6", "style.css?v=0.1.5"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.5", "../../docs/style.css?v=0.1.5"]
+    ["../../blocks.system.css?v=0.1.6", "../../docs/style.css?v=0.1.5"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -218,8 +218,9 @@ assert.doesNotMatch(siteCss, /scrollbar-(?:color|thumb)[^;}]*magenta|::-webkit-s
 for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "yellow"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
-assert.match(libraryCss, /data-block-variant="yellow"\]\s*\{[^}]*--block-color:\s*rgb\(0, 0, 255\);[^}]*--block-paper-color:\s*rgb\(255, 255, 0\);[^}]*--block-content-color:\s*rgb\(0, 0, 255\);/s, "yellow must restore the blue block chrome and ink on yellow content");
-assert.match(readme + readmeNl, /variant\s*=\s*"yellow"[\s\S]*color\s*=\s*"rgb\(0, 0, 255\)"/, "README examples must demonstrate the blue-yellow reversal");
+assert.match(libraryCss, /data-block-variant="yellow"\]\s*\{[^}]*--block-color:\s*#000;[^}]*--block-paper-color:\s*rgb\(255, 255, 0\);[^}]*--block-content-color:\s*#000;/s, "yellow must use neutral black chrome and ink on yellow content");
+assert.doesNotMatch(libraryCss.match(/data-block-variant="yellow"\]\s*\{[^}]*\}/s)?.[0] || "", /rgb\(0, 0, 255\)|#0000ff/i, "yellow must not reintroduce blue outside colorArray");
+assert.match(readme + readmeNl, /variant\s*=\s*"yellow"[\s\S]*color\s*=\s*"#000"/, "README examples must demonstrate neutral ink on yellow");
 assert.match(siteDemos["examples/basic-grid/demo.mjs"], /colorVariation:\s*0\.25,[\s\S]*inversionVariation:\s*0\.25,[\s\S]*random:/, "the basic grid must demonstrate reproducible system-level variation");
 assert.doesNotMatch(siteDemos["examples/basic-grid/demo.mjs"], /blockItem\.variant\s*=/, "the basic grid must obtain variants from the configured system instead of local block exceptions");
 assert.match(standaloneExamples["basic-grid"], /system-level color and inversion variation/, "the basic example copy must name its actual variation mode");
@@ -349,7 +350,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.4", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.5", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

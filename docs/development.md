@@ -69,10 +69,9 @@ library-API.
 - Lege ruimte maakt hiërarchie zichtbaar en is geen uitnodiging om extra
   onderdelen toe te voegen.
 - Blocks met een steunkleur mogen dezelfde surface delen, maar staan niet direct
-  naast elkaar. Kleuren binnen één block mogen elkaar wel omdraaien: de gele
-  variant gebruikt blauwe blockranden en inkt op geel, met geel op blauw in het
-  menu. De huidige docscompositie gebruikt magenta naast zwart, warm papier en
-  veldgrijs.
+  naast elkaar. De gele variant gebruikt zwarte blockranden en inkt op geel, met
+  geel op zwart in het menu; een CMY-variant haalt geen RGB-kleur binnen. De
+  huidige docscompositie gebruikt CMY naast zwart, warm papier en veldgrijs.
 - Paginaspecifieke compositie, kwantisering en mediagedrag blijven buiten de
   librarycore.
 - Gedeelde beginstate en menuknoppen worden éénmaal bij `createBlocksSystem()`
