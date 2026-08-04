@@ -68,10 +68,8 @@ library-API.
 - Cirkel betekent toestand, rechthoek inhoud en driehoek richting.
 - Lege ruimte maakt hiërarchie zichtbaar en is geen uitnodiging om extra
   onderdelen toe te voegen.
-- Blocks met een steunkleur mogen dezelfde surface delen, maar staan niet direct
-  naast elkaar. De gele variant gebruikt zwarte blockranden en inkt op geel, met
-  geel op zwart in het menu; een CMY-variant haalt geen RGB-kleur binnen. De
-  huidige docscompositie gebruikt CMY naast zwart, warm papier en veldgrijs.
+- De huidige docscompositie kiest zelf cyan, magenta en geel naast zwart, warm
+  papier en veldgrijs. Dat CMY-voorbeeld is geen library-palet.
 - Paginaspecifieke compositie, kwantisering en mediagedrag blijven buiten de
   librarycore.
 - Gedeelde beginstate en menuknoppen worden éénmaal bij `createBlocksSystem()`
@@ -79,14 +77,12 @@ library-API.
 - `colorArray` en `colorVariation` bepalen het kleurdeel van nieuwe `random`
   blocks. `inversionVariation` verdeelt daarna alleen het overblijvende
   monochrome deel tussen `regular` en `inverse`. Ze verkleuren bestaande blocks
-  niet en dwingen de compositieregel over aangrenzende steunkleuren niet
-  stilzwijgend af.
-- De automatische standaardreeks is CMY. RGB blijft als expliciete ingebouwde
-  variant bestaan voor compatibiliteit, maar zit niet in de standaard-
-  `colorArray` en verschijnt dus niet vanzelf.
-- RGB/CMY is uitsluitend blockstyling: een variant mag menu, rand, papier en de
-  overgeërfde inhoudsink omkeren. Zelfgetekende inhoud in HTML, canvas of SVG
-  kiest geen eigen steunkleur en blijft neutraal.
+  niet. `colorArray` is standaard leeg; een positieve `colorVariation` vereist
+  minstens één door de gebruiker gekozen CSS-kleur.
+- De library bezit alleen `regular` en `inverse`. Een gekozen gebruikerskleur
+  krijgt de generieke `color`-state: de kleur vult het blockpapier, neutrale inkt
+  tekent rand en inhoud, en het menu draait die twee om. Zelfgetekende inhoud in
+  HTML, canvas of SVG kiest geen eigen steunkleur en blijft neutraal.
 - Bewaar een regel hier alleen wanneer de reden niet betrouwbaar uit broncode,
   tests of gitgeschiedenis terug te vinden is.
 

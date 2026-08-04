@@ -18,8 +18,8 @@ assert.equal(singleton.snap, false, "snap must be disabled by default");
 assert.equal(singleton.draggable, true, "dragging must be enabled by default");
 assert.equal(singleton.font, null, "external fonts must remain opt-in");
 assert.equal(singleton.variant, "random", "visual variants must be random by default");
-assert.deepEqual(singleton.variants, ["regular", "inverse", "red", "green", "blue", "cyan", "magenta", "yellow"], "the original visual variants must be discoverable");
-assert.deepEqual(singleton.colorArray, ["cyan", "magenta", "yellow"], "CMY must be the default automatic color array");
+assert.deepEqual(singleton.variants, ["regular", "inverse"], "only the monochrome library variants must be discoverable");
+assert.deepEqual(singleton.colorArray, [], "the library must not choose a color palette for the consumer");
 assert.equal(singleton.colorVariation, 0, "automatic color variation must remain opt-in");
 assert.equal(singleton.inversionVariation, 1 / 3, "automatic inversion must preserve the existing one-in-three monochrome distribution");
 assert.equal("colorVary" in singleton, false, "the abbreviated colorVary name must leave the public API");
@@ -148,7 +148,7 @@ const configured = createBlocksSystem({
 });
 assert.equal(configured.snap, true, "snap must be configurable when a system is created");
 assert.equal(configured.draggable, false, "dragging must be configurable when a system is created");
-assert.deepEqual(configured.colorArray, ["yellow", "blue"], "creation-time color arrays must normalize and deduplicate variants");
+assert.deepEqual(configured.colorArray, ["yellow", "blue"], "creation-time color arrays must normalize and deduplicate CSS colors");
 assert.equal(configured.colorVariation, 0.2, "creation-time color variation must remain readable");
 assert.equal(configured.inversionVariation, 0.5, "creation-time inversion variation must remain readable");
 const configuredField = new TestElement();
@@ -182,12 +182,21 @@ assert.throws(function () {
 assert.throws(function () {
   createBlocksSystem({ blockDefaults: { menu: "yes" } });
 }, /blockDefaults\.menu/, "blockDefaults.menu must be boolean or an options object");
+assert.deepEqual(createBlocksSystem({ colorArray: [] }).colorArray, [], "an empty user color array must be valid while color variation is disabled");
+assert.deepEqual(
+  createBlocksSystem({ colorArray: [" #00ffff ", "var(--accent-color)", "#00ffff"] }).colorArray,
+  ["#00ffff", "var(--accent-color)"],
+  "colorArray must preserve and deduplicate user-supplied CSS colors"
+);
 assert.throws(function () {
-  createBlocksSystem({ colorArray: [] });
-}, /colorArray/, "colorArray must contain at least one color variant");
+  createBlocksSystem({ colorArray: [""] });
+}, /colorArray/, "colorArray must reject empty color values");
 assert.throws(function () {
-  createBlocksSystem({ colorArray: ["regular"] });
-}, /colorArray/, "colorArray must reject monochrome variants");
+  createBlocksSystem({ colorArray: [123] });
+}, /colorArray/, "colorArray must require CSS colors as strings");
+assert.throws(function () {
+  createBlocksSystem({ colorVariation: 0.2 });
+}, /colorArray/, "color variation must require user-supplied colors");
 assert.throws(function () {
   createBlocksSystem({ colorVariation: 1.01 });
 }, /colorVariation/, "colorVariation must stay inside the normalized probability range");
@@ -235,19 +244,32 @@ const inverseRandom = colorful.add("<p>inverse</p>", { id: "inverse-random" });
 const explicitColor = colorful.add("<p>explicit</p>", { id: "explicit-color", variant: "magenta" });
 assert.deepEqual(
   [yellowRandom.variant, blueRandom.variant, regularRandom.variant, inverseRandom.variant, explicitColor.variant],
-  ["yellow", "blue", "regular", "inverse", "magenta"],
+  ["color", "color", "regular", "inverse", "magenta"],
   "colorVariation and inversionVariation must divide one stable random range without affecting explicit variants"
 );
+assert.equal(yellowRandom.element.getAttribute("data-block-color"), "yellow", "a selected user color must be exposed independently from the generic color variant");
+assert.equal(yellowRandom.element.style.getPropertyValue("--block-array-color"), "yellow", "a selected user color must feed the generic CSS hook");
+assert.equal(blueRandom.element.getAttribute("data-block-color"), "blue", "each colored block must retain its selected user value");
+assert.equal(regularRandom.element.getAttribute("data-block-color"), null, "monochrome blocks must not expose a user color");
+assert.equal(explicitColor.element.getAttribute("data-block-color"), null, "custom explicit variants must remain consumer CSS hooks, not library colors");
 colorful.colorArray = ["cyan", "cyan"];
 colorful.colorVariation = 1;
-assert.deepEqual(colorful.colorArray, ["cyan"], "runtime color arrays must stay normalized and deduplicated");
+assert.deepEqual(colorful.colorArray, ["cyan"], "runtime color arrays must stay normalized and deduplicated as CSS colors");
 assert.equal(colorful.colorVariation, 1, "runtime color variation must remain writable for future blocks");
-assert.equal(yellowRandom.variant, "yellow", "changing system color settings must not recolor existing blocks");
-assert.equal(colorful.add("<p>cyan</p>", { id: "cyan-random" }).variant, "cyan", "runtime color settings must apply to future random blocks");
+assert.equal(yellowRandom.element.getAttribute("data-block-color"), "yellow", "changing system color settings must not recolor existing blocks");
+const cyanRandom = colorful.add("<p>cyan</p>", { id: "cyan-random" });
+assert.equal(cyanRandom.variant, "color", "runtime color settings must use the generic library color variant");
+assert.equal(cyanRandom.element.getAttribute("data-block-color"), "cyan", "runtime color settings must apply the user's value to future random blocks");
+cyanRandom.variant = "inverse";
+assert.equal(cyanRandom.element.getAttribute("data-block-color"), null, "switching to a monochrome variant must clear the selected user color");
+assert.equal(cyanRandom.element.style.getPropertyValue("--block-array-color"), "", "switching variants must clear the generic color CSS hook");
+assert.throws(function () { colorful.colorArray = []; }, /colorArray/, "an active color variation must not lose its user color source");
 colorful.colorVariation = 0;
+colorful.colorArray = [];
+assert.deepEqual(colorful.colorArray, [], "the user must be able to clear the palette after disabling color variation");
+assert.throws(function () { colorful.colorVariation = 0.2; }, /colorArray/, "runtime color variation must require a non-empty user array");
 colorful.inversionVariation = 1;
 assert.equal(colorful.add("<p>inverse</p>", { id: "future-inverse" }).variant, "inverse", "runtime inversion variation must apply to future monochrome blocks");
-assert.throws(function () { colorful.colorArray = ["random"]; }, /colorArray/, "runtime color arrays must reject random");
 assert.throws(function () { colorful.colorVariation = "0.2"; }, /colorVariation/, "runtime color variation must require a number");
 assert.throws(function () { colorful.inversionVariation = "0.2"; }, /inversionVariation/, "runtime inversion variation must require a number");
 

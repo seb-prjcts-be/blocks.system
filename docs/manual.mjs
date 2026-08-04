@@ -1,5 +1,5 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.7";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.8";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.10";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");
@@ -227,7 +227,8 @@ addBlock({
 
 const canvas = document.createElement("canvas");
 canvas.className = "manual-canvas";
-canvas.setAttribute("aria-label", content["manual-canvas"].label);
+const canvasDescription = content["manual-canvas"].label;
+canvas.setAttribute("aria-label", canvasDescription);
 const blockCanvas = addBlock({
   id: "manual-canvas",
   title: content["manual-canvas"].title,
@@ -242,24 +243,46 @@ function drawCanvas() {
   const height = Math.max(1, Math.round(bounds.height));
   canvas.width = Math.round(width * scale);
   canvas.height = Math.round(height * scale);
+  canvas.dataset.canvasWidth = String(width);
+  canvas.dataset.canvasHeight = String(height);
+  canvas.setAttribute("aria-label", `${canvasDescription}: ${width} × ${height} CSS pixels`);
   const context = canvas.getContext("2d");
   context.setTransform(scale, 0, 0, scale, 0, 0);
   context.fillStyle = "#efeee8";
   context.fillRect(0, 0, width, height);
   context.strokeStyle = "#000";
   context.fillStyle = "#000";
-  context.lineWidth = 2;
-  const size = Math.min(width, height) * 0.36;
-  context.strokeRect(width * 0.08, height * 0.24, size, size);
+  context.lineWidth = 1;
+
+  const inset = Math.max(12, Math.min(22, Math.min(width, height) * 0.1));
+  const left = inset;
+  const right = width - inset;
+  const rulerY = Math.round(height * 0.48) + 0.5;
+  const divisions = Math.max(4, Math.floor((right - left) / 24));
+
+  context.font = '600 10px "Instrument Sans", sans-serif';
+  context.textBaseline = "top";
+  context.textAlign = "left";
+  context.fillText("RESIZE OBSERVER", left, inset);
+
   context.beginPath();
-  context.arc(width * 0.58, height * 0.5, size * 0.5, 0, Math.PI * 2);
-  context.fill();
-  context.beginPath();
-  context.moveTo(width * 0.82, height * 0.22);
-  context.lineTo(width * 0.95, height * 0.78);
-  context.lineTo(width * 0.69, height * 0.78);
-  context.closePath();
-  context.fill();
+  context.moveTo(left, rulerY);
+  context.lineTo(right, rulerY);
+  for (let index = 0; index <= divisions; index += 1) {
+    const x = left + (right - left) * (index / divisions);
+    const tick = index % 2 === 0 ? 9 : 5;
+    context.moveTo(Math.round(x) + 0.5, rulerY - tick);
+    context.lineTo(Math.round(x) + 0.5, rulerY + tick);
+  }
+  context.stroke();
+
+  const baseline = height - inset;
+  context.textBaseline = "alphabetic";
+  context.font = '600 10px "Instrument Sans", sans-serif';
+  context.fillText("CONTENT BOX", left, baseline);
+  context.textAlign = "right";
+  context.font = `600 ${Math.max(16, Math.min(28, width * 0.07))}px "Instrument Sans", sans-serif`;
+  context.fillText(`${width} × ${height}`, right, baseline);
 }
 
 const canvasObserver = new ResizeObserver(drawCanvas);

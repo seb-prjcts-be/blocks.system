@@ -5,17 +5,8 @@
  * wordt gemount, opgeruimd en als snippet geëxporteerd.
  */
 
-const BUILT_IN_VARIANTS = Object.freeze([
-    "regular",
-    "inverse",
-    "red",
-    "green",
-    "blue",
-    "cyan",
-    "magenta",
-    "yellow"
-]);
-const COLOR_VARIANTS = Object.freeze(["cyan", "magenta", "yellow"]);
+const BUILT_IN_VARIANTS = Object.freeze(["regular", "inverse"]);
+const EMPTY_COLOR_ARRAY = Object.freeze([]);
 const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
@@ -119,19 +110,19 @@ function normalizeVariant(value) {
 }
 
 function normalizeColorArray(value) {
-    const source = value === undefined ? COLOR_VARIANTS : value;
-    if (!Array.isArray(source) || source.length === 0) {
-        throw new TypeError("blocks.system.colorArray verwacht minstens één kleurvariant.");
+    const source = value === undefined ? EMPTY_COLOR_ARRAY : value;
+    if (!Array.isArray(source)) {
+        throw new TypeError("blocks.system.colorArray verwacht een array met CSS-kleuren.");
     }
-    const variants = [];
+    const colors = [];
     for (const value of source) {
-        const name = normalizeVariant(value);
-        if (name === "random" || name === "regular" || name === "inverse") {
-            throw new TypeError("blocks.system.colorArray verwacht kleurvarianten, niet random, regular of inverse.");
+        if (typeof value !== "string" || value.trim() === "") {
+            throw new TypeError("blocks.system.colorArray verwacht niet-lege CSS-kleuren als strings.");
         }
-        if (!variants.includes(name)) variants.push(name);
+        const color = value.trim();
+        if (!colors.includes(color)) colors.push(color);
     }
-    return Object.freeze(variants);
+    return Object.freeze(colors);
 }
 
 function normalizeVariation(value, property, fallback) {
@@ -140,6 +131,12 @@ function normalizeVariation(value, property, fallback) {
         throw new TypeError(`blocks.system.${property} verwacht een getal van 0 tot en met 1.`);
     }
     return value;
+}
+
+function assertColorVariationHasColors(colors, variation) {
+    if (variation > 0 && colors.length === 0) {
+        throw new TypeError("blocks.system.colorVariation groter dan 0 verwacht minstens één CSS-kleur in colorArray.");
+    }
 }
 
 function normalizeFont(value) {
@@ -331,22 +328,29 @@ export function createBlocksSystem(options = {}) {
     let colorArrayState = normalizeColorArray(options.colorArray);
     let colorVariationState = normalizeVariation(options.colorVariation, "colorVariation", 0);
     let inversionVariationState = normalizeVariation(options.inversionVariation, "inversionVariation", DEFAULT_INVERSION_VARIATION);
+    assertColorVariationHasColors(colorArrayState, colorVariationState);
     let objectIndex = 0;
     let api;
 
-    function resolveVariant(value) {
+    function resolveAppearance(value) {
         const name = normalizeVariant(value);
-        if (name !== "random") return name;
+        if (name !== "random") return { variant: name, color: null };
         const raw = Number(randomSource());
         const unit = Number.isFinite(raw) ? Math.max(0, Math.min(0.999999999, raw)) : 0;
         if (colorVariationState > 0 && unit < colorVariationState) {
             const colorUnit = unit / colorVariationState;
-            return colorArrayState[Math.floor(colorUnit * colorArrayState.length)];
+            return {
+                variant: "color",
+                color: colorArrayState[Math.floor(colorUnit * colorArrayState.length)]
+            };
         }
         const monochromeUnit = colorVariationState === 0
             ? unit
             : (unit - colorVariationState) / (1 - colorVariationState);
-        return monochromeUnit >= 1 - inversionVariationState ? "inverse" : "regular";
+        return {
+            variant: monochromeUnit >= 1 - inversionVariationState ? "inverse" : "regular",
+            color: null
+        };
     }
 
     function register(definition, registerOptions = {}) {
@@ -981,12 +985,12 @@ export function createBlocksSystem(options = {}) {
     }
 
     function createBlockController(id, content, addOptions) {
-        let variantValue = resolveVariant(addOptions.variant ?? variantMode);
+        let appearanceValue = resolveAppearance(addOptions.variant ?? variantMode);
+        let variantValue = appearanceValue.variant;
         let minimizedValue = Boolean(addOptions.minimized);
         const shell = document.createElement("section");
         shell.className = "blocks-system-object";
         shell.setAttribute("data-block-object", id);
-        shell.setAttribute("data-block-variant", variantValue);
         shell.setAttribute("data-block-minimized", String(minimizedValue));
         const contentNode = document.createElement("div");
         contentNode.className = "blocks-system-content";
@@ -1005,6 +1009,18 @@ export function createBlocksSystem(options = {}) {
         let placeColumn = null;
         let placeRow = null;
         let block;
+
+        function syncAppearance() {
+            variantValue = appearanceValue.variant;
+            shell.setAttribute("data-block-variant", variantValue);
+            if (appearanceValue.color === null) {
+                shell.removeAttribute("data-block-color");
+                shell.style.removeProperty("--block-array-color");
+                return;
+            }
+            shell.setAttribute("data-block-color", appearanceValue.color);
+            shell.style.setProperty("--block-array-color", appearanceValue.color);
+        }
 
         function applyLayout(layout) {
             spanColumns = layout.columns;
@@ -1178,8 +1194,8 @@ export function createBlocksSystem(options = {}) {
             enumerable: true,
             get: () => variantValue,
             set(value) {
-                variantValue = resolveVariant(value ?? variantMode);
-                shell.setAttribute("data-block-variant", variantValue);
+                appearanceValue = resolveAppearance(value ?? variantMode);
+                syncAppearance();
             }
         });
         Object.defineProperty(controller, "minimized", {
@@ -1187,6 +1203,7 @@ export function createBlocksSystem(options = {}) {
             get: () => minimizedValue,
             set: setMinimized
         });
+        syncAppearance();
         syncMinimizedState();
         block = Object.freeze(controller);
         objects.set(id, block);
@@ -1262,14 +1279,18 @@ export function createBlocksSystem(options = {}) {
             enumerable: true,
             get: () => colorArrayState,
             set(value) {
-                colorArrayState = normalizeColorArray(value);
+                const nextColors = normalizeColorArray(value);
+                assertColorVariationHasColors(nextColors, colorVariationState);
+                colorArrayState = nextColors;
             }
         },
         colorVariation: {
             enumerable: true,
             get: () => colorVariationState,
             set(value) {
-                colorVariationState = normalizeVariation(value, "colorVariation", 0);
+                const nextVariation = normalizeVariation(value, "colorVariation", 0);
+                assertColorVariationHasColors(colorArrayState, nextVariation);
+                colorVariationState = nextVariation;
             }
         },
         inversionVariation: {

@@ -103,7 +103,9 @@ export interface BlocksSystemOptions {
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
   variant?: string;
+  /** User-owned CSS colors available to future random blocks. Defaults to an empty array. */
   colorArray?: readonly string[];
+  /** Share of random blocks using colorArray. A positive value requires at least one color. */
   colorVariation?: number;
   inversionVariation?: number;
   blockDefaults?: BlockDefaults;
@@ -116,7 +118,9 @@ export interface BlocksSystem {
   font: Readonly<BlocksFont> | null;
   variant: string;
   readonly variants: readonly string[];
+  /** User-owned CSS colors available to future random blocks. */
   colorArray: readonly string[];
+  /** Share of random blocks using colorArray. A positive value requires at least one color. */
   colorVariation: number;
   inversionVariation: number;
   readonly labels: Readonly<BlocksLabels>;

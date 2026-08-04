@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.7";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.8";
 
 const blocks = createBlocksSystem({
   snap: true,

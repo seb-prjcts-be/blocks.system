@@ -41,11 +41,16 @@ controller starts with `block`. For zero-config use, the module also exports the
 shared `system` and exposes it as `window.blocks.system`.
 
 `colorVariation` applies only to new blocks whose variant resolves from
-`random`: `0.2` gives the variants in `colorArray` twenty percent of the range.
+`random`: `0.2` gives the CSS colours in `colorArray` twenty percent of the range.
 `inversionVariation: 0.5` makes half of the remaining monochrome blocks
 `inverse`; the other half stays `regular`. The defaults are `0` for colour and
 `1 / 3` for inversion, preserving the earlier monochrome distribution.
 Explicit block variants always win, and existing blocks never recolour.
+
+`colorArray` belongs entirely to the consumer. It accepts CSS colour strings
+such as names, hex values, `rgb()` or `var()` and defaults to `[]`; therefore a
+positive `colorVariation` requires you to supply at least one colour. The CMY
+array above is only this example's choice. The library owns no RGB/CMY palette.
 
 ## Middle
 
@@ -63,17 +68,17 @@ const blockCanvas = blocks.add(document.createElement("canvas"), {
 });
 blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
-blockCanvas.variant = "yellow";
+blockCanvas.variant = "inverse";
 blockCanvas.minimized = false;
-blockCanvas.color = "#000";
+blockCanvas.color = "#222";
 blockCanvas.remove();
 ```
 
-CMY is the default series for automatic colour variation. RGB variants remain
-available as explicit compatibility choices but are not selected automatically.
-In the canonical documentation, accent-coloured blocks may share a surface but
-do not sit directly beside one another. Yellow uses neutral black block chrome
-and ink on `#ffff00`; its menu reverses this to yellow on black.
+The built-in variants are `regular` and `inverse`. A colour selected from your
+array uses one generic `color` state: the chosen colour becomes the block paper,
+while the library keeps neutral ink and reverses the menu to colour on black.
+Other explicit variant names remain available as hooks for your own CSS, but
+the library does not style them as named colours.
 
 ## End
 

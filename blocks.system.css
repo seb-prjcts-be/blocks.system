@@ -132,40 +132,10 @@
     --block-content-color: var(--blocks-paper-color);
 }
 
-.blocks-system-object[data-block-variant="red"] {
-    --block-color: #fff;
-    --block-paper-color: rgb(255, 0, 0);
-    --block-content-color: #fff;
-}
-
-.blocks-system-object[data-block-variant="green"] {
-    --block-color: #000;
-    --block-paper-color: rgb(0, 255, 0);
-    --block-content-color: #000;
-}
-
-.blocks-system-object[data-block-variant="blue"] {
-    --block-color: #fff;
-    --block-paper-color: rgb(0, 0, 255);
-    --block-content-color: #fff;
-}
-
-.blocks-system-object[data-block-variant="cyan"] {
-    --block-color: #000;
-    --block-paper-color: rgb(0, 255, 255);
-    --block-content-color: #000;
-}
-
-.blocks-system-object[data-block-variant="magenta"] {
-    --block-color: #fff;
-    --block-paper-color: rgb(255, 0, 255);
-    --block-content-color: #fff;
-}
-
-.blocks-system-object[data-block-variant="yellow"] {
-    --block-color: #000;
-    --block-paper-color: rgb(255, 255, 0);
-    --block-content-color: #000;
+.blocks-system-object[data-block-variant="color"][data-block-color] {
+    --block-color: var(--blocks-ink-color);
+    --block-paper-color: var(--block-array-color);
+    --block-content-color: var(--blocks-ink-color);
 }
 
 .blocks-system-menu {

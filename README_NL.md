@@ -42,11 +42,16 @@ exporteert de module ook het gedeelde `system`, globaal als
 `window.blocks.system`.
 
 `colorVariation` geldt alleen voor nieuwe blocks waarvan de variant uit `random`
-wordt bepaald: `0.2` geeft de varianten uit `colorArray` twintig procent van het
+wordt bepaald: `0.2` geeft de CSS-kleuren uit `colorArray` twintig procent van het
 bereik. `inversionVariation: 0.5` maakt de helft van de overige monochrome
 blocks `inverse`; de andere helft blijft `regular`. Standaard is kleur `0` en
 inversie `1 / 3`, gelijk aan de eerdere zwart-witverdeling. Een expliciete
 blockvariant wint altijd en bestaande blocks verkleuren nooit achteraf.
+
+`colorArray` is volledig van de gebruiker. De array aanvaardt CSS-kleurwaarden
+zoals namen, hex, `rgb()` of `var()` en is standaard `[]`; voor een positieve
+`colorVariation` moet je dus minstens één kleur opgeven. De CMY-array hierboven
+is alleen de keuze van dit voorbeeld. De library bezit geen RGB/CMY-palet.
 
 ## Midden
 
@@ -64,18 +69,17 @@ const blockCanvas = blocks.add(document.createElement("canvas"), {
 });
 blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
-blockCanvas.variant = "yellow";
+blockCanvas.variant = "inverse";
 blockCanvas.minimized = false;
-blockCanvas.color = "#000";
+blockCanvas.color = "#222";
 blockCanvas.remove();
 ```
 
-CMY is de standaardreeks voor automatische kleurvariatie. De RGB-varianten
-blijven beschikbaar als expliciete compatibiliteitskeuze, maar worden niet
-automatisch gekozen. Blocks met een steunkleur mogen dezelfde surface delen,
-maar staan in de canonieke documentatie niet rechtstreeks naast elkaar. Geel
-gebruikt neutrale zwarte blockranden en inkt op `#ffff00`; het menu draait dit
-om naar geel op zwart.
+De ingebouwde varianten zijn `regular` en `inverse`. Een kleur uit je array
+gebruikt één generieke `color`-state: de gekozen kleur wordt het blockpapier,
+terwijl de library neutrale inkt gebruikt en het menu omdraait naar kleur op
+zwart. Andere expliciete variantnamen blijven haken voor je eigen CSS, maar de
+library geeft ze geen ingebouwde kleurstijl.
 
 ## Einde
 

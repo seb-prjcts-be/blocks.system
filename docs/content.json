@@ -87,7 +87,7 @@
     },
     "manual-canvas": {
       "title": "canvas / resize observer",
-      "label": "Responsive canvas with a rectangle, circle and triangle"
+      "label": "Responsive canvas showing its live content-box dimensions"
     },
     "manual-compose": {
       "title": "03 / arrange",
@@ -142,7 +142,8 @@
         ".blocks-system-content",
         "",
         "[data-block-object=\"block-id\"]",
-        "[data-block-variant=\"magenta\"]",
+        "[data-block-variant=\"color\"][data-block-color]",
+        "[data-block-color=\"magenta\"]",
         "[data-block-minimized=\"true\"]",
         "[data-draggable=\"true\"]"
       ]
@@ -254,19 +255,19 @@
           "id": "api-variants",
           "member": "variants",
           "returns": "array",
-          "purpose": "Regular and inverse plus explicit RGB/CMY variants; automatic variation defaults to CMY, and yellow uses neutral black chrome and ink."
+          "purpose": "The built-in variants are regular and inverse. Other explicit names are unstyled consumer CSS hooks; automatically selected user colors use the generic color state."
         },
         {
           "id": "api-color-array",
           "member": "colorArray",
           "returns": "array",
-          "purpose": "Color variants available to future random blocks; defaults to CMY and accepts custom variant names. RGB remains available only when explicitly requested."
+          "purpose": "User-owned CSS colors available to future random blocks. The array defaults to empty; the CMY values in this manual are only an example supplied by the manual."
         },
         {
           "id": "api-color-variation",
           "member": "colorVariation",
           "returns": "number",
-          "purpose": "Share of the random range assigned to colorArray, from 0 to 1; default 0 preserves monochrome automatic variants."
+          "purpose": "Share of the random range assigned to colorArray, from 0 to 1. Default 0 preserves monochrome automatic variants; a positive value requires a non-empty user array."
         },
         {
           "id": "api-inversion-variation",
@@ -460,6 +461,7 @@
         { "term": ".blocks-system-drop-preview", "description": "magnetic landing cell; solid ↓ means downward displacement" },
         { "term": "[data-block-object]", "description": "one stable object id" },
         { "term": "[data-block-variant]", "description": "resolved visual variant" },
+        { "term": "[data-block-color]", "description": "CSS color selected from the consumer-owned colorArray" },
         { "term": "[data-block-minimized]", "description": "restored or minimized state" },
         { "term": "[data-draggable]", "description": "surface drag state" },
         { "term": "blocks:reorder", "description": "stable detail: id, input, mode, key, indices, grid positions and direction" }
@@ -469,7 +471,7 @@
       "title": "06 / errors and defaults",
       "eyebrow": "fail early / catch only recoverable errors",
       "statement": "invalid ids, missing fields, grid overflow, overlap, duplicate registration, unknown definitions and incomplete adapters throw.",
-      "details": "Defaults: drag on · snap off · no automatic menu · 1 × 1 grid · random monochrome variant · no attached field · English labels unless the document language is Dutch. Creation options can set shared initial behavior."
+      "details": "Defaults: drag on · snap off · no automatic menu · 1 × 1 grid · random monochrome variant · empty colorArray · no attached field · English labels unless the document language is Dutch. Creation options can set shared initial behavior."
     }
   }
 }

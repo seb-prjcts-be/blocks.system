@@ -75,10 +75,10 @@ async function measureHome(width, height, dpr = 1) {
   return result.result.value;
 }
 
-async function measureYellowVariant() {
+async function measureUserColor() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(async function () {
-      const { createBlocksSystem } = await import("./blocks.system.mjs?yellow-variant-proof");
+      const { createBlocksSystem } = await import("./blocks.system.mjs?user-color-proof");
       const field = document.createElement("div");
       field.style.cssText = "position:fixed;inset:auto auto 0 0;width:200px;height:120px";
       document.body.append(field);
@@ -95,7 +95,7 @@ async function measureYellowVariant() {
         const content = document.createElement("span");
         content.textContent = "proof";
         const block = blocks.add(content, {
-          id: "yellow-variant-proof",
+          id: "user-color-proof",
           title: "proof",
           menu: true
         });
@@ -105,6 +105,7 @@ async function measureYellowVariant() {
         const contentStyle = getComputedStyle(block.content);
         return {
           variant: block.variant,
+          dataBlockColor: block.element.getAttribute("data-block-color"),
           objectBackground: objectStyle.backgroundColor,
           objectColor: objectStyle.color,
           borderColor: objectStyle.borderColor,
@@ -241,6 +242,7 @@ async function measureManual(width, height, dpr = 1) {
         blockCount: objects.length,
         ids: objects.map(function (block) { return block.dataset.blockObject; }),
         variants: objects.map(function (block) { return block.dataset.blockVariant; }),
+        colors: objects.map(function (block) { return block.getAttribute("data-block-color"); }),
         columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         documentHeight: document.documentElement.scrollHeight,
@@ -279,7 +281,10 @@ async function measureManual(width, height, dpr = 1) {
           cssWidth: canvasRect.width,
           cssHeight: canvasRect.height,
           bitmapWidth: canvas.width,
-          bitmapHeight: canvas.height
+          bitmapHeight: canvas.height,
+          reportedWidth: Number(canvas.dataset.canvasWidth),
+          reportedHeight: Number(canvas.dataset.canvasHeight),
+          label: canvas.getAttribute("aria-label")
         },
         video: {
           width: videoRect.width,
@@ -573,16 +578,17 @@ try {
     }
   }
 
-  const yellowVariant = await measureYellowVariant();
-  assert.deepEqual(yellowVariant, {
-    variant: "yellow",
+  const userColor = await measureUserColor();
+  assert.deepEqual(userColor, {
+    variant: "color",
+    dataBlockColor: "yellow",
     objectBackground: "rgb(255, 255, 0)",
     objectColor: "rgb(0, 0, 0)",
     borderColor: "rgb(0, 0, 0)",
     menuBackground: "rgb(0, 0, 0)",
     menuColor: "rgb(255, 255, 0)",
     contentColor: "rgb(0, 0, 0)"
-  }, "de gele variant moet neutrale zwarte blockinkt gebruiken en zwart/geel in het menu omdraaien");
+  }, "een kleur uit de gebruikersarray moet via de generieke kleurvariant neutrale zwarte blockinkt en de zwart/kleur-omkering gebruiken");
 
   await measureHome(1280, 900);
   const beforeHover = await hoverSignature();
@@ -615,7 +621,8 @@ try {
     manualMeasurements.push(manual);
     assert.equal(manual.blockCount, 13, `manual mist directe blocks op ${width}px @${dpr}x`);
     assert.equal(manual.ids[0], "manual-start", `manual begint niet met de concrete start op ${width}px @${dpr}x`);
-    assert.deepEqual(manual.variants, ["regular", "cyan", "regular", "inverse", "regular", "magenta", "regular", "regular", "regular", "yellow", "inverse", "regular", "inverse"], `manual toont niet de vaste CMY-blockvariatie op ${width}px @${dpr}x`);
+    assert.deepEqual(manual.variants, ["regular", "color", "regular", "inverse", "regular", "color", "regular", "regular", "regular", "color", "inverse", "regular", "inverse"], `manual gebruikt niet één generieke variant voor de door de gebruiker gekozen kleuren op ${width}px @${dpr}x`);
+    assert.deepEqual(manual.colors, [null, "cyan", null, null, null, "magenta", null, null, null, "yellow", null, null, null], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
     assert.equal(manual.columnCount, documentColumns, `manual gebruikt ${manual.columnCount} in plaats van ${documentColumns} kolommen op ${width}px`);
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
@@ -642,6 +649,9 @@ try {
     assert.ok(manual.pageScrollable && manual.documentHeight > height, `manual gebruikt geen natuurlijke paginascroll op ${width}px`);
     assert.notEqual(manual.boardOverflowY, "scroll", `manual maakt het volledige board scrollbaar op ${width}px`);
     assert.ok(manual.canvas.cssWidth > 0 && manual.canvas.cssHeight > 0 && manual.canvas.bitmapWidth > 0 && manual.canvas.bitmapHeight > 0, `manual canvas herschaalt niet op ${width}px`);
+    assert.equal(manual.canvas.bitmapWidth, Math.round(manual.canvas.reportedWidth * dpr), `canvasbitmap volgt de gemeten contentbreedte niet op ${width}px @${dpr}x`);
+    assert.equal(manual.canvas.bitmapHeight, Math.round(manual.canvas.reportedHeight * dpr), `canvasbitmap volgt de gemeten contenthoogte niet op ${width}px @${dpr}x`);
+    assert.match(manual.canvas.label, new RegExp(`${manual.canvas.reportedWidth} × ${manual.canvas.reportedHeight}`), `canvas maakt zijn actuele ResizeObserver-maat niet toegankelijk op ${width}px @${dpr}x`);
     assert.ok(manual.video.width > 0 && manual.video.height > 0, `manual video heeft geen bruikbare maat op ${width}px`);
     assert.equal(manual.video.controls, true, `manual video mist controls op ${width}px`);
     assert.equal(manual.video.fit, "contain", `manual video gebruikt geen contain op ${width}px`);
@@ -734,6 +744,9 @@ try {
             configuredBlockFont: getComputedStyle(field).getPropertyValue("--blocks-font-family").trim(),
             variants: Array.from(field.querySelectorAll(":scope > .blocks-system-object"), function (block) {
               return block.dataset.blockVariant;
+            }),
+            colors: Array.from(field.querySelectorAll(":scope > .blocks-system-object"), function (block) {
+              return block.getAttribute("data-block-color");
             })
           };
         })()`,
@@ -752,7 +765,8 @@ try {
       }
       assert.equal(exampleStyle.configuredBlockFont, '"Instrument Sans"', `${example} configureert de librarytypografie niet via haar publieke CSS-hook`);
       if (example === "basic-grid") {
-        assert.deepEqual(exampleStyle.variants, ["regular", "inverse", "magenta", "regular"], `basic-grid toont niet de vaste CMY-variatie op ${width}px`);
+        assert.deepEqual(exampleStyle.variants, ["regular", "inverse", "color", "regular"], `basic-grid gebruikt niet de generieke variant voor de gebruikerskleur op ${width}px`);
+        assert.deepEqual(exampleStyle.colors, [null, null, "magenta", null], `basic-grid bewaart de geselecteerde gebruikerskleur niet afzonderlijk op ${width}px`);
       }
     }
   }

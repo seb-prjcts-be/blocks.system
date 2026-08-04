@@ -51,8 +51,8 @@ for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]
 }
 assert.match(readme, /import \{ createBlocksSystem \}/, "README.md must show creation-time defaults");
 assert.match(readmeNl, /import \{ createBlocksSystem \}/, "README_NL.md must show creation-time defaults");
-assert.match(readme + readmeNl, /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "README examples must use the CMY automatic series");
-assert.doesNotMatch(readme + readmeNl, /colorArray:\s*\[[^\]]*\b(?:red|green|blue)\b/, "README examples must keep RGB out of the automatic series");
+assert.match(readme + readmeNl, /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "README examples must show a concrete user-supplied color array");
+assert.doesNotMatch(readme + readmeNl, /(?:defaults? to|standaard(?:reeks|array)?)[^\n]*(?:CMY|cyan)/i, "README must not present CMY as library-owned defaults");
 
 const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
 const docsContent = JSON.parse(await readFile(resolve(root, "docs", "content.json"), "utf8"));
@@ -112,13 +112,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.6", "docs/style.css?v=0.1.5"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.6", "style.css?v=0.1.5"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.6", "style.css?v=0.1.5"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.5"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.5"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.5"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.6", "../../docs/style.css?v=0.1.5"]
+    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.5"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -158,6 +158,8 @@ for (const file of retiredAssets) {
 assert.equal(manifest.version, packageData.version, "manifest and package version must match");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
 assert.ok(["attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
+assert.ok(manifest.design_rules.includes("colorArray is consumer-owned and defaults empty; positive colorVariation requires user-supplied CSS colors"), "manifest must record consumer ownership of the palette");
+assert.ok(manifest.design_rules.includes("the library owns only regular and inverse; automatic user colors share one generic color state with neutral ink"), "manifest must not present RGB or CMY as built-in variants");
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose the TypeScript declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "the published file list must include the TypeScript declarations");
 for (const declaration of ["BlocksSystem", "BlockController", "BlockDefaults", "BlocksLabels", "BlocksReorderDetail", "createBlocksSystem"]) {
@@ -215,12 +217,11 @@ assert.match(siteCss, /scrollbar-width:\s*thin;/, "consumer CSS must keep vertic
 assert.match(siteCss, /::-webkit-scrollbar-thumb\s*\{[^}]*border-radius:\s*999px;[^}]*background-clip:\s*content-box;/s, "consumer CSS must expose the rounded overlay thumb in Chromium");
 assert.match(siteCss, /@media \(forced-colors:\s*active\)[\s\S]*scrollbar-color:\s*auto;/, "consumer CSS must restore native forced-colors scrollbars");
 assert.doesNotMatch(siteCss, /scrollbar-(?:color|thumb)[^;}]*magenta|::-webkit-scrollbar-thumb\s*\{[^}]*255, 0, 255/s, "consumer CSS must keep scrollbars neutral");
-for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "yellow"]) {
+for (const variant of ["inverse", "color"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
-assert.match(libraryCss, /data-block-variant="yellow"\]\s*\{[^}]*--block-color:\s*#000;[^}]*--block-paper-color:\s*rgb\(255, 255, 0\);[^}]*--block-content-color:\s*#000;/s, "yellow must use neutral black chrome and ink on yellow content");
-assert.doesNotMatch(libraryCss.match(/data-block-variant="yellow"\]\s*\{[^}]*\}/s)?.[0] || "", /rgb\(0, 0, 255\)|#0000ff/i, "yellow must not reintroduce blue outside colorArray");
-assert.match(readme + readmeNl, /variant\s*=\s*"yellow"[\s\S]*color\s*=\s*"#000"/, "README examples must demonstrate neutral ink on yellow");
+assert.doesNotMatch(libraryCss, /data-block-variant="(?:red|green|blue|cyan|magenta|yellow)"/, "the library CSS must not own an RGB or CMY palette");
+assert.match(libraryCss, /data-block-variant="color"\]\[data-block-color\]\s*\{[^}]*--block-color:\s*var\(--blocks-ink-color\);[^}]*--block-paper-color:\s*var\(--block-array-color\);[^}]*--block-content-color:\s*var\(--blocks-ink-color\);/s, "the generic color variant must combine a user color with neutral library ink");
 assert.match(siteDemos["examples/basic-grid/demo.mjs"], /colorVariation:\s*0\.25,[\s\S]*inversionVariation:\s*0\.25,[\s\S]*random:/, "the basic grid must demonstrate reproducible system-level variation");
 assert.doesNotMatch(siteDemos["examples/basic-grid/demo.mjs"], /blockItem\.variant\s*=/, "the basic grid must obtain variants from the configured system instead of local block exceptions");
 assert.match(standaloneExamples["basic-grid"], /system-level color and inversion variation/, "the basic example copy must name its actual variation mode");
@@ -252,10 +253,14 @@ for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
 assert.match(JSON.stringify(docsContent.manual), /textContent/, "the manual content must preserve the untrusted-text safety note");
 assert.match(siteDemos["docs/manual.mjs"], /blockDefaults:\s*\{[\s\S]*menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the manual must configure its shared block menu once");
 assert.match(siteDemos["docs/manual.mjs"], /colorVariation:\s*0\.2,[\s\S]*inversionVariation:\s*0\.2,[\s\S]*random:/, "the manual must visibly demonstrate reproducible system-level variation");
-assert.match(siteDemos["docs/manual.mjs"], /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "the manual must use the CMY automatic series");
-assert.match(siteDemos["examples/basic-grid/demo.mjs"], /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "the basic example must use the CMY automatic series");
+assert.match(siteDemos["docs/manual.mjs"], /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "the manual must supply its own CMY example array");
+assert.match(siteDemos["examples/basic-grid/demo.mjs"], /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "the basic example must supply its own CMY example array");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;[\s\S]*quantizeSurface/, "the manual must not repeat the library's initial draggable default");
 assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "the experimental manual must demonstrate responsive runtime content");
+assert.match(siteDemos["docs/manual.mjs"], /canvas\.dataset\.canvasWidth[\s\S]*canvas\.dataset\.canvasHeight/, "the resize canvas must expose the observed content-box dimensions");
+assert.match(siteDemos["docs/manual.mjs"], /RESIZE OBSERVER[\s\S]*CONTENT BOX/, "the resize canvas must draw its own measurement content");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /context\.arc\(|context\.lineTo\(width \* 0\.95/, "the resize canvas must not repeat the form specimen shapes");
+assert.match(docsContent.manual["manual-canvas"].label, /live content-box dimensions/i, "the resize canvas needs an accessible description of its new content");
 assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");
 assert.match(siteDemos["docs/shell.mjs"], /Math\.floor\(\(available - borders - gap \* \(columns - 1\)\) \/ columns\)/, "the docs shell must quantize tracks to whole CSS pixels");
 assert.match(siteDemos["docs/manual.mjs"], /document\.createElement\("video"\)[\s\S]*\.controls = true[\s\S]*\.muted = true[\s\S]*\.preload = "none"/, "the experimental manual must make the pending video contract visible");
@@ -289,7 +294,7 @@ assert.match(siteCss, /\.manual-circle\s*\{[^}]*background:\s*#000;/s, "the Muna
 assert.match(siteCss, /\.manual-triangle\s*\{[^}]*background:\s*#000;/s, "the Munari triangle must remain neutral black");
 assert.doesNotMatch(docsContent.manual["manual-forms"].items.map(({ label }) => label).join(" "), /\b(?:red|green|blue|cyan|magenta|yellow)\b/i, "form labels must not assign block colors to content");
 assert.match(siteDemos["examples/mixed-content/demo.mjs"], /context\.strokeStyle = "#000";/, "the mixed-content canvas must draw with neutral ink");
-assert.match(standaloneExamples["mixed-content"], /content stays neutral[\s\S]*RGB\/CMY belongs to block variants/, "the mixed-content note must state the color ownership boundary");
+assert.match(standaloneExamples["mixed-content"], /content stays neutral[\s\S]*(?:user|consumer) owns colorArray/i, "the mixed-content note must state that the consumer owns the block colors");
 const pureBlockColor = /(?:#(?:ff0000|00ff00|0000ff|00ffff|ff00ff|ffff00)|rgb\(\s*(?:255\s*,\s*0\s*,\s*0|0\s*,\s*255\s*,\s*0|0\s*,\s*0\s*,\s*255|0\s*,\s*255\s*,\s*255|255\s*,\s*0\s*,\s*255|255\s*,\s*255\s*,\s*0)\s*\))/i;
 for (const [owner, source] of [
   ["consumer CSS", siteCss],
@@ -350,7 +355,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.5", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.7", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
@@ -365,7 +370,9 @@ for (const anchor of ["shared-system", "block-controller", "adapters", "definiti
 for (const apiName of ["createBlocksSystem(options)", "attach(target)", "setGrid(x, y)", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation", "add(content, options)", "menu(name, options)", "span(x, y)", "place(x, y)", "flow()", "registerAdapter(id, adapter)", "mount(id, target, overrides)", "unmount(target)", "address(id)"]) {
   assert.ok(serializedReferenceContent.includes(apiName), `the reference content misses ${apiName}`);
 }
-for (const hook of [".blocks-system-surface", ".blocks-system-object", ".blocks-system-menu", ".blocks-system-content", ".blocks-system-drop-preview", "[data-block-object]", "[data-block-variant]", "[data-block-minimized]", "[data-draggable]"]) {
+assert.match(serializedReferenceContent, /User-owned CSS colors[\s\S]*?defaults to empty/i, "the reference must identify colorArray as empty and consumer-owned");
+assert.match(serializedReferenceContent, /built-in variants are regular and inverse/i, "the reference must limit the library-owned variant set");
+for (const hook of [".blocks-system-surface", ".blocks-system-object", ".blocks-system-menu", ".blocks-system-content", ".blocks-system-drop-preview", "[data-block-object]", "[data-block-variant]", "[data-block-color]", "[data-block-minimized]", "[data-draggable]"]) {
   assert.ok(serializedReferenceContent.includes(hook), `the reference content misses stable hook ${hook}`);
 }
 assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[^}]*background-image:\s*none;/s, "the reference must use the shared invisible editorial grid");
