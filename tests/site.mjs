@@ -112,13 +112,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.6"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.6"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.6"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.7"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.7"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.7"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.6"]
+    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.7"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -241,6 +241,10 @@ assert.match(manualHtml, /href="api\.html">open the complete reference/, "the ma
 assert.match(manualHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item index navigation");
 assert.doesNotMatch(manualHtml.match(/<nav id="navbar"[\s\S]*?<\/nav>/)?.[0] || "", /href="[^"]*#/, "the manual main navigation must not use chapter fragments");
 assert.match(manualHtml, /class="docs-chapters"[\s\S]*#start[\s\S]*#result[\s\S]*#layout[\s\S]*#colors[\s\S]*#random/, "the manual masthead must expose a short beginner path");
+assert.match(manualHtml, /<figure class="manual-hero-image">[\s\S]*<img src="img\/pexels-peter-dyllong-2158803154-37466849\.jpg" width="3358" height="5038" alt="Black-and-white landscape with a solitary tree beneath large clouds\."/, "the manual hero must use the selected portrait photograph with stable intrinsic dimensions and useful alt text");
+assert.match(siteCss, /\.manual-masthead\s*\{[^}]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\);/s, "the desktop manual hero must use the same six-column logic as the lesson surface");
+assert.match(siteCss, /\.manual-hero-image\s*\{[^}]*grid-column:\s*6;[^}]*height:\s*calc\(var\(--docs-row\)\s*\*\s*3\);/s, "the hero photograph must occupy one column by three editorial rows");
+assert.match(siteCss, /\.manual-hero-image img\s*\{[^}]*object-fit:\s*cover;/s, "the portrait photograph must crop within its editorial module");
 assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/, "the beginner manual must not present layout tooling before the lesson");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.equal((siteDemos["docs/manual.mjs"].match(/^addBlock\(\{/gm) || []).length, 22, "the manual must build the approved beginner sequence from direct blocks");

@@ -210,6 +210,15 @@ async function measureManual(width, height, dpr = 1) {
       const board = document.querySelector("#manual-board");
       const boardRect = board.getBoundingClientRect();
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
+      const masthead = document.querySelector(".manual-masthead");
+      const title = masthead.querySelector("h1");
+      const intro = masthead.querySelector(".manual-intro");
+      const heroImage = masthead.querySelector(".manual-hero-image");
+      const heroPhoto = heroImage.querySelector("img");
+      const mastheadRect = masthead.getBoundingClientRect();
+      const titleRect = title.getBoundingClientRect();
+      const introRect = intro.getBoundingClientRect();
+      const heroImageRect = heroImage.getBoundingClientRect();
       const code = board.querySelector(".manual-code");
       const rootStyle = getComputedStyle(document.documentElement);
       const contentOptions = ["manual-content-html", "manual-content-node", "manual-content-factory"].map(function (id) {
@@ -275,6 +284,21 @@ async function measureManual(width, height, dpr = 1) {
         codeOverflow: getComputedStyle(code).overflowX,
         scrollbarWidth: rootStyle.scrollbarWidth,
         scrollbarColor: rootStyle.scrollbarColor,
+        hero: {
+          columnCount: getComputedStyle(masthead).gridTemplateColumns.split(" ").length,
+          mastheadWidth: mastheadRect.width,
+          titleRight: titleRect.right,
+          titleBottom: titleRect.bottom,
+          introBottom: introRect.bottom,
+          imageLeft: heroImageRect.left,
+          imageTop: heroImageRect.top,
+          imageWidth: heroImageRect.width,
+          imageHeight: heroImageRect.height,
+          gridColumnStart: getComputedStyle(heroImage).gridColumnStart,
+          source: new URL(heroPhoto.src).pathname,
+          alt: heroPhoto.alt,
+          fit: getComputedStyle(heroPhoto).objectFit
+        },
         boardWidth: boardRect.width,
         contentOptions,
         chapterGaps,
@@ -517,6 +541,21 @@ try {
     ], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
     assert.equal(manual.columnCount, documentColumns, `manual gebruikt ${manual.columnCount} in plaats van ${documentColumns} kolommen op ${width}px`);
+    assert.equal(manual.hero.columnCount, documentColumns, `manual hero gebruikt niet dezelfde ${documentColumns}-kolomslogica op ${width}px`);
+    assert.ok(manual.hero.source.endsWith("/docs/img/pexels-peter-dyllong-2158803154-37466849.jpg"), `manual hero laadt niet de gekozen foto op ${width}px`);
+    assert.equal(manual.hero.alt, "Black-and-white landscape with a solitary tree beneath large clouds.", `manual hero mist bruikbare alttekst op ${width}px`);
+    assert.equal(manual.hero.fit, "cover", `manual hero crop past niet in zijn module op ${width}px`);
+    if (width > 900) {
+      assert.equal(manual.hero.gridColumnStart, "6", `manual foto staat niet in de zesde desktopkolom op ${width}px`);
+      assert.ok(Math.abs(manual.hero.imageHeight - 396) <= 0.5, `manual foto is niet drie rasterrijen hoog op ${width}px: ${manual.hero.imageHeight}px`);
+      assert.ok(manual.hero.imageWidth < manual.hero.mastheadWidth / 5, `manual foto is breder dan één van zes hero-kolommen op ${width}px`);
+    } else if (width > 560) {
+      assert.equal(manual.hero.gridColumnStart, "3", `manual foto staat niet in de derde tabletkolom op ${width}px`);
+      assert.ok(manual.hero.imageLeft >= manual.hero.titleRight - 0.5, `manual foto staat niet naast de herotekst op ${width}px`);
+    } else {
+      assert.equal(manual.hero.gridColumnStart, "1", `manual foto gebruikt mobiel niet de ene beschikbare kolom op ${width}px`);
+      assert.ok(manual.hero.imageTop >= manual.hero.introBottom - 0.5, `manual foto stapelt mobiel niet na de hero-intro op ${width}px`);
+    }
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
     assert.deepEqual(manual.outsideBoard, [], `manual plaatst blocks buiten het board op ${width}px: ${manual.outsideBoard.join(", ")}`);
     assert.deepEqual(manual.clippedContent, [], `manual knipt inhoud af op ${width}px: ${manual.clippedContent.join(", ")}`);
