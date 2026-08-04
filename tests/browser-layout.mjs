@@ -512,9 +512,9 @@ try {
       assert.deepEqual(home.outsideBoard, [], `home plaatst blocks buiten het board op ${width}px @${dpr}x: ${home.outsideBoard.join(", ")}`);
       assert.deepEqual(home.clippedContent, [], `home knipt inhoud af op ${width}px @${dpr}x: ${home.clippedContent.join(", ")}`);
       assert.deepEqual(home.ids, ["home-title", "home-intro"], `home bewaart zijn korte leesvolgorde niet op ${width}px @${dpr}x`);
-      assert.equal(home.title.text.trim(), "Blocks. System.", `home verliest zijn canonieke titel op ${width}px @${dpr}x`);
+      assert.equal(home.title.text.trim(), "blocks.\nsystem.", `home verliest zijn canonieke titel op ${width}px @${dpr}x`);
       assert.match(home.title.fontFamily, /Instrument Sans/, `home gebruikt Instrument Sans niet voor de hoofdboodschap op ${width}px @${dpr}x`);
-      assert.equal(home.title.whiteSpace, "nowrap", `home breekt de hoofdboodschap onverwacht op ${width}px @${dpr}x`);
+      assert.equal(home.title.whiteSpace, "pre-line", `home bewaart de titelregeleinde niet op ${width}px @${dpr}x`);
       assert.match(home.intro.text, /dependency-free esm/, `home benoemt de bibliotheek niet concreet op ${width}px @${dpr}x`);
       assert.equal(home.intro.href, "docs/", `home verwijst niet rechtstreeks naar de manual op ${width}px @${dpr}x`);
     }

@@ -164,7 +164,7 @@ footer a { color: var(--ink); }
   margin: 0;
   font: 600 clamp(3rem, 7.2vw, 8.6rem)/0.76 "Instrument Sans", sans-serif;
   letter-spacing: -0.055em;
-  white-space: nowrap;
+  white-space: pre-line;
 }
 
 .home-intro {
