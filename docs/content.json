@@ -10,8 +10,10 @@
       "alt": "Black-and-white landscape with a solitary tree beneath large clouds."
     },
     "home-intro": {
-      "title": "start",
-      "tagline": "blocks.system turns your own web content into individually addressable blocks.",
+      "title": "object / start",
+      "lead": "your content becomes an",
+      "statement": "object.",
+      "sequence": "add · span · place",
       "action": {
         "label": "open manual →",
         "href": "docs/"
@@ -45,17 +47,17 @@
       "body": "The string becomes the content inside the block.",
       "code": "const content = \"<p>Hello block.</p>\";"
     },
-    "manual-content-node": {
-      "title": "content / dom node",
-      "eyebrow": "option 2 / node",
-      "statement": "Use a node for text or controls.",
+    "manual-content-object": {
+      "title": "content / object",
+      "eyebrow": "option 2 / object",
+      "statement": "Use an element object for text or controls.",
       "body": "Set textContent when text comes from a visitor, file or API.",
       "code": "const content = document.createElement(\"p\");\ncontent.textContent = userText;"
     },
     "manual-content-factory": {
       "title": "content / factory",
       "eyebrow": "option 3 / function",
-      "statement": "Use a function for a fresh node.",
+      "statement": "Use a function for a fresh element object.",
       "body": "The function runs when the block is added.",
       "code": "const content = () => {\n  const button = document.createElement(\"button\");\n  button.textContent = \"click me\";\n  return button;\n};"
     },
@@ -252,7 +254,7 @@
         { "cells": ["get(id)", "definition | null", "Read one registered definition."] },
         { "id": "api-attach", "cells": ["attach(target)", "blocks", "Attach to a selector or Element."] },
         { "id": "api-set-grid", "cells": ["setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
-        { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, a Node or a content factory."] },
+        { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, an element object or a content factory."] },
         { "id": "api-mount", "cells": ["mount(id, target, overrides?)", "Promise<Element>", "Mount a registered definition through its adapter."] },
         { "id": "api-unmount", "cells": ["unmount(target)", "boolean", "Run optional cleanup and remove mounted content."] },
         { "cells": ["remount(id, target, overrides?)", "Promise<Element>", "Unmount and mount again with new settings."] },

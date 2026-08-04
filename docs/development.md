@@ -16,8 +16,8 @@ Status: canonieke structuur uitgevoerd op 3 augustus 2026.
 - `index.html` is de voordeur met één echt blocks-systeem.
 - `docs/index.html` is de levende manual op de canonieke route `/docs/`.
 - `docs/api.html` is de volledige, niet-versleepbare reference.
-- `docs/content.json` bezit alle zichtbare inhoud van de 21 levende docblocks:
-  2 op home, 13 in de manual en 6 in de reference. Titels, uitleg, termen,
+- `docs/content.json` bezit alle zichtbare inhoud van de 35 levende docblocks:
+  3 op home, 22 in de manual en 10 in de reference. Titels, uitleg, termen,
   toegankelijke labels, links en codevoorbeelden staan daar. De JSON spiegelt
   block-ID's alleen als koppelsleutel; de canonieke ID-lijst, volgorde, layout,
   DOM-opbouw, gedrag en lifecycle blijven bij de betreffende docscompositie.
@@ -38,7 +38,7 @@ afzonderlijk en niets daarvan lekt naar de core.
 | Route | Eigenaar |
 |---|---|
 | `/` | productbelofte en één levende proof |
-| `/docs/` | start, compose, arrange, connect, examples en boundary |
+| `/docs/` | start, resultaat, layout, kleuren, random variatie en vervolgstappen |
 | `/docs/api.html` | exacte API, errors, definition shape en CSS-hooks |
 | `/examples/<naam>/` | zelfstandige uitvoer en downloadbare module |
 

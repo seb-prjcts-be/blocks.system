@@ -112,13 +112,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.9"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.9"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.9"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.2.0"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.2.0"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.2.0"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.9"]
+    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.2.0"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -180,7 +180,7 @@ assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must p
 assert.match(siteDemos["docs/home.mjs"], /snap:\s*true/, "home must configure snap once when its system is created");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must rely on the library's draggable default");
 assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-photo[\s\S]*home-intro/, "home must lead from identity through the adjacent image to one concise action");
-assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*photo\.span\(1, 3\)[\s\S]*photo\.place\(5, 3\)[\s\S]*intro\.span\(1, 1\)[\s\S]*intro\.place\(4, 7\)/, "home must place the 1 by 3 photograph directly beside its hero and preserve the compact intro");
+assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*photo\.span\(1, 3\)[\s\S]*photo\.place\(5, 3\)[\s\S]*intro\.span\(2, 1\)[\s\S]*intro\.place\(4, 7\)/, "home must place the 1 by 3 photograph beside its hero and give the object statement two columns");
 assert.match(siteDemos["docs/home.mjs"], /new URL\("\.\/img\/pexels-peter-dyllong-2158803154-37466849\.jpg", import\.meta\.url\)/, "home must load the selected photograph relative to its module");
 assert.match(siteCss, /\.home-board\s*\{[^}]*background-image\s*:[^}]*linear-gradient/s, "home must expose the grid because the system itself is the subject");
 assert.match(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*6/s, "home must start from six columns");
@@ -275,10 +275,10 @@ assert.match(siteCss, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*scroll-
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createBlocksSystem\([\s\S]*createBlocksSystem\(/, "the experimental manual must not create a nested blocks system");
 const manualStartPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-start"');
 const manualHtmlPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-content-html"');
-const manualNodePosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-content-node"');
+const manualObjectPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-content-object"');
 const manualFactoryPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-content-factory"');
 const manualFinishPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-finish"');
-assert.ok(manualStartPosition >= 0 && manualHtmlPosition > manualStartPosition && manualNodePosition > manualHtmlPosition && manualFactoryPosition > manualNodePosition && manualFinishPosition > manualFactoryPosition,
+assert.ok(manualStartPosition >= 0 && manualHtmlPosition > manualStartPosition && manualObjectPosition > manualHtmlPosition && manualFactoryPosition > manualObjectPosition && manualFinishPosition > manualFactoryPosition,
 "the manual must read start code, three content forms, then finish code");
 assert.match(siteCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
 assert.match(siteCss, /\.manual-chapter-start\s*\{[^}]*margin-top:/s, "chapter starts must create visible breathing room when explicit grid rows collapse");
@@ -304,10 +304,17 @@ assert.match(apiHtml, /class="reference-index"[\s\S]*#exports[\s\S]*#options[\s\
 assert.equal(docsContent.schema, "blocks.system/docs-content@2", "docs content must publish its supported schema");
 assert.deepEqual(Object.keys(docsContent), ["schema", "home", "manual", "reference"], "docs content must expose only the three canonical block sections");
 assert.deepEqual(Object.keys(docsContent.home), ["home-title", "home-photo", "home-intro"], "home content must own title, photograph and action in canonical reading order");
+assert.deepEqual(docsContent.home["home-intro"], {
+  title: "object / start",
+  lead: "your content becomes an",
+  statement: "object.",
+  sequence: "add · span · place",
+  action: { label: "open manual →", href: "docs/" }
+}, "home must explain the system through one graphic object statement");
 assert.deepEqual(Object.keys(docsContent.manual), [
   "manual-start",
   "manual-content-html",
-  "manual-content-node",
+  "manual-content-object",
   "manual-content-factory",
   "manual-finish",
   "manual-result-regular",
@@ -328,6 +335,7 @@ assert.deepEqual(Object.keys(docsContent.manual), [
   "manual-random-6",
   "manual-next"
 ], "manual content must own the complete beginner sequence in reading order");
+assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner-facing manual copy must say object instead of node");
 assert.deepEqual(Object.keys(docsContent.reference), [
   "reference-exports",
   "reference-options",
@@ -358,7 +366,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.9", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.0", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

@@ -31,6 +31,9 @@ async function measureHome(width, height, dpr = 1) {
     const titleRect = title.getBoundingClientRect();
     const titleContentRect = titleContent.getBoundingClientRect();
     const intro = field.querySelector(".home-intro");
+    const introBlockRect = intro.closest(".blocks-system-object").getBoundingClientRect();
+    const introObject = intro.querySelector(".home-intro-object");
+    const introSequence = intro.querySelector(".home-intro-sequence");
     const titleBlockRect = title.closest(".blocks-system-object").getBoundingClientRect();
     const photoFrame = field.querySelector(".home-photo");
     const photoBlockRect = photoFrame.closest(".blocks-system-object").getBoundingClientRect();
@@ -81,7 +84,10 @@ async function measureHome(width, height, dpr = 1) {
         fit: getComputedStyle(photoImage).objectFit
       },
       intro: {
+        blockWidth: introBlockRect.width,
         text: intro.textContent.replace(/\\s+/g, " ").trim(),
+        object: introObject.textContent,
+        sequence: introSequence.textContent,
         href: intro.querySelector("a").getAttribute("href")
       }
     };
@@ -231,7 +237,7 @@ async function measureManual(width, height, dpr = 1) {
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
       const code = board.querySelector(".manual-code");
       const rootStyle = getComputedStyle(document.documentElement);
-      const contentOptions = ["manual-content-html", "manual-content-node", "manual-content-factory"].map(function (id) {
+      const contentOptions = ["manual-content-html", "manual-content-object", "manual-content-factory"].map(function (id) {
         const blockRect = board.querySelector('[data-block-object="' + id + '"]').getBoundingClientRect();
         return {
           id,
@@ -484,7 +490,10 @@ try {
       assert.ok(home.photo.source.endsWith("/docs/img/pexels-peter-dyllong-2158803154-37466849.jpg"), `home laadt niet de gekozen foto op ${width}px @${dpr}x`);
       assert.equal(home.photo.alt, "Black-and-white landscape with a solitary tree beneath large clouds.", `home foto mist bruikbare alttekst op ${width}px @${dpr}x`);
       assert.equal(home.photo.fit, "cover", `home foto vult zijn block niet op ${width}px @${dpr}x`);
-      assert.match(home.intro.text, /individually addressable blocks/, `home benoemt de bibliotheek niet concreet op ${width}px @${dpr}x`);
+      assert.ok(Math.abs(home.intro.blockWidth - (expectedColumnWidth * 2 + home.columnGap)) <= 1, `home geeft de objectboodschap niet twee rasterkolommen op ${width}px @${dpr}x`);
+      assert.equal(home.intro.object, "object.", `home maakt object niet tot de visuele hoofdboodschap op ${width}px @${dpr}x`);
+      assert.equal(home.intro.sequence, "add · span · place", `home spreekt de werkwoordentaal van het systeem niet op ${width}px @${dpr}x`);
+      assert.match(home.intro.text, /your content becomes an object\./, `home legt de overgang van inhoud naar object niet uit op ${width}px @${dpr}x`);
       assert.equal(home.intro.href, "docs/", `home verwijst niet rechtstreeks naar de manual op ${width}px @${dpr}x`);
     }
   }
@@ -530,7 +539,7 @@ try {
     const manual = await measureManual(width, height, dpr);
     assert.equal(manual.blockCount, 22, `manual mist directe lesblokken op ${width}px @${dpr}x`);
     assert.deepEqual(manual.ids, [
-      "manual-start", "manual-content-html", "manual-content-node", "manual-content-factory", "manual-finish",
+      "manual-start", "manual-content-html", "manual-content-object", "manual-content-factory", "manual-finish",
       "manual-result-regular", "manual-result-inverse", "manual-layout", "manual-layout-wide", "manual-layout-small",
       "manual-colors", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random",
       "manual-random-1", "manual-random-2", "manual-random-3", "manual-random-4", "manual-random-5", "manual-random-6", "manual-next"

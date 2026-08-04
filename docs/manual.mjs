@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.12";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.13";
 
 const board = document.querySelector("#manual-board");
 const manualVariationSamples = [0.05, 0.4, 0.8, 0.05, 0.25, 0.45, 0.55, 0.75, 0.6];
@@ -18,7 +18,7 @@ const blocks = createBlocksSystem({
 const manualIds = [
   "manual-start",
   "manual-content-html",
-  "manual-content-node",
+  "manual-content-object",
   "manual-content-factory",
   "manual-finish",
   "manual-result-regular",
@@ -123,9 +123,9 @@ addBlock({
 });
 
 addBlock({
-  id: "manual-content-node",
-  title: content["manual-content-node"].title,
-  content: createLessonContent(content["manual-content-node"]),
+  id: "manual-content-object",
+  title: content["manual-content-object"].title,
+  content: createLessonContent(content["manual-content-object"]),
   span: [2, 2],
   place: [3, 4],
   classes: ["manual-third"]

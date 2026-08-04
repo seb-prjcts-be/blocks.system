@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent } from "./shell.mjs?v=0.1.12";
+import { loadDocsContent } from "./shell.mjs?v=0.1.13";
 
 const board = document.querySelector("#home-board");
 const blocks = createBlocksSystem({
@@ -41,18 +41,28 @@ photo.place(5, 3);
 
 const introContent = document.createElement("div");
 introContent.className = "home-intro";
-const tagline = document.createElement("p");
-tagline.textContent = content["home-intro"].tagline;
+const introLead = document.createElement("span");
+introLead.className = "home-intro-lead";
+introLead.textContent = `${content["home-intro"].lead} `;
+const introStatement = document.createElement("strong");
+introStatement.className = "home-intro-object";
+introStatement.textContent = content["home-intro"].statement;
+const introRoute = document.createElement("div");
+introRoute.className = "home-intro-route";
+const introSequence = document.createElement("span");
+introSequence.className = "home-intro-sequence";
+introSequence.textContent = content["home-intro"].sequence;
 const action = document.createElement("a");
 action.href = content["home-intro"].action.href;
 action.textContent = content["home-intro"].action.label;
-introContent.append(tagline, action);
+introRoute.append(introSequence, action);
+introContent.append(introLead, introStatement, introRoute);
 const intro = blocks.add(introContent, {
   id: "home-intro",
   title: content["home-intro"].title,
   menu: { minimize: false }
 });
-intro.span(1, 1);
+intro.span(2, 1);
 intro.place(4, 7);
 
 board.dataset.homeReady = "true";

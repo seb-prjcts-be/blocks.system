@@ -54,8 +54,8 @@ array above is only this example's choice. The library owns no RGB/CMY palette.
 
 ## Middle
 
-`blocks.add(content)` accepts trusted HTML, a DOM node or a factory returning
-either form. Never pass untrusted text as HTML; create a node and set
+`blocks.add(content)` accepts trusted HTML, an element object or a factory returning
+either form. Never pass untrusted text as HTML; create an element and set
 `textContent`.
 
 One `block…` controller owns one object's menu, span, position, variant,
@@ -88,10 +88,10 @@ definition. The core never learns renderer-specific behaviour.
 ```js
 blocks.registerAdapter("block-note", {
   mount({ host, settings }) {
-    const blockNoteNode = document.createElement("p");
-    blockNoteNode.textContent = settings.text;
-    host.appendChild(blockNoteNode);
-    return blockNoteNode;
+    const blockNoteObject = document.createElement("p");
+    blockNoteObject.textContent = settings.text;
+    host.appendChild(blockNoteObject);
+    return blockNoteObject;
   }
 });
 

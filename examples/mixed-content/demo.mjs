@@ -13,22 +13,22 @@ blocks.add("<div class=\"center\"><strong>html</strong><small>trusted string</sm
   title: "html"
 });
 
-const blockCanvasNode = document.createElement("canvas");
-blockCanvasNode.width = 300;
-blockCanvasNode.height = 180;
-const context = blockCanvasNode.getContext("2d");
+const blockCanvasObject = document.createElement("canvas");
+blockCanvasObject.width = 300;
+blockCanvasObject.height = 180;
+const context = blockCanvasObject.getContext("2d");
 context.fillStyle = "#f5f5f2";
-context.fillRect(0, 0, blockCanvasNode.width, blockCanvasNode.height);
+context.fillRect(0, 0, blockCanvasObject.width, blockCanvasObject.height);
 context.strokeStyle = "#000";
 context.lineWidth = 4;
 context.beginPath();
-for (let x = 0; x <= blockCanvasNode.width; x += 3) {
-  const y = blockCanvasNode.height / 2 + Math.sin(x * 0.06) * 44;
+for (let x = 0; x <= blockCanvasObject.width; x += 3) {
+  const y = blockCanvasObject.height / 2 + Math.sin(x * 0.06) * 44;
   if (x === 0) context.moveTo(x, y);
   else context.lineTo(x, y);
 }
 context.stroke();
-blocks.add(blockCanvasNode, { id: "canvas", title: "canvas" });
+blocks.add(blockCanvasObject, { id: "canvas", title: "canvas" });
 
 if (!customElements.get("example-dot")) {
   customElements.define("example-dot", class extends HTMLElement {

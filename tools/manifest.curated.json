@@ -5,7 +5,7 @@
   "runtime_dependencies": 0,
   "content_types": [
     "trusted html string",
-    "dom node",
+    "element object",
     "canvas",
     "svg",
     "iframe",
