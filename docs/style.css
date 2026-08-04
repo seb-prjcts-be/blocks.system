@@ -159,6 +159,10 @@ footer a { color: var(--ink); }
   background: var(--block-paper-color);
 }
 
+.home-board > [data-block-object="home-intro"] > .blocks-system-content {
+  overflow: hidden;
+}
+
 .home-title {
   justify-self: start;
   margin: 0;
