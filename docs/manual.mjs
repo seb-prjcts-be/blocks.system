@@ -1,5 +1,5 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.6";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.6";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.7";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.7";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");
@@ -10,7 +10,7 @@ let manualVariationIndex = 0;
 
 const blocks = createBlocksSystem({
   variant: "random",
-  colorArray: ["red", "green", "blue", "cyan", "magenta", "yellow"],
+  colorArray: ["cyan", "magenta", "yellow"],
   colorVariation: 0.2,
   inversionVariation: 0.2,
   random: () => manualVariationSamples[manualVariationIndex++ % manualVariationSamples.length],

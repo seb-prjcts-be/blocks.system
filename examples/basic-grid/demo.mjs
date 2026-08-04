@@ -1,9 +1,9 @@
-import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.6";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.7";
 
 const variationSamples = [0.4, 0.9, 0.1, 0.5];
 let variationIndex = 0;
 const blocks = createBlocksSystem({
-  colorArray: ["red", "green", "blue", "cyan", "magenta", "yellow"],
+  colorArray: ["cyan", "magenta", "yellow"],
   colorVariation: 0.25,
   inversionVariation: 0.25,
   random: () => variationSamples[variationIndex++ % variationSamples.length],

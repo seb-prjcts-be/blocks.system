@@ -1,5 +1,5 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.6";
-import { loadDocsContent } from "./shell.mjs?v=0.1.6";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.7";
+import { loadDocsContent } from "./shell.mjs?v=0.1.7";
 
 const board = document.querySelector("#home-board");
 const blocks = createBlocksSystem({

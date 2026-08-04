@@ -15,7 +15,7 @@ const BUILT_IN_VARIANTS = Object.freeze([
     "magenta",
     "yellow"
 ]);
-const COLOR_VARIANTS = Object.freeze(BUILT_IN_VARIANTS.slice(2));
+const COLOR_VARIANTS = Object.freeze(["cyan", "magenta", "yellow"]);
 const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";

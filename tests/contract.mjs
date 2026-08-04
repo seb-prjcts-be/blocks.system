@@ -19,7 +19,7 @@ assert.equal(singleton.draggable, true, "dragging must be enabled by default");
 assert.equal(singleton.font, null, "external fonts must remain opt-in");
 assert.equal(singleton.variant, "random", "visual variants must be random by default");
 assert.deepEqual(singleton.variants, ["regular", "inverse", "red", "green", "blue", "cyan", "magenta", "yellow"], "the original visual variants must be discoverable");
-assert.deepEqual(singleton.colorArray, ["red", "green", "blue", "cyan", "magenta", "yellow"], "the full RGB/CMY family must be the default color array");
+assert.deepEqual(singleton.colorArray, ["cyan", "magenta", "yellow"], "CMY must be the default automatic color array");
 assert.equal(singleton.colorVariation, 0, "automatic color variation must remain opt-in");
 assert.equal(singleton.inversionVariation, 1 / 3, "automatic inversion must preserve the existing one-in-three monochrome distribution");
 assert.equal("colorVary" in singleton, false, "the abbreviated colorVary name must leave the public API");

@@ -82,6 +82,9 @@ library-API.
   monochrome deel tussen `regular` en `inverse`. Ze verkleuren bestaande blocks
   niet en dwingen de compositieregel over aangrenzende steunkleuren niet
   stilzwijgend af.
+- De automatische standaardreeks is CMY. RGB blijft als expliciete ingebouwde
+  variant bestaan voor compatibiliteit, maar zit niet in de standaard-
+  `colorArray` en verschijnt dus niet vanzelf.
 - RGB/CMY is uitsluitend blockstyling: een variant mag menu, rand, papier en de
   overgeërfde inhoudsink omkeren. Zelfgetekende inhoud in HTML, canvas of SVG
   kiest geen eigen steunkleur en blijft neutraal.

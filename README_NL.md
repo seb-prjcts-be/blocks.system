@@ -18,7 +18,7 @@ adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
 
   const blocks = createBlocksSystem({
     snap: true,
-    colorArray: ["red", "green", "blue", "cyan", "magenta", "yellow"],
+    colorArray: ["cyan", "magenta", "yellow"],
     colorVariation: 0.2,
     inversionVariation: 0.5,
     blockDefaults: { menu: { close: true } }
@@ -70,11 +70,12 @@ blockCanvas.color = "rgb(0, 0, 255)";
 blockCanvas.remove();
 ```
 
-RGB- en CMY-varianten zijn gelijkwaardige, expliciete kleurkeuzes; automatische
-varianten blijven monochroom. Blocks met een steunkleur mogen dezelfde surface
-delen, maar staan in de canonieke documentatie niet rechtstreeks naast elkaar.
-Geel gebruikt bewust blauwe blockranden en inkt op `#ffff00`; het menu draait dit
-om naar geel op blauw.
+CMY is de standaardreeks voor automatische kleurvariatie. De RGB-varianten
+blijven beschikbaar als expliciete compatibiliteitskeuze, maar worden niet
+automatisch gekozen. Blocks met een steunkleur mogen dezelfde surface delen,
+maar staan in de canonieke documentatie niet rechtstreeks naast elkaar. Geel
+gebruikt bewust blauwe blockranden en inkt op `#ffff00`; het menu draait dit om
+naar geel op blauw.
 
 ## Einde
 

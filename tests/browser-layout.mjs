@@ -615,7 +615,7 @@ try {
     manualMeasurements.push(manual);
     assert.equal(manual.blockCount, 13, `manual mist directe blocks op ${width}px @${dpr}x`);
     assert.equal(manual.ids[0], "manual-start", `manual begint niet met de concrete start op ${width}px @${dpr}x`);
-    assert.deepEqual(manual.variants, ["regular", "red", "regular", "inverse", "regular", "cyan", "regular", "regular", "regular", "yellow", "inverse", "regular", "inverse"], `manual toont niet de vaste blockvariatie op ${width}px @${dpr}x`);
+    assert.deepEqual(manual.variants, ["regular", "cyan", "regular", "inverse", "regular", "magenta", "regular", "regular", "regular", "yellow", "inverse", "regular", "inverse"], `manual toont niet de vaste CMY-blockvariatie op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
     assert.equal(manual.columnCount, documentColumns, `manual gebruikt ${manual.columnCount} in plaats van ${documentColumns} kolommen op ${width}px`);
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
@@ -752,7 +752,7 @@ try {
       }
       assert.equal(exampleStyle.configuredBlockFont, '"Instrument Sans"', `${example} configureert de librarytypografie niet via haar publieke CSS-hook`);
       if (example === "basic-grid") {
-        assert.deepEqual(exampleStyle.variants, ["regular", "inverse", "blue", "regular"], `basic-grid toont niet de vaste system-level variatie op ${width}px`);
+        assert.deepEqual(exampleStyle.variants, ["regular", "inverse", "magenta", "regular"], `basic-grid toont niet de vaste CMY-variatie op ${width}px`);
       }
     }
   }

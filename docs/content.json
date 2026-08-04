@@ -27,7 +27,7 @@
         "",
         "const blocks = createBlocksSystem({",
         "  snap: true,",
-        "  colorArray: [\"red\", \"green\", \"blue\", \"cyan\", \"magenta\", \"yellow\"],",
+        "  colorArray: [\"cyan\", \"magenta\", \"yellow\"],",
         "  colorVariation: 0.2,",
         "  inversionVariation: 0.5,",
         "  blockDefaults: { menu: { close: true } }",
@@ -260,7 +260,7 @@
           "id": "api-color-array",
           "member": "colorArray",
           "returns": "array",
-          "purpose": "Color variants available to future random blocks; defaults to the six RGB/CMY names and accepts custom variant names."
+          "purpose": "Color variants available to future random blocks; defaults to CMY and accepts custom variant names. RGB remains available only when explicitly requested."
         },
         {
           "id": "api-color-variation",

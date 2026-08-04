@@ -18,7 +18,7 @@ addressable HTML, SVG, canvas, custom elements and adapter-driven content.
 
   const blocks = createBlocksSystem({
     snap: true,
-    colorArray: ["red", "green", "blue", "cyan", "magenta", "yellow"],
+    colorArray: ["cyan", "magenta", "yellow"],
     colorVariation: 0.2,
     inversionVariation: 0.5,
     blockDefaults: { menu: { close: true } }
@@ -69,11 +69,11 @@ blockCanvas.color = "rgb(0, 0, 255)";
 blockCanvas.remove();
 ```
 
-RGB and CMY variants are equal, explicit colour choices; automatic variants
-remain monochrome. In the canonical documentation, accent-coloured blocks may
-share a surface but do not sit directly beside one another. Yellow intentionally
-uses blue block chrome and ink on `#ffff00`; its menu reverses this to yellow on
-blue.
+CMY is the default series for automatic colour variation. RGB variants remain
+available as explicit compatibility choices but are not selected automatically.
+In the canonical documentation, accent-coloured blocks may share a surface but
+do not sit directly beside one another. Yellow intentionally uses blue block
+chrome and ink on `#ffff00`; its menu reverses this to yellow on blue.
 
 ## End
 
