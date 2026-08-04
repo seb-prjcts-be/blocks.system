@@ -112,13 +112,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.7"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.7"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.7"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.1.8"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.8"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.1.8"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.7"]
+    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.1.8"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -174,16 +174,19 @@ assert.match(homeHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "home m
 assert.match(homeHtml, /id="home-board"/, "home must expose one live proof surface");
 assert.match(homeHtml, /src="docs\/home\.mjs/, "home must load its focused composition module");
 assert.doesNotMatch(homeHtml + manualHtml + apiHtml, /board\.mjs|system\.mjs|examples\.mjs|nav\.mjs/, "canonical pages must not reference retired docs modules");
-assert.equal((siteDemos["docs/home.mjs"].match(/blocks\.add\(/g) || []).length, 2, "home must contain only the title and one functional start block");
+assert.equal((siteDemos["docs/home.mjs"].match(/blocks\.add\(/g) || []).length, 3, "home must contain the title, one adjacent photograph and one functional start block");
 assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "home must use one shared blocks system");
 assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must preserve deliberate empty cells in a six-column field");
 assert.match(siteDemos["docs/home.mjs"], /snap:\s*true/, "home must configure snap once when its system is created");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must rely on the library's draggable default");
-assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-intro/, "home must lead from identity to one concise action");
-assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*intro\.span\(1, 1\)[\s\S]*intro\.place\(4, 7\)/, "home must preserve its deliberate asymmetric anchors and compact intro");
+assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-photo[\s\S]*home-intro/, "home must lead from identity through the adjacent image to one concise action");
+assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*photo\.span\(1, 3\)[\s\S]*photo\.place\(5, 3\)[\s\S]*intro\.span\(1, 1\)[\s\S]*intro\.place\(4, 7\)/, "home must place the 1 by 3 photograph directly beside its hero and preserve the compact intro");
+assert.match(siteDemos["docs/home.mjs"], /new URL\("\.\/img\/pexels-peter-dyllong-2158803154-37466849\.jpg", import\.meta\.url\)/, "home must load the selected photograph relative to its module");
 assert.match(siteCss, /\.home-board\s*\{[^}]*background-image\s*:[^}]*linear-gradient/s, "home must expose the grid because the system itself is the subject");
 assert.match(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*6/s, "home must start from six columns");
 assert.match(siteCss, /\.home-title\s*\{[^}]*justify-self:\s*start;/s, "home must align its hero title with the left edge of its content area");
+assert.match(siteCss, /\.home-photo\s*\{[^}]*overflow:\s*hidden;/s, "home photograph must own a bounded block content frame");
+assert.match(siteCss, /\.home-photo img\s*\{[^}]*object-fit:\s*cover;/s, "home photograph must crop inside its 1 by 3 block");
 assert.match(siteCss, /@media \(max-width: 900px\)[\s\S]*?\.home-board\s*\{[^}]*--blocks-columns:\s*3 !important/s, "home must collapse to three columns on tablets");
 assert.doesNotMatch(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*1 !important/s, "home must preserve its meaningful three-column mobile grid");
 assert.doesNotMatch(libraryCss, /\.home-/, "the reusable library stylesheet must not absorb home composition");
@@ -241,10 +244,7 @@ assert.match(manualHtml, /href="api\.html">open the complete reference/, "the ma
 assert.match(manualHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item index navigation");
 assert.doesNotMatch(manualHtml.match(/<nav id="navbar"[\s\S]*?<\/nav>/)?.[0] || "", /href="[^"]*#/, "the manual main navigation must not use chapter fragments");
 assert.match(manualHtml, /class="docs-chapters"[\s\S]*#start[\s\S]*#result[\s\S]*#layout[\s\S]*#colors[\s\S]*#random/, "the manual masthead must expose a short beginner path");
-assert.match(manualHtml, /<figure class="manual-hero-image">[\s\S]*<img src="img\/pexels-peter-dyllong-2158803154-37466849\.jpg" width="3358" height="5038" alt="Black-and-white landscape with a solitary tree beneath large clouds\."/, "the manual hero must use the selected portrait photograph with stable intrinsic dimensions and useful alt text");
-assert.match(siteCss, /\.manual-masthead\s*\{[^}]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\);/s, "the desktop manual hero must use the same six-column logic as the lesson surface");
-assert.match(siteCss, /\.manual-hero-image\s*\{[^}]*grid-column:\s*6;[^}]*height:\s*calc\(var\(--docs-row\)\s*\*\s*3\);/s, "the hero photograph must occupy one column by three editorial rows");
-assert.match(siteCss, /\.manual-hero-image img\s*\{[^}]*object-fit:\s*cover;/s, "the portrait photograph must crop within its editorial module");
+assert.doesNotMatch(manualHtml + siteCss, /manual-hero-image/, "the photograph belongs to the homepage block composition, not the manual masthead");
 assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/, "the beginner manual must not present layout tooling before the lesson");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.equal((siteDemos["docs/manual.mjs"].match(/^addBlock\(\{/gm) || []).length, 22, "the manual must build the approved beginner sequence from direct blocks");
@@ -302,7 +302,7 @@ assert.match(apiHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the ref
 assert.match(apiHtml, /class="reference-index"[\s\S]*#exports[\s\S]*#options[\s\S]*#system-state[\s\S]*#system-methods[\s\S]*#block-controller[\s\S]*#adapters[\s\S]*#reorder-event[\s\S]*#css-hooks[\s\S]*#errors/, "the reference masthead must expose a complete lookup index");
 assert.equal(docsContent.schema, "blocks.system/docs-content@2", "docs content must publish its supported schema");
 assert.deepEqual(Object.keys(docsContent), ["schema", "home", "manual", "reference"], "docs content must expose only the three canonical block sections");
-assert.deepEqual(Object.keys(docsContent.home), ["home-title", "home-intro"], "home content must own exactly two blocks in canonical reading order");
+assert.deepEqual(Object.keys(docsContent.home), ["home-title", "home-photo", "home-intro"], "home content must own title, photograph and action in canonical reading order");
 assert.deepEqual(Object.keys(docsContent.manual), [
   "manual-start",
   "manual-content-html",
@@ -347,7 +347,7 @@ JSON.stringify(docsContent, function (key, value) {
 for (const forbiddenKey of ["adapter", "anchor", "class", "className", "defaults", "html", "lifecycle", "minimized", "renderer", "span", "variant"]) {
   assert.equal(docsContentKeys.has(forbiddenKey), false, `docs content must not own ${forbiddenKey}`);
 }
-assert.equal(Object.values(docsContent).slice(1).reduce((total, section) => total + Object.keys(section).length, 0), 34, "docs content must cover every living docblock exactly once");
+assert.equal(Object.values(docsContent).slice(1).reduce((total, section) => total + Object.keys(section).length, 0), 35, "docs content must cover every living docblock exactly once");
 for (const [sectionName, section] of Object.entries({ home: docsContent.home, manual: docsContent.manual, reference: docsContent.reference })) {
   for (const [id, block] of Object.entries(section)) {
     assert.equal(typeof block.title, "string", `${sectionName}.${id} needs one visible title`);
@@ -357,7 +357,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.8", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.9", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

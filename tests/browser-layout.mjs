@@ -31,6 +31,10 @@ async function measureHome(width, height, dpr = 1) {
     const titleRect = title.getBoundingClientRect();
     const titleContentRect = titleContent.getBoundingClientRect();
     const intro = field.querySelector(".home-intro");
+    const titleBlockRect = title.closest(".blocks-system-object").getBoundingClientRect();
+    const photoFrame = field.querySelector(".home-photo");
+    const photoBlockRect = photoFrame.closest(".blocks-system-object").getBoundingClientRect();
+    const photoImage = photoFrame.querySelector("img");
     return {
       blockCount: objects.length,
       columnCount: getComputedStyle(field).gridTemplateColumns.split(" ").length,
@@ -60,6 +64,18 @@ async function measureHome(width, height, dpr = 1) {
         fontFamily: getComputedStyle(title).fontFamily,
         whiteSpace: getComputedStyle(title).whiteSpace,
         leftOffset: titleRect.left - titleContentRect.left
+      },
+      photo: {
+        blockLeft: photoBlockRect.left,
+        blockTop: photoBlockRect.top,
+        blockWidth: photoBlockRect.width,
+        blockHeight: photoBlockRect.height,
+        titleBlockRight: titleBlockRect.right,
+        titleBlockTop: titleBlockRect.top,
+        titleBlockHeight: titleBlockRect.height,
+        source: new URL(photoImage.src).pathname,
+        alt: photoImage.alt,
+        fit: getComputedStyle(photoImage).objectFit
       },
       intro: {
         text: intro.textContent.replace(/\\s+/g, " ").trim(),
@@ -210,15 +226,6 @@ async function measureManual(width, height, dpr = 1) {
       const board = document.querySelector("#manual-board");
       const boardRect = board.getBoundingClientRect();
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
-      const masthead = document.querySelector(".manual-masthead");
-      const title = masthead.querySelector("h1");
-      const intro = masthead.querySelector(".manual-intro");
-      const heroImage = masthead.querySelector(".manual-hero-image");
-      const heroPhoto = heroImage.querySelector("img");
-      const mastheadRect = masthead.getBoundingClientRect();
-      const titleRect = title.getBoundingClientRect();
-      const introRect = intro.getBoundingClientRect();
-      const heroImageRect = heroImage.getBoundingClientRect();
       const code = board.querySelector(".manual-code");
       const rootStyle = getComputedStyle(document.documentElement);
       const contentOptions = ["manual-content-html", "manual-content-node", "manual-content-factory"].map(function (id) {
@@ -284,21 +291,6 @@ async function measureManual(width, height, dpr = 1) {
         codeOverflow: getComputedStyle(code).overflowX,
         scrollbarWidth: rootStyle.scrollbarWidth,
         scrollbarColor: rootStyle.scrollbarColor,
-        hero: {
-          columnCount: getComputedStyle(masthead).gridTemplateColumns.split(" ").length,
-          mastheadWidth: mastheadRect.width,
-          titleRight: titleRect.right,
-          titleBottom: titleRect.bottom,
-          introBottom: introRect.bottom,
-          imageLeft: heroImageRect.left,
-          imageTop: heroImageRect.top,
-          imageWidth: heroImageRect.width,
-          imageHeight: heroImageRect.height,
-          gridColumnStart: getComputedStyle(heroImage).gridColumnStart,
-          source: new URL(heroPhoto.src).pathname,
-          alt: heroPhoto.alt,
-          fit: getComputedStyle(heroPhoto).objectFit
-        },
         boardWidth: boardRect.width,
         contentOptions,
         chapterGaps,
@@ -466,7 +458,7 @@ try {
   for (const [width, height, homeColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
       const home = await measureHome(width, height, dpr);
-      assert.equal(home.blockCount, 2, `home toont ${home.blockCount} in plaats van twee directe blocks op ${width}px @${dpr}x`);
+      assert.equal(home.blockCount, 3, `home toont ${home.blockCount} in plaats van drie directe blocks op ${width}px @${dpr}x`);
       assert.equal(home.columnCount, homeColumns, `home gebruikt ${home.columnCount} in plaats van ${homeColumns} kolommen op ${width}px @${dpr}x`);
       assert.equal(home.devicePixelRatio, dpr, `home test niet werkelijk op DPR ${dpr}`);
       assert.ok(home.horizontalOverflow <= 0.5, `home heeft ${home.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
@@ -475,11 +467,18 @@ try {
       assert.equal(home.nestedSurfaces, 0, `home bevat ${home.nestedSurfaces} geneste blocks-grids op ${width}px @${dpr}x`);
       assert.deepEqual(home.outsideBoard, [], `home plaatst blocks buiten het board op ${width}px @${dpr}x: ${home.outsideBoard.join(", ")}`);
       assert.deepEqual(home.clippedContent, [], `home knipt inhoud af op ${width}px @${dpr}x: ${home.clippedContent.join(", ")}`);
-      assert.deepEqual(home.ids, ["home-title", "home-intro"], `home bewaart zijn korte leesvolgorde niet op ${width}px @${dpr}x`);
+      assert.deepEqual(home.ids, ["home-title", "home-photo", "home-intro"], `home bewaart titel, foto en actie niet in leesvolgorde op ${width}px @${dpr}x`);
       assert.equal(home.title.text.trim(), "blocks.\nsystem.", `home verliest zijn canonieke titel op ${width}px @${dpr}x`);
       assert.match(home.title.fontFamily, /Instrument Sans/, `home gebruikt Instrument Sans niet voor de hoofdboodschap op ${width}px @${dpr}x`);
       assert.equal(home.title.whiteSpace, "pre-line", `home bewaart de titelregeleinde niet op ${width}px @${dpr}x`);
       assert.ok(Math.abs(home.title.leftOffset) <= 0.5, `home lijnt de hero-titel niet links uit op ${width}px @${dpr}x: ${home.title.leftOffset}px`);
+      assert.ok(Math.abs(home.photo.blockLeft - home.photo.titleBlockRight) <= 0.5, `home plaatst het fotoblock niet direct naast het titelblock op ${width}px @${dpr}x`);
+      assert.ok(Math.abs(home.photo.blockTop - home.photo.titleBlockTop) <= 0.5, `home lijnt titel- en fotoblock niet bovenaan uit op ${width}px @${dpr}x`);
+      assert.ok(Math.abs(home.photo.blockHeight - home.photo.titleBlockHeight) <= 0.5, `home maakt het fotoblock niet dezelfde drie rijen hoog als de hero op ${width}px @${dpr}x`);
+      assert.ok(Math.abs(home.photo.blockWidth - (width / homeColumns)) <= 1, `home geeft de foto niet exact één rasterkolom op ${width}px @${dpr}x`);
+      assert.ok(home.photo.source.endsWith("/docs/img/pexels-peter-dyllong-2158803154-37466849.jpg"), `home laadt niet de gekozen foto op ${width}px @${dpr}x`);
+      assert.equal(home.photo.alt, "Black-and-white landscape with a solitary tree beneath large clouds.", `home foto mist bruikbare alttekst op ${width}px @${dpr}x`);
+      assert.equal(home.photo.fit, "cover", `home foto vult zijn block niet op ${width}px @${dpr}x`);
       assert.match(home.intro.text, /individually addressable blocks/, `home benoemt de bibliotheek niet concreet op ${width}px @${dpr}x`);
       assert.equal(home.intro.href, "docs/", `home verwijst niet rechtstreeks naar de manual op ${width}px @${dpr}x`);
     }
@@ -541,21 +540,6 @@ try {
     ], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
     assert.equal(manual.columnCount, documentColumns, `manual gebruikt ${manual.columnCount} in plaats van ${documentColumns} kolommen op ${width}px`);
-    assert.equal(manual.hero.columnCount, documentColumns, `manual hero gebruikt niet dezelfde ${documentColumns}-kolomslogica op ${width}px`);
-    assert.ok(manual.hero.source.endsWith("/docs/img/pexels-peter-dyllong-2158803154-37466849.jpg"), `manual hero laadt niet de gekozen foto op ${width}px`);
-    assert.equal(manual.hero.alt, "Black-and-white landscape with a solitary tree beneath large clouds.", `manual hero mist bruikbare alttekst op ${width}px`);
-    assert.equal(manual.hero.fit, "cover", `manual hero crop past niet in zijn module op ${width}px`);
-    if (width > 900) {
-      assert.equal(manual.hero.gridColumnStart, "6", `manual foto staat niet in de zesde desktopkolom op ${width}px`);
-      assert.ok(Math.abs(manual.hero.imageHeight - 396) <= 0.5, `manual foto is niet drie rasterrijen hoog op ${width}px: ${manual.hero.imageHeight}px`);
-      assert.ok(manual.hero.imageWidth < manual.hero.mastheadWidth / 5, `manual foto is breder dan één van zes hero-kolommen op ${width}px`);
-    } else if (width > 560) {
-      assert.equal(manual.hero.gridColumnStart, "3", `manual foto staat niet in de derde tabletkolom op ${width}px`);
-      assert.ok(manual.hero.imageLeft >= manual.hero.titleRight - 0.5, `manual foto staat niet naast de herotekst op ${width}px`);
-    } else {
-      assert.equal(manual.hero.gridColumnStart, "1", `manual foto gebruikt mobiel niet de ene beschikbare kolom op ${width}px`);
-      assert.ok(manual.hero.imageTop >= manual.hero.introBottom - 0.5, `manual foto stapelt mobiel niet na de hero-intro op ${width}px`);
-    }
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
     assert.deepEqual(manual.outsideBoard, [], `manual plaatst blocks buiten het board op ${width}px: ${manual.outsideBoard.join(", ")}`);
     assert.deepEqual(manual.clippedContent, [], `manual knipt inhoud af op ${width}px: ${manual.clippedContent.join(", ")}`);

@@ -196,6 +196,21 @@ footer a { color: var(--ink); }
   white-space: nowrap;
 }
 
+.home-photo {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+.home-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 55% 72%;
+}
+
 @media (max-width: 900px) {
   .home-board {
     --blocks-columns: 3 !important;
@@ -203,7 +218,12 @@ footer a { color: var(--ink); }
 
   .home-board > [data-block-object="home-title"] {
     --block-column: 1 !important;
-    --block-span-columns: 3 !important;
+    --block-span-columns: 2 !important;
+  }
+
+  .home-board > [data-block-object="home-photo"] {
+    --block-column: 3 !important;
+    --block-span-columns: 1 !important;
   }
 
   .home-board > [data-block-object="home-intro"] {
@@ -311,12 +331,7 @@ footer a { color: var(--ink); }
 
 /* Manual */
 
-.manual-masthead {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-}
-
 .manual-masthead h1 {
-  grid-column: 1 / 5;
   margin: 0;
   font: 600 clamp(3.4rem, 8.5vw, 8rem)/0.78 "Instrument Sans", sans-serif;
   letter-spacing: -0.055em;
@@ -328,28 +343,6 @@ footer a { color: var(--ink); }
   display: grid;
   gap: 18px;
   align-content: end;
-}
-
-.manual-intro {
-  grid-column: 5;
-}
-
-.manual-hero-image {
-  grid-column: 6;
-  grid-row: 2;
-  align-self: end;
-  width: 100%;
-  height: calc(var(--docs-row) * 3);
-  margin: 0;
-  overflow: hidden;
-}
-
-.manual-hero-image img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 55% 72%;
 }
 
 .manual-intro p,
@@ -494,14 +487,6 @@ footer a { color: var(--ink); }
 }
 
 @media (max-width: 900px) {
-  .manual-masthead { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .manual-masthead h1 { grid-column: 1 / 3; grid-row: 2; }
-  .manual-intro { grid-column: 1 / 3; grid-row: 3; }
-  .manual-hero-image {
-    grid-column: 3;
-    grid-row: 2 / 4;
-    height: calc(var(--docs-row) * 2.5);
-  }
   .manual-board.blocks-system-surface[data-snap="true"] {
     grid-auto-rows: auto;
   }
@@ -523,14 +508,6 @@ footer a { color: var(--ink); }
 @media (max-width: 560px) {
   .manual-page #navbar { align-items: flex-start; gap: 8px; padding-inline: 14px; }
   .manual-main { padding: 104px 8px 18px; }
-  .manual-masthead { grid-template-columns: 1fr; }
-  .manual-masthead h1 { grid-column: 1; grid-row: 2; }
-  .manual-intro { grid-column: 1; grid-row: 3; }
-  .manual-hero-image {
-    grid-column: 1;
-    grid-row: 4;
-    height: 260px;
-  }
   .manual-masthead h1 { font-size: clamp(3.2rem, 17vw, 5.2rem); }
   .manual-board > .blocks-system-object {
     --block-span-columns: 1 !important;

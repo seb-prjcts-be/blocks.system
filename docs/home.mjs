@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent } from "./shell.mjs?v=0.1.11";
+import { loadDocsContent } from "./shell.mjs?v=0.1.12";
 
 const board = document.querySelector("#home-board");
 const blocks = createBlocksSystem({
@@ -7,7 +7,7 @@ const blocks = createBlocksSystem({
   snap: true,
   blockDefaults: { menu: true }
 });
-const homeIds = ["home-title", "home-intro"];
+const homeIds = ["home-title", "home-photo", "home-intro"];
 const content = await loadDocsContent("home", homeIds);
 
 blocks.attach(board);
@@ -22,6 +22,22 @@ const title = blocks.add(heading, {
 });
 title.span(3, 3);
 title.place(2, 3);
+
+const photoContent = document.createElement("figure");
+photoContent.className = "home-photo";
+const photoImage = document.createElement("img");
+photoImage.src = new URL("./img/pexels-peter-dyllong-2158803154-37466849.jpg", import.meta.url).href;
+photoImage.width = 3358;
+photoImage.height = 5038;
+photoImage.alt = content["home-photo"].alt;
+photoImage.decoding = "async";
+photoContent.append(photoImage);
+const photo = blocks.add(photoContent, {
+  id: "home-photo",
+  title: content["home-photo"].title
+});
+photo.span(1, 3);
+photo.place(5, 3);
 
 const introContent = document.createElement("div");
 introContent.className = "home-intro";

@@ -5,6 +5,10 @@
       "title": "blocks.system",
       "heading": "blocks.\nsystem."
     },
+    "home-photo": {
+      "title": "photograph",
+      "alt": "Black-and-white landscape with a solitary tree beneath large clouds."
+    },
     "home-intro": {
       "title": "start",
       "tagline": "blocks.system turns your own web content into individually addressable blocks.",
