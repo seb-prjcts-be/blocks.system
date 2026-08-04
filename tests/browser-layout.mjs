@@ -27,6 +27,9 @@ async function measureHome(width, height, dpr = 1) {
     const fieldRect = field.getBoundingClientRect();
     const objects = Array.from(field.querySelectorAll(":scope > .blocks-system-object"));
     const title = field.querySelector(".home-title");
+    const titleContent = title.closest(".blocks-system-content");
+    const titleRect = title.getBoundingClientRect();
+    const titleContentRect = titleContent.getBoundingClientRect();
     const intro = field.querySelector(".home-intro");
     return {
       blockCount: objects.length,
@@ -55,7 +58,8 @@ async function measureHome(width, height, dpr = 1) {
       title: {
         text: title.textContent,
         fontFamily: getComputedStyle(title).fontFamily,
-        whiteSpace: getComputedStyle(title).whiteSpace
+        whiteSpace: getComputedStyle(title).whiteSpace,
+        leftOffset: titleRect.left - titleContentRect.left
       },
       intro: {
         text: intro.textContent.replace(/\\s+/g, " ").trim(),
@@ -65,6 +69,46 @@ async function measureHome(width, height, dpr = 1) {
   })()`;
   const result = await protocol.send("Runtime.evaluate", {
     expression,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function measureYellowVariant() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const { createBlocksSystem } = await import("./blocks.system.mjs?yellow-variant-proof");
+      const field = document.createElement("div");
+      field.style.cssText = "position:fixed;inset:auto auto 0 0;width:200px;height:120px";
+      document.body.append(field);
+      try {
+        const blocks = createBlocksSystem({ snap: true, draggable: false });
+        blocks.attach(field);
+        const content = document.createElement("span");
+        content.textContent = "proof";
+        const block = blocks.add(content, {
+          id: "yellow-variant-proof",
+          title: "proof",
+          menu: true,
+          variant: "yellow"
+        });
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+        const objectStyle = getComputedStyle(block.element);
+        const menuStyle = getComputedStyle(block.element.querySelector(".blocks-system-menu"));
+        const contentStyle = getComputedStyle(block.content);
+        return {
+          objectBackground: objectStyle.backgroundColor,
+          objectColor: objectStyle.color,
+          borderColor: objectStyle.borderColor,
+          menuBackground: menuStyle.backgroundColor,
+          menuColor: menuStyle.color,
+          contentColor: contentStyle.color
+        };
+      } finally {
+        field.remove();
+      }
+    })()`,
     awaitPromise: true,
     returnByValue: true
   });
@@ -515,10 +559,21 @@ try {
       assert.equal(home.title.text.trim(), "blocks.\nsystem.", `home verliest zijn canonieke titel op ${width}px @${dpr}x`);
       assert.match(home.title.fontFamily, /Instrument Sans/, `home gebruikt Instrument Sans niet voor de hoofdboodschap op ${width}px @${dpr}x`);
       assert.equal(home.title.whiteSpace, "pre-line", `home bewaart de titelregeleinde niet op ${width}px @${dpr}x`);
-      assert.match(home.intro.text, /dependency-free esm/, `home benoemt de bibliotheek niet concreet op ${width}px @${dpr}x`);
+      assert.ok(Math.abs(home.title.leftOffset) <= 0.5, `home lijnt de hero-titel niet links uit op ${width}px @${dpr}x: ${home.title.leftOffset}px`);
+      assert.match(home.intro.text, /individually addressable blocks/, `home benoemt de bibliotheek niet concreet op ${width}px @${dpr}x`);
       assert.equal(home.intro.href, "docs/", `home verwijst niet rechtstreeks naar de manual op ${width}px @${dpr}x`);
     }
   }
+
+  const yellowVariant = await measureYellowVariant();
+  assert.deepEqual(yellowVariant, {
+    objectBackground: "rgb(255, 255, 0)",
+    objectColor: "rgb(0, 0, 255)",
+    borderColor: "rgb(0, 0, 255)",
+    menuBackground: "rgb(0, 0, 255)",
+    menuColor: "rgb(255, 255, 0)",
+    contentColor: "rgb(0, 0, 255)"
+  }, "de gele variant moet blauwe blockkleur en inkt gebruiken en die kleuren in het menu omdraaien");
 
   await measureHome(1280, 900);
   const beforeHover = await hoverSignature();

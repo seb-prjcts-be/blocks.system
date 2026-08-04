@@ -36,7 +36,7 @@ const intro = blocks.add(introContent, {
   title: content["home-intro"].title,
   menu: { minimize: false }
 });
-intro.span(2, 1);
-intro.place(5, 7);
+intro.span(1, 1);
+intro.place(4, 7);
 
 board.dataset.homeReady = "true";

@@ -68,8 +68,11 @@ library-API.
 - Cirkel betekent toestand, rechthoek inhoud en driehoek richting.
 - Lege ruimte maakt hiërarchie zichtbaar en is geen uitnodiging om extra
   onderdelen toe te voegen.
-- Een zichtbare surface gebruikt hoogstens één CMY-accent; de huidige docs
-  gebruiken magenta naast zwart, warm papier en veldgrijs.
+- Blocks met een steunkleur mogen dezelfde surface delen, maar staan niet direct
+  naast elkaar. Kleuren binnen één block mogen elkaar wel omdraaien: de gele
+  variant gebruikt blauwe blockranden en inkt op geel, met geel op blauw in het
+  menu. De huidige docscompositie gebruikt magenta naast zwart, warm papier en
+  veldgrijs.
 - Paginaspecifieke compositie, kwantisering en mediagedrag blijven buiten de
   librarycore.
 - Gedeelde beginstate en menuknoppen worden éénmaal bij `createBlocksSystem()`

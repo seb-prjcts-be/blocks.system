@@ -54,15 +54,17 @@ const blockCanvas = blocks.add(document.createElement("canvas"), {
 });
 blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
-blockCanvas.variant = "magenta";
+blockCanvas.variant = "yellow";
 blockCanvas.minimized = false;
-blockCanvas.color = "rgb(255, 0, 255)";
+blockCanvas.color = "rgb(0, 0, 255)";
 blockCanvas.remove();
 ```
 
-De documentatie gebruikt uitsluitend de drukwerkachtige CMY-familie, met één
-accent per surface. De oudere variantnamen rood, groen en blauw blijven voor
-compatibiliteit beschikbaar. Geel gebruikt altijd zwarte inkt op `#ffff00`.
+RGB- en CMY-varianten zijn gelijkwaardige, expliciete kleurkeuzes; automatische
+varianten blijven monochroom. Blocks met een steunkleur mogen dezelfde surface
+delen, maar staan in de canonieke documentatie niet rechtstreeks naast elkaar.
+Geel gebruikt bewust blauwe blockranden en inkt op `#ffff00`; het menu draait dit
+om naar geel op blauw.
 
 ## Einde
 

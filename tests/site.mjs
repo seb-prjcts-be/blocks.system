@@ -109,13 +109,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.4", "docs/style.css?v=0.1.3"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.4", "style.css?v=0.1.3"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.4", "style.css?v=0.1.3"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.5", "docs/style.css?v=0.1.4"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.5", "style.css?v=0.1.4"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.5", "style.css?v=0.1.4"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.4", "../../docs/style.css?v=0.1.3"]
+    ["../../blocks.system.css?v=0.1.5", "../../docs/style.css?v=0.1.4"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -175,9 +175,10 @@ assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must p
 assert.match(siteDemos["docs/home.mjs"], /snap:\s*true/, "home must configure snap once when its system is created");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must rely on the library's draggable default");
 assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-intro/, "home must lead from identity to one concise action");
-assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*intro\.place\(5, 7\)/, "home must preserve its deliberate asymmetric anchors");
+assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*intro\.span\(1, 1\)[\s\S]*intro\.place\(4, 7\)/, "home must preserve its deliberate asymmetric anchors and compact intro");
 assert.match(siteCss, /\.home-board\s*\{[^}]*background-image\s*:[^}]*linear-gradient/s, "home must expose the grid because the system itself is the subject");
 assert.match(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*6/s, "home must start from six columns");
+assert.match(siteCss, /\.home-title\s*\{[^}]*justify-self:\s*start;/s, "home must align its hero title with the left edge of its content area");
 assert.match(siteCss, /@media \(max-width: 900px\)[\s\S]*?\.home-board\s*\{[^}]*--blocks-columns:\s*3 !important/s, "home must collapse to three columns on tablets");
 assert.doesNotMatch(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*1 !important/s, "home must preserve its meaningful three-column mobile grid");
 assert.doesNotMatch(libraryCss, /\.home-/, "the reusable library stylesheet must not absorb home composition");
@@ -214,8 +215,8 @@ assert.doesNotMatch(siteCss, /scrollbar-(?:color|thumb)[^;}]*magenta|::-webkit-s
 for (const variant of ["inverse", "red", "green", "blue", "cyan", "magenta", "yellow"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
-assert.match(libraryCss, /data-block-variant="yellow"\]\s*\{[^}]*--block-color:\s*#000;[^}]*--block-paper-color:\s*rgb\(255, 255, 0\);[^}]*--block-content-color:\s*#000;/s, "yellow must use black ink instead of blue-on-yellow");
-assert.doesNotMatch(readme + readmeNl, /variant\s*=\s*"(?:red|green|blue)"|color\s*=\s*"rgb\((?:255, 0, 0|0, 255, 0|0, 0, 255)\)"/, "README examples must demonstrate CMY rather than RGB");
+assert.match(libraryCss, /data-block-variant="yellow"\]\s*\{[^}]*--block-color:\s*rgb\(0, 0, 255\);[^}]*--block-paper-color:\s*rgb\(255, 255, 0\);[^}]*--block-content-color:\s*rgb\(0, 0, 255\);/s, "yellow must restore the blue block chrome and ink on yellow content");
+assert.match(readme + readmeNl, /variant\s*=\s*"yellow"[\s\S]*color\s*=\s*"rgb\(0, 0, 255\)"/, "README examples must demonstrate the blue-yellow reversal");
 assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes('blockItem.variant = "magenta"'), "the basic grid must demonstrate magenta as its single explicit variant");
 assert.match(standaloneExamples["basic-grid"], /one magenta exception/, "the basic example copy must name its actual accent");
 assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes("blockItem.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
@@ -356,7 +357,6 @@ assert.doesNotMatch(libraryCss, /\.reference-/, "the reusable library stylesheet
 
 const canonicalDemos = ["docs/home.mjs", "docs/manual.mjs", "docs/reference.mjs"]
   .map((file) => siteDemos[file]).join("\n");
-assert.match(canonicalDemos, /255, 0, 255/, "canonical docs must retain magenta as their one accent");
-assert.doesNotMatch(canonicalDemos, /(?:255, 0, 0|0, 255, 0|0, 0, 255|0, 255, 255|255, 255, 0)/, "canonical docs must not combine magenta with another RGB/CMY accent");
+assert.match(canonicalDemos, /255, 0, 255/, "canonical docs must retain their current magenta form accent");
 
 console.log(`blocks.system site — ok (${pages.length} pages, ${exampleDirectories.length} examples)`);

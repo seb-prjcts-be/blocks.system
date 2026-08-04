@@ -53,15 +53,17 @@ const blockCanvas = blocks.add(document.createElement("canvas"), {
 });
 blockCanvas.span(2, 1);
 blockCanvas.place(2, 1);
-blockCanvas.variant = "magenta";
+blockCanvas.variant = "yellow";
 blockCanvas.minimized = false;
-blockCanvas.color = "rgb(255, 0, 255)";
+blockCanvas.color = "rgb(0, 0, 255)";
 blockCanvas.remove();
 ```
 
-The documentation uses the print-like CMY family only, one accent per surface.
-The older red, green and blue variant names remain available for compatibility.
-Yellow always uses black ink on `#ffff00`.
+RGB and CMY variants are equal, explicit colour choices; automatic variants
+remain monochrome. In the canonical documentation, accent-coloured blocks may
+share a surface but do not sit directly beside one another. Yellow intentionally
+uses blue block chrome and ink on `#ffff00`; its menu reverses this to yellow on
+blue.
 
 ## End
 

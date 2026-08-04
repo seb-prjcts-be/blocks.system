@@ -163,9 +163,9 @@
 }
 
 .blocks-system-object[data-block-variant="yellow"] {
-    --block-color: #000;
+    --block-color: rgb(0, 0, 255);
     --block-paper-color: rgb(255, 255, 0);
-    --block-content-color: #000;
+    --block-content-color: rgb(0, 0, 255);
 }
 
 .blocks-system-menu {

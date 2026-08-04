@@ -7,7 +7,7 @@
     },
     "home-intro": {
       "title": "start",
-      "tagline": "dependency-free esm for addressable dom objects.",
+      "tagline": "blocks.system turns your own web content into individually addressable blocks.",
       "action": {
         "label": "open manual →",
         "href": "docs/"
@@ -251,7 +251,7 @@
           "id": "api-variants",
           "member": "variants",
           "returns": "array",
-          "purpose": "Regular and inverse plus CMY for current work; RGB names remain compatibility variants."
+          "purpose": "Regular and inverse plus equal, explicit RGB/CMY variants; yellow intentionally combines blue block chrome and ink with yellow content."
         },
         {
           "id": "api-field",
