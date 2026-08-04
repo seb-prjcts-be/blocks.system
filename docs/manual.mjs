@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.3";
-import { nodeFromHtml, quantizeSurface } from "./shell.mjs?v=0.1.2";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.3";
 
 const board = document.querySelector("#manual-board");
 const status = document.querySelector("#manual-status");
@@ -8,12 +8,161 @@ const reset = document.querySelector("#manual-reset");
 
 const blocks = createBlocksSystem({ variant: "regular" });
 const controllers = [];
+const manualIds = [
+  "manual-start",
+  "manual-forms",
+  "manual-content-contract",
+  "manual-html",
+  "manual-canvas",
+  "manual-compose",
+  "manual-connect",
+  "manual-reference",
+  "manual-hooks",
+  "manual-media",
+  "manual-examples",
+  "manual-about",
+  "manual-source"
+];
+const content = await loadDocsContent("manual", manualIds);
 
 blocks.attach(board);
 blocks.setGrid(6, 24);
 blocks.snap = true;
 blocks.draggable = true;
 quantizeSurface(board);
+
+function createTextElement(name, text, className = "") {
+  const element = document.createElement(name);
+  if (className) element.className = className;
+  element.textContent = text;
+  return element;
+}
+
+function createAction({ label, href }, { download = false } = {}) {
+  const action = createTextElement("a", label);
+  action.href = href;
+  if (download) action.download = "";
+  return action;
+}
+
+function appendInlineContent(target, parts) {
+  if (!Array.isArray(parts)) throw new Error("Manual inline content must be an array.");
+  for (const part of parts) {
+    if (typeof part?.text === "string") {
+      target.append(document.createTextNode(part.text));
+    } else if (typeof part?.code === "string") {
+      target.append(createTextElement("code", part.code));
+    } else {
+      throw new Error("Manual inline content parts must contain text or code.");
+    }
+  }
+}
+
+function createStartContent({ code }) {
+  const pre = document.createElement("pre");
+  pre.className = "manual-code";
+  pre.append(createTextElement("code", code.join("\n")));
+  return pre;
+}
+
+function createFormsContent({ groupLabel, items }) {
+  const root = document.createElement("div");
+  root.className = "manual-forms";
+  root.setAttribute("role", "group");
+  root.setAttribute("aria-label", groupLabel);
+
+  const knownShapes = new Set(["circle", "rectangle", "triangle"]);
+  for (const item of items) {
+    if (!knownShapes.has(item.shape)) throw new Error(`Unknown manual form: ${item.shape}.`);
+    const figure = document.createElement("figure");
+    figure.className = "manual-form-item";
+    const stage = document.createElement("div");
+    stage.className = "manual-form-stage";
+    stage.setAttribute("role", "img");
+    stage.setAttribute("aria-label", item.label);
+    const shape = document.createElement("div");
+    shape.className = `manual-${item.shape}`;
+    shape.setAttribute("aria-hidden", "true");
+    stage.append(shape);
+    figure.append(stage, createTextElement("figcaption", item.caption));
+    root.append(figure);
+  }
+  return root;
+}
+
+function createStatementContent({ eyebrow, statement, body, number }) {
+  const root = document.createElement("div");
+  root.className = "manual-statement";
+  const paragraph = document.createElement("p");
+  appendInlineContent(paragraph, body);
+  root.append(
+    createTextElement("small", eyebrow),
+    createTextElement("strong", statement),
+    paragraph,
+    createTextElement("b", number)
+  );
+  return root;
+}
+
+function createGridLanguage({ items }) {
+  const root = document.createElement("div");
+  root.className = "manual-grid-language";
+  for (const item of items) {
+    const line = document.createElement("div");
+    line.append(
+      createTextElement("small", item.eyebrow),
+      createTextElement("strong", item.statement),
+      createTextElement("code", item.code)
+    );
+    root.append(line);
+  }
+  return root;
+}
+
+function createReferenceContent({ eyebrow, members, action }) {
+  const root = document.createElement("div");
+  root.className = "manual-api";
+  const list = document.createElement("ul");
+  for (const member of members) list.append(createTextElement("li", member));
+  root.append(createTextElement("small", eyebrow), list, createAction(action));
+  return root;
+}
+
+function createHooksContent({ eyebrow, code }) {
+  const root = document.createElement("div");
+  root.className = "manual-hooks";
+  const pre = document.createElement("pre");
+  pre.append(createTextElement("code", code.join("\n")));
+  root.append(createTextElement("small", eyebrow), pre);
+  return root;
+}
+
+function createExamplesContent({ items }) {
+  const root = document.createElement("div");
+  root.className = "manual-examples";
+  for (const item of items) {
+    const example = document.createElement("div");
+    const actions = document.createElement("div");
+    actions.className = "manual-example-actions";
+    actions.append(createAction(item.run), createAction(item.download, { download: true }));
+    example.append(
+      createTextElement("small", item.eyebrow),
+      createTextElement("strong", item.statement),
+      actions
+    );
+    root.append(example);
+  }
+  return root;
+}
+
+function createAboutContent({ eyebrow, statement, body, action }) {
+  const root = document.createElement("div");
+  root.className = "manual-about";
+  root.append(createTextElement("small", eyebrow), createTextElement("strong", statement));
+  if (body) root.append(createTextElement("p", body));
+  if (action) root.append(createAction(action));
+  return root;
+}
 
 function addBlock({ id, title, content, span = [1, 1], variant = "regular", minimized = false, anchor = "" }) {
   const block = blocks.add(content, { id, variant, minimized });
@@ -29,97 +178,51 @@ function addBlock({ id, title, content, span = [1, 1], variant = "regular", mini
 
 addBlock({
   id: "manual-start",
-  title: "01 / start",
+  title: content["manual-start"].title,
   span: [3, 2],
   anchor: "start",
-  content: nodeFromHtml(`<pre class="manual-code"><code>&lt;link rel="stylesheet" href="./blocks.system.css"&gt;
-&lt;div id="blocks-field"&gt;&lt;/div&gt;
-
-&lt;script type="module"&gt;
-import { system as blocks } from
-"./blocks.system.mjs";
-
-blocks.attach("#blocks-field");
-blocks.setGrid(6, 8);
-blocks.snap = true;
-blocks.draggable = true;
-
-const blockHello = blocks.add("&lt;p&gt;hello&lt;/p&gt;", {
-  id: "block-hello"
-});
-
-blockHello.menu("hello", { close: true });
-blockHello.span(2, 1);
-blockHello.place(1, 1);
-&lt;/script&gt;</code></pre>`)
+  content: createStartContent(content["manual-start"])
 });
 
 addBlock({
   id: "manual-forms",
-  title: "form / state · content · direction",
+  title: content["manual-forms"].title,
   span: [3, 2],
-  content: nodeFromHtml(`
-    <div class="manual-forms" role="group" aria-label="Visual language: state, content and direction">
-      <figure class="manual-form-item">
-        <div class="manual-form-stage" role="img" aria-label="Magenta circle: live state, cycle and interaction">
-          <div class="manual-circle" aria-hidden="true"></div>
-        </div>
-        <figcaption>state / circle</figcaption>
-      </figure>
-      <figure class="manual-form-item">
-        <div class="manual-form-stage" role="img" aria-label="Black rectangle: information, code and content">
-          <div class="manual-rectangle" aria-hidden="true"></div>
-        </div>
-        <figcaption>content / rectangle</figcaption>
-      </figure>
-      <figure class="manual-form-item">
-        <div class="manual-form-stage" role="img" aria-label="Black triangle: direction, action and next step">
-          <div class="manual-triangle" aria-hidden="true"></div>
-        </div>
-        <figcaption>direction / triangle</figcaption>
-      </figure>
-    </div>
-  `)
+  content: createFormsContent(content["manual-forms"])
 });
 
 addBlock({
   id: "manual-content-contract",
-  title: "02 / content",
+  title: content["manual-content-contract"].title,
   span: [3, 1],
   anchor: "compose",
-  content: nodeFromHtml(`
-    <div class="manual-statement">
-      <small>trusted html / dom node / content factory</small>
-      <strong>content is content.</strong>
-      <p>Use <code>textContent</code> for untrusted text. One host contract keeps renderer knowledge outside the core.</p>
-      <b>3</b>
-    </div>
-  `)
+  content: createStatementContent(content["manual-content-contract"])
 });
 
-const htmlDemo = nodeFromHtml(`
-  <div class="manual-html-demo">
-    <button type="button">native html control</button>
-  </div>
-`);
-htmlDemo.querySelector("button").addEventListener("click", (event) => {
-  event.currentTarget.textContent = event.currentTarget.textContent === "native html control"
-    ? "clicked · still html"
-    : "native html control";
+const htmlContent = content["manual-html"];
+const htmlDemo = document.createElement("div");
+htmlDemo.className = "manual-html-demo";
+const htmlButton = createTextElement("button", htmlContent.button.idle);
+htmlButton.type = "button";
+htmlButton.addEventListener("click", (event) => {
+  event.currentTarget.textContent = event.currentTarget.textContent === htmlContent.button.idle
+    ? htmlContent.button.active
+    : htmlContent.button.idle;
 });
+htmlDemo.append(htmlButton);
 addBlock({
   id: "manual-html",
-  title: "html / interactive",
+  title: htmlContent.title,
   span: [1, 1],
   content: htmlDemo
 });
 
 const canvas = document.createElement("canvas");
 canvas.className = "manual-canvas";
-canvas.setAttribute("aria-label", "Responsive canvas with a rectangle, circle and triangle");
+canvas.setAttribute("aria-label", content["manual-canvas"].label);
 const blockCanvas = addBlock({
   id: "manual-canvas",
-  title: "canvas / resize observer",
+  title: content["manual-canvas"].title,
   span: [2, 1],
   content: canvas
 });
@@ -159,45 +262,40 @@ window.addEventListener("resize", drawCanvas, { passive: true });
 
 addBlock({
   id: "manual-compose",
-  title: "03 / arrange",
+  title: content["manual-compose"].title,
   span: [2, 2],
   anchor: "arrange",
-  content: nodeFromHtml(`
-    <div class="manual-grid-language">
-      <div><small>size</small><strong>span</strong><code>block.span(x, y)</code></div>
-      <div><small>place</small><strong>grid</strong><code>block.place(x, y)</code></div>
-      <div><small>state</small><strong>menu</strong><code>close / minimize</code></div>
-      <div><small>tone</small><strong>variant</strong><code>block.variant</code></div>
-      <div><small>move</small><strong>drag</strong><code>header / keyboard</code></div>
-      <div><small>remove</small><strong>close</strong><code>block.remove()</code></div>
-    </div>
-  `)
+  content: createGridLanguage(content["manual-compose"])
 });
 
+const connectContent = content["manual-connect"];
 blocks.registerAdapter("manual-counter", {
   mount({ host, settings }) {
-    const root = nodeFromHtml(`
-      <div class="manual-adapter">
-        <small>adapter mount() / live state</small>
-        <strong>extend the contract.</strong>
-        <output>${settings.start}</output>
-        <button type="button">increment</button>
-      </div>
-    `);
-    const output = root.querySelector("output");
-    root.querySelector("button").addEventListener("click", () => {
+    const root = document.createElement("div");
+    root.className = "manual-adapter";
+    const output = document.createElement("output");
+    output.value = String(settings.start);
+    const button = createTextElement("button", connectContent.action);
+    button.type = "button";
+    button.addEventListener("click", () => {
       output.value = String(Number(output.value) + 1);
     });
+    root.append(
+      createTextElement("small", connectContent.eyebrow),
+      createTextElement("strong", connectContent.statement),
+      output,
+      button
+    );
     host.appendChild(root);
     return root;
   }
 });
-blocks.register({ id: "manual-live-counter", adapter: "manual-counter", defaults: { start: 3 } });
+blocks.register({ id: "manual-live-counter", adapter: "manual-counter", defaults: { start: connectContent.initial } });
 const adapterHost = document.createElement("div");
 adapterHost.className = "manual-adapter-host";
 addBlock({
   id: "manual-connect",
-  title: "04 / connect",
+  title: connectContent.title,
   span: [2, 2],
   anchor: "connect",
   content: adapterHost
@@ -206,102 +304,65 @@ await blocks.mount("manual-live-counter", adapterHost);
 
 addBlock({
   id: "manual-reference",
-  title: "05 / reference",
+  title: content["manual-reference"].title,
   span: [2, 2],
   anchor: "reference",
-  content: nodeFromHtml(`
-    <div class="manual-api">
-      <small>shared system / one controller</small>
-      <ul>
-        <li>blocks.attach()</li><li>block.menu()</li>
-        <li>blocks.setGrid()</li><li>block.span()</li>
-        <li>blocks.snap</li><li>block.place()</li><li>block.flow()</li>
-        <li>blocks.draggable</li><li>block.minimized</li>
-        <li>blocks.add()</li><li>block.variant</li>
-        <li>blocks.register()</li><li>block.color</li>
-        <li>blocks.mount()</li><li>block.remove()</li>
-      </ul>
-      <a href="api.html">complete signatures →</a>
-    </div>
-  `)
+  content: createReferenceContent(content["manual-reference"])
 });
 
 addBlock({
   id: "manual-hooks",
-  title: "advanced / css hooks",
+  title: content["manual-hooks"].title,
   span: [3, 2],
-  content: nodeFromHtml(`
-    <div class="manual-hooks">
-      <small>candidate stable styling hooks / audit before promise</small>
-      <pre><code>.blocks-system-surface
-.blocks-system-object
-.blocks-system-menu
-.blocks-system-content
-
-[data-block-object="block-id"]
-[data-block-variant="magenta"]
-[data-block-minimized="true"]
-[data-draggable="true"]</code></pre>
-    </div>
-  `)
+  content: createHooksContent(content["manual-hooks"])
 });
 
+const mediaContent = content["manual-media"];
+const mediaRoot = document.createElement("div");
+mediaRoot.className = "manual-media";
+const mediaVideoElement = document.createElement("video");
+mediaVideoElement.controls = true;
+mediaVideoElement.muted = true;
+mediaVideoElement.preload = "none";
+mediaVideoElement.poster = "references/media-contract-poster.svg";
+mediaVideoElement.setAttribute("aria-label", mediaContent.label);
+mediaVideoElement.dataset.videoLifecycle = "pause-on-minimize-remove-pagehide";
+const mediaCopy = document.createElement("div");
+mediaCopy.append(
+  createTextElement("small", mediaContent.eyebrow),
+  createTextElement("strong", mediaContent.statement),
+  createTextElement("p", mediaContent.body)
+);
+mediaRoot.append(mediaVideoElement, mediaCopy);
 const blockMedia = addBlock({
   id: "manual-media",
-  title: "media / bounded lifecycle",
+  title: mediaContent.title,
   span: [3, 2],
-  content: nodeFromHtml(`
-    <div class="manual-media">
-      <video controls muted preload="none" poster="references/media-contract-poster.svg" aria-label="Video content sizing prototype" data-video-lifecycle="pause-on-minimize-remove-pagehide"></video>
-      <div>
-        <small>natural / contain / cover</small>
-        <strong>media keeps its lifecycle.</strong>
-        <p>The consumer owns source and captions. The manual proves contain sizing and pauses on minimize, removal and page exit.</p>
-      </div>
-    </div>
-  `)
+  content: mediaRoot
 });
 
 addBlock({
   id: "manual-examples",
-  title: "examples / run the source",
+  title: content["manual-examples"].title,
   span: [3, 2],
   anchor: "examples",
-  content: nodeFromHtml(`
-    <div class="manual-examples">
-      <div><small>01 / start</small><strong>basic grid</strong><div class="manual-example-actions"><a href="../examples/basic-grid/">run</a><a href="../examples/basic-grid/demo.mjs" download>module ↓</a></div></div>
-      <div><small>02 / compose</small><strong>mixed content</strong><div class="manual-example-actions"><a href="../examples/mixed-content/">run</a><a href="../examples/mixed-content/demo.mjs" download>module ↓</a></div></div>
-      <div><small>03 / connect</small><strong>custom adapter</strong><div class="manual-example-actions"><a href="../examples/custom-adapter/">run</a><a href="../examples/custom-adapter/demo.mjs" download>module ↓</a></div></div>
-    </div>
-  `)
+  content: createExamplesContent(content["manual-examples"])
 });
 
 addBlock({
   id: "manual-about",
-  title: "about / boundary",
+  title: content["manual-about"].title,
   span: [2, 2],
   anchor: "boundary",
-  content: nodeFromHtml(`
-    <div class="manual-about">
-      <small>from visual elements to one object model</small>
-      <strong>the core knows blocks, not renderers.</strong>
-      <p>HTML, canvas, video and future runtimes keep their own lifecycle. Concept and direction by Sebastien Vanblaere.</p>
-    </div>
-  `)
+  content: createAboutContent(content["manual-about"])
 });
 
 addBlock({
   id: "manual-source",
-  title: "source / continue",
+  title: content["manual-source"].title,
   span: [2, 1],
   variant: "inverse",
-  content: nodeFromHtml(`
-    <div class="manual-about">
-      <small>mit / native esm / source first</small>
-      <strong>build the next block.</strong>
-      <a href="https://github.com/seb-prjcts-be/blocks.system">view source →</a>
-    </div>
-  `)
+  content: createAboutContent(content["manual-source"])
 });
 
 const initialOrder = controllers.map(({ block }) => block.element);

@@ -16,18 +16,22 @@ Status: canonieke structuur uitgevoerd op 3 augustus 2026.
 - `index.html` is de voordeur met één echt blocks-systeem.
 - `docs/index.html` is de levende manual op de canonieke route `/docs/`.
 - `docs/api.html` is de volledige, niet-versleepbare reference.
-- `docs/content.json` bezit alleen de zichtbare inhoud van docblocks: titels,
-  uitleg, termen en codevoorbeelden. Block-ID's, layout, DOM-opbouw, gedrag en
-  lifecycle blijven bij de betreffende docscompositie; de library leest dit
-  bestand niet.
+- `docs/content.json` bezit alle zichtbare inhoud van de 21 levende docblocks:
+  2 op home, 13 in de manual en 6 in de reference. Titels, uitleg, termen,
+  toegankelijke labels, links en codevoorbeelden staan daar. De JSON spiegelt
+  block-ID's alleen als koppelsleutel; de canonieke ID-lijst, volgorde, layout,
+  DOM-opbouw, gedrag en lifecycle blijven bij de betreffende docscompositie.
+  Navigatie, paginametadata, toolbars en footers blijven in semantische HTML.
+  De library leest dit bestand niet.
 - `examples/<naam>/` is zelfstandig, uitvoerbaar en kopieerbaar.
 - `docs/blocks.system.manifest.json` wordt door `npm run manifest` gemaakt.
 
-`docs/shell.mjs` bezit uitsluitend gedeelde docsfuncties: navigatie, actieve
-anchors, `nodeFromHtml()` en hele-pixelkwantisering. De gedeelde CSS-shell staat
-onder `.docs-*`; home, manual, reference en examples voegen in `docs/style.css`
-alleen hun eigen delta toe. Hun ESM-composities blijven afzonderlijk en niets
-daarvan lekt naar de core.
+`docs/shell.mjs` bezit uitsluitend gedeelde docsfuncties: navigatie, één
+gecachete en streng gevalideerde contentloader en hele-pixelkwantisering. De
+loader weigert ontbrekende én ongebruikte block-ID's. De gedeelde CSS-shell
+staat onder `.docs-*`; home, manual, reference en examples voegen in
+`docs/style.css` alleen hun eigen delta toe. Hun ESM-composities blijven
+afzonderlijk en niets daarvan lekt naar de core.
 
 ## Publieke routes
 

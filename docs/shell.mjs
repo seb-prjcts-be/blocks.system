@@ -1,7 +1,45 @@
-export function nodeFromHtml(html) {
-  const template = document.createElement("template");
-  template.innerHTML = html.trim();
-  return template.content.firstElementChild;
+const DOCS_CONTENT_SCHEMA = "blocks.system/docs-content@2";
+let docsContentRequest;
+
+async function readDocsContent() {
+  if (!docsContentRequest) {
+    docsContentRequest = fetch(new URL("./content.json?v=0.2.0", import.meta.url)).then(async (response) => {
+      if (!response.ok) throw new Error(`Could not load docs content (${response.status}).`);
+      const content = await response.json();
+      if (content.schema !== DOCS_CONTENT_SCHEMA) {
+        throw new Error(`Unsupported docs content schema: ${content.schema || "missing"}.`);
+      }
+      return content;
+    });
+  }
+  return docsContentRequest;
+}
+
+export async function loadDocsContent(sectionName, expectedIds) {
+  if (typeof sectionName !== "string" || !sectionName) throw new TypeError("Docs content needs a section name.");
+  if (!Array.isArray(expectedIds) || expectedIds.some((id) => typeof id !== "string" || !id)) {
+    throw new TypeError("Docs content needs an array of expected block ids.");
+  }
+
+  const content = await readDocsContent();
+  const section = content[sectionName];
+  if (!section || Array.isArray(section) || typeof section !== "object") {
+    throw new Error(`Docs content must contain one ${sectionName} object.`);
+  }
+
+  const actualIds = Object.keys(section);
+  const missingIds = expectedIds.filter((id) => !Object.hasOwn(section, id));
+  const unusedIds = actualIds.filter((id) => !expectedIds.includes(id));
+  if (missingIds.length) throw new Error(`Missing ${sectionName} content: ${missingIds.join(", ")}.`);
+  if (unusedIds.length) throw new Error(`Unused ${sectionName} content: ${unusedIds.join(", ")}.`);
+
+  for (const id of expectedIds) {
+    const block = section[id];
+    if (!block || typeof block !== "object" || typeof block.title !== "string" || !block.title) {
+      throw new Error(`Invalid ${sectionName} content: ${id}.`);
+    }
+  }
+  return section;
 }
 
 function initNavigation() {

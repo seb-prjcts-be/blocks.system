@@ -172,14 +172,14 @@ assert.equal((siteDemos["docs/home.mjs"].match(/blocks\.add\(/g) || []).length, 
 assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "home must use one shared blocks system");
 assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must preserve deliberate empty cells in a six-column field");
 assert.match(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must be draggable by default");
-assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-intro[\s\S]*open manual/, "home must lead from identity to one concise action");
+assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-intro/, "home must lead from identity to one concise action");
 assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 3\)[\s\S]*intro\.place\(5, 7\)/, "home must preserve its deliberate asymmetric anchors");
 assert.match(siteCss, /\.home-board\s*\{[^}]*background-image\s*:[^}]*linear-gradient/s, "home must expose the grid because the system itself is the subject");
 assert.match(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*6/s, "home must start from six columns");
 assert.match(siteCss, /@media \(max-width: 900px\)[\s\S]*?\.home-board\s*\{[^}]*--blocks-columns:\s*3 !important/s, "home must collapse to three columns on tablets");
 assert.doesNotMatch(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*1 !important/s, "home must preserve its meaningful three-column mobile grid");
 assert.doesNotMatch(libraryCss, /\.home-/, "the reusable library stylesheet must not absorb home composition");
-assert.match(siteDemos["docs/shell.mjs"], /export function nodeFromHtml/, "the active docs shell must own the shared content helper");
+assert.match(siteDemos["docs/shell.mjs"], /export async function loadDocsContent/, "the active docs shell must own the shared content loader");
 assert.equal((siteCss.match(/@import\s+url\(/g) || []).length, 1, "consumer CSS must own one font import");
 assert.doesNotMatch(siteCss, /\b(?:Inter|Oswald)\b/, "all site and example typography must use the canonical Instrument Sans family");
 assert.doesNotMatch(siteCss, /\.hero-|\.demo-|#field|\.docs-pagination|\.api-table/, "shared CSS must not retain retired page systems");
@@ -238,17 +238,17 @@ for (const anchor of ["start", "compose", "arrange", "connect", "examples", "ref
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
 }
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
-  assert.ok(siteDemos["docs/manual.mjs"].includes(`../examples/${example}/`), `the manual misses the ${example} route`);
-  assert.ok(siteDemos["docs/manual.mjs"].includes(`../examples/${example}/demo.mjs`), `the manual misses the ${example} module download`);
+  assert.ok(JSON.stringify(docsContent.manual).includes(`../examples/${example}/`), `the manual content misses the ${example} route`);
+  assert.ok(JSON.stringify(docsContent.manual).includes(`../examples/${example}/demo.mjs`), `the manual content misses the ${example} module download`);
 }
-assert.match(siteDemos["docs/manual.mjs"], /textContent/, "the manual must preserve the untrusted-text safety note");
+assert.match(JSON.stringify(docsContent.manual), /textContent/, "the manual content must preserve the untrusted-text safety note");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.draggable = true;/, "the experimental manual must start with dragging enabled");
 assert.match(siteDemos["docs/manual.mjs"], /new ResizeObserver\(drawCanvas\)/, "the experimental manual must demonstrate responsive runtime content");
 assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");
 assert.match(siteDemos["docs/shell.mjs"], /Math\.floor\(\(available - borders - gap \* \(columns - 1\)\) \/ columns\)/, "the docs shell must quantize tracks to whole CSS pixels");
-assert.match(siteDemos["docs/manual.mjs"], /<video controls muted preload="none"/, "the experimental manual must make the pending video contract visible");
-assert.match(siteDemos["docs/manual.mjs"], /data-video-lifecycle="pause-on-minimize-remove-pagehide"/, "manual video must publish its tested lifecycle convention");
-assert.match(siteDemos["docs/manual.mjs"], /poster="references\/media-contract-poster\.svg"/, "manual video must use the restrained form poster");
+assert.match(siteDemos["docs/manual.mjs"], /document\.createElement\("video"\)[\s\S]*\.controls = true[\s\S]*\.muted = true[\s\S]*\.preload = "none"/, "the experimental manual must make the pending video contract visible");
+assert.match(siteDemos["docs/manual.mjs"], /dataset\.videoLifecycle = "pause-on-minimize-remove-pagehide"/, "manual video must publish its tested lifecycle convention");
+assert.match(siteDemos["docs/manual.mjs"], /\.poster = "references\/media-contract-poster\.svg"/, "manual video must use the restrained form poster");
 assert.match(siteDemos["docs/manual.mjs"], /new MutationObserver\([\s\S]*blockMedia\.minimized\) pauseMedia\(\)/, "manual video must pause when minimized or removed");
 assert.match(siteDemos["docs/manual.mjs"], /addEventListener\("pagehide", pauseMedia\)/, "manual video must pause when the document exits");
 assert.doesNotMatch(siteDemos["docs/shell.mjs"], /data-section-navigation|hashchange|location\.hash|initSectionNavigation/, "the shared main navigation must not own fragment state");
@@ -265,10 +265,12 @@ const manualStartPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-st
 const manualFormsPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-forms"');
 assert.ok(manualStartPosition >= 0 && manualFormsPosition > manualStartPosition,
 "the manual must put the first instruction before its visual language specimen");
-assert.match(siteDemos["docs/manual.mjs"], /state \/ circle[\s\S]*content \/ rectangle[\s\S]*direction \/ triangle/, "the form specimen must explain what each shape communicates");
-for (const formClass of ["manual-circle", "manual-rectangle", "manual-triangle"]) {
-  assert.match(siteDemos["docs/manual.mjs"], new RegExp(`class="${formClass}"`), `the manual misses ${formClass}`);
-}
+assert.deepEqual(docsContent.manual["manual-forms"].items.map(({ shape, caption }) => [shape, caption]), [
+  ["circle", "state / circle"],
+  ["rectangle", "content / rectangle"],
+  ["triangle", "direction / triangle"]
+], "the form specimen content must explain what each shape communicates");
+assert.match(siteDemos["docs/manual.mjs"], /new Set\(\["circle", "rectangle", "triangle"\]\)/, "the manual composition must render exactly the three known forms");
 assert.match(siteCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
 assert.match(siteCss, /\.manual-rectangle\s*\{[^}]*background:\s*#000;/s, "the Munari rectangle must remain black");
 assert.match(siteCss, /--manual-accent:\s*rgb\(255, 0, 255\);/, "the manual must define magenta as its one accent");
@@ -284,7 +286,24 @@ assert.doesNotMatch(libraryCss, /\.manual-/, "the reusable library stylesheet mu
 
 assert.match(apiHtml, /<body class="docs-page reference-page">/, "the API route must use the shared docs shell and reference surface");
 assert.match(apiHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the reference must use the four-item shared navigation");
-assert.equal(docsContent.schema, "blocks.system/docs-content@1", "docs content must publish its supported schema");
+assert.equal(docsContent.schema, "blocks.system/docs-content@2", "docs content must publish its supported schema");
+assert.deepEqual(Object.keys(docsContent), ["schema", "home", "manual", "reference"], "docs content must expose only the three canonical block sections");
+assert.deepEqual(Object.keys(docsContent.home), ["home-title", "home-intro"], "home content must own exactly two blocks in canonical reading order");
+assert.deepEqual(Object.keys(docsContent.manual), [
+  "manual-start",
+  "manual-forms",
+  "manual-content-contract",
+  "manual-html",
+  "manual-canvas",
+  "manual-compose",
+  "manual-connect",
+  "manual-reference",
+  "manual-hooks",
+  "manual-media",
+  "manual-examples",
+  "manual-about",
+  "manual-source"
+], "manual content must own exactly thirteen blocks in canonical reading order");
 assert.deepEqual(Object.keys(docsContent.reference), [
   "reference-system",
   "reference-block",
@@ -298,11 +317,24 @@ JSON.stringify(docsContent, function (key, value) {
   if (key) docsContentKeys.add(key);
   return value;
 });
-for (const forbiddenKey of ["adapter", "anchor", "class", "className", "defaults", "lifecycle", "minimized", "renderer", "span", "variant"]) {
+for (const forbiddenKey of ["adapter", "anchor", "class", "className", "defaults", "html", "lifecycle", "minimized", "renderer", "span", "variant"]) {
   assert.equal(docsContentKeys.has(forbiddenKey), false, `docs content must not own ${forbiddenKey}`);
 }
+assert.equal(Object.values(docsContent).slice(1).reduce((total, section) => total + Object.keys(section).length, 0), 21, "docs content must cover every living docblock exactly once");
+for (const [sectionName, section] of Object.entries({ home: docsContent.home, manual: docsContent.manual, reference: docsContent.reference })) {
+  for (const [id, block] of Object.entries(section)) {
+    assert.equal(typeof block.title, "string", `${sectionName}.${id} needs one visible title`);
+    assert.ok(block.title.length > 0, `${sectionName}.${id} title must not be empty`);
+  }
+}
+for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
+  assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
+}
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.0", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
+assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
 const serializedReferenceContent = JSON.stringify(docsContent.reference);
-assert.match(siteDemos["docs/reference.mjs"], /fetch\(new URL\("\.\/content\.json", import\.meta\.url\)\)/, "the reference must load its visible content from the canonical JSON file");
 assert.doesNotMatch(siteDemos["docs/reference.mjs"], /Create an independent system|stable detail: id, input, mode/, "the reference module must not duplicate extracted prose");
 assert.equal((siteDemos["docs/reference.mjs"].match(/const blocks = createBlocksSystem\(/g) || []).length, 1, "the reference must use one shared blocks system");
 assert.match(siteDemos["docs/reference.mjs"], /blocks\.draggable = false;/, "the lookup reference must preserve its canonical reading order");

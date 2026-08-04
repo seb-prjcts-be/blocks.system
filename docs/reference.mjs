@@ -1,7 +1,6 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.3";
-import { quantizeSurface } from "./shell.mjs?v=0.1.2";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.3";
 
-const CONTENT_SCHEMA = "blocks.system/docs-content@1";
 const board = document.querySelector("#reference-board");
 const blocks = createBlocksSystem({ variant: "regular" });
 
@@ -115,28 +114,10 @@ function createReferenceErrors({ eyebrow, statement, details }) {
   return root;
 }
 
-async function loadReferenceContent() {
-  const response = await fetch(new URL("./content.json", import.meta.url));
-  if (!response.ok) throw new Error(`Could not load docs content (${response.status}).`);
-
-  const content = await response.json();
-  if (content.schema !== CONTENT_SCHEMA) throw new Error(`Unsupported docs content schema: ${content.schema || "missing"}.`);
-  if (!content.reference || Array.isArray(content.reference) || typeof content.reference !== "object") {
-    throw new Error("Docs content must contain one reference object.");
-  }
-  return content.reference;
-}
-
-const referenceContent = await loadReferenceContent();
-const knownIds = new Set(referenceBlocks.map(({ id }) => id));
-const unusedIds = Object.keys(referenceContent).filter((id) => !knownIds.has(id));
-if (unusedIds.length) throw new Error(`Unused reference content: ${unusedIds.join(", ")}.`);
+const referenceContent = await loadDocsContent("reference", referenceBlocks.map(({ id }) => id));
 
 for (const definition of referenceBlocks) {
   const content = referenceContent[definition.id];
-  if (!content || typeof content.title !== "string") {
-    throw new Error(`Missing reference content: ${definition.id}.`);
-  }
   addReference({
     id: definition.id,
     title: content.title,

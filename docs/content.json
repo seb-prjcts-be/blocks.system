@@ -1,5 +1,192 @@
 {
-  "schema": "blocks.system/docs-content@1",
+  "schema": "blocks.system/docs-content@2",
+  "home": {
+    "home-title": {
+      "title": "blocks.system",
+      "heading": "Blocks. System."
+    },
+    "home-intro": {
+      "title": "start",
+      "tagline": "dependency-free esm for addressable dom objects.",
+      "action": {
+        "label": "open manual →",
+        "href": "docs/"
+      }
+    }
+  },
+  "manual": {
+    "manual-start": {
+      "title": "01 / start",
+      "code": [
+        "<link rel=\"stylesheet\" href=\"./blocks.system.css\">",
+        "<div id=\"blocks-field\"></div>",
+        "",
+        "<script type=\"module\">",
+        "import { system as blocks } from",
+        "\"./blocks.system.mjs\";",
+        "",
+        "blocks.attach(\"#blocks-field\");",
+        "blocks.setGrid(6, 8);",
+        "blocks.snap = true;",
+        "blocks.draggable = true;",
+        "",
+        "const blockHello = blocks.add(\"<p>hello</p>\", {",
+        "  id: \"block-hello\"",
+        "});",
+        "",
+        "blockHello.menu(\"hello\", { close: true });",
+        "blockHello.span(2, 1);",
+        "blockHello.place(1, 1);",
+        "</script>"
+      ]
+    },
+    "manual-forms": {
+      "title": "form / state · content · direction",
+      "groupLabel": "Visual language: state, content and direction",
+      "items": [
+        {
+          "shape": "circle",
+          "label": "Magenta circle: live state, cycle and interaction",
+          "caption": "state / circle"
+        },
+        {
+          "shape": "rectangle",
+          "label": "Black rectangle: information, code and content",
+          "caption": "content / rectangle"
+        },
+        {
+          "shape": "triangle",
+          "label": "Black triangle: direction, action and next step",
+          "caption": "direction / triangle"
+        }
+      ]
+    },
+    "manual-content-contract": {
+      "title": "02 / content",
+      "eyebrow": "trusted html / dom node / content factory",
+      "statement": "content is content.",
+      "body": [
+        { "text": "Use " },
+        { "code": "textContent" },
+        { "text": " for untrusted text. One host contract keeps renderer knowledge outside the core." }
+      ],
+      "number": "3"
+    },
+    "manual-html": {
+      "title": "html / interactive",
+      "button": {
+        "idle": "native html control",
+        "active": "clicked · still html"
+      }
+    },
+    "manual-canvas": {
+      "title": "canvas / resize observer",
+      "label": "Responsive canvas with a rectangle, circle and triangle"
+    },
+    "manual-compose": {
+      "title": "03 / arrange",
+      "items": [
+        { "eyebrow": "size", "statement": "span", "code": "block.span(x, y)" },
+        { "eyebrow": "place", "statement": "grid", "code": "block.place(x, y)" },
+        { "eyebrow": "state", "statement": "menu", "code": "close / minimize" },
+        { "eyebrow": "tone", "statement": "variant", "code": "block.variant" },
+        { "eyebrow": "move", "statement": "drag", "code": "header / keyboard" },
+        { "eyebrow": "remove", "statement": "close", "code": "block.remove()" }
+      ]
+    },
+    "manual-connect": {
+      "title": "04 / connect",
+      "eyebrow": "adapter mount() / live state",
+      "statement": "extend the contract.",
+      "initial": 3,
+      "action": "increment"
+    },
+    "manual-reference": {
+      "title": "05 / reference",
+      "eyebrow": "shared system / one controller",
+      "members": [
+        "blocks.attach()",
+        "block.menu()",
+        "blocks.setGrid()",
+        "block.span()",
+        "blocks.snap",
+        "block.place()",
+        "block.flow()",
+        "blocks.draggable",
+        "block.minimized",
+        "blocks.add()",
+        "block.variant",
+        "blocks.register()",
+        "block.color",
+        "blocks.mount()",
+        "block.remove()"
+      ],
+      "action": {
+        "label": "complete signatures →",
+        "href": "api.html"
+      }
+    },
+    "manual-hooks": {
+      "title": "advanced / css hooks",
+      "eyebrow": "candidate stable styling hooks / audit before promise",
+      "code": [
+        ".blocks-system-surface",
+        ".blocks-system-object",
+        ".blocks-system-menu",
+        ".blocks-system-content",
+        "",
+        "[data-block-object=\"block-id\"]",
+        "[data-block-variant=\"magenta\"]",
+        "[data-block-minimized=\"true\"]",
+        "[data-draggable=\"true\"]"
+      ]
+    },
+    "manual-media": {
+      "title": "media / bounded lifecycle",
+      "label": "Video content sizing prototype",
+      "eyebrow": "natural / contain / cover",
+      "statement": "media keeps its lifecycle.",
+      "body": "The consumer owns source and captions. The manual proves contain sizing and pauses on minimize, removal and page exit."
+    },
+    "manual-examples": {
+      "title": "examples / run the source",
+      "items": [
+        {
+          "eyebrow": "01 / start",
+          "statement": "basic grid",
+          "run": { "label": "run", "href": "../examples/basic-grid/" },
+          "download": { "label": "module ↓", "href": "../examples/basic-grid/demo.mjs" }
+        },
+        {
+          "eyebrow": "02 / compose",
+          "statement": "mixed content",
+          "run": { "label": "run", "href": "../examples/mixed-content/" },
+          "download": { "label": "module ↓", "href": "../examples/mixed-content/demo.mjs" }
+        },
+        {
+          "eyebrow": "03 / connect",
+          "statement": "custom adapter",
+          "run": { "label": "run", "href": "../examples/custom-adapter/" },
+          "download": { "label": "module ↓", "href": "../examples/custom-adapter/demo.mjs" }
+        }
+      ]
+    },
+    "manual-about": {
+      "title": "about / boundary",
+      "eyebrow": "from visual elements to one object model",
+      "statement": "the core knows blocks, not renderers.",
+      "body": "HTML, canvas, video and future runtimes keep their own lifecycle. Concept and direction by Sebastien Vanblaere."
+    },
+    "manual-source": {
+      "title": "source / continue",
+      "eyebrow": "mit / native esm / source first",
+      "statement": "build the next block.",
+      "action": {
+        "label": "view source →",
+        "href": "https://github.com/seb-prjcts-be/blocks.system"
+      }
+    }
+  },
   "reference": {
     "reference-system": {
       "title": "01 / blocks · shared system",
