@@ -77,6 +77,9 @@ library-API.
   librarycore.
 - Gedeelde beginstate en menuknoppen worden éénmaal bij `createBlocksSystem()`
   ingesteld; ids, titels en afwijkende layout blijven eigendom van ieder block.
+- `colorArray` en `colorVary` bepalen alleen de variant van nieuwe `random`
+  blocks. Ze verkleuren bestaande blocks niet en dwingen de compositieregel over
+  aangrenzende steunkleuren niet stilzwijgend af.
 - Bewaar een regel hier alleen wanneer de reden niet betrouwbaar uit broncode,
   tests of gitgeschiedenis terug te vinden is.
 

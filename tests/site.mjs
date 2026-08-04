@@ -41,7 +41,7 @@ for (const page of pages) {
 
 const readme = await readFile(resolve(root, "README.md"), "utf8");
 const readmeNl = await readFile(resolve(root, "README_NL.md"), "utf8");
-for (const apiName of ["createBlocksSystem", "blockDefaults", "attach", "setGrid", "snap", "draggable", "variant", "variants", "add", "registerAdapter", "menu", "span", "place", "flow", "minimized", "color"]) {
+for (const apiName of ["createBlocksSystem", "blockDefaults", "attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVary", "add", "registerAdapter", "menu", "span", "place", "flow", "minimized", "color"]) {
   assert.ok(readme.includes(apiName), `README.md misses ${apiName}`);
   assert.ok(readmeNl.includes(apiName), `README_NL.md misses ${apiName}`);
 }
@@ -154,7 +154,7 @@ for (const file of retiredAssets) {
 
 assert.equal(manifest.version, packageData.version, "manifest and package version must match");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
-assert.ok(["attach", "setGrid", "snap", "draggable", "variant", "variants", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
+assert.ok(["attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVary", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose the TypeScript declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "the published file list must include the TypeScript declarations");
 for (const declaration of ["BlocksSystem", "BlockController", "BlockDefaults", "BlocksLabels", "BlocksReorderDetail", "createBlocksSystem"]) {
@@ -334,7 +334,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.0", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.2\.1", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
@@ -346,7 +346,7 @@ assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the 
 for (const anchor of ["shared-system", "block-controller", "adapters", "definition", "css-hooks", "errors"]) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);
 }
-for (const apiName of ["createBlocksSystem(options)", "attach(target)", "setGrid(x, y)", "draggable", "labels", "add(content, options)", "menu(name, options)", "span(x, y)", "place(x, y)", "flow()", "registerAdapter(id, adapter)", "mount(id, target, overrides)", "unmount(target)", "address(id)"]) {
+for (const apiName of ["createBlocksSystem(options)", "attach(target)", "setGrid(x, y)", "draggable", "labels", "colorArray", "colorVary", "add(content, options)", "menu(name, options)", "span(x, y)", "place(x, y)", "flow()", "registerAdapter(id, adapter)", "mount(id, target, overrides)", "unmount(target)", "address(id)"]) {
   assert.ok(serializedReferenceContent.includes(apiName), `the reference content misses ${apiName}`);
 }
 for (const hook of [".blocks-system-surface", ".blocks-system-object", ".blocks-system-menu", ".blocks-system-content", ".blocks-system-drop-preview", "[data-block-object]", "[data-block-variant]", "[data-block-minimized]", "[data-draggable]"]) {

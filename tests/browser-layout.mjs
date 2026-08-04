@@ -83,21 +83,27 @@ async function measureYellowVariant() {
       field.style.cssText = "position:fixed;inset:auto auto 0 0;width:200px;height:120px";
       document.body.append(field);
       try {
-        const blocks = createBlocksSystem({ snap: true, draggable: false });
+        const blocks = createBlocksSystem({
+          snap: true,
+          draggable: false,
+          colorArray: ["yellow"],
+          colorVary: 1,
+          random: function () { return 0.5; }
+        });
         blocks.attach(field);
         const content = document.createElement("span");
         content.textContent = "proof";
         const block = blocks.add(content, {
           id: "yellow-variant-proof",
           title: "proof",
-          menu: true,
-          variant: "yellow"
+          menu: true
         });
         await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
         const objectStyle = getComputedStyle(block.element);
         const menuStyle = getComputedStyle(block.element.querySelector(".blocks-system-menu"));
         const contentStyle = getComputedStyle(block.content);
         return {
+          variant: block.variant,
           objectBackground: objectStyle.backgroundColor,
           objectColor: objectStyle.color,
           borderColor: objectStyle.borderColor,
@@ -567,6 +573,7 @@ try {
 
   const yellowVariant = await measureYellowVariant();
   assert.deepEqual(yellowVariant, {
+    variant: "yellow",
     objectBackground: "rgb(255, 255, 0)",
     objectColor: "rgb(0, 0, 255)",
     borderColor: "rgb(0, 0, 255)",

@@ -27,6 +27,8 @@
         "",
         "const blocks = createBlocksSystem({",
         "  snap: true,",
+        "  colorArray: [\"red\", \"green\", \"blue\", \"cyan\", \"magenta\", \"yellow\"],",
+        "  colorVary: 0.2,",
         "  blockDefaults: { menu: { close: true } }",
         "});",
         "",
@@ -199,7 +201,7 @@
           "id": "api-create",
           "member": "createBlocksSystem(options)",
           "returns": "blocks",
-          "purpose": "Create an independent system with optional initial snap, dragging, variant, font, labels, shared blockDefaults.menu, catalog URL, random source and definitions."
+          "purpose": "Create an independent system with optional initial snap, dragging, variant, colorArray, colorVary, font, labels, shared blockDefaults.menu, catalog URL, random source and definitions."
         },
         {
           "id": "api-attach",
@@ -252,6 +254,18 @@
           "member": "variants",
           "returns": "array",
           "purpose": "Regular and inverse plus equal, explicit RGB/CMY variants; yellow intentionally combines blue block chrome and ink with yellow content."
+        },
+        {
+          "id": "api-color-array",
+          "member": "colorArray",
+          "returns": "array",
+          "purpose": "Color variants available to future random blocks; defaults to the six RGB/CMY names and accepts custom variant names."
+        },
+        {
+          "id": "api-color-vary",
+          "member": "colorVary",
+          "returns": "number",
+          "purpose": "Share of the random range assigned to colorArray, from 0 to 1; default 0 preserves monochrome automatic variants."
         },
         {
           "id": "api-field",

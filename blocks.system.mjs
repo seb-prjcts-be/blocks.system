@@ -15,6 +15,7 @@ const BUILT_IN_VARIANTS = Object.freeze([
     "magenta",
     "yellow"
 ]);
+const COLOR_VARIANTS = Object.freeze(BUILT_IN_VARIANTS.slice(2));
 const RANDOM_VARIANTS = Object.freeze(["regular", "regular", "inverse"]);
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
@@ -115,6 +116,30 @@ function normalizeVariant(value) {
         throw new TypeError(`Ongeldige blockvariant: ${name || "(leeg)"}`);
     }
     return name;
+}
+
+function normalizeColorArray(value) {
+    const source = value === undefined ? COLOR_VARIANTS : value;
+    if (!Array.isArray(source) || source.length === 0) {
+        throw new TypeError("blocks.system.colorArray verwacht minstens één kleurvariant.");
+    }
+    const variants = [];
+    for (const value of source) {
+        const name = normalizeVariant(value);
+        if (name === "random" || name === "regular" || name === "inverse") {
+            throw new TypeError("blocks.system.colorArray verwacht kleurvarianten, niet random, regular of inverse.");
+        }
+        if (!variants.includes(name)) variants.push(name);
+    }
+    return Object.freeze(variants);
+}
+
+function normalizeColorVary(value) {
+    if (value === undefined) return 0;
+    if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1) {
+        throw new TypeError("blocks.system.colorVary verwacht een getal van 0 tot en met 1.");
+    }
+    return value;
 }
 
 function normalizeFont(value) {
@@ -300,6 +325,8 @@ export function createBlocksSystem(options = {}) {
     const labels = normalizeLabels(options.labels);
     const blockDefaults = normalizeBlockDefaults(options.blockDefaults);
     let variantMode = normalizeVariant(options.variant);
+    let colorArrayState = normalizeColorArray(options.colorArray);
+    let colorVaryState = normalizeColorVary(options.colorVary);
     let objectIndex = 0;
     let api;
 
@@ -308,7 +335,14 @@ export function createBlocksSystem(options = {}) {
         if (name !== "random") return name;
         const raw = Number(randomSource());
         const unit = Number.isFinite(raw) ? Math.max(0, Math.min(0.999999999, raw)) : 0;
-        return RANDOM_VARIANTS[Math.floor(unit * RANDOM_VARIANTS.length)];
+        if (colorVaryState > 0 && unit < colorVaryState) {
+            const colorUnit = unit / colorVaryState;
+            return colorArrayState[Math.floor(colorUnit * colorArrayState.length)];
+        }
+        const monochromeUnit = colorVaryState === 0
+            ? unit
+            : (unit - colorVaryState) / (1 - colorVaryState);
+        return RANDOM_VARIANTS[Math.floor(monochromeUnit * RANDOM_VARIANTS.length)];
     }
 
     function register(definition, registerOptions = {}) {
@@ -1219,6 +1253,20 @@ export function createBlocksSystem(options = {}) {
         variants: {
             enumerable: true,
             get: () => BUILT_IN_VARIANTS
+        },
+        colorArray: {
+            enumerable: true,
+            get: () => colorArrayState,
+            set(value) {
+                colorArrayState = normalizeColorArray(value);
+            }
+        },
+        colorVary: {
+            enumerable: true,
+            get: () => colorVaryState,
+            set(value) {
+                colorVaryState = normalizeColorVary(value);
+            }
         },
         labels: {
             enumerable: true,

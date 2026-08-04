@@ -103,6 +103,8 @@ export interface BlocksSystemOptions {
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
   variant?: string;
+  colorArray?: readonly string[];
+  colorVary?: number;
   blockDefaults?: BlockDefaults;
   blocks?: BlockDefinition[];
 }
@@ -113,6 +115,8 @@ export interface BlocksSystem {
   font: Readonly<BlocksFont> | null;
   variant: string;
   readonly variants: readonly string[];
+  colorArray: readonly string[];
+  colorVary: number;
   readonly labels: Readonly<BlocksLabels>;
   readonly field: Element | null;
   register(definition: BlockDefinition, options?: RegisterOptions): BlocksSystem;

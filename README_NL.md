@@ -18,6 +18,8 @@ adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
 
   const blocks = createBlocksSystem({
     snap: true,
+    colorArray: ["red", "green", "blue", "cyan", "magenta", "yellow"],
+    colorVary: 0.2,
     blockDefaults: { menu: { close: true } }
   });
 
@@ -37,6 +39,12 @@ De naamgeving is bewust: `blocks` is het geconfigureerde systeem; iedere
 teruggegeven controller begint met `block`. Voor gebruik zonder configuratie
 exporteert de module ook het gedeelde `system`, globaal als
 `window.blocks.system`.
+
+`colorVary` geldt alleen voor nieuwe blocks waarvan de variant uit `random`
+wordt bepaald: `0.2` geeft de varianten uit `colorArray` twintig procent van dat
+bereik. De overige tachtig procent behoudt de bestaande regular/inverse-
+verdeling. Een expliciete blockvariant wint altijd en bestaande blocks
+verkleuren nooit achteraf.
 
 ## Midden
 
@@ -93,9 +101,9 @@ blocks.register({
 
 ## API-overzicht
 
-- Aanmaak: `createBlocksSystem({ snap, draggable, variant, blockDefaults })`.
+- Aanmaak: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVary, blockDefaults })`.
 - Gedeeld systeem: `attach`, `setGrid`, `snap`, `draggable`, `font`, `variant`,
-  `variants`, `add`.
+  `variants`, `colorArray`, `colorVary`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
 - Eén block: `menu`, `minimized`, `span`, `place`, `flow`, `variant`, `color`, `remove`.

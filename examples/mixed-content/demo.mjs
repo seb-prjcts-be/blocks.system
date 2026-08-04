@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.4";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.5";
 
 const accent = [255, 0, 255];
 const blocks = createBlocksSystem({
