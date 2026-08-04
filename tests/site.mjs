@@ -260,6 +260,14 @@ assert.match(siteDemos["docs/manual.mjs"], /function createTextElement[\s\S]*ele
 assert.match(siteDemos["docs/manual.mjs"], /variant:\s*"regular"[\s\S]*draggable:\s*false[\s\S]*menu:\s*\{\s*minimize:\s*false,\s*close:\s*false\s*\}/, "the manual itself must stay fixed and monochrome");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.colorArray\s*=\s*\["cyan",\s*"magenta",\s*"yellow"\][\s\S]*blocks\.colorVariation\s*=\s*1/, "the manual must introduce user colors only inside the color example");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.variant\s*=\s*"random"[\s\S]*blocks\.colorVariation\s*=\s*0\.5[\s\S]*blocks\.inversionVariation\s*=\s*0\.5/, "the manual must demonstrate reproducible random variation after fixed variants");
+const randomExampleContent = [1, 2, 3, 4, 5, 6].map((number) => docsContent.manual[`manual-random-${number}`]);
+assert.equal(new Set(randomExampleContent.map((example) => JSON.stringify(example))).size, 1, "random results must keep exactly the same title and content while the block changes");
+assert.deepEqual(randomExampleContent[0], {
+  title: "random / object",
+  eyebrow: "blocks.system",
+  statement: "object.",
+  body: "add · span · place"
+}, "the fixed random example content must be a real object statement rather than a variant label");
 assert.match(siteDemos["examples/basic-grid/demo.mjs"], /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "the basic example must supply its own CMY example array");
 assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");
 assert.match(siteDemos["docs/shell.mjs"], /Math\.floor\(\(available - borders - gap \* \(columns - 1\)\) \/ columns\)/, "the docs shell must quantize tracks to whole CSS pixels");
@@ -373,7 +381,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.1", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.2", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

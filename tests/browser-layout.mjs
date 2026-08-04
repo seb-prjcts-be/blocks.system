@@ -263,6 +263,16 @@ async function measureManual(width, height, dpr = 1) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         return getComputedStyle(block.querySelector(":scope > .blocks-system-content")).color;
       });
+      const randomExamples = ["manual-random-1", "manual-random-2", "manual-random-3", "manual-random-4", "manual-random-5", "manual-random-6"].map(function (id) {
+        const block = board.querySelector('[data-block-object="' + id + '"]');
+        const lesson = block.querySelector(":scope > .blocks-system-content > .manual-lesson");
+        return {
+          title: block.querySelector(".blocks-system-title").textContent,
+          eyebrow: lesson.querySelector("small").textContent,
+          statement: lesson.querySelector("strong").textContent,
+          body: lesson.querySelector("p").textContent
+        };
+      });
       const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu");
       return {
         blockCount: objects.length,
@@ -327,7 +337,8 @@ async function measureManual(width, height, dpr = 1) {
         },
         chapterGaps,
         codeBlockWidths,
-        colorContentColors
+        colorContentColors,
+        randomExamples
       };
     })()`,
     awaitPromise: true,
@@ -610,6 +621,13 @@ try {
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
     assert.deepEqual(manual.colorContentColors, ["rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual laat gebruikerskleuren in de voorbeeldinhoud lekken op ${width}px`);
+    assert.equal(new Set(manual.randomExamples.map((example) => JSON.stringify(example))).size, 1, `manual verandert de random-inhoud in plaats van het block op ${width}px`);
+    assert.deepEqual(manual.randomExamples[0], {
+      title: "random / object",
+      eyebrow: "blocks.system",
+      statement: "object.",
+      body: "add · span · place"
+    }, `manual toont niet het vaste random-object op ${width}px`);
     assert.equal(manual.contentExamples.trusted.tag, "ARTICLE", `manual toont trusted HTML niet als echte inhoud op ${width}px`);
     assert.match(manual.contentExamples.trusted.text, /Structure makes movement visible\./, `manual mist de typografische HTML-inhoud op ${width}px`);
     assert.equal(manual.contentExamples.object.tag, "FIGURE", `manual toont de foto niet als echt object op ${width}px`);

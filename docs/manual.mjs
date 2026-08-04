@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.14";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.15";
 
 const board = document.querySelector("#manual-board");
 const manualVariationSamples = [0.05, 0.4, 0.8, 0.05, 0.25, 0.45, 0.55, 0.75, 0.6];

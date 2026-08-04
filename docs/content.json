@@ -134,7 +134,7 @@
     },
     "manual-random": {
       "title": "05 / mix random variations",
-      "intro": "Random mode can mix your colors with regular and inverse blocks. First reserve a share for color; inversionVariation divides the remaining monochrome share.",
+      "intro": "Random mode can mix your colors with regular and inverse blocks. Every new block resolves one appearance; its content stays untouched.",
       "code": [
         "blocks.variant = \"random\";",
         "blocks.colorVariation = 0.5;",
@@ -145,40 +145,40 @@
       ]
     },
     "manual-random-1": {
-      "title": "random / 01",
-      "eyebrow": "one possible result",
-      "statement": "color",
-      "body": "Chosen from colorArray."
+      "title": "random / object",
+      "eyebrow": "blocks.system",
+      "statement": "object.",
+      "body": "add · span · place"
     },
     "manual-random-2": {
-      "title": "random / 02",
-      "eyebrow": "one possible result",
-      "statement": "color",
-      "body": "Chosen from colorArray."
+      "title": "random / object",
+      "eyebrow": "blocks.system",
+      "statement": "object.",
+      "body": "add · span · place"
     },
     "manual-random-3": {
-      "title": "random / 03",
-      "eyebrow": "one possible result",
-      "statement": "color",
-      "body": "Chosen from colorArray."
+      "title": "random / object",
+      "eyebrow": "blocks.system",
+      "statement": "object.",
+      "body": "add · span · place"
     },
     "manual-random-4": {
-      "title": "random / 04",
-      "eyebrow": "one possible result",
-      "statement": "regular",
-      "body": "From the monochrome share."
+      "title": "random / object",
+      "eyebrow": "blocks.system",
+      "statement": "object.",
+      "body": "add · span · place"
     },
     "manual-random-5": {
-      "title": "random / 05",
-      "eyebrow": "one possible result",
-      "statement": "inverse",
-      "body": "From the monochrome share."
+      "title": "random / object",
+      "eyebrow": "blocks.system",
+      "statement": "object.",
+      "body": "add · span · place"
     },
     "manual-random-6": {
-      "title": "random / 06",
-      "eyebrow": "one possible result",
-      "statement": "regular",
-      "body": "Each new random block resolves once."
+      "title": "random / object",
+      "eyebrow": "blocks.system",
+      "statement": "object.",
+      "body": "add · span · place"
     },
     "manual-next": {
       "title": "06 / continue",
