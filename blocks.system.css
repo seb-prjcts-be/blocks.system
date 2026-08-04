@@ -99,6 +99,7 @@
     --block-color: var(--blocks-ink-color);
     --block-paper-color: var(--blocks-paper-color);
     --block-content-color: var(--blocks-text-color);
+    --block-menu-color: var(--block-paper-color);
     --block-span-columns: 1;
     --block-span-rows: 1;
     --block-column: auto;
@@ -133,9 +134,10 @@
 }
 
 .blocks-system-object[data-block-variant="color"][data-block-color] {
-    --block-color: var(--blocks-ink-color);
-    --block-paper-color: var(--block-array-color);
-    --block-content-color: var(--blocks-ink-color);
+    --block-color: var(--block-array-color);
+    --block-paper-color: var(--blocks-paper-color);
+    --block-content-color: var(--blocks-text-color);
+    --block-menu-color: var(--blocks-ink-color);
 }
 
 .blocks-system-menu {
@@ -148,7 +150,7 @@
     min-height: 22px;
     border-bottom: 1px solid var(--block-color);
     background: var(--block-color);
-    color: var(--block-paper-color);
+    color: var(--block-menu-color);
     padding: 3px 7px;
     font: 600 13px/1 var(--blocks-font-family);
 }

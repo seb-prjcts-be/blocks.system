@@ -75,8 +75,9 @@ blockCanvas.remove();
 ```
 
 The built-in variants are `regular` and `inverse`. A colour selected from your
-array uses one generic `color` state: the chosen colour becomes the block paper,
-while the library keeps neutral ink and reverses the menu to colour on black.
+array uses one generic `color` state: the chosen colour draws the block frame
+and menu bar, while the block paper and rendered content stay neutral. The menu
+uses neutral ink.
 Other explicit variant names remain available as hooks for your own CSS, but
 the library does not style them as named colours.
 

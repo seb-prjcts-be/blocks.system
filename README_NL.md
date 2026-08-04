@@ -76,9 +76,9 @@ blockCanvas.remove();
 ```
 
 De ingebouwde varianten zijn `regular` en `inverse`. Een kleur uit je array
-gebruikt één generieke `color`-state: de gekozen kleur wordt het blockpapier,
-terwijl de library neutrale inkt gebruikt en het menu omdraait naar kleur op
-zwart. Andere expliciete variantnamen blijven haken voor je eigen CSS, maar de
+gebruikt één generieke `color`-state: de gekozen kleur tekent het blockkader en
+de menubalk, terwijl het blockpapier en de gerenderde inhoud neutraal blijven.
+Het menu gebruikt neutrale inkt. Andere expliciete variantnamen blijven haken voor je eigen CSS, maar de
 library geeft ze geen ingebouwde kleurstijl.
 
 ## Einde

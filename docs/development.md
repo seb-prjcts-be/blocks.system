@@ -80,9 +80,9 @@ library-API.
   niet. `colorArray` is standaard leeg; een positieve `colorVariation` vereist
   minstens één door de gebruiker gekozen CSS-kleur.
 - De library bezit alleen `regular` en `inverse`. Een gekozen gebruikerskleur
-  krijgt de generieke `color`-state: de kleur vult het blockpapier, neutrale inkt
-  tekent rand en inhoud, en het menu draait die twee om. Zelfgetekende inhoud in
-  HTML, canvas of SVG kiest geen eigen steunkleur en blijft neutraal.
+  krijgt de generieke `color`-state: de kleur tekent uitsluitend het blockkader
+  en de menubalk. Blockpapier, tekst en zelfgetekende inhoud in HTML, canvas of
+  SVG blijven neutraal.
 - Bewaar een regel hier alleen wanneer de reden niet betrouwbaar uit broncode,
   tests of gitgeschiedenis terug te vinden is.
 

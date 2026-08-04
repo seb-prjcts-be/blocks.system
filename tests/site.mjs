@@ -112,13 +112,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.7", "docs/style.css?v=0.2.1"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.2.2"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.7", "style.css?v=0.2.0"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.8", "docs/style.css?v=0.2.1"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.8", "style.css?v=0.2.3"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.8", "style.css?v=0.2.0"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.7", "../../docs/style.css?v=0.2.0"]
+    ["../../blocks.system.css?v=0.1.8", "../../docs/style.css?v=0.2.0"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -159,7 +159,7 @@ assert.equal(manifest.version, packageData.version, "manifest and package versio
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
 assert.ok(["attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
 assert.ok(manifest.design_rules.includes("colorArray is consumer-owned and defaults empty; positive colorVariation requires user-supplied CSS colors"), "manifest must record consumer ownership of the palette");
-assert.ok(manifest.design_rules.includes("the library owns only regular and inverse; automatic user colors share one generic color state with neutral ink"), "manifest must not present RGB or CMY as built-in variants");
+assert.ok(manifest.design_rules.includes("the library owns only regular and inverse; automatic user colors share one generic color state that colors only the block shell"), "manifest must keep user color on the generic block shell instead of rendered content");
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose the TypeScript declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "the published file list must include the TypeScript declarations");
 for (const declaration of ["BlocksSystem", "BlockController", "BlockDefaults", "BlocksLabels", "BlocksReorderDetail", "createBlocksSystem"]) {
@@ -226,7 +226,7 @@ for (const variant of ["inverse", "color"]) {
   assert.match(libraryCss, new RegExp(`data-block-variant="${variant}"`), `missing built-in ${variant} variant`);
 }
 assert.doesNotMatch(libraryCss, /data-block-variant="(?:red|green|blue|cyan|magenta|yellow)"/, "the library CSS must not own an RGB or CMY palette");
-assert.match(libraryCss, /data-block-variant="color"\]\[data-block-color\]\s*\{[^}]*--block-color:\s*var\(--blocks-ink-color\);[^}]*--block-paper-color:\s*var\(--block-array-color\);[^}]*--block-content-color:\s*var\(--blocks-ink-color\);/s, "the generic color variant must combine a user color with neutral library ink");
+assert.match(libraryCss, /data-block-variant="color"\]\[data-block-color\]\s*\{[^}]*--block-color:\s*var\(--block-array-color\);[^}]*--block-paper-color:\s*var\(--blocks-paper-color\);[^}]*--block-content-color:\s*var\(--blocks-text-color\);[^}]*--block-menu-color:\s*var\(--blocks-ink-color\);/s, "the generic color variant must color only the block shell and keep its content plane neutral");
 assert.match(siteDemos["examples/basic-grid/demo.mjs"], /colorVariation:\s*0\.25,[\s\S]*inversionVariation:\s*0\.25,[\s\S]*random:/, "the basic grid must demonstrate reproducible system-level variation");
 assert.doesNotMatch(siteDemos["examples/basic-grid/demo.mjs"], /blockItem\.variant\s*=/, "the basic grid must obtain variants from the configured system instead of local block exceptions");
 assert.match(standaloneExamples["basic-grid"], /system-level color and inversion variation/, "the basic example copy must name its actual variation mode");
@@ -263,12 +263,19 @@ assert.match(siteDemos["docs/manual.mjs"], /blocks\.colorArray\s*=\s*\["cyan",\s
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.variant\s*=\s*"random"[\s\S]*blocks\.colorVariation\s*=\s*0\.5[\s\S]*blocks\.inversionVariation\s*=\s*0\.5/, "the manual must demonstrate reproducible random variation after fixed variants");
 const randomExampleContent = [1, 2, 3, 4, 5, 6].map((number) => docsContent.manual[`manual-random-${number}`]);
 assert.equal(new Set(randomExampleContent.map((example) => JSON.stringify(example))).size, 1, "random results must keep exactly the same title and content while the block changes");
-assert.deepEqual(randomExampleContent[0], {
-  title: "random / object",
-  eyebrow: "blocks.system",
-  statement: "object.",
-  body: "add · span · place"
-}, "the fixed random example content must be a real object statement rather than a variant label");
+const colorExampleContent = ["cyan", "magenta", "yellow"].map((name) => docsContent.manual[`manual-color-${name}`]);
+assert.equal(new Set(colorExampleContent.map((example) => JSON.stringify(example))).size, 1, "color examples must keep exactly the same title and content while the block shell changes");
+function manualSpecimen(example) {
+  return { eyebrow: example.eyebrow, statement: example.statement, body: example.body };
+}
+const fixedSpecimenIds = [
+  "manual-result-regular", "manual-result-inverse", "manual-layout-wide", "manual-layout-small",
+  "manual-color-cyan", "manual-color-magenta", "manual-color-yellow",
+  "manual-random-1", "manual-random-2", "manual-random-3", "manual-random-4", "manual-random-5", "manual-random-6"
+];
+const fixedSpecimens = fixedSpecimenIds.map((id) => manualSpecimen(docsContent.manual[id]));
+assert.equal(new Set(fixedSpecimens.map((example) => JSON.stringify(example))).size, 1, "variant, layout, color and random comparisons must keep one fixed content specimen");
+assert.ok(Object.values(fixedSpecimens[0]).every((value) => typeof value === "string" && value.trim() !== ""), "the fixed comparison specimen must contain real visible content");
 assert.match(siteDemos["examples/basic-grid/demo.mjs"], /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "the basic example must supply its own CMY example array");
 assert.match(siteDemos["docs/manual.mjs"], /quantizeSurface\(board\);/, "the manual must quantize its editorial grid outside the library core");
 assert.match(siteDemos["docs/shell.mjs"], /Math\.floor\(\(available - borders - gap \* \(columns - 1\)\) \/ columns\)/, "the docs shell must quantize tracks to whole CSS pixels");
@@ -382,7 +389,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.2", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.4", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

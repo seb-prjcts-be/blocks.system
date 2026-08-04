@@ -136,6 +136,7 @@ async function measureUserColor() {
           borderColor: objectStyle.borderColor,
           menuBackground: menuStyle.backgroundColor,
           menuColor: menuStyle.color,
+          contentBackground: contentStyle.backgroundColor,
           contentColor: contentStyle.color
         };
       } finally {
@@ -259,9 +260,19 @@ async function measureManual(width, height, dpr = 1) {
       const codeBlockWidths = Array.from(board.querySelectorAll(":scope > .manual-code-block"), function (block) {
         return { id: block.dataset.blockObject, width: block.getBoundingClientRect().width };
       });
-      const colorContentColors = ["manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random-1", "manual-random-2", "manual-random-3"].map(function (id) {
+      const colorBlockStyles = ["manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random-1", "manual-random-2", "manual-random-3"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
-        return getComputedStyle(block.querySelector(":scope > .blocks-system-content")).color;
+        const objectStyle = getComputedStyle(block);
+        const menuStyle = getComputedStyle(block.querySelector(":scope > .blocks-system-menu"));
+        const contentStyle = getComputedStyle(block.querySelector(":scope > .blocks-system-content"));
+        return {
+          border: objectStyle.borderColor,
+          objectBackground: objectStyle.backgroundColor,
+          menuBackground: menuStyle.backgroundColor,
+          menuColor: menuStyle.color,
+          contentBackground: contentStyle.backgroundColor,
+          contentColor: contentStyle.color
+        };
       });
       const randomExamples = ["manual-random-1", "manual-random-2", "manual-random-3", "manual-random-4", "manual-random-5", "manual-random-6"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
@@ -272,6 +283,25 @@ async function measureManual(width, height, dpr = 1) {
           statement: lesson.querySelector("strong").textContent,
           body: lesson.querySelector("p").textContent
         };
+      });
+      const textOverlaps = objects.flatMap(function (block) {
+        const lesson = block.querySelector(":scope > .blocks-system-content > .manual-lesson");
+        if (!lesson) return [];
+        const children = Array.from(lesson.children).filter(function (child) {
+          const style = getComputedStyle(child);
+          return style.display !== "none" && style.visibility !== "hidden";
+        });
+        const overlaps = [];
+        for (let firstIndex = 0; firstIndex < children.length; firstIndex += 1) {
+          const first = children[firstIndex].getBoundingClientRect();
+          for (let secondIndex = firstIndex + 1; secondIndex < children.length; secondIndex += 1) {
+            const second = children[secondIndex].getBoundingClientRect();
+            const overlapX = Math.min(first.right, second.right) - Math.max(first.left, second.left);
+            const overlapY = Math.min(first.bottom, second.bottom) - Math.max(first.top, second.top);
+            if (overlapX > 1 && overlapY > 1) overlaps.push(block.dataset.blockObject);
+          }
+        }
+        return overlaps;
       });
       const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu");
       return {
@@ -337,8 +367,9 @@ async function measureManual(width, height, dpr = 1) {
         },
         chapterGaps,
         codeBlockWidths,
-        colorContentColors,
-        randomExamples
+        colorBlockStyles,
+        randomExamples,
+        textOverlaps
       };
     })()`,
     awaitPromise: true,
@@ -572,6 +603,7 @@ try {
     [390, 844, 3, 1],
     [320, 720, 3, 1]
   ];
+  const manualViewportMatrix = [[1920, 1080, 6, 6], ...viewportMatrix];
   assertMainNavigation(await measureMainNavigation(), "home", "home");
   for (const [width, height, homeColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
@@ -611,13 +643,14 @@ try {
   assert.deepEqual(userColor, {
     variant: "color",
     dataBlockColor: "yellow",
-    objectBackground: "rgb(255, 255, 0)",
-    objectColor: "rgb(0, 0, 0)",
-    borderColor: "rgb(0, 0, 0)",
-    menuBackground: "rgb(0, 0, 0)",
-    menuColor: "rgb(255, 255, 0)",
-    contentColor: "rgb(0, 0, 0)"
-  }, "een kleur uit de gebruikersarray moet via de generieke kleurvariant neutrale zwarte blockinkt en de zwart/kleur-omkering gebruiken");
+    objectBackground: "rgb(239, 238, 232)",
+    objectColor: "rgb(20, 20, 15)",
+    borderColor: "rgb(255, 255, 0)",
+    menuBackground: "rgb(255, 255, 0)",
+    menuColor: "rgb(0, 0, 0)",
+    contentBackground: "rgba(0, 0, 0, 0)",
+    contentColor: "rgb(20, 20, 15)"
+  }, "een kleur uit de gebruikersarray moet alleen het blockkader en menu kleuren en de inhoud neutraal laten");
 
   await measureHome(1280, 900);
   const beforeHover = await hoverSignature();
@@ -662,7 +695,7 @@ try {
   assert.equal(afterManualHover.outlineOffset, "-3px", "manual-hover moet binnen het block blijven");
   assert.equal(afterManualHover.cursor, "grab", "de manualheader toont geen echte dragcursor");
   await protocol.send("CSS.forcePseudoState", { nodeId: manualRandomNode.nodeId, forcedPseudoClasses: [] });
-  for (const [width, height, , documentColumns] of viewportMatrix) {
+  for (const [width, height, , documentColumns] of manualViewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
     assert.equal(manual.blockCount, 22, `manual mist directe lesblokken op ${width}px @${dpr}x`);
@@ -685,6 +718,7 @@ try {
     assert.ok(manual.horizontalOverflow <= 0.5, `manual heeft ${manual.horizontalOverflow}px horizontale overflow op ${width}px`);
     assert.deepEqual(manual.outsideBoard, [], `manual plaatst blocks buiten het board op ${width}px: ${manual.outsideBoard.join(", ")}`);
     assert.deepEqual(manual.clippedContent, [], `manual knipt inhoud af op ${width}px: ${manual.clippedContent.join(", ")}`);
+    assert.deepEqual(manual.textOverlaps, [], `manual laat tekst overlappen op ${width}px: ${manual.textOverlaps.join(", ")}`);
     assert.equal(manual.nestedSurfaces, 0, `manual bevat ${manual.nestedSurfaces} geneste blocks-grids op ${width}px`);
     assert.equal(manual.pageSurfaceCount, 1, `manual bevat ${manual.pageSurfaceCount} systemen op ${width}px`);
     assert.equal(manual.navigationCount, 1, `manual bevat ${manual.navigationCount} menu's op ${width}px`);
@@ -699,14 +733,13 @@ try {
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
-    assert.deepEqual(manual.colorContentColors, ["rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual laat gebruikerskleuren in de voorbeeldinhoud lekken op ${width}px`);
+    const expectedShellColors = ["rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)"];
+    assert.deepEqual(manual.colorBlockStyles.map((style) => style.border), expectedShellColors, `manual zet de gebruikerskleur niet op het blockkader op ${width}px`);
+    assert.deepEqual(manual.colorBlockStyles.map((style) => style.menuBackground), expectedShellColors, `manual zet de gebruikerskleur niet op de blockheader op ${width}px`);
+    assert.ok(manual.colorBlockStyles.every((style) => style.objectBackground === "rgb(239, 238, 232)" && style.contentBackground === "rgb(239, 238, 232)"), `manual laat gebruikerskleur in het inhoudsvlak lekken op ${width}px`);
+    assert.ok(manual.colorBlockStyles.every((style) => style.menuColor === "rgb(0, 0, 0)" && style.contentColor === "rgb(20, 20, 15)"), `manual bewaart geen neutrale inkt in gekleurde blocks op ${width}px`);
     assert.equal(new Set(manual.randomExamples.map((example) => JSON.stringify(example))).size, 1, `manual verandert de random-inhoud in plaats van het block op ${width}px`);
-    assert.deepEqual(manual.randomExamples[0], {
-      title: "random / object",
-      eyebrow: "blocks.system",
-      statement: "object.",
-      body: "add · span · place"
-    }, `manual toont niet het vaste random-object op ${width}px`);
+    assert.ok(Object.values(manual.randomExamples[0]).every((value) => typeof value === "string" && value.trim() !== ""), `manual toont geen volledig vast random-object op ${width}px`);
     assert.equal(manual.contentExamples.trusted.tag, "ARTICLE", `manual toont trusted HTML niet als echte inhoud op ${width}px`);
     assert.match(manual.contentExamples.trusted.text, /Structure makes movement visible\./, `manual mist de typografische HTML-inhoud op ${width}px`);
     assert.equal(manual.contentExamples.object.tag, "FIGURE", `manual toont de foto niet als echt object op ${width}px`);

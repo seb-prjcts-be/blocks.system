@@ -23,7 +23,7 @@
   "manual": {
     "manual-start": {
       "title": "01 / start the system",
-      "intro": "Load the two library files, create one system and attach it to an empty field.",
+      "intro": "Attach the system before adding content. setGrid(6, 4) creates six columns and four rows.",
       "code": [
         "<link rel=\"stylesheet\" href=\"./blocks.system.css\">",
         "<div id=\"blocks-field\"></div>",
@@ -59,55 +59,52 @@
     },
     "manual-finish": {
       "title": "02 / add the block",
-      "intro": "Choose one content form above. Add it, give it a stable id, then size and place it on the grid.",
+      "intro": "blocks.add() returns the block controller. Its id must be unique lowercase kebab-case.",
       "code": [
         "const block = blocks.add(content, {",
         "  id: \"block-hello\",",
         "  title: \"hello\"",
         "});",
-        "",
-        "block.span(3, 2);",
-        "block.place(1, 1);",
         "</script>"
       ]
     },
     "manual-result-regular": {
       "title": "result / regular",
-      "eyebrow": "standard",
-      "statement": "Black ink on paper.",
-      "body": "This is the regular built-in appearance."
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-result-inverse": {
       "title": "result / inverse",
-      "eyebrow": "built in",
-      "statement": "Paper on black ink.",
-      "body": "Set variant to inverse when you add a block."
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-layout": {
       "title": "03 / size and position",
-      "intro": "A block occupies whole grid units. span() sets its size; place() sets its one-based position. flow() returns it to automatic order.",
+      "intro": "span() and place() use columns before rows; grid coordinates start at 1. flow() restores automatic placement.",
       "code": [
-        "block.span(4, 2);       // columns, rows",
-        "block.place(1, 1);      // column, row",
+        "block.span(4, 2);",
+        "block.place(1, 1);",
         "",
-        "block.flow();           // back to document order"
+        "block.flow();"
       ]
     },
     "manual-layout-wide": {
       "title": "result / 4 × 2",
-      "eyebrow": "span(4, 2)",
-      "statement": "A wide block carries the main idea.",
-      "body": "Use more columns for code, media or longer reading."
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-layout-small": {
       "title": "result / 2 × 2",
-      "eyebrow": "span(2, 2)",
-      "statement": "A small block supports it.",
-      "body": "The same grid keeps both aligned."
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-colors": {
       "title": "04 / add your colors",
-      "intro": "The library has no named palette. You supply CSS colors in colorArray. colorVariation controls how often random blocks choose from that array.",
+      "intro": "Set these values before blocks.add(). At 1, every new random block uses one supplied color for its border and titlebar; its content stays neutral.",
       "code": [
         "blocks.colorArray = [\"cyan\", \"magenta\", \"yellow\"];",
         "blocks.colorVariation = 1;",
@@ -115,81 +112,76 @@
       ]
     },
     "manual-color-cyan": {
-      "title": "result / first color",
-      "eyebrow": "from your array",
-      "statement": "cyan",
-      "body": "Color belongs to the block. Its content stays neutral."
+      "title": "color / object",
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-color-magenta": {
-      "title": "result / second color",
-      "eyebrow": "from your array",
-      "statement": "magenta",
-      "body": "Replace these example colors with your own CSS values."
+      "title": "color / object",
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-color-yellow": {
-      "title": "result / third color",
-      "eyebrow": "from your array",
-      "statement": "yellow",
-      "body": "The array is supplied by the user, never by the library."
+      "title": "color / object",
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-random": {
       "title": "05 / mix random variations",
-      "intro": "Random mode can mix your colors with regular and inverse blocks. Every new block resolves one appearance; its content stays untouched.",
+      "intro": "Each blocks.add() call resolves one appearance. With these values: 50% color, 25% regular and 25% inverse; content is never changed.",
       "code": [
         "blocks.variant = \"random\";",
         "blocks.colorVariation = 0.5;",
-        "blocks.inversionVariation = 0.5;",
-        "",
-        "// 50% user colors",
-        "// remaining 50%: half regular, half inverse"
+        "blocks.inversionVariation = 0.5;"
       ]
     },
     "manual-random-1": {
       "title": "random / object",
-      "eyebrow": "blocks.system",
-      "statement": "object.",
-      "body": "add · span · place"
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-random-2": {
       "title": "random / object",
-      "eyebrow": "blocks.system",
-      "statement": "object.",
-      "body": "add · span · place"
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-random-3": {
       "title": "random / object",
-      "eyebrow": "blocks.system",
-      "statement": "object.",
-      "body": "add · span · place"
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-random-4": {
       "title": "random / object",
-      "eyebrow": "blocks.system",
-      "statement": "object.",
-      "body": "add · span · place"
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-random-5": {
       "title": "random / object",
-      "eyebrow": "blocks.system",
-      "statement": "object.",
-      "body": "add · span · place"
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-random-6": {
       "title": "random / object",
-      "eyebrow": "blocks.system",
-      "statement": "object.",
-      "body": "add · span · place"
+      "eyebrow": "Tuesday / 14:00",
+      "statement": "Final review.",
+      "body": "Studio 04 · bring print proofs"
     },
     "manual-next": {
-      "title": "06 / continue",
-      "eyebrow": "copy a complete example",
-      "statement": "Start small. Add only what your content needs.",
-      "body": "The examples cover a basic grid, mixed HTML and canvas content, and a custom runtime adapter.",
+      "title": "06 / run an example",
+      "eyebrow": "next / practice",
+      "statement": "Edit one call. Reload.",
       "items": [
         { "label": "basic grid →", "href": "../examples/basic-grid/" },
         { "label": "mixed content →", "href": "../examples/mixed-content/" },
-        { "label": "custom adapter →", "href": "../examples/custom-adapter/" },
-        { "label": "complete reference →", "href": "api.html" }
+        { "label": "custom adapter →", "href": "../examples/custom-adapter/" }
       ]
     }
   },

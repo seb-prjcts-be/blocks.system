@@ -480,6 +480,10 @@ footer a { color: var(--ink); }
   text-transform: lowercase;
 }
 
+.manual-next-block .manual-result strong {
+  max-width: 28ch;
+}
+
 .manual-result p {
   max-width: 44ch;
   margin: 0;
