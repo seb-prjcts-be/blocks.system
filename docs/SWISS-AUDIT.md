@@ -120,7 +120,7 @@ Aanleiding: hoofdstuk 05 vermengde de vaste varianten nog met cyaan, terwijl dir
 |---|---:|---|
 | Helder | 10 | Hoofdstuk 05 toont uitsluitend regular en inverse; hoofdstuk 06 uitsluitend directe kleur; hoofdstuk 07 uitsluitend kansinstellingen. |
 | Systematisch | 10 | De route bouwt nu deterministisch op van variant naar kleur en pas daarna naar random gedrag; practice wordt deel 08. |
-| Asymmetrisch | 9 | De 3/3-variantvergelijking, het 2/2/2-kleurdrieluik en de gecentreerde kansreeks geven verschillende maar rastervaste spanningen. |
+| Asymmetrisch | 9 | De 3/3-variantvergelijking, het 2/2/2-kleurdrieluik en de links verankerde kansreeks geven verschillende maar rastervaste spanningen. |
 | Typografisch | 9 | Dezelfde inhoudsrollen blijven gelijk over de vergelijkingen; in de kleine kanscellen blijft alleen het noodzakelijke resultaatlabel over. |
 | Functioneel | 10 | De code toont het echte publieke contract voor `variant`, `block.color`, `colorVariation` en `inversionVariation`, elk op het moment dat het wordt uitgelegd. |
 | Leesbaar | 9 | Desktop heeft geen clipping of overlap; mobiel stapelt de lessen in dezelfde leesvolgorde met interne codescroll waar nodig. |

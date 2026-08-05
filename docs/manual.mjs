@@ -509,7 +509,7 @@ addBlock({
 blocks.colorVariation = 0.5;
 blocks.inversionVariation = 0.5;
 
-for (const [index, column] of [2, 3, 4, 5].entries()) {
+for (const [index, column] of [1, 2, 3, 4].entries()) {
   const id = `manual-random-mix-${index + 1}`;
   addBlock({
     id,

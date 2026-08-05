@@ -1022,7 +1022,7 @@ try {
       assert.equal(new Set([...manual.randomMiniGrids.color, ...manual.randomMiniGrids.inverse].map((item) => item.top)).size, 1, `de twee afzonderlijke random-mini-grids delen geen rij op ${width}px`);
       assert.ok(Math.abs(manual.randomMiniGrids.inverse[0].left - manual.randomMiniGrids.color[2].right - manual.columnGap) <= 0.5, `de color- en inverse-mini-grid sluiten niet als twee rasterhelften op elkaar aan op ${width}px`);
       assert.equal(new Set(manual.randomMiniGrids.combined.map((item) => item.top)).size, 1, `de gecombineerde randomproef vormt geen eigen rij op ${width}px`);
-      assert.ok(Math.abs(manual.randomMiniGrids.combined[0].left - manual.randomMiniGrids.color[1].left) <= 0.5 && Math.abs(manual.randomMiniGrids.combined[3].right - manual.randomMiniGrids.inverse[1].right) <= 0.5, `de gecombineerde vierdelige proef staat niet gecentreerd onder de twee mini-grids op ${width}px`);
+      assert.ok(Math.abs(manual.randomMiniGrids.combined[0].left - manual.randomMiniGrids.color[0].left) <= 0.5 && Math.abs(manual.randomMiniGrids.combined[3].right - manual.randomMiniGrids.inverse[0].right) <= 0.5, `de gecombineerde vierdelige proef start niet aan de linker rasterlijn op ${width}px`);
       assert.ok([...manual.randomMiniGrids.color, ...manual.randomMiniGrids.inverse, ...manual.randomMiniGrids.combined].every(function (item) { return Math.abs(item.height - manual.rowHeight) <= 0.5; }), `de chance-resultaten zijn geen echte 1×1-gridcellen op ${width}px`);
     }
     const expectedShellColors = ["rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"];
