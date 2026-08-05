@@ -320,7 +320,7 @@ footer a { color: var(--ink); }
 
 .docs-masthead > span {
   grid-column: 1 / -1;
-  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -401,7 +401,7 @@ footer a { color: var(--ink); }
   margin: 0;
   padding: 0;
   list-style: none;
-  font: 400 10px/1.25 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.25 "Consolas", "Courier New", monospace;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -440,7 +440,7 @@ footer a { color: var(--ink); }
   padding: clamp(14px, 1.6vw, 24px);
   border: 1px solid currentColor;
   overscroll-behavior: auto;
-  font: 400 clamp(10px, 0.85vw, 13px)/1.55 "Consolas", "Courier New", monospace;
+  font: 400 clamp(11px, 0.85vw, 13px)/1.55 "Consolas", "Courier New", monospace;
   white-space: pre-wrap;
 }
 
@@ -467,7 +467,7 @@ footer a { color: var(--ink); }
 }
 
 .manual-result small {
-  font: 400 10px/1.25 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.25 "Consolas", "Courier New", monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -516,7 +516,7 @@ footer a { color: var(--ink); }
 .manual-content-html-demo small,
 .manual-content-image-demo figcaption,
 .manual-content-factory-demo small {
-  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -532,7 +532,7 @@ footer a { color: var(--ink); }
 .manual-content-html-demo > span {
   border-top: 1px solid currentColor;
   padding-top: 6px;
-  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -594,7 +594,7 @@ footer a { color: var(--ink); }
   color: inherit;
   cursor: pointer;
   text-align: left;
-  font: 500 10px/1.25 "Consolas", "Courier New", monospace;
+  font: 500 11px/1.25 "Consolas", "Courier New", monospace;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -610,7 +610,7 @@ footer a { color: var(--ink); }
 .manual-card-code {
   margin: 0;
   overflow: auto;
-  font: 400 10px/1.45 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.45 "Consolas", "Courier New", monospace;
   white-space: pre-wrap;
 }
 
@@ -629,7 +629,7 @@ footer a { color: var(--ink); }
 
 .manual-next-links a {
   color: inherit;
-  font: 500 10px/1.25 "Consolas", "Courier New", monospace;
+  font: 500 11px/1.25 "Consolas", "Courier New", monospace;
   text-transform: uppercase;
   text-underline-offset: 3px;
 }
@@ -641,7 +641,7 @@ footer a { color: var(--ink); }
   width: min(100%, 1440px);
   margin-inline: auto;
   padding: 0 18px 28px;
-  font: 400 10px/1.35 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.35 "Consolas", "Courier New", monospace;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -683,7 +683,7 @@ footer a { color: var(--ink); }
   .manual-content-html-demo > span,
   .manual-content-image-demo figcaption,
   .manual-content-factory-demo small,
-  .manual-factory-action { font-size: 9px; }
+  .manual-factory-action { font-size: 10px; }
   .manual-factory-index { font-size: 3.4rem; }
   .manual-factory-state { font-size: 1.05rem; }
   .manual-factory-action { padding-top: 4px; }
@@ -735,7 +735,7 @@ footer a { color: var(--ink); }
 
 .reference-entry > small {
   padding: 14px 16px 0;
-  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -787,7 +787,7 @@ footer a { color: var(--ink); }
   overflow: auto;
   padding: 14px;
   border: 1px solid currentColor;
-  font: 400 11px/1.5 "Consolas", "Courier New", monospace;
+  font: 400 12px/1.5 "Consolas", "Courier New", monospace;
   white-space: pre-wrap;
 }
 
@@ -796,7 +796,7 @@ footer a { color: var(--ink); }
   justify-content: space-between;
   gap: 12px;
   padding: 0 18px 28px;
-  font: 400 10px/1.2 "Consolas", "Courier New", monospace;
+  font: 400 11px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
@@ -853,7 +853,7 @@ footer a { color: var(--ink); }
     margin-bottom: 2px;
     opacity: 0.62;
     content: attr(data-label);
-    font: 400 8px/1.2 "Consolas", "Courier New", monospace;
+    font: 400 9px/1.2 "Consolas", "Courier New", monospace;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
@@ -863,7 +863,7 @@ footer a { color: var(--ink); }
   }
   .reference-table td:nth-child(2) {
     opacity: 0.68;
-    font-size: 10px;
+    font-size: 11px;
     line-height: 1.35;
     text-align: right;
     text-transform: uppercase;
@@ -907,7 +907,7 @@ footer a { color: var(--ink); }
 }
 .example-page .example-kicker,
 .example-page .example-note,
-.example-page .example-actions { font: 400 10px/1.2 "Consolas", "Courier New", monospace; text-transform: uppercase; }
+.example-page .example-actions { font: 400 11px/1.2 "Consolas", "Courier New", monospace; text-transform: uppercase; }
 .example-page .example-kicker { display: block; margin-bottom: 3px; }
 .example-page .example-actions { display: flex; gap: 4px; }
 .example-page .example-actions a {
