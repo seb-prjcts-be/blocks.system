@@ -56,6 +56,10 @@ Wanneer publiek gedrag verandert, controleer in dezelfde commit:
 4. contract-, link- en browsertests;
 5. het gegenereerde manifest wanneer exports of versie veranderen.
 
+`npm run test:types` compileert hetzelfde consumentenfixture met Node16- en
+bundler-resolutie. Voeg een publieke API-wijziging daar toe wanneer de
+declaraties of package-exports mee veranderen.
+
 De stabiele geavanceerde stijlhaken staan in de reference:
 `.blocks-system-surface`, `.blocks-system-object`, `.blocks-system-menu`,
 `.blocks-system-content` en de publieke `data-*`-states. Docsclasses zijn geen

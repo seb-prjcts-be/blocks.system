@@ -8,6 +8,7 @@
 const BUILT_IN_VARIANTS = Object.freeze(["regular", "inverse"]);
 const EMPTY_COLOR_ARRAY = Object.freeze([]);
 const DEFAULT_INVERSION_VARIATION = 1 / 3;
+const DEFAULT_MARGIN = "0px";
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
 const DEFAULT_MENU_OPTIONS = Object.freeze({ close: false, minimize: true });
@@ -189,6 +190,22 @@ function normalizeVariation(value, property, fallback) {
         throw new TypeError(`blocks.system.${property} verwacht een getal van 0 tot en met 1.`);
     }
     return value;
+}
+
+function normalizeMargin(value) {
+    const margin = value === undefined ? DEFAULT_MARGIN : value;
+    if (typeof margin !== "string" || !margin.trim()) {
+        throw new TypeError("blocks.system.margin verwacht een geldige CSS padding-shorthand als string.");
+    }
+    const normalized = margin.trim();
+    if (typeof document !== "undefined" && document.createElement) {
+        const probe = document.createElement("div");
+        probe.style.setProperty("padding", normalized);
+        if (!probe.style.getPropertyValue("padding")) {
+            throw new TypeError("blocks.system.margin verwacht een geldige CSS padding-shorthand als string.");
+        }
+    }
+    return normalized;
 }
 
 function assertColorVariationHasColors(colors, variation) {
@@ -379,6 +396,7 @@ export function createBlocksSystem(options = {}) {
     let rows = 1;
     let snapEnabled = options.snap === undefined ? false : Boolean(options.snap);
     let draggableEnabled = options.draggable === undefined ? true : Boolean(options.draggable);
+    let marginState = normalizeMargin(options.margin);
     let fontState = normalizeFont(options.font);
     const labels = normalizeLabels(options.labels);
     const blockDefaults = normalizeBlockDefaults(options.blockDefaults);
@@ -439,6 +457,7 @@ export function createBlocksSystem(options = {}) {
         surface.setAttribute("data-draggable", String(draggableEnabled));
         surface.style.setProperty("--blocks-columns", String(columns));
         surface.style.setProperty("--blocks-rows", String(rows));
+        surface.style.setProperty("--blocks-margin", marginState);
         applyFontState();
         for (const syncMenuInteraction of menuInteractionSetters.values()) syncMenuInteraction();
     }
@@ -897,7 +916,7 @@ export function createBlocksSystem(options = {}) {
         function moveWithKeyboard(event) {
             if (!draggableEnabled || !surface || !(event.target instanceof Element)) return;
             if (!new Set(["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown"]).has(event.key)) return;
-            const handle = event.target.closest(".blocks-system-menu");
+            const handle = event.target.closest(".blocks-system-title");
             const shell = handle?.closest(".blocks-system-object");
             if (!handle || event.target !== handle || !shell || shell.parentElement !== surface) return;
 
@@ -970,6 +989,7 @@ export function createBlocksSystem(options = {}) {
             surface.removeAttribute("data-draggable");
             surface.style.removeProperty("--blocks-columns");
             surface.style.removeProperty("--blocks-rows");
+            surface.style.removeProperty("--blocks-margin");
         }
         if (surface !== nextSurface) drag.bind(nextSurface);
         surface = nextSurface;
@@ -1164,14 +1184,20 @@ export function createBlocksSystem(options = {}) {
         }
 
         function syncMenuInteractionState() {
-            if (!menuNode) return;
-            menuNode.tabIndex = draggableEnabled ? 0 : -1;
+            if (!menuNode || !titleNode) return;
+            menuNode.removeAttribute("tabindex");
+            menuNode.removeAttribute("aria-label");
+            titleNode.tabIndex = draggableEnabled ? 0 : -1;
             if (draggableEnabled) {
-                menuNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${labels.move}`);
+                titleNode.setAttribute("role", "button");
+                titleNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.move}`);
+                titleNode.setAttribute("aria-keyshortcuts", "ArrowLeft ArrowUp ArrowRight ArrowDown");
             } else {
-                menuNode.removeAttribute("aria-label");
+                titleNode.removeAttribute("role");
+                titleNode.removeAttribute("aria-label");
+                titleNode.removeAttribute("aria-keyshortcuts");
             }
-            if (closeNode) closeNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${labels.close}`);
+            if (closeNode) closeNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.close}`);
         }
 
         function assertActive() {
@@ -1366,6 +1392,14 @@ export function createBlocksSystem(options = {}) {
         address
     };
     Object.defineProperties(apiObject, {
+        columns: {
+            enumerable: true,
+            get: () => columns
+        },
+        rows: {
+            enumerable: true,
+            get: () => rows
+        },
         snap: {
             enumerable: true,
             get: () => snapEnabled,
@@ -1380,6 +1414,14 @@ export function createBlocksSystem(options = {}) {
             set(value) {
                 draggableEnabled = Boolean(value);
                 if (!draggableEnabled) drag.stop();
+                applySurfaceState();
+            }
+        },
+        margin: {
+            enumerable: true,
+            get: () => marginState,
+            set(value) {
+                marginState = normalizeMargin(value);
                 applySurfaceState();
             }
         },

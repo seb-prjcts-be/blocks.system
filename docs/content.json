@@ -135,7 +135,7 @@
     },
     "manual-layout": {
       "title": "04 / layout and movement",
-      "intro": "Set size first, then position. Columns come before rows and coordinates start at 1. With snap and draggable on, drag the titlebar or focus it and use the arrow keys.",
+      "intro": "Set size first, then position. Columns come before rows and coordinates start at 1. Read the current grid size through blocks.columns and blocks.rows. With snap and draggable on, drag the titlebar or focus it and use the arrow keys.",
       "code": [
         "blocks.snap = true;",
         "blocks.draggable = true;",
@@ -314,6 +314,7 @@
         { "cells": ["random", "Math.random", "Source used when variant is random."] },
         { "cells": ["snap", "false", "Snap blocks to the configured grid."] },
         { "cells": ["draggable", "true", "Allow pointer and keyboard reordering."] },
+        { "cells": ["margin", "0px", "Empty space inside the field border; accepts one to four CSS lengths in top, right, bottom and left order."] },
         { "cells": ["font", "null", "Optional font family and stylesheet URL."] },
         { "cells": ["labels", "document language", "Override accessible move, restore, minimize and close labels."] },
         { "cells": ["variant", "random", "Appearance used for new blocks."] },
@@ -328,8 +329,11 @@
       "title": "03 / system state",
       "headers": ["member", "type", "notes"],
       "rows": [
+        { "cells": ["columns", "readonly number", "Current number of grid columns; starts at 1 and changes through setGrid()."] },
+        { "cells": ["rows", "readonly number", "Current number of grid rows; starts at 1 and may also grow after dragging."] },
         { "cells": ["snap", "boolean", "Readable and writable. Set snap true before relying on place(), span() or compact() for visual grid layout; snap false keeps blocks in flow layout."] },
         { "cells": ["draggable", "boolean", "Readable and writable."] },
+        { "cells": ["margin", "string", "Readable and writable CSS padding shorthand for empty space around the grid."] },
         { "cells": ["font", "object | null", "Readable and writable."] },
         { "cells": ["variant", "string", "Readable and writable; built-in variants are regular and inverse, plus random selection."] },
         { "cells": ["variants", "readonly string[]", "The built-in list: regular and inverse."] },
@@ -439,9 +443,11 @@
       "rows": [
         { "cells": [".blocks-system-surface", "The attached field and its layout tokens."] },
         { "cells": [".blocks-system-object", "One outer block."] },
-        { "cells": [".blocks-system-menu", "Title bar and drag handle."] },
+        { "cells": [".blocks-system-menu", "Structural title bar and pointer drag area."] },
+        { "cells": [".blocks-system-title", "Keyboard drag handle with button semantics while dragging is enabled."] },
         { "cells": [".blocks-system-content", "Content host."] },
         { "cells": [".blocks-system-drop-preview", "Pointer landing preview."] },
+        { "cells": ["--blocks-margin", "Resolved empty space inside the field border and around the grid."] },
         { "cells": ["[data-block-object]", "Stable block id."] },
         { "cells": ["[data-block-variant]", "Resolved appearance."] },
         { "cells": ["[data-block-color]", "Color selected from the user's array."] },

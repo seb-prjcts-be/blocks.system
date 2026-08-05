@@ -234,6 +234,60 @@ async function measureCompactLayout() {
   return result.result.value;
 }
 
+async function measureMarginLayout() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const { createBlocksSystem } = await import("./blocks.system.mjs?margin-proof");
+      const field = document.createElement("div");
+      field.style.cssText = "position:fixed;left:0;top:0;width:400px;height:300px";
+      document.body.append(field);
+      try {
+        const blocks = createBlocksSystem({
+          snap: true,
+          draggable: false,
+          margin: "12px 24px 36px 48px",
+          variant: "regular"
+        });
+        blocks.attach(field).setGrid(2, 2);
+        const first = blocks.add("first", { id: "margin-first" }).place(1, 1);
+        const last = blocks.add("last", { id: "margin-last" }).place(2, 2);
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+        const fieldRect = field.getBoundingClientRect();
+        const firstRect = first.element.getBoundingClientRect();
+        const lastRect = last.element.getBoundingClientRect();
+        const style = getComputedStyle(field);
+        const before = {
+          value: blocks.margin,
+          customProperty: field.style.getPropertyValue("--blocks-margin"),
+          padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
+          edges: {
+            top: firstRect.top - fieldRect.top,
+            right: fieldRect.right - lastRect.right,
+            bottom: fieldRect.bottom - lastRect.bottom,
+            left: firstRect.left - fieldRect.left
+          }
+        };
+        blocks.margin = "20px";
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+        const updatedStyle = getComputedStyle(field);
+        return {
+          before,
+          after: {
+            value: blocks.margin,
+            customProperty: field.style.getPropertyValue("--blocks-margin"),
+            padding: [updatedStyle.paddingTop, updatedStyle.paddingRight, updatedStyle.paddingBottom, updatedStyle.paddingLeft]
+          }
+        };
+      } finally {
+        field.remove();
+      }
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
 async function hoverSignature() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(() => {
@@ -497,7 +551,7 @@ async function measureManual(width, height, dpr = 1) {
         }
         return overlaps;
       });
-      const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu");
+      const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu > .blocks-system-title");
       return {
         blockCount: objects.length,
         ids: objects.map(function (block) { return block.dataset.blockObject; }),
@@ -532,7 +586,9 @@ async function measureManual(width, height, dpr = 1) {
         draggable: board.dataset.draggable,
         lockedHandleState: {
           tabIndex: firstHandle.tabIndex,
-          ariaLabel: firstHandle.getAttribute("aria-label")
+          role: firstHandle.getAttribute("role"),
+          ariaLabel: firstHandle.getAttribute("aria-label"),
+          shortcuts: firstHandle.getAttribute("aria-keyshortcuts")
         },
         menuActionCount: board.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
         devicePixelRatio: window.devicePixelRatio,
@@ -661,7 +717,7 @@ async function manualHoverSignature(blockId = "manual-color-cyan") {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(function () {
       const block = document.querySelector(${JSON.stringify(`[data-block-object="${blockId}"]`)});
-      const handle = block.querySelector(":scope > .blocks-system-menu");
+      const handle = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
       const rect = block.getBoundingClientRect();
       const style = getComputedStyle(block);
       return {
@@ -695,7 +751,7 @@ async function exerciseManualKeyboardReorder() {
       }
       const board = document.querySelector("#manual-board");
       const block = board.querySelector('[data-block-object="manual-layout-wide"]');
-      const handle = block.querySelector(":scope > .blocks-system-menu");
+      const handle = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
       const beforeRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
       let reorderDetail = null;
       board.addEventListener("blocks:reorder", function (event) { reorderDetail = event.detail; }, { once: true });
@@ -738,7 +794,7 @@ async function measureReference(width, height, dpr = 1) {
       const boardRect = board.getBoundingClientRect();
       const mastheadRect = document.querySelector(".reference-masthead").getBoundingClientRect();
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
-      const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu");
+      const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu > .blocks-system-title");
       const firstTable = board.querySelector(".reference-table");
       const firstTableRow = firstTable.querySelector("tbody tr");
       const firstPurpose = firstTableRow.querySelector("td:last-child");
@@ -774,7 +830,9 @@ async function measureReference(width, height, dpr = 1) {
         }),
         lockedHandleState: {
           tabIndex: firstHandle.tabIndex,
-          ariaLabel: firstHandle.getAttribute("aria-label")
+          role: firstHandle.getAttribute("role"),
+          ariaLabel: firstHandle.getAttribute("aria-label"),
+          shortcuts: firstHandle.getAttribute("aria-keyshortcuts")
         },
         tableOverflowModes: Array.from(board.querySelectorAll(".reference-table-wrap"))
           .map(function (node) { return getComputedStyle(node).overflow; }),
@@ -948,6 +1006,15 @@ try {
   assert.ok(compactLayout.rects.every(function (rect) { return Math.abs(rect.left - compactLayout.rects[0].left) <= 0.5; }), "compact() bewaart geen vaste kolom in de echte layout");
   assert.ok(compactLayout.rects[2].height > compactLayout.rects[1].height, "compact() bewaart de spanhoogte niet in de echte layout");
 
+  const marginLayout = await measureMarginLayout();
+  assert.equal(marginLayout.before.value, "12px 24px 36px 48px", "margin bewaart niet de vier opgegeven randwaarden");
+  assert.equal(marginLayout.before.customProperty, "12px 24px 36px 48px", "margin bereikt de surface niet via de librarytoken");
+  assert.deepEqual(marginLayout.before.padding, ["12px", "24px", "36px", "48px"], "margin maakt niet langs alle vier randen de gevraagde leegte");
+  assert.deepEqual(marginLayout.before.edges, { top: 13, right: 25, bottom: 37, left: 49 }, "margin ligt niet binnen de veldrand en rond het volledige grid");
+  assert.equal(marginLayout.after.value, "20px", "margin blijft niet leesbaar na een runtimewijziging");
+  assert.equal(marginLayout.after.customProperty, "20px", "een runtimewijziging bereikt de surface niet");
+  assert.deepEqual(marginLayout.after.padding, ["20px", "20px", "20px", "20px"], "één marginwaarde past niet alle vier randen aan");
+
   await measureHome(1280, 900);
   const beforeHover = await hoverSignature();
   const documentNode = await protocol.send("DOM.getDocument");
@@ -1042,7 +1109,9 @@ try {
     assert.equal(manual.navigationCount, 1, `manual bevat ${manual.navigationCount} menu's op ${width}px`);
     assert.equal(manual.draggable, "true", `manual schakelt het echte librarygedrag uit op ${width}px`);
     assert.equal(manual.lockedHandleState.tabIndex, 0, `manual maakt de dragheader niet toetsenbordbereikbaar op ${width}px`);
+    assert.equal(manual.lockedHandleState.role, "button", `manual kondigt de draghandle niet als bediening aan op ${width}px`);
     assert.match(manual.lockedHandleState.ariaLabel, /arrow keys/i, `manual legt de toetsenbordverplaatsing niet toegankelijk uit op ${width}px`);
+    assert.equal(manual.lockedHandleState.shortcuts, "ArrowLeft ArrowUp ArrowRight ArrowDown", `manual publiceert de ondersteunde dragtoetsen niet op ${width}px`);
     assert.equal(manual.menuActionCount, 68, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
@@ -1165,7 +1234,7 @@ try {
       assert.equal(reference.quantized, "true", `reference quantiseert het grid niet op ${width}px @${dpr}x`);
       assert.ok(Number.isInteger(reference.trackWidth) && reference.trackWidth > 0, `reference gebruikt geen hele trackbreedte op ${width}px @${dpr}x`);
       assert.equal(reference.draggable, "false", `reference bewaart zijn leesvolgorde niet op ${width}px @${dpr}x`);
-      assert.deepEqual(reference.lockedHandleState, { tabIndex: -1, ariaLabel: null }, `reference zet een niet-werkende verplaatsheader in de tabvolgorde op ${width}px @${dpr}x`);
+      assert.deepEqual(reference.lockedHandleState, { tabIndex: -1, role: null, ariaLabel: null, shortcuts: null }, `reference zet een niet-werkende verplaatsheader in de tabvolgorde op ${width}px @${dpr}x`);
       assert.equal(reference.menuActionCount, 20, `reference toont niet op elk block minimaliseren en sluiten op ${width}px @${dpr}x`);
       assert.equal(reference.nestedSurfaces, 0, `reference bevat ${reference.nestedSurfaces} geneste grids op ${width}px @${dpr}x`);
       assert.ok(reference.chapterGaps.every((gap) => Math.abs(gap - reference.mastheadGap) <= 0.5), `reference gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px @${dpr}x: ${reference.mastheadGap}px versus ${reference.chapterGaps.join(", ")}`);

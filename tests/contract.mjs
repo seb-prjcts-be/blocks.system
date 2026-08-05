@@ -15,7 +15,10 @@ assert.doesNotMatch(source, /vanilla\.waves|p5\.waves|VanillaWaves|WavesLoader|P
 assert.ok(["attach", "setGrid", "compact", "add", "register", "registerAdapter", "mount", "unmount"]
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
 assert.equal(singleton.snap, false, "snap must be disabled by default");
+assert.equal(singleton.columns, 1, "grid columns must be readable from the default system");
+assert.equal(singleton.rows, 1, "grid rows must be readable from the default system");
 assert.equal(singleton.draggable, true, "dragging must be enabled by default");
+assert.equal(singleton.margin, "0px", "grid margin must default to no empty edge space");
 assert.equal(singleton.font, null, "external fonts must remain opt-in");
 assert.equal(singleton.variant, "random", "visual variants must be random by default");
 assert.deepEqual(singleton.variants, ["regular", "inverse"], "only the monochrome library variants must be discoverable");
@@ -154,6 +157,7 @@ globalThis.document = {
 const configured = createBlocksSystem({
   snap: true,
   draggable: false,
+  margin: "1rem 2rem 3rem 4rem",
   variant: "regular",
   colorArray: ["yellow", "blue", "yellow"],
   colorVariation: 0.2,
@@ -164,18 +168,26 @@ const configured = createBlocksSystem({
 });
 assert.equal(configured.snap, true, "snap must be configurable when a system is created");
 assert.equal(configured.draggable, false, "dragging must be configurable when a system is created");
+assert.equal(configured.margin, "1rem 2rem 3rem 4rem", "margin must retain the four CSS edge values");
 assert.deepEqual(configured.colorArray, ["yellow", "blue"], "creation-time color arrays must normalize and deduplicate CSS colors");
 assert.equal(configured.colorVariation, 0.2, "creation-time color variation must remain readable");
 assert.equal(configured.inversionVariation, 0.5, "creation-time inversion variation must remain readable");
 const configuredField = new TestElement();
 configured.attach(configuredField);
+assert.equal(configuredField.style.getPropertyValue("--blocks-margin"), "1rem 2rem 3rem 4rem", "margin must reach the attached field");
+configured.margin = "clamp(8px, 2vw, 24px)";
+assert.equal(configured.margin, "clamp(8px, 2vw, 24px)", "margin must remain writable with responsive CSS lengths");
+assert.equal(configuredField.style.getPropertyValue("--blocks-margin"), "clamp(8px, 2vw, 24px)", "runtime margin changes must update the field");
+assert.throws(function () { configured.margin = ""; }, /margin/, "empty margin values must fail early");
+assert.throws(function () { createBlocksSystem({ margin: 12 }); }, /margin/, "margin must require explicit CSS units");
 const defaultMenuBlock = configured.add("<p>default menu</p>", {
   id: "default-menu",
   title: "default menu"
 });
 assert.equal(defaultMenuBlock.element.children[0].children[0].textContent, "default menu", "an automatic menu must use the block title");
 assert.equal(defaultMenuBlock.element.children[0].children[1].children.length, 2, "blockDefaults.menu must apply shared minimize and close controls");
-assert.equal(defaultMenuBlock.element.children[0].tabIndex, -1, "an initially locked system must keep automatic menus outside the tab order");
+assert.equal(defaultMenuBlock.element.children[0].children[0].tabIndex, -1, "an initially locked system must keep automatic menu handles outside the tab order");
+assert.equal(defaultMenuBlock.element.children[0].getAttribute("role"), null, "a menu containing action buttons must remain a structural header");
 const overriddenMenuBlock = configured.add("<p>overridden menu</p>", {
   id: "overridden-menu",
   title: "overridden menu",
@@ -364,6 +376,10 @@ assert.equal(field.style.getPropertyValue("--blocks-font-family"), '"Oswald"', "
 local.font = null;
 assert.equal(field.style.getPropertyValue("--blocks-font-family"), "", "resetting font must restore the CSS default");
 local.setGrid(4, 4);
+assert.equal(local.columns, 4, "setGrid must expose the current column count");
+assert.equal(local.rows, 4, "setGrid must expose the current row count");
+assert.throws(function () { local.columns = 9; }, TypeError, "grid columns must remain read-only");
+assert.throws(function () { local.rows = 9; }, TypeError, "grid rows must remain read-only");
 const object = local.add("<p>span</p>", { id: "span-test" });
 assert.equal(object.element.children.length, 1, "blocks without blockDefaults must not gain an automatic menu");
 assert.equal(object.minimized, false, "blocks must start restored unless configured otherwise");
@@ -387,15 +403,20 @@ assert.equal(object.element.style.getPropertyValue("--block-row"), "", "flow mus
 object.place(2, 2);
 object.menu("span", true);
 assert.equal(object.element.children[0].children[1].children.length, 2, "a menu must expose minimize and optional close controls together");
-assert.equal(object.element.children[0].tabIndex, 0, "a draggable menu must be keyboard-focusable");
-assert.match(object.element.children[0].getAttribute("aria-label"), /arrow keys/, "a draggable menu must explain its keyboard handle in the configured language");
+assert.equal(object.element.children[0].children[0].tabIndex, 0, "a draggable title handle must be keyboard-focusable");
+assert.equal(object.element.children[0].children[0].getAttribute("role"), "button", "a draggable title handle must expose its interaction role");
+assert.match(object.element.children[0].children[0].getAttribute("aria-label"), /arrow keys/, "a draggable title handle must explain its keyboard control in the configured language");
+assert.equal(object.element.children[0].children[0].getAttribute("aria-keyshortcuts"), "ArrowLeft ArrowUp ArrowRight ArrowDown", "a draggable title handle must publish its supported keys");
+assert.equal(object.element.children[0].getAttribute("role"), null, "the menu header must not wrap action buttons in an interactive role");
 assert.match(object.element.children[0].children[1].children[0].getAttribute("aria-label"), /minimize/, "the minimize control must use the configured label");
 assert.match(object.element.children[0].children[1].children[1].getAttribute("aria-label"), /close/, "the close control must use the configured label");
 local.draggable = false;
-assert.equal(object.element.children[0].tabIndex, -1, "a locked menu must leave the keyboard tab order");
-assert.equal(object.element.children[0].getAttribute("aria-label"), null, "a locked menu must not promise arrow-key movement");
+assert.equal(object.element.children[0].children[0].tabIndex, -1, "a locked title handle must leave the keyboard tab order");
+assert.equal(object.element.children[0].children[0].getAttribute("role"), null, "a locked title must not promise a button interaction");
+assert.equal(object.element.children[0].children[0].getAttribute("aria-label"), null, "a locked title must not promise arrow-key movement");
+assert.equal(object.element.children[0].children[0].getAttribute("aria-keyshortcuts"), null, "a locked title must not publish inactive shortcuts");
 local.draggable = true;
-assert.equal(object.element.children[0].tabIndex, 0, "unlocking must restore the keyboard handle");
+assert.equal(object.element.children[0].children[0].tabIndex, 0, "unlocking must restore the keyboard handle");
 object.minimized = true;
 assert.equal(object.element.getAttribute("data-block-minimized"), "true", "minimize state must be exposed to CSS");
 assert.equal(object.content.getAttribute("aria-hidden"), "true", "minimized content must leave the accessibility tree");
@@ -416,6 +437,8 @@ neighbour.place(1, 1);
 assert.throws(function () { local.setGrid(2, 4); }, /past niet/, "a grid cannot shrink below an existing placed span");
 object.remove();
 assert.doesNotThrow(function () { local.setGrid(1, 1); }, "removed blocks must release their span constraint");
+assert.equal(local.columns, 1, "shrinking the grid must update readable columns");
+assert.equal(local.rows, 1, "shrinking the grid must update readable rows");
 assert.throws(function () { object.remove(); }, /verwijderd/, "removed blocks cannot publish duplicate remove events");
 assert.throws(function () { object.menu("removed", true); }, /verwijderd/, "removed blocks cannot recreate menus");
 assert.throws(function () { object.span(1, 1); }, /verwijderd/, "removed blocks cannot re-enter span state");

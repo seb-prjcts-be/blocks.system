@@ -8,6 +8,7 @@
     --blocks-text-color: #14140f;
     --blocks-font-family: "Segoe UI", Arial, sans-serif;
     --blocks-content-padding: 7px;
+    --blocks-margin: 0px;
     box-sizing: border-box;
     position: relative;
     min-width: 0;
@@ -15,6 +16,7 @@
     background-color: var(--blocks-field-color);
     color: var(--blocks-text-color);
     gap: var(--blocks-gap);
+    padding: var(--blocks-margin);
 }
 
 .blocks-system-surface[data-snap="false"] {
@@ -45,12 +47,12 @@
     outline-offset: -3px;
 }
 
-.blocks-system-surface[data-draggable="true"] .blocks-system-object:has(> .blocks-system-menu:focus-visible) {
+.blocks-system-surface[data-draggable="true"] .blocks-system-object:has(> .blocks-system-menu > .blocks-system-title:focus-visible) {
     outline: 3px solid var(--blocks-ink-color);
     outline-offset: -3px;
 }
 
-.blocks-system-menu:focus-visible {
+.blocks-system-title:focus-visible {
     outline: 0;
 }
 
@@ -156,6 +158,7 @@
 }
 
 .blocks-system-title {
+    flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;

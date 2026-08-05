@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.8";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.11";
 
 const blocks = createBlocksSystem({
   snap: true,
@@ -21,7 +21,9 @@ blocks.registerAdapter("counter", {
     return button;
   },
   snippet({ settings }) {
-    return `<button>count: ${settings.start}</button>`;
+    const button = document.createElement("button");
+    button.textContent = `count: ${settings.start}`;
+    return button.outerHTML;
   }
 });
 

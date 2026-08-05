@@ -110,8 +110,8 @@ blocks.register({
 
 ## API map
 
-- Creation: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Shared system: `attach`, `setGrid`, `compact`, `snap`, `draggable`, `font`, `variant`,
+- Creation: `createBlocksSystem({ snap, draggable, margin, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Shared system: `attach`, `setGrid`, `compact`, `columns`, `rows`, `snap`, `draggable`, `margin`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
@@ -125,6 +125,14 @@ their minimize and close buttons remain available.
 `blockDefaults.menu` applies the same menu controls to every new block. Give
 each block its own `title`; use `menu: false` or a local `menu` object in
 `add()` for an exception.
+
+`margin` reserves empty space inside the field border and around the grid. It
+uses CSS padding shorthand, so one value applies everywhere and four values run
+top, right, bottom and left. CSS lengths stay responsive:
+
+```js
+blocks.margin = "clamp(12px, 2vw, 32px) 3vw";
+```
 
 Dragging by a block's menu bar is enabled by default. During pointer dragging,
 a magnetic preview marks the block's landing position while the other blocks

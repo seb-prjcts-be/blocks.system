@@ -109,6 +109,8 @@ export interface BlocksSystemOptions {
   random?: () => number;
   snap?: boolean;
   draggable?: boolean;
+  /** Empty space inside the field border, using CSS padding shorthand order. */
+  margin?: string;
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
   variant?: string;
@@ -122,8 +124,12 @@ export interface BlocksSystemOptions {
 }
 
 export interface BlocksSystem {
+  readonly columns: number;
+  readonly rows: number;
   snap: boolean;
   draggable: boolean;
+  /** Empty space inside the field border, using CSS padding shorthand order. */
+  margin: string;
   font: Readonly<BlocksFont> | null;
   variant: string;
   readonly variants: readonly string[];

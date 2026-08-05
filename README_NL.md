@@ -112,8 +112,8 @@ blocks.register({
 
 ## API-overzicht
 
-- Aanmaak: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Gedeeld systeem: `attach`, `setGrid`, `compact`, `snap`, `draggable`, `font`, `variant`,
+- Aanmaak: `createBlocksSystem({ snap, draggable, margin, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Gedeeld systeem: `attach`, `setGrid`, `compact`, `columns`, `rows`, `snap`, `draggable`, `margin`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
@@ -127,6 +127,14 @@ toetsenbordvolgorde; hun minimaliseer- en sluitknoppen blijven bereikbaar.
 `blockDefaults.menu` geeft ieder nieuw block dezelfde menuknoppen. Geef ieder
 block zijn eigen `title`; gebruik `menu: false` of een lokaal `menu`-object in
 `add()` voor een uitzondering.
+
+`margin` reserveert lege ruimte binnen de veldrand en rond het grid. De waarde
+volgt de CSS padding-shorthand: één waarde geldt overal; vier waarden lopen
+langs boven, rechts, onder en links. CSS-lengtes blijven responsief:
+
+```js
+blocks.margin = "clamp(12px, 2vw, 32px) 3vw";
+```
 
 Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen
 toont een magnetische preview waar het block zal landen, terwijl de andere
