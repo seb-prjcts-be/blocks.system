@@ -64,6 +64,7 @@ assert.doesNotMatch(readme + readmeNl, /(?:defaults? to|standaard(?:reeks|array)
 const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
 const docsContent = JSON.parse(await readFile(resolve(root, "docs", "content.json"), "utf8"));
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
+const releaseCdnBase = `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v${packageData.version}`;
 const declarations = await readFile(resolve(root, "blocks.system.d.ts"), "utf8");
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
@@ -396,6 +397,9 @@ assert.deepEqual(docsContent.manual["manual-eli10"], {
     "Add one individual block with blocks.add(...)."
   ]
 }, "ELI10 must define container, blocks and one block in three concrete beginner steps");
+assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${releaseCdnBase}/blocks.system.css">`), "the manual must load the fixed release stylesheet from jsDelivr");
+assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${releaseCdnBase}/blocks.system.mjs";`), "the manual must import the fixed ESM release from jsDelivr");
+assert.doesNotMatch(JSON.stringify(docsContent.manual["manual-start"]), /blocks\.system@(?:main|master|latest)\b/, "the manual must not point its release example at a moving branch");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner-facing manual copy must say object instead of node");
 assert.deepEqual(Object.keys(docsContent.reference), [
   "reference-exports",
@@ -427,7 +431,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.6", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.7", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

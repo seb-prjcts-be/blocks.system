@@ -118,3 +118,9 @@ alleen op verzoek en push nooit zonder expliciete toestemming. Voor publicatie:
 4. verifieer daarna live home, manual, reference, examples en manifest;
 5. maak pas een versie-tag wanneer de publieke API klaar is om via jsDelivr te
    pinnen.
+
+De eerste vaste distributie is GitHub-release `v0.1.0`. Gebruik in publieke
+voorbeelden altijd de onveranderlijke tag, niet `main`:
+
+- ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.0/blocks.system.mjs`
+- CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.0/blocks.system.css`

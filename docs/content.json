@@ -34,13 +34,13 @@
     },
     "manual-start": {
       "title": "01 / start the system",
-      "intro": "Attach the system before adding content. setGrid(6, 4) creates six columns and four rows.",
+      "intro": "Load the fixed v0.1.0 release, then attach the system before adding content. setGrid(6, 4) creates six columns and four rows.",
       "code": [
-        "<link rel=\"stylesheet\" href=\"./blocks.system.css\">",
+        "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.0/blocks.system.css\">",
         "<div id=\"blocks-field\"></div>",
         "",
         "<script type=\"module\">",
-        "import { createBlocksSystem } from \"./blocks.system.mjs\";",
+        "import { createBlocksSystem } from \"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.0/blocks.system.mjs\";",
         "",
         "const blocks = createBlocksSystem({",
         "  snap: true,",
