@@ -1,8 +1,9 @@
 # blocks.system
 
+**[Home](https://seb-prjcts-be.github.io/blocks.system/)** ·
 **[Handleiding](https://seb-prjcts-be.github.io/blocks.system/docs/)** ·
 **[API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)** ·
-**[Voorbeelden](https://seb-prjcts-be.github.io/blocks.system/docs/#examples)**
+**[Voorbeelden](https://seb-prjcts-be.github.io/blocks.system/docs/#next)**
 
 `blocks.system` is een dependencyvrije ESM-browserkern voor individueel
 adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.

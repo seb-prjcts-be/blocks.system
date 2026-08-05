@@ -51,6 +51,11 @@ for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]
 }
 assert.match(readme, /import \{ createBlocksSystem \}/, "README.md must show creation-time defaults");
 assert.match(readmeNl, /import \{ createBlocksSystem \}/, "README_NL.md must show creation-time defaults");
+for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]]) {
+  assert.match(content, /\[Home\]\(https:\/\/seb-prjcts-be\.github\.io\/blocks\.system\/\)/, `${file} must link to the public homepage before page two`);
+  assert.match(content, /https:\/\/seb-prjcts-be\.github\.io\/blocks\.system\/docs\/#next/, `${file} examples link must land on the real example index`);
+  assert.doesNotMatch(content, /docs\/#examples/, `${file} must not retain the removed examples anchor`);
+}
 assert.match(readme, /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "README.md must explicitly show both menu actions");
 assert.match(readmeNl, /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "README_NL.md must explicitly show both menu actions");
 assert.match(readme + readmeNl, /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "README examples must show a concrete user-supplied color array");
