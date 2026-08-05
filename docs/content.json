@@ -56,6 +56,17 @@
         "blocks.setGrid(6, 4);"
       ]
     },
+    "manual-finish": {
+      "title": "02 / add the block",
+      "intro": "blocks.add() returns the block controller. Its id must be unique lowercase kebab-case.",
+      "code": [
+        "const block = blocks.add(content, {",
+        "  id: \"block-hello\",",
+        "  title: \"hello\"",
+        "});",
+        "</script>"
+      ]
+    },
     "manual-content-html": {
       "title": "content / trusted html",
       "eyebrow": "01 / statement",
@@ -72,17 +83,6 @@
       "eyebrow": "03 / live",
       "states": ["structure", "contrast", "rhythm", "space"],
       "action": "next state"
-    },
-    "manual-finish": {
-      "title": "02 / add the block",
-      "intro": "blocks.add() returns the block controller. Its id must be unique lowercase kebab-case.",
-      "code": [
-        "const block = blocks.add(content, {",
-        "  id: \"block-hello\",",
-        "  title: \"hello\"",
-        "});",
-        "</script>"
-      ]
     },
     "manual-result-regular": {
       "title": "result / regular",

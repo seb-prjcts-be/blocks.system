@@ -265,6 +265,8 @@ assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.equal((siteDemos["docs/manual.mjs"].match(/(?:^addBlock|=\s*addBlock)\(\{/gm) || []).length, 29, "the manual must build the split ELI10 and the approved beginner sequence from direct blocks");
 assert.match(siteDemos["docs/manual.mjs"], /id:\s*"manual-eli10"[\s\S]*?span:\s*\[4,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?id:\s*"manual-eli10-steps"[\s\S]*?span:\s*\[2,\s*2\][\s\S]*?place:\s*\[5,\s*1\][\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\]/, "ELI10 must use adjacent 4x2 and 2x2 blocks, leave row 3 open and start part 1 on row 4");
+assert.match(siteDemos["docs/manual.mjs"], /blocks\.setGrid\(6,\s*39\)[\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\][\s\S]*?id:\s*"manual-finish"[\s\S]*?place:\s*\[1,\s*8\][\s\S]*?id:\s*"manual-content-html"[\s\S]*?place:\s*\[1,\s*10\][\s\S]*?id:\s*"manual-content-object"[\s\S]*?place:\s*\[3,\s*10\][\s\S]*?id:\s*"manual-content-factory"[\s\S]*?place:\s*\[5,\s*10\]/, "manual 02 must follow one open grid row and sit above the three content examples");
+assert.match(manualHtml, /shell\.mjs\?v=0\.1\.23[\s\S]*manual\.mjs\?v=0\.1\.33/, "the manual must load the reordered lesson without stale module caches");
 assert.match(siteDemos["docs/manual.mjs"], /const eli10Block\s*=\s*addBlock\([\s\S]*?id:\s*"manual-eli10"[\s\S]*?eli10Block\.color\s*=\s*"cyan"/, "the first manual block must use the public block color control for its cyan shell");
 for (const anchor of ["eli10", "start", "result", "menu", "layout", "colors", "random", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
@@ -317,8 +319,8 @@ const manualHtmlPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-con
 const manualObjectPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-content-object"');
 const manualFactoryPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-content-factory"');
 const manualFinishPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-finish"');
-assert.ok(manualEli10Position >= 0 && manualEli10StepsPosition > manualEli10Position && manualStartPosition > manualEli10StepsPosition && manualHtmlPosition > manualStartPosition && manualObjectPosition > manualHtmlPosition && manualFactoryPosition > manualObjectPosition && manualFinishPosition > manualFactoryPosition,
-"the manual must read ELI10, start code, three content forms, then finish code");
+assert.ok(manualEli10Position >= 0 && manualEli10StepsPosition > manualEli10Position && manualStartPosition > manualEli10StepsPosition && manualFinishPosition > manualStartPosition && manualHtmlPosition > manualFinishPosition && manualObjectPosition > manualHtmlPosition && manualFactoryPosition > manualObjectPosition,
+"the manual must read ELI10, start code, finish code, then three content forms");
 assert.match(siteDemos["docs/manual.mjs"], /function createTrustedHtmlContent[\s\S]*return `[\s\S]*manual-content-html-demo/, "trusted HTML must render as the first content example");
 assert.match(siteDemos["docs/manual.mjs"], /function createImageObjectContent[\s\S]*document\.createElement\("figure"\)[\s\S]*pexels-peter-dyllong-2158803154-37352130\.jpg/, "an actual image object must render as the second content example");
 assert.match(siteDemos["docs/manual.mjs"], /function createFactoryContent[\s\S]*return function createFreshElement\(\)[\s\S]*addEventListener\("click"/, "an interactive fresh element must render as the factory example");
@@ -364,10 +366,10 @@ assert.deepEqual(Object.keys(docsContent.manual), [
   "manual-eli10",
   "manual-eli10-steps",
   "manual-start",
+  "manual-finish",
   "manual-content-html",
   "manual-content-object",
   "manual-content-factory",
-  "manual-finish",
   "manual-result-regular",
   "manual-result-inverse",
   "manual-menu",
@@ -438,7 +440,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.9", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.10", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

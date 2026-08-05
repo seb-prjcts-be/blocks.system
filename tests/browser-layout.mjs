@@ -369,6 +369,8 @@ async function measureManual(width, height, dpr = 1) {
           blockWidth: blockRect.width
         };
       });
+      const startBlockRect = board.querySelector('[data-block-object="manual-start"]').getBoundingClientRect();
+      const finishBlockRect = board.querySelector('[data-block-object="manual-finish"]').getBoundingClientRect();
       const trustedDemo = board.querySelector(".manual-content-html-demo");
       const imageDemo = board.querySelector(".manual-content-image-demo");
       const image = imageDemo.querySelector("img");
@@ -505,6 +507,9 @@ async function measureManual(width, height, dpr = 1) {
           stepsTitle: eli10StepsBlock.querySelector(".blocks-system-title").textContent,
           steps: Array.from(eli10Steps.querySelectorAll("li"), function (item) { return item.textContent; })
         },
+        startBlockBottom: startBlockRect.bottom,
+        finishBlockTop: finishBlockRect.top,
+        finishBlockBottom: finishBlockRect.bottom,
         contentOptions,
         contentExamples: {
           trusted: {
@@ -938,14 +943,14 @@ try {
     const manual = await measureManual(width, height, dpr);
     assert.equal(manual.blockCount, 29, `manual mist één van de twee ELI10-blocks of directe lesblokken op ${width}px @${dpr}x`);
     assert.deepEqual(manual.ids, [
-      "manual-eli10", "manual-eli10-steps", "manual-start", "manual-content-html", "manual-content-object", "manual-content-factory", "manual-finish",
+      "manual-eli10", "manual-eli10-steps", "manual-start", "manual-finish", "manual-content-html", "manual-content-object", "manual-content-factory",
       "manual-result-regular", "manual-result-inverse", "manual-menu", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none",
       "manual-layout", "manual-layout-wide", "manual-layout-small",
       "manual-colors", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random",
       "manual-random-1", "manual-random-2", "manual-random-3", "manual-random-4", "manual-random-5", "manual-random-6", "manual-next"
     ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.variants, [
-      "regular", "regular", "regular", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse", "regular",
+      "regular", "regular", "regular", "regular", "regular", "regular", "inverse", "regular", "inverse", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse", "regular",
       "color", "color", "color", "regular", "color", "color", "color", "regular", "inverse", "regular", "inverse"
     ], `manual beperkt kleur en omkering niet tot de bedoelde resultaten op ${width}px @${dpr}x`);
     assert.deepEqual(manual.colors, [
@@ -975,6 +980,8 @@ try {
     assert.match(manual.eli10.body, /A container is an empty div\.[\s\S]*blocks is the system[\s\S]*A block is one individual box/, `ELI10 definieert container, blocks en block niet eenvoudig op ${width}px`);
     assert.equal(manual.eli10.stepsTitle, "three things, in order", `het tweede ELI10-block mist zijn functionele titel op ${width}px`);
     assert.equal(manual.eli10.steps.length, 3, `ELI10 toont niet drie concrete stappen op ${width}px`);
+    assert.ok(manual.finishBlockTop > manual.startBlockBottom, `manual 02 staat niet onder 01 op ${width}px @${dpr}x`);
+    assert.ok(manual.contentOptions.every(function (option) { return option.blockTop > manual.finishBlockBottom; }), `manual 02 staat niet boven alle drie contentvoorbeelden op ${width}px @${dpr}x`);
     assert.equal(manual.eli10.border, "rgb(0, 255, 255)", `ELI10 heeft geen cyaan kader op ${width}px`);
     assert.equal(manual.eli10.menuBackground, "rgb(0, 255, 255)", `ELI10 heeft geen cyaan titelbalk op ${width}px`);
     assert.equal(manual.eli10.menuColor, "rgb(0, 0, 0)", `ELI10 gebruikt geen leesbare neutrale inkt op de cyaan titelbalk op ${width}px`);
@@ -984,6 +991,9 @@ try {
     assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - manual.mastheadGap) <= 0.5; }), `manual gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px: ${manual.mastheadGap}px versus ${JSON.stringify(manual.chapterGaps)}`);
     if (width > 900) {
       const openRowInterval = manual.rowHeight + 2 * manual.rowGap;
+      const firstContentTop = Math.min(...manual.contentOptions.map(function (option) { return option.blockTop; }));
+      assert.ok(Math.abs(manual.finishBlockTop - manual.startBlockBottom - openRowInterval) <= 0.5, `manual laat boven 02 niet exact één open rasterrij op ${width}px @${dpr}x`);
+      assert.ok(Math.abs(firstContentTop - manual.finishBlockBottom - manual.rowGap) <= 0.5, `de drie voorbeelden sluiten niet direct onder 02 aan op ${width}px @${dpr}x`);
       const expectedEli10Width = manual.trackWidth * 4 + manual.columnGap * 3;
       const expectedStepsWidth = manual.trackWidth * 2 + manual.columnGap;
       assert.ok(Math.abs(manual.eli10.blockWidth - expectedEli10Width) <= 0.5, `ELI10 gebruikt geen exact 4x2 desktopblock op ${width}px: ${manual.eli10.blockWidth}px versus ${expectedEli10Width}px`);
@@ -1038,8 +1048,8 @@ try {
   }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
 
   assert.deepEqual(await exerciseManualKeyboardReorder(), {
-    beforeRow: "34",
-    afterRow: "35",
+    beforeRow: "35",
+    afterRow: "36",
     focusAcquired: true,
     event: { id: "manual-random-1", input: "keyboard", direction: "down" }
   }, "een manualblock moet via zijn echte libraryheader verplaatsbaar zijn");
