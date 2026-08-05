@@ -1,3 +1,4 @@
+/** String content is treated as trusted HTML. For untrusted text, create a Node and set textContent. */
 export type BlockContent = string | Node | (() => string | Node);
 
 export interface BlocksFont {

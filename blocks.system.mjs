@@ -1174,8 +1174,12 @@ export function createBlocksSystem(options = {}) {
             if (closeNode) closeNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${labels.close}`);
         }
 
+        function assertActive() {
+            if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+        }
+
         function setMinimized(value) {
-            if (block && objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            assertActive();
             const nextValue = Boolean(value);
             if (minimizedValue === nextValue) return;
             minimizedValue = nextValue;
@@ -1184,6 +1188,7 @@ export function createBlocksSystem(options = {}) {
         }
 
         function remove() {
+            assertActive();
             drag.stop();
             objects.delete(id);
             objectLayouts.delete(id);
@@ -1195,7 +1200,7 @@ export function createBlocksSystem(options = {}) {
         }
 
         function span(x, y) {
-            if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            assertActive();
             drag.stop();
             const nextColumns = Number(x);
             const nextRows = Number(y);
@@ -1215,7 +1220,7 @@ export function createBlocksSystem(options = {}) {
         }
 
         function place(x, y) {
-            if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            assertActive();
             drag.stop();
             const nextColumn = Number(x);
             const nextRow = Number(y);
@@ -1235,7 +1240,7 @@ export function createBlocksSystem(options = {}) {
         }
 
         function flow() {
-            if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            assertActive();
             drag.stop();
             const nextLayout = {
                 columns: spanColumns,
@@ -1249,6 +1254,7 @@ export function createBlocksSystem(options = {}) {
         }
 
         function menu(name, close = false) {
+            assertActive();
             const menuOptions = close && typeof close === "object"
                 ? { close: Boolean(close.close), minimize: close.minimize !== false }
                 : { close: Boolean(close), minimize: true };

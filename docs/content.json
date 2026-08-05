@@ -328,7 +328,7 @@
       "title": "03 / system state",
       "headers": ["member", "type", "notes"],
       "rows": [
-        { "cells": ["snap", "boolean", "Readable and writable."] },
+        { "cells": ["snap", "boolean", "Readable and writable. Set snap true before relying on place(), span() or compact() for visual grid layout; snap false keeps blocks in flow layout."] },
         { "cells": ["draggable", "boolean", "Readable and writable."] },
         { "cells": ["font", "object | null", "Readable and writable."] },
         { "cells": ["variant", "string", "Readable and writable; built-in variants are regular and inverse, plus random selection."] },
@@ -352,7 +352,7 @@
         { "id": "api-attach", "cells": ["attach(target)", "blocks", "Attach to a selector or Element."] },
         { "id": "api-set-grid", "cells": ["setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
         { "id": "api-compact", "cells": ["compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] },
-        { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, an element object or a content factory."] },
+        { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, an element object or a content factory. Never pass untrusted text as HTML; create an element and set textContent."] },
         { "id": "api-mount", "cells": ["mount(id, target, overrides?)", "Promise<Element>", "Mount a registered definition through its adapter."] },
         { "id": "api-unmount", "cells": ["unmount(target)", "boolean", "Run optional cleanup and remove mounted content."] },
         { "cells": ["remount(id, target, overrides?)", "Promise<Element>", "Unmount and mount again with new settings."] },

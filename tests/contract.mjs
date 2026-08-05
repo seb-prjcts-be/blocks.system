@@ -225,6 +225,7 @@ compactSecond.minimized = true;
 compactSecond.minimized = true;
 compactSecond.minimized = false;
 compactThird.remove();
+assert.throws(function () { compactThird.remove(); }, /verwijderd/, "removed blocks must not publish duplicate remove events");
 assert.deepEqual(compactChanges.map((change) => change.type), ["minimize", "restore", "remove"], "state changes must publish one stable change event");
 assert.deepEqual(compactChanges.map((change) => change.id), ["compact-second", "compact-second", "compact-third"], "state change events must identify their block");
 
@@ -415,6 +416,8 @@ neighbour.place(1, 1);
 assert.throws(function () { local.setGrid(2, 4); }, /past niet/, "a grid cannot shrink below an existing placed span");
 object.remove();
 assert.doesNotThrow(function () { local.setGrid(1, 1); }, "removed blocks must release their span constraint");
+assert.throws(function () { object.remove(); }, /verwijderd/, "removed blocks cannot publish duplicate remove events");
+assert.throws(function () { object.menu("removed", true); }, /verwijderd/, "removed blocks cannot recreate menus");
 assert.throws(function () { object.span(1, 1); }, /verwijderd/, "removed blocks cannot re-enter span state");
 assert.throws(function () { object.place(1, 1); }, /verwijderd/, "removed blocks cannot re-enter position state");
 assert.throws(function () { object.minimized = false; }, /verwijderd/, "removed blocks cannot change minimized state");
