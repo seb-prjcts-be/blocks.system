@@ -344,7 +344,11 @@ async function measureManual(width, height, dpr = 1) {
       const chapterGaps = chapterIds.map(function (id) {
         const block = document.getElementById(id);
         const previous = block.previousElementSibling;
-        return { id, gap: block.getBoundingClientRect().top - previous.getBoundingClientRect().bottom };
+        return {
+          id,
+          gap: block.getBoundingClientRect().top - previous.getBoundingClientRect().bottom,
+          marginTop: parseFloat(getComputedStyle(block).marginTop)
+        };
       });
       const codeBlockWidths = Array.from(board.querySelectorAll(":scope > .manual-code-block"), function (block) {
         return { id: block.dataset.blockObject, width: block.getBoundingClientRect().width };
@@ -445,6 +449,8 @@ async function measureManual(width, height, dpr = 1) {
         scrollbarColor: rootStyle.scrollbarColor,
         boardWidth: boardRect.width,
         mastheadGap: boardRect.top - mastheadRect.bottom,
+        rowHeight: parseFloat(getComputedStyle(board).gridAutoRows),
+        rowGap: parseFloat(getComputedStyle(board).rowGap),
         contentOptions,
         contentExamples: {
           trusted: {
@@ -909,6 +915,11 @@ try {
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
     assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - manual.mastheadGap) <= 0.5; }), `manual gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px: ${manual.mastheadGap}px versus ${JSON.stringify(manual.chapterGaps)}`);
+    if (width > 900) {
+      const openRowInterval = manual.rowHeight + 2 * manual.rowGap;
+      assert.ok(manual.chapterGaps.every(function (item) { return item.marginTop === 0; }), `manual gebruikt nog marge binnen een desktop-gridcel op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
+      assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - openRowInterval) <= 0.5; }), `manual gebruikt niet exact één open desktop-gridrij op ${width}px: ${openRowInterval}px versus ${JSON.stringify(manual.chapterGaps)}`);
+    }
     const expectedShellColors = ["rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)"];
     assert.deepEqual(manual.colorBlockStyles.map((style) => style.border), expectedShellColors, `manual zet de gebruikerskleur niet op het blockkader op ${width}px`);
     assert.deepEqual(manual.colorBlockStyles.map((style) => style.menuBackground), expectedShellColors, `manual zet de gebruikerskleur niet op de blockheader op ${width}px`);

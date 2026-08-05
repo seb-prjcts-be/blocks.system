@@ -309,10 +309,6 @@ footer a { color: var(--ink); }
   background: var(--docs-field);
 }
 
-.manual-page {
-  --docs-chapter-space: 162px;
-}
-
 .docs-page #navbar {
   border-bottom-color: var(--ink);
   background: rgba(245, 245, 242, 0.96);
@@ -440,10 +436,6 @@ footer a { color: var(--ink); }
 
 .manual-code-block {
   grid-column: 1 / -1;
-}
-
-.manual-chapter-start {
-  margin-top: 18px;
 }
 
 .manual-lesson {

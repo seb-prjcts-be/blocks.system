@@ -121,8 +121,8 @@ const navigationPages = [
 
 const canonicalStylesheets = [
   ["home", homeHtml, ["blocks.system.css?v=0.1.9", "docs/style.css?v=0.2.2"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.5"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.2"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.6"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.3"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
@@ -318,7 +318,9 @@ assert.doesNotMatch(siteDemos["docs/manual.mjs"], /createLessonContent\(content\
 await access(resolve(root, "docs", "img", "pexels-peter-dyllong-2158803154-37352130.jpg"));
 assert.match(siteCss, /\.manual-content-image-demo img\s*\{[^}]*object-fit:\s*cover;/s, "the object example must present the supplied image as full-bleed content");
 assert.match(siteCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
-assert.match(siteCss, /\.manual-chapter-start\s*\{[^}]*margin-top:/s, "chapter starts must create visible breathing room when explicit grid rows collapse");
+assert.doesNotMatch(siteCss, /\.manual-chapter-start\s*\{\s*margin-top:\s*18px;/s, "desktop chapter spacing must come from an open grid row, not an inset margin");
+assert.doesNotMatch(siteCss, /\.manual-page\s*\{[^}]*--docs-chapter-space:\s*162px;/s, "manual masthead spacing must match the same open-row interval as the grid");
+assert.match(siteCss, /@media \(max-width:\s*900px\)[\s\S]*\.manual-chapter-start\s*\{[^}]*margin-top:\s*54px;/s, "the responsive auto-flow layout must retain its separate compact chapter spacing");
 assert.match(siteCss, /\.manual-code-block\s*\{[^}]*grid-column:\s*1\s*\/\s*-1;/s, "lesson code must use the complete editorial width");
 assert.match(siteDemos["examples/mixed-content/demo.mjs"], /context\.strokeStyle = "#000";/, "the mixed-content canvas must draw with neutral ink");
 assert.match(standaloneExamples["mixed-content"], /content stays neutral[\s\S]*(?:user|consumer) owns colorArray/i, "the mixed-content note must state that the consumer owns the block colors");
