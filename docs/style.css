@@ -524,7 +524,7 @@ footer a { color: var(--ink); }
 .manual-content-html-demo strong {
   align-self: end;
   max-width: 9ch;
-  font: 600 clamp(2rem, 3.35vw, 4rem)/0.82 "Instrument Sans", sans-serif;
+  font: 600 clamp(2rem, 3.35vw, 3rem)/0.82 "Instrument Sans", sans-serif;
   letter-spacing: -0.055em;
   text-transform: lowercase;
 }
@@ -663,6 +663,10 @@ footer a { color: var(--ink); }
   .manual-board > .manual-two-thirds { --block-span-columns: 2 !important; }
   .manual-code-block { grid-column: 1 / -1; }
   .manual-chapter-start { margin-top: 54px; }
+}
+
+@media (min-width: 561px) and (max-width: 620px) {
+  .manual-board > .manual-third { --block-span-columns: 3 !important; }
 }
 
 @media (max-width: 560px) {

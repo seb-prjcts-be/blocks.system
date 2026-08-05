@@ -10,7 +10,7 @@ Drempel: elk kenmerk moet minstens 8/10 halen. Maximum: vijf rondes.
 
 De audit gebruikt Swiss Design als communicatiesysteem: inhoudshiërarchie, een raster met een functie, asymmetrische spanning, typografische orde, herhaalbare intervallen, mediumgeschiktheid en leesbaarheid. De score beoordeelt de actuele documentatie, niet historische stijlimitatie.
 
-De render is gecontroleerd in Chromium op 1440, 1280, 1024, 800, 390 en 320 px, telkens op DPR 1 en 2. Daarnaast zijn de homepage, manual en reference visueel gecontroleerd op desktop en mobiel.
+De render is gecontroleerd in Chromium op 1920, 1440, 1280, 1024, 901, 900, 800, 561, 560, 487, 390 en 320 px. De bestaande browsermatrix controleert haar vaste breedtes telkens op DPR 1 en 2; gerichte geometriechecks bewaken daarnaast de tussenliggende grensgevallen.
 
 ## Ronde 1 — nulmeting
 
@@ -29,7 +29,7 @@ De render is gecontroleerd in Chromium op 1440, 1280, 1024, 800, 390 en 320 px, 
 
 Conclusie: alleen `leesbaar` haalt de drempel niet. De compositie, inhoud en rasterlogica hoeven niet te veranderen.
 
-## Gerichte correctie
+## Gerichte correctie na ronde 1
 
 - Manual: metadata, hoofdstuklinks, code, specimenlabels, kaartcode, vervolglinks en footer zijn naar 11 px gebracht; de compacte factory-actie is op mobiel 10 px.
 - Reference: metadata, index, labels en footer zijn 11 px; code is 12 px; gestapelde mobiele veldlabels zijn 9 px en typewaarden 11 px.
@@ -37,7 +37,7 @@ Conclusie: alleen `leesbaar` haalt de drempel niet. De compositie, inhoud en ras
 - Homepage: de drie zeer korte microteksten blijven 9,6–10,4 px. Een vergroting veroorzaakte meetbare clipping op 320 px; behoud scoort hier hoger op functionaliteit, ritme en precisie. Hoog contrast en de uiterst korte tekst houden deze uitzondering leesbaar.
 - Raster, plaatsing, inhoud, beelden en systeem-library zijn niet gewijzigd.
 
-## Ronde 2 — heraudit
+## Ronde 2 — eerste heraudit
 
 | Kenmerk | Score | Bewijs |
 |---|---:|---|
@@ -45,18 +45,41 @@ Conclusie: alleen `leesbaar` haalt de drempel niet. De compositie, inhoud en ras
 | Systematisch | 10 | Eén responsieve rastergrammatica bestuurt alle documentatiepagina's. |
 | Asymmetrisch | 9 | Ongelijke massa's blijven aan vaste lijnen en spans verankerd. |
 | Typografisch | 9 | Schaal, gewicht, positie en lettersoort dragen elk een onderscheiden rol. |
-| Functioneel | 10 | Volledige contract-, site- en browsermatrix is groen; geen inhoud wordt afgesneden. |
-| Leesbaar | 8 | Langere micro- en coderollen zijn vergroot; hoofdtekst blijft 13 px of groter op mobiel. |
+| Functioneel | 7 | De vaste browsermatrix is groen, maar controleert het trusted-HTML-specimen niet op tekstintersecties. |
+| Leesbaar | 6 | Op 1920 px overlapt de specimenkop het label; rond 561 px wordt een woord horizontaal afgesneden. |
 | Modulair | 10 | De 6/3/1-structuur en directe blocks blijven intact en herhaalbaar. |
 | Ritmisch | 9 | De vergroting bewaart de bestaande baseline- en hoofdstukcadans. |
-| Precies | 9 | Geen horizontale overflow; rastertracks blijven integer en uitzonderingen zijn gemeten. |
+| Precies | 6 | De uiterste desktopmaat en de overgang tussen 3 en 1 kolom ontbreken in de gerichte geometriecontrole. |
 | Sober | 9 | De correctie voegt geen kleur, ornament, component of visueel effect toe. |
 
-Resultaat: **alle tien kenmerken halen minstens 8/10 na twee van maximaal vijf rondes**.
+Conclusie: ronde 2 is achteraf niet geldig als eindronde. Een gebruikersscreenshot toont het gemiste 1920 px-geval en start een derde ronde.
+
+## Gerichte correctie na ronde 2
+
+- De maximale specimenkop daalt van 64 naar 48 px. Op 1920 px verandert de volledige overlap van het 13,19 px hoge label in 17,19 px vrije verticale ruimte.
+- Tussen 561 en 620 px gebruikt het inhoudsdrieluik de volle manualbreedte. De gemeten horizontale clipping op 561 px daalt van 14 naar 0 px.
+- Alleen `docs/style.css` verandert; inhoud, beelden, blockdefinities en systeem-library blijven intact.
+
+## Ronde 3 — eindaudit
+
+| Kenmerk | Score | Bewijs |
+|---|---:|---|
+| Helder | 9 | Route, instructie en specimen blijven direct herkenbaar zonder concurrerende tekstlagen. |
+| Systematisch | 10 | De rastergrammatica bevat nu ook een expliciete, inhoudsgedreven toestand voor 561–620 px. |
+| Asymmetrisch | 9 | De typografische massa blijft links verankerd en behoudt gecontroleerde spanning. |
+| Typografisch | 9 | De kop blijft dominant op 48 px, terwijl label en footer zelfstandig leesbaar blijven. |
+| Functioneel | 10 | Alle gemeten breedtes hebben nul horizontale en verticale contentoverflow. |
+| Leesbaar | 9 | Label, kop en footer hebben overal positieve tussenruimte; geen woord wordt afgesneden. |
+| Modulair | 10 | Het drieluik blijft uit drie directe blocks bestaan en wisselt alleen responsief van span. |
+| Ritmisch | 9 | De desktopkop past binnen zijn track; de smalle overgang krijgt een rustige verticale cadans. |
+| Precies | 10 | 1920 en het 561/560-breakpoint zijn numeriek gemeten naast de vaste regressiematrix. |
+| Sober | 9 | De correctie gebruikt alleen schaal en span; er komt geen ornament of extra interface bij. |
+
+Resultaat: **alle tien kenmerken halen minstens 8/10 na drie van maximaal vijf rondes**.
 
 ## Verificatie
 
-- `npm test`: contract, 13 sitepagina's, 3 voorbeelden en browser-layout groen.
-- Browsermatrix: 1440–320 px op DPR 1 en 2, zonder horizontale overflow of afgesneden blockinhoud.
-- Handmatige rendercontrole: homepage, manual en reference op 1440 × 1000 en 390 × 844.
+- `npm run check`: minificatie, manifest, contract, 13 sitepagina's, 3 voorbeelden en browser-layout groen.
+- Bestaande browsermatrix: 1920–320 px op DPR 1 en 2, zonder horizontale overflow of afgesneden blockinhoud.
+- Gerichte specimenmatrix: 1920, 1440, 1024, 901, 900, 800, 561, 560, 487, 390 en 320 px; nergens tekstintersectie of contentoverflow.
 - Gebruikte beelden: homepagebeeld `37466849` en manualbeeld `37352130` zijn al door Git bewaard; vijf ongebruikte lokale beelden bleven buiten scope.
