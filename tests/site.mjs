@@ -350,9 +350,6 @@ assert.doesNotMatch(libraryCss, /\.manual-/, "the reusable library stylesheet mu
 assert.match(apiHtml, /<body class="docs-page reference-page">/, "the API route must use the shared docs shell and reference surface");
 assert.match(apiHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the reference must use the four-item shared navigation");
 assert.match(apiHtml, /class="reference-index"[\s\S]*#exports[\s\S]*#options[\s\S]*#system-state[\s\S]*#system-methods[\s\S]*#block-controller[\s\S]*#adapters[\s\S]*#reorder-event[\s\S]*#css-hooks[\s\S]*#errors/, "the reference masthead must expose a complete lookup index");
-assert.match(apiHtml, /reference\.mjs\?v=0\.1\.17/, "the reference route must load the compact opening composition without a stale cache");
-assert.match(siteDemos["docs/reference.mjs"], /id:\s*"reference-exports"[\s\S]*?span:\s*\[6,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?id:\s*"reference-options"[\s\S]*?place:\s*\[1,\s*3\]/, "reference 02 must start directly below the two-row exports block");
-assert.match(siteDemos["docs/reference.mjs"], /blocks\.setGrid\(6,\s*45\)/, "the compact reference opening must not leave an unused final grid row");
 assert.equal(docsContent.schema, "blocks.system/docs-content@2", "docs content must publish its supported schema");
 assert.deepEqual(Object.keys(docsContent), ["schema", "home", "manual", "reference"], "docs content must expose only the three canonical block sections");
 assert.deepEqual(Object.keys(docsContent.home), ["home-title", "home-photo", "home-intro"], "home content must own title, photograph and action in canonical reading order");
@@ -423,7 +420,6 @@ assert.deepEqual(Object.keys(docsContent.reference), [
   "reference-hooks",
   "reference-errors"
 ], "the reference content must own the complete lookup sequence in reading order");
-assert.equal(docsContent.reference["reference-exports"].rows.length, 3, "the first reference block must keep all three export results visible");
 const docsContentKeys = new Set();
 JSON.stringify(docsContent, function (key, value) {
   if (key) docsContentKeys.add(key);

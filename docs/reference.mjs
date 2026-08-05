@@ -13,20 +13,20 @@ const blocks = createBlocksSystem({
 
 const referenceBlocks = [
   { id: "reference-exports", anchor: "exports", span: [6, 2], place: [1, 1] },
-  { id: "reference-options", anchor: "options", span: [6, 4], place: [1, 3] },
-  { id: "reference-state", anchor: "system-state", span: [6, 4], place: [1, 8] },
-  { id: "reference-methods", anchor: "system-methods", span: [6, 5], place: [1, 13] },
-  { id: "reference-block", anchor: "block-controller", span: [6, 5], place: [1, 19] },
-  { id: "reference-add-options", anchor: "add-options", span: [6, 3], place: [1, 25] },
-  { id: "reference-adapters", anchor: "adapters", span: [6, 5], place: [1, 29] },
-  { id: "reference-event", anchor: "reorder-event", span: [6, 3], place: [1, 35] },
-  { id: "reference-hooks", anchor: "css-hooks", span: [6, 4], place: [1, 39] },
-  { id: "reference-errors", anchor: "errors", span: [6, 2], place: [1, 44] }
+  { id: "reference-options", anchor: "options", span: [6, 4], place: [1, 4] },
+  { id: "reference-state", anchor: "system-state", span: [6, 4], place: [1, 9] },
+  { id: "reference-methods", anchor: "system-methods", span: [6, 5], place: [1, 14] },
+  { id: "reference-block", anchor: "block-controller", span: [6, 5], place: [1, 20] },
+  { id: "reference-add-options", anchor: "add-options", span: [6, 3], place: [1, 26] },
+  { id: "reference-adapters", anchor: "adapters", span: [6, 5], place: [1, 30] },
+  { id: "reference-event", anchor: "reorder-event", span: [6, 3], place: [1, 36] },
+  { id: "reference-hooks", anchor: "css-hooks", span: [6, 4], place: [1, 40] },
+  { id: "reference-errors", anchor: "errors", span: [6, 2], place: [1, 45] }
 ];
 const referenceContent = await loadDocsContent("reference", referenceBlocks.map(({ id }) => id));
 
 blocks.attach(board);
-blocks.setGrid(6, 45);
+blocks.setGrid(6, 46);
 quantizeSurface(board);
 
 function createTextElement(name, text, className = "") {
