@@ -58,12 +58,22 @@
     },
     "manual-finish": {
       "title": "02 / add the block",
-      "intro": "blocks.add() returns the block controller. Its id must be unique lowercase kebab-case.",
+      "intro": "Choose one content value, then pass it to blocks.add(). The three live blocks below show the accepted forms: trusted HTML, one DOM object and a factory that creates a fresh object.",
       "code": [
-        "const block = blocks.add(content, {",
-        "  id: \"block-hello\",",
-        "  title: \"hello\"",
+        "const trustedHtml = \"<strong>Hello.</strong>\";",
+        "",
+        "const object = document.createElement(\"img\");",
+        "object.src = \"./image.jpg\";",
+        "object.alt = \"Describe the image.\";",
+        "",
+        "const factory = () => document.createElement(\"button\");",
+        "",
+        "const block = blocks.add(trustedHtml, {",
+        "  id: \"block-html\",",
+        "  title: \"trusted html\"",
         "});",
+        "blocks.add(object, { id: \"block-image\", title: \"object\" });",
+        "blocks.add(factory, { id: \"block-button\", title: \"factory\" });",
         "</script>"
       ]
     },
@@ -84,26 +94,19 @@
       "states": ["structure", "contrast", "rhythm", "space"],
       "action": "next state"
     },
-    "manual-result-regular": {
-      "title": "result / regular",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
-    },
-    "manual-result-inverse": {
-      "title": "result / inverse",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
-    },
     "manual-menu": {
       "title": "03 / menu actions",
-      "intro": "Set both actions once in blockDefaults. Override only the two booleans on a block when that difference is part of the example.",
+      "intro": "The titlebar can show minimize, close, both or neither. The four blocks below are the complete on/off set. A controller can also minimize, restore or remove its own block.",
       "code": [
-        "menu: { minimize: true, close: true }",
-        "menu: { minimize: true, close: false }",
-        "menu: { minimize: false, close: true }",
-        "menu: { minimize: false, close: false }"
+        "const block = blocks.add(content, {",
+        "  menu: { minimize: true, close: true },",
+        "  minimized: false",
+        "});",
+        "",
+        "block.menu(\"hello\", { minimize: true, close: true });",
+        "block.minimized = true;  // minimize",
+        "block.minimized = false; // restore",
+        "block.remove();           // close"
       ]
     },
     "manual-menu-both": {
@@ -131,98 +134,138 @@
       "body": "minimize: false · close: false"
     },
     "manual-layout": {
-      "title": "04 / size and position",
-      "intro": "span() and place() use columns before rows; grid coordinates start at 1. flow() restores automatic placement.",
+      "title": "04 / layout and movement",
+      "intro": "Set size first, then position. Columns come before rows and coordinates start at 1. With snap and draggable on, drag the titlebar or focus it and use the arrow keys.",
       "code": [
-        "block.span(4, 2);",
-        "block.place(1, 1);",
+        "blocks.snap = true;",
+        "blocks.draggable = true;",
         "",
-        "block.flow();"
+        "block.span(4, 2);",
+        "block.place(1, 1);"
       ]
     },
     "manual-layout-wide": {
-      "title": "result / 4 × 2",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+      "title": "placed / 4 × 2",
+      "eyebrow": "fixed on the grid",
+      "statement": "Four by two.",
+      "body": "block.span(4, 2) · block.place(1, 1)"
     },
     "manual-layout-small": {
-      "title": "result / 2 × 2",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+      "title": "flow / 2 × 2",
+      "eyebrow": "automatic position",
+      "statement": "Back to flow.",
+      "body": "Releases the fixed position, not the size.",
+      "code": "block.flow();"
     },
-    "manual-colors": {
-      "title": "05 / add your colors",
-      "intro": "Set these values before blocks.add(). At 1, every new random block uses one supplied color for its border and titlebar; its content stays neutral.",
+    "manual-appearance": {
+      "title": "05 / choose an appearance",
+      "intro": "Appearance is deterministic until you ask for random. Regular and inverse are variants. block.color applies one direct shell color while the content remains neutral.",
       "code": [
-        "blocks.colorArray = [\"cyan\", \"magenta\", \"yellow\"];",
-        "blocks.colorVariation = 1;",
-        "blocks.variant = \"random\";"
+        "blocks.add(content, { variant: \"regular\" });",
+        "blocks.add(content, { variant: \"inverse\" });",
+        "",
+        "const colorBlock = blocks.add(content, { variant: \"regular\" });",
+        "colorBlock.color = \"cyan\";"
       ]
     },
-    "manual-color-cyan": {
-      "title": "color / object",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+    "manual-appearance-regular": {
+      "title": "appearance / regular",
+      "eyebrow": "fixed variant",
+      "statement": "Regular.",
+      "body": "variant: \"regular\""
     },
-    "manual-color-magenta": {
-      "title": "color / object",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+    "manual-appearance-inverse": {
+      "title": "appearance / inverse",
+      "eyebrow": "fixed variant",
+      "statement": "Inverse.",
+      "body": "variant: \"inverse\""
     },
-    "manual-color-yellow": {
-      "title": "color / object",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+    "manual-appearance-color": {
+      "title": "appearance / cyan",
+      "eyebrow": "direct color",
+      "statement": "Cyan.",
+      "body": "block.color = \"cyan\""
     },
     "manual-random": {
-      "title": "06 / mix random variations",
-      "intro": "Each blocks.add() call resolves one appearance. With these values: 50% color, 25% regular and 25% inverse; content is never changed.",
+      "title": "06 / random appearance",
+      "intro": "Each blocks.add() call resolves one appearance. The left mini-grid changes only colorVariation, the share of all blocks using color. The right changes only inversionVariation, the inverse share of the monochrome remainder. Values run from 0 to 1.",
       "code": [
         "blocks.variant = \"random\";",
-        "blocks.colorVariation = 0.5;",
-        "blocks.inversionVariation = 0.5;"
+        "blocks.colorArray = [\"cyan\", \"magenta\", \"yellow\"];",
+        "",
+        "blocks.colorVariation = 0;     // 0, .5 or 1",
+        "blocks.inversionVariation = 0; // 0, .5 or 1"
       ]
     },
-    "manual-random-1": {
-      "title": "random / object",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+    "manual-random-color-0": {
+      "title": "color chance / 0",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
     },
-    "manual-random-2": {
-      "title": "random / object",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+    "manual-random-color-50": {
+      "title": "color chance / 0.5",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
     },
-    "manual-random-3": {
-      "title": "random / object",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+    "manual-random-color-100": {
+      "title": "color chance / 1",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
     },
-    "manual-random-4": {
-      "title": "random / object",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+    "manual-random-inverse-0": {
+      "title": "inverse chance / 0",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
     },
-    "manual-random-5": {
-      "title": "random / object",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+    "manual-random-inverse-50": {
+      "title": "inverse chance / 0.5",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
     },
-    "manual-random-6": {
-      "title": "random / object",
-      "eyebrow": "Tuesday / 14:00",
-      "statement": "Final review.",
-      "body": "Studio 04 · bring print proofs"
+    "manual-random-inverse-100": {
+      "title": "inverse chance / 1",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
+    },
+    "manual-random-combined": {
+      "title": "combine / 0.5 + 0.5",
+      "intro": "Now combine the two settings. In this fixed four-call demonstration, two blocks use color, one is regular and one is inverse. Real calls remain random.",
+      "code": [
+        "blocks.colorVariation = 0.5;",
+        "blocks.inversionVariation = 0.5;",
+        "",
+        "blocks.add(content); // repeat for each new block"
+      ]
+    },
+    "manual-random-mix-1": {
+      "title": "combined / 01",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
+    },
+    "manual-random-mix-2": {
+      "title": "combined / 02",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
+    },
+    "manual-random-mix-3": {
+      "title": "combined / 03",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
+    },
+    "manual-random-mix-4": {
+      "title": "combined / 04",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only the setting changes."
     },
     "manual-next": {
       "title": "07 / run an example",

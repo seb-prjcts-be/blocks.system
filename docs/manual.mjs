@@ -1,8 +1,8 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.23";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.24";
 
 const board = document.querySelector("#manual-board");
-const manualVariationSamples = [0.05, 0.4, 0.8, 0.05, 0.25, 0.45, 0.55, 0.75, 0.6];
+const manualVariationSamples = [0.05, 0.1, 0.6, 0.05, 0.8, 0.6, 0.05, 0.4, 0.8, 0.6];
 let manualVariationIndex = 0;
 
 const blocks = createBlocksSystem({
@@ -22,8 +22,6 @@ const manualIds = [
   "manual-content-html",
   "manual-content-object",
   "manual-content-factory",
-  "manual-result-regular",
-  "manual-result-inverse",
   "manual-menu",
   "manual-menu-both",
   "manual-menu-minimize",
@@ -32,23 +30,28 @@ const manualIds = [
   "manual-layout",
   "manual-layout-wide",
   "manual-layout-small",
-  "manual-colors",
-  "manual-color-cyan",
-  "manual-color-magenta",
-  "manual-color-yellow",
+  "manual-appearance",
+  "manual-appearance-regular",
+  "manual-appearance-inverse",
+  "manual-appearance-color",
   "manual-random",
-  "manual-random-1",
-  "manual-random-2",
-  "manual-random-3",
-  "manual-random-4",
-  "manual-random-5",
-  "manual-random-6",
+  "manual-random-color-0",
+  "manual-random-color-50",
+  "manual-random-color-100",
+  "manual-random-inverse-0",
+  "manual-random-inverse-50",
+  "manual-random-inverse-100",
+  "manual-random-combined",
+  "manual-random-mix-1",
+  "manual-random-mix-2",
+  "manual-random-mix-3",
+  "manual-random-mix-4",
   "manual-next"
 ];
 const content = await loadDocsContent("manual", manualIds);
 
 blocks.attach(board);
-blocks.setGrid(6, 39);
+blocks.setGrid(6, 45);
 quantizeSurface(board);
 
 function createTextElement(name, text, className = "") {
@@ -221,9 +224,10 @@ addBlock({
   id: "manual-finish",
   title: content["manual-finish"].title,
   content: createCodeContent(content["manual-finish"]),
-  span: [6, 2],
+  span: [6, 3],
   place: [1, 8],
-  classes: ["manual-code-block"]
+  anchor: "content",
+  classes: ["manual-code-block", "manual-chapter-start"]
 });
 
 addBlock({
@@ -231,7 +235,7 @@ addBlock({
   title: content["manual-content-html"].title,
   content: createTrustedHtmlContent(content["manual-content-html"]),
   span: [2, 2],
-  place: [1, 10],
+  place: [1, 11],
   classes: ["manual-third"]
 });
 
@@ -240,7 +244,7 @@ addBlock({
   title: content["manual-content-object"].title,
   content: createImageObjectContent(content["manual-content-object"]),
   span: [2, 2],
-  place: [3, 10],
+  place: [3, 11],
   classes: ["manual-third"]
 });
 
@@ -249,38 +253,16 @@ addBlock({
   title: content["manual-content-factory"].title,
   content: createFactoryContent(content["manual-content-factory"]),
   span: [2, 2],
-  place: [5, 10],
-  variant: "inverse",
+  place: [5, 11],
   classes: ["manual-third"]
-});
-
-addBlock({
-  id: "manual-result-regular",
-  title: content["manual-result-regular"].title,
-  content: createLessonContent(content["manual-result-regular"]),
-  span: [3, 2],
-  place: [1, 13],
-  variant: "regular",
-  anchor: "result",
-  classes: ["manual-half", "manual-chapter-start"]
-});
-
-addBlock({
-  id: "manual-result-inverse",
-  title: content["manual-result-inverse"].title,
-  content: createLessonContent(content["manual-result-inverse"]),
-  span: [3, 2],
-  place: [4, 13],
-  variant: "inverse",
-  classes: ["manual-half", "manual-chapter-start"]
 });
 
 addBlock({
   id: "manual-menu",
   title: content["manual-menu"].title,
   content: createCodeContent(content["manual-menu"]),
-  span: [6, 2],
-  place: [1, 16],
+  span: [6, 3],
+  place: [1, 14],
   anchor: "menu",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -290,7 +272,7 @@ addBlock({
   title: content["manual-menu-both"].title,
   content: createLessonContent(content["manual-menu-both"]),
   span: [3, 2],
-  place: [1, 18],
+  place: [1, 17],
   menu: { minimize: true, close: true },
   classes: ["manual-half"]
 });
@@ -300,7 +282,7 @@ addBlock({
   title: content["manual-menu-minimize"].title,
   content: createLessonContent(content["manual-menu-minimize"]),
   span: [3, 2],
-  place: [4, 18],
+  place: [4, 17],
   menu: { minimize: true, close: false },
   classes: ["manual-half"]
 });
@@ -310,7 +292,7 @@ addBlock({
   title: content["manual-menu-close"].title,
   content: createLessonContent(content["manual-menu-close"]),
   span: [3, 2],
-  place: [1, 20],
+  place: [1, 19],
   menu: { minimize: false, close: true },
   classes: ["manual-half"]
 });
@@ -320,7 +302,7 @@ addBlock({
   title: content["manual-menu-none"].title,
   content: createLessonContent(content["manual-menu-none"]),
   span: [3, 2],
-  place: [4, 20],
+  place: [4, 19],
   menu: { minimize: false, close: false },
   classes: ["manual-half"]
 });
@@ -329,8 +311,8 @@ addBlock({
   id: "manual-layout",
   title: content["manual-layout"].title,
   content: createCodeContent(content["manual-layout"]),
-  span: [6, 2],
-  place: [1, 23],
+  span: [6, 3],
+  place: [1, 22],
   anchor: "layout",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -350,128 +332,159 @@ addBlock({
   content: createLessonContent(content["manual-layout-small"]),
   span: [2, 2],
   place: [5, 25],
+  classes: ["manual-third"]
+});
+
+addBlock({
+  id: "manual-appearance",
+  title: content["manual-appearance"].title,
+  content: createCodeContent(content["manual-appearance"]),
+  span: [6, 3],
+  place: [1, 28],
+  variant: "regular",
+  anchor: "appearance",
+  classes: ["manual-code-block", "manual-chapter-start"]
+});
+
+addBlock({
+  id: "manual-appearance-regular",
+  title: content["manual-appearance-regular"].title,
+  content: createLessonContent(content["manual-appearance-regular"]),
+  span: [2, 2],
+  place: [1, 31],
+  variant: "regular",
+  classes: ["manual-third"]
+});
+
+addBlock({
+  id: "manual-appearance-inverse",
+  title: content["manual-appearance-inverse"].title,
+  content: createLessonContent(content["manual-appearance-inverse"]),
+  span: [2, 2],
+  place: [3, 31],
   variant: "inverse",
   classes: ["manual-third"]
 });
 
-addBlock({
-  id: "manual-colors",
-  title: content["manual-colors"].title,
-  content: createCodeContent(content["manual-colors"]),
-  span: [6, 2],
-  place: [1, 28],
+const appearanceColorBlock = addBlock({
+  id: "manual-appearance-color",
+  title: content["manual-appearance-color"].title,
+  content: createLessonContent(content["manual-appearance-color"]),
+  span: [2, 2],
+  place: [5, 31],
   variant: "regular",
-  anchor: "colors",
-  classes: ["manual-code-block", "manual-chapter-start"]
-});
-
-blocks.colorArray = ["cyan", "magenta", "yellow"];
-blocks.colorVariation = 1;
-blocks.variant = "random";
-
-addBlock({
-  id: "manual-color-cyan",
-  title: content["manual-color-cyan"].title,
-  content: createLessonContent(content["manual-color-cyan"]),
-  span: [2, 2],
-  place: [1, 30],
   classes: ["manual-third"]
 });
-
-addBlock({
-  id: "manual-color-magenta",
-  title: content["manual-color-magenta"].title,
-  content: createLessonContent(content["manual-color-magenta"]),
-  span: [2, 2],
-  place: [3, 30],
-  classes: ["manual-third"]
-});
-
-addBlock({
-  id: "manual-color-yellow",
-  title: content["manual-color-yellow"].title,
-  content: createLessonContent(content["manual-color-yellow"]),
-  span: [2, 2],
-  place: [5, 30],
-  classes: ["manual-third"]
-});
+appearanceColorBlock.color = "cyan";
 
 addBlock({
   id: "manual-random",
   title: content["manual-random"].title,
   content: createCodeContent(content["manual-random"]),
-  span: [6, 2],
-  place: [1, 33],
+  span: [6, 3],
+  place: [1, 34],
   variant: "regular",
   anchor: "random",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
 
 blocks.variant = "random";
+blocks.colorArray = ["cyan", "magenta", "yellow"];
+blocks.inversionVariation = 0;
+
+blocks.colorVariation = 0;
+addBlock({
+  id: "manual-random-color-0",
+  title: content["manual-random-color-0"].title,
+  content: createLessonContent(content["manual-random-color-0"]),
+  span: [1, 2],
+  place: [1, 37],
+  classes: ["manual-sixth"]
+});
+
+blocks.colorVariation = 0.5;
+addBlock({
+  id: "manual-random-color-50",
+  title: content["manual-random-color-50"].title,
+  content: createLessonContent(content["manual-random-color-50"]),
+  span: [1, 2],
+  place: [2, 37],
+  classes: ["manual-sixth"]
+});
+
+blocks.colorVariation = 1;
+addBlock({
+  id: "manual-random-color-100",
+  title: content["manual-random-color-100"].title,
+  content: createLessonContent(content["manual-random-color-100"]),
+  span: [1, 2],
+  place: [3, 37],
+  classes: ["manual-sixth"]
+});
+
+blocks.colorVariation = 0;
+blocks.inversionVariation = 0;
+addBlock({
+  id: "manual-random-inverse-0",
+  title: content["manual-random-inverse-0"].title,
+  content: createLessonContent(content["manual-random-inverse-0"]),
+  span: [1, 2],
+  place: [4, 37],
+  classes: ["manual-sixth"]
+});
+
+blocks.inversionVariation = 0.5;
+addBlock({
+  id: "manual-random-inverse-50",
+  title: content["manual-random-inverse-50"].title,
+  content: createLessonContent(content["manual-random-inverse-50"]),
+  span: [1, 2],
+  place: [5, 37],
+  classes: ["manual-sixth"]
+});
+
+blocks.inversionVariation = 1;
+addBlock({
+  id: "manual-random-inverse-100",
+  title: content["manual-random-inverse-100"].title,
+  content: createLessonContent(content["manual-random-inverse-100"]),
+  span: [1, 2],
+  place: [6, 37],
+  classes: ["manual-sixth"]
+});
+
+addBlock({
+  id: "manual-random-combined",
+  title: content["manual-random-combined"].title,
+  content: createCodeContent(content["manual-random-combined"]),
+  span: [6, 2],
+  place: [1, 39],
+  variant: "regular",
+  classes: ["manual-code-block"]
+});
+
 blocks.colorVariation = 0.5;
 blocks.inversionVariation = 0.5;
 
-addBlock({
-  id: "manual-random-1",
-  title: content["manual-random-1"].title,
-  content: createLessonContent(content["manual-random-1"]),
-  span: [1, 2],
-  place: [1, 35],
-  classes: ["manual-sixth"]
-});
-
-addBlock({
-  id: "manual-random-2",
-  title: content["manual-random-2"].title,
-  content: createLessonContent(content["manual-random-2"]),
-  span: [1, 2],
-  place: [2, 35],
-  classes: ["manual-sixth"]
-});
-
-addBlock({
-  id: "manual-random-3",
-  title: content["manual-random-3"].title,
-  content: createLessonContent(content["manual-random-3"]),
-  span: [1, 2],
-  place: [3, 35],
-  classes: ["manual-sixth"]
-});
-
-addBlock({
-  id: "manual-random-4",
-  title: content["manual-random-4"].title,
-  content: createLessonContent(content["manual-random-4"]),
-  span: [1, 2],
-  place: [4, 35],
-  classes: ["manual-sixth"]
-});
-
-addBlock({
-  id: "manual-random-5",
-  title: content["manual-random-5"].title,
-  content: createLessonContent(content["manual-random-5"]),
-  span: [1, 2],
-  place: [5, 35],
-  classes: ["manual-sixth"]
-});
-
-addBlock({
-  id: "manual-random-6",
-  title: content["manual-random-6"].title,
-  content: createLessonContent(content["manual-random-6"]),
-  span: [1, 2],
-  place: [6, 35],
-  classes: ["manual-sixth"]
-});
+for (const [index, column] of [2, 3, 4, 5].entries()) {
+  const id = `manual-random-mix-${index + 1}`;
+  addBlock({
+    id,
+    title: content[id].title,
+    content: createLessonContent(content[id]),
+    span: [1, 2],
+    place: [column, 41],
+    classes: ["manual-sixth"]
+  });
+}
 
 addBlock({
   id: "manual-next",
   title: content["manual-next"].title,
   content: createNextContent(content["manual-next"]),
   span: [6, 2],
-  place: [1, 38],
-  variant: "inverse",
+  place: [1, 44],
+  variant: "regular",
   anchor: "next",
   classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"]
 });

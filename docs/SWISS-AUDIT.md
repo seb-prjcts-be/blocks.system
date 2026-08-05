@@ -83,3 +83,31 @@ Resultaat: **alle tien kenmerken halen minstens 8/10 na drie van maximaal vijf r
 - Bestaande browsermatrix: 1920–320 px op DPR 1 en 2, zonder horizontale overflow of afgesneden blockinhoud.
 - Gerichte specimenmatrix: 1920, 1440, 1024, 901, 900, 800, 561, 560, 487, 390 en 320 px; nergens tekstintersectie of contentoverflow.
 - Gebruikte beelden: homepagebeeld `37466849` en manualbeeld `37352130` zijn al door Git bewaard; vijf ongebruikte lokale beelden bleven buiten scope.
+
+## Ronde 4 — didactische heraudit van de manual
+
+Aanleiding: de eerste drie delen vormden een leerroute, maar daarna werden inverse, kleur, layout en random variatie te vroeg of tegelijk ingezet. De manual is daarom herordend zonder de library of het gedeelde raster te wijzigen.
+
+| Kenmerk | Score | Bewijs |
+|---|---:|---|
+| Helder | 10 | Elk genummerd hoofdstuk introduceert nog maar één begrippenfamilie; de masthead noemt de volledige route. |
+| Systematisch | 10 | De volgorde is nu content → menu → layout → appearance → random → practice; eerdere voorbeelden blijven regular. |
+| Asymmetrisch | 9 | De bestaande mastheadspanning en ongelijke 4/2- en 4/1/1-spans blijven aan het gedeelde raster verankerd. |
+| Typografisch | 9 | Instrument Sans, monospacecode, compacte titelbalken en vaste specimenrollen houden duidelijke semantische niveaus. |
+| Functioneel | 10 | Menu-aan/uit, `block.menu()`, minimize/restore/remove, drag, toetsenbord, snap, `flow()`, variants en kleur zijn zichtbaar of uitvoerbaar. |
+| Leesbaar | 9 | Desktop en mobiel hebben geen tekstoverlap, afgesneden blockinhoud of horizontale pagina-overflow. |
+| Modulair | 10 | Alle voorbeelden blijven directe blocks op één gedeeld oppervlak; de randomvergelijkingen introduceren geen geneste systemen. |
+| Ritmisch | 9 | Ieder hoofdhoofdstuk begint na één open rasterrij; subproeven binnen random sluiten direct op hun uitleg aan. |
+| Precies | 10 | Inverse verschijnt voor het eerst in hoofdstuk 05; de twee kansen worden afzonderlijk op 0, 0.5 en 1 getoond en pas daarna gecombineerd. |
+| Sober | 10 | De dertien identieke `Final review.`-kaarten en decoratieve inversevarianten zijn verwijderd; kleur verschijnt alleen waar zij wordt uitgelegd. |
+
+Resultaat: **alle tien kenmerken halen minstens 8/10 na vier van maximaal vijf rondes**.
+
+## Verificatie ronde 4
+
+- `node tests/site.mjs`: groen; 13 pagina's en 3 voorbeelden.
+- `node tests/browser-layout.mjs`: groen op 1440–320 px, DPR 1 en 2; de twee random-mini-grids en hun gecombineerde proef worden geometrisch gecontroleerd.
+- Lokale Playwright-inspectie: desktop 1440 × 900 en mobiel 390 × 844; reading order, eerste inverse, responsive mini-grids en zichtbare menuacties gecontroleerd.
+- `npm test`: groen bij de afsluitende run.
+- `npm run check`: build en manifest zijn groen, maar de bestaande niet-deterministische minified contrasttest kan falen doordat haar testsysteem `variant: "regular"` niet vastzet; deze librarytest bleef buiten de docs-opdracht.
+- Librarybestanden en vijf ongebruikte lokale beelden bleven ongewijzigd.
