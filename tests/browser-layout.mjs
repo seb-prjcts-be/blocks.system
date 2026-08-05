@@ -311,6 +311,7 @@ async function measureManual(width, height, dpr = 1) {
       window.scrollTo(0, 0);
       const board = document.querySelector("#manual-board");
       const boardRect = board.getBoundingClientRect();
+      const mastheadRect = document.querySelector(".manual-masthead").getBoundingClientRect();
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
       const code = board.querySelector(".manual-code");
       const rootStyle = getComputedStyle(document.documentElement);
@@ -431,6 +432,7 @@ async function measureManual(width, height, dpr = 1) {
         scrollbarWidth: rootStyle.scrollbarWidth,
         scrollbarColor: rootStyle.scrollbarColor,
         boardWidth: boardRect.width,
+        mastheadGap: boardRect.top - mastheadRect.bottom,
         contentOptions,
         contentExamples: {
           trusted: {
@@ -600,6 +602,7 @@ async function measureReference(width, height, dpr = 1) {
       window.scrollTo(0, 0);
       const board = document.querySelector("#reference-board");
       const boardRect = board.getBoundingClientRect();
+      const mastheadRect = document.querySelector(".reference-masthead").getBoundingClientRect();
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
       const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu");
       const firstTable = board.querySelector(".reference-table");
@@ -618,6 +621,10 @@ async function measureReference(width, height, dpr = 1) {
         devicePixelRatio: window.devicePixelRatio,
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
         menuActionCount: board.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
+        mastheadGap: boardRect.top - mastheadRect.bottom,
+        chapterGaps: objects.slice(1).map(function (block, index) {
+          return block.getBoundingClientRect().top - objects[index].getBoundingClientRect().bottom;
+        }),
         outsideBoard: objects.filter(function (block) {
           const rect = block.getBoundingClientRect();
           return rect.left < boardRect.left - 0.5 || rect.right > boardRect.right + 0.5;
@@ -881,6 +888,7 @@ try {
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
+    assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - manual.mastheadGap) <= 0.5; }), `manual gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px: ${manual.mastheadGap}px versus ${JSON.stringify(manual.chapterGaps)}`);
     const expectedShellColors = ["rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)"];
     assert.deepEqual(manual.colorBlockStyles.map((style) => style.border), expectedShellColors, `manual zet de gebruikerskleur niet op het blockkader op ${width}px`);
     assert.deepEqual(manual.colorBlockStyles.map((style) => style.menuBackground), expectedShellColors, `manual zet de gebruikerskleur niet op de blockheader op ${width}px`);
@@ -966,6 +974,7 @@ try {
       assert.deepEqual(reference.lockedHandleState, { tabIndex: -1, ariaLabel: null }, `reference zet een niet-werkende verplaatsheader in de tabvolgorde op ${width}px @${dpr}x`);
       assert.equal(reference.menuActionCount, 20, `reference toont niet op elk block minimaliseren en sluiten op ${width}px @${dpr}x`);
       assert.equal(reference.nestedSurfaces, 0, `reference bevat ${reference.nestedSurfaces} geneste grids op ${width}px @${dpr}x`);
+      assert.ok(reference.chapterGaps.every((gap) => Math.abs(gap - reference.mastheadGap) <= 0.5), `reference gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px @${dpr}x: ${reference.mastheadGap}px versus ${reference.chapterGaps.join(", ")}`);
       assert.deepEqual(reference.outsideBoard, [], `reference plaatst blocks buiten het board op ${width}px @${dpr}x: ${reference.outsideBoard.join(", ")}`);
       assert.deepEqual(reference.nonIntegerHorizontalGeometry, [], `reference laat fractionele geometrie achter op ${width}px @${dpr}x: ${reference.nonIntegerHorizontalGeometry.join(", ")}`);
       assert.deepEqual(reference.missingAnchors, [], `reference mist anchors op ${width}px @${dpr}x: ${reference.missingAnchors.join(", ")}`);

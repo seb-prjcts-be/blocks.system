@@ -121,8 +121,8 @@ const navigationPages = [
 
 const canonicalStylesheets = [
   ["home", homeHtml, ["blocks.system.css?v=0.1.9", "docs/style.css?v=0.2.1"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.3"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.0"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.4"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.1"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,

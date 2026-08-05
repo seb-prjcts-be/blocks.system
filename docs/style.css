@@ -294,7 +294,12 @@ footer a { color: var(--ink); }
   --docs-paper: #efeee8;
   --docs-row: 132px;
   --docs-masthead-aside: 250px;
+  --docs-chapter-space: 144px;
   background: var(--docs-field);
+}
+
+.manual-page {
+  --docs-chapter-space: 162px;
 }
 
 .docs-page #navbar {
@@ -313,7 +318,7 @@ footer a { color: var(--ink); }
   align-items: end;
   gap: 20px;
   width: min(100%, 1440px);
-  margin: 0 auto 12px;
+  margin: 0 auto var(--docs-chapter-space);
   padding-bottom: 10px;
   border-bottom: 1px solid var(--ink);
 }
@@ -353,6 +358,7 @@ footer a { color: var(--ink); }
 .reference-anchor { scroll-margin-top: 68px; }
 
 @media (max-width: 900px) {
+  .docs-page { --docs-chapter-space: 60px; }
   .docs-masthead { grid-template-columns: 1fr; }
   .docs-board { --blocks-columns: 3 !important; }
   .docs-board.blocks-system-surface[data-snap="true"] {
