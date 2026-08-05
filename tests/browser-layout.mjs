@@ -18,6 +18,7 @@ async function measureHome(width, height, dpr = 1) {
     for (let attempt = 0; attempt < 60 && !document.querySelector("#home-board")?.dataset.homeReady; attempt += 1) {
       await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
     }
+    await document.fonts.ready;
     window.dispatchEvent(new Event("resize"));
     await new Promise(function (resolveFrame) {
       requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
@@ -33,6 +34,12 @@ async function measureHome(width, height, dpr = 1) {
     const intro = field.querySelector(".home-intro");
     const introBlockRect = intro.closest(".blocks-system-object").getBoundingClientRect();
     const introObject = intro.querySelector(".home-intro-object");
+    const introRect = intro.getBoundingClientRect();
+    const introObjectRect = introObject.getBoundingClientRect();
+    const introObjectStyle = getComputedStyle(introObject);
+    const introMetricsContext = document.createElement("canvas").getContext("2d");
+    introMetricsContext.font = introObjectStyle.font;
+    const introTextMetrics = introMetricsContext.measureText(introObject.textContent);
     const introSequence = intro.querySelector(".home-intro-sequence");
     const titleBlockRect = title.closest(".blocks-system-object").getBoundingClientRect();
     const photoFrame = field.querySelector(".home-photo");
@@ -88,6 +95,11 @@ async function measureHome(width, height, dpr = 1) {
         blockWidth: introBlockRect.width,
         text: intro.textContent.replace(/\\s+/g, " ").trim(),
         object: introObject.textContent,
+        objectWhiteSpace: introObjectStyle.whiteSpace,
+        objectLineBoxHeight: introObjectRect.height,
+        objectInkHeight: introTextMetrics.actualBoundingBoxAscent + introTextMetrics.actualBoundingBoxDescent,
+        objectBottomSpace: introRect.bottom - introObjectRect.bottom,
+        objectPaintedBottomSpace: introRect.bottom - introObjectRect.bottom - Math.max(0, introObject.scrollHeight - introObject.clientHeight),
         sequence: introSequence.textContent,
         href: intro.querySelector("a").getAttribute("href")
       }
@@ -770,11 +782,19 @@ try {
       assert.equal(home.photo.fit, "cover", `home foto vult zijn block niet op ${width}px @${dpr}x`);
       assert.ok(Math.abs(home.intro.blockWidth - (expectedColumnWidth * 2 + home.columnGap)) <= 1, `home geeft de objectboodschap niet twee rasterkolommen op ${width}px @${dpr}x`);
       assert.equal(home.intro.object, "object.", `home maakt object niet tot de visuele hoofdboodschap op ${width}px @${dpr}x`);
+      assert.equal(home.intro.objectWhiteSpace, "nowrap", `home kan object. afbreken op ${width}px @${dpr}x`);
+      assert.ok(home.intro.objectLineBoxHeight + 1 >= home.intro.objectInkHeight, `home geeft object. geen volledige regelbox op ${width}px @${dpr}x: ${home.intro.objectLineBoxHeight}px voor ${home.intro.objectInkHeight}px inkt`);
+      assert.ok(home.intro.objectPaintedBottomSpace >= 8, `home geeft de zichtbare inkt van object. minder dan 8px onderruimte op ${width}px @${dpr}x: ${home.intro.objectPaintedBottomSpace}px`);
       assert.equal(home.intro.sequence, "add · span · place", `home spreekt de werkwoordentaal van het systeem niet op ${width}px @${dpr}x`);
       assert.match(home.intro.text, /your content becomes an object\./, `home legt de overgang van inhoud naar object niet uit op ${width}px @${dpr}x`);
       assert.equal(home.intro.href, "docs/", `home verwijst niet rechtstreeks naar de manual op ${width}px @${dpr}x`);
     }
   }
+
+  const shortHome = await measureHome(826, 395);
+  assert.equal(shortHome.clippedContent.includes("home-intro"), false, "object / start mag op de aangeleverde lage probleemmaat geen inhoud afsnijden");
+  assert.equal(shortHome.intro.objectWhiteSpace, "nowrap", "object. moet op de aangeleverde lage probleemmaat één woord blijven");
+  assert.ok(shortHome.intro.objectPaintedBottomSpace >= 8, `object. heeft op de aangeleverde lage probleemmaat maar ${shortHome.intro.objectPaintedBottomSpace}px zichtbare onderruimte`);
 
   const userColor = await measureUserColor();
   assert.deepEqual(userColor, {

@@ -120,7 +120,7 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.9", "docs/style.css?v=0.2.1"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.9", "docs/style.css?v=0.2.2"]],
   ["manual", manualHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.4"]],
   ["reference", apiHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.1"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
@@ -196,6 +196,7 @@ assert.match(siteCss, /\.home-board\s*\{[^}]*background-image\s*:[^}]*linear-gra
 assert.match(siteCss, /\.home-board\s*\{[^}]*--blocks-columns:\s*6/s, "home must start from six columns");
 assert.doesNotMatch(siteCss, /\.home-board\s*\{[^}]*--blocks-gap:/s, "home must demonstrate the library's default block interval without an opening exception");
 assert.match(siteCss, /\.home-title\s*\{[^}]*justify-self:\s*start;/s, "home must align its hero title with the left edge of its content area");
+assert.match(siteCss, /\.home-intro-object\s*\{[^}]*font:\s*600[^;]*\/1\s+"Instrument Sans"[^}]*white-space:\s*nowrap;/s, "home must keep object. intact inside a full-height typographic line box");
 assert.match(siteCss, /\.home-photo\s*\{[^}]*overflow:\s*hidden;/s, "home photograph must own a bounded block content frame");
 assert.match(siteCss, /\.home-photo img\s*\{[^}]*object-fit:\s*cover;/s, "home photograph must crop inside its 1 by 3 block");
 assert.match(siteCss, /\[data-block-object="home-intro"\][^{]*> \.blocks-system-content\s*\{[^}]*overflow:\s*hidden;/s, "home start block must suppress its fractional internal scrollbar");
