@@ -1011,11 +1011,12 @@ try {
   for (const [width, height, , documentColumns] of manualViewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
-    assert.equal(manual.blockCount, 35, `manual mist een block uit de volledige beginnersroute op ${width}px @${dpr}x`);
+    assert.equal(manual.blockCount, 36, `manual mist een block uit de volledige beginnersroute op ${width}px @${dpr}x`);
     assert.deepEqual(manual.ids, [
       "manual-eli10", "manual-eli10-steps", "manual-start", "manual-finish", "manual-content-html", "manual-content-object", "manual-content-factory",
       "manual-menu", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none",
       "manual-layout", "manual-layout-wide", "manual-layout-small",
+      "manual-compact",
       "manual-appearance", "manual-appearance-regular", "manual-appearance-inverse",
       "manual-colors", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random",
       "manual-random-color-0", "manual-random-color-50", "manual-random-color-100",
@@ -1023,11 +1024,11 @@ try {
       "manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3", "manual-random-mix-4", "manual-next"
     ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.variants, [
-      "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse",
+      "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse",
       "regular", "regular", "regular", "regular", "regular", "regular", "color", "color", "regular", "inverse", "inverse", "regular", "color", "color", "inverse", "regular", "regular"
     ], `manual beperkt kleur en omkering niet tot de bedoelde resultaten op ${width}px @${dpr}x`);
     assert.deepEqual(manual.colors, [
-      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
       "cyan", "magenta", null, null, null, null, "cyan", "yellow", null, null, null
     ], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
@@ -1042,7 +1043,7 @@ try {
     assert.equal(manual.draggable, "true", `manual schakelt het echte librarygedrag uit op ${width}px`);
     assert.equal(manual.lockedHandleState.tabIndex, 0, `manual maakt de dragheader niet toetsenbordbereikbaar op ${width}px`);
     assert.match(manual.lockedHandleState.ariaLabel, /arrow keys/i, `manual legt de toetsenbordverplaatsing niet toegankelijk uit op ${width}px`);
-    assert.equal(manual.menuActionCount, 66, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
+    assert.equal(manual.menuActionCount, 68, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
@@ -1139,12 +1140,12 @@ try {
   assert.deepEqual(mobileNavigation.outside, { open: false, expanded: "false", label: "open navigation" }, "een buitenklik sluit de mobiele navigatie niet");
   assert.deepEqual(mobileNavigation.beforeResize, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie staat niet open vóór de breakpointtest");
   assert.deepEqual(mobileNavigation.afterResize, { open: false, expanded: "false", label: "open navigation" }, "desktopresize ruimt de mobiele navigatiestate niet op");
-  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 35, 33, 33);
+  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 36, 34, 34);
   assert.deepEqual(await exerciseManualMenuLesson(), {
     minimized: { state: "true", hidden: "true" },
     restored: "false",
     closeRemoved: true,
-    remainingBlocks: 34
+    remainingBlocks: 35
   }, "de menu-aan/uitles moet de overblijvende actie echt uitvoerbaar houden");
 
   await navigateTo(`${pageUrl}docs/api.html`);

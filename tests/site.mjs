@@ -259,15 +259,15 @@ assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one
 assert.match(manualHtml, /href="api\.html">open the complete reference/, "the manual must lead to its complete reference owner");
 assert.match(manualHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item index navigation");
 assert.doesNotMatch(manualHtml.match(/<nav id="navbar"[\s\S]*?<\/nav>/)?.[0] || "", /href="[^"]*#/, "the manual main navigation must not use chapter fragments");
-assert.match(manualHtml, /class="docs-chapters"[\s\S]*#eli10[\s\S]*#start[\s\S]*#content[\s\S]*#menu[\s\S]*#layout[\s\S]*#appearance[\s\S]*#colors[\s\S]*#chance[\s\S]*#next/, "the manual masthead must list variants, direct color and chance as separate steps");
+assert.match(manualHtml, /class="docs-chapters"[\s\S]*#eli10[\s\S]*#start[\s\S]*#content[\s\S]*#menu[\s\S]*#layout[\s\S]*#compact[\s\S]*#appearance[\s\S]*#colors[\s\S]*#chance[\s\S]*#next/, "the manual masthead must list compacting, variants, direct color and chance as separate steps");
 assert.doesNotMatch(manualHtml + siteCss, /manual-hero-image/, "the photograph belongs to the homepage block composition, not the manual masthead");
 assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/, "the beginner manual must not present layout tooling before the lesson");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.match(siteDemos["docs/manual.mjs"], /id:\s*"manual-eli10"[\s\S]*?span:\s*\[4,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?id:\s*"manual-eli10-steps"[\s\S]*?span:\s*\[2,\s*2\][\s\S]*?place:\s*\[5,\s*1\][\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\]/, "ELI10 must use adjacent 4x2 and 2x2 blocks, leave row 3 open and start part 1 on row 4");
-assert.match(siteDemos["docs/manual.mjs"], /blocks\.setGrid\(6,\s*49\)[\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\][\s\S]*?id:\s*"manual-finish"[\s\S]*?place:\s*\[1,\s*8\][\s\S]*?id:\s*"manual-content-html"[\s\S]*?place:\s*\[1,\s*11\][\s\S]*?id:\s*"manual-content-object"[\s\S]*?place:\s*\[3,\s*11\][\s\S]*?id:\s*"manual-content-factory"[\s\S]*?place:\s*\[5,\s*11\]/, "manual 02 must follow one open grid row and sit above the three content examples");
-assert.match(manualHtml, /shell\.mjs\?v=0\.1\.25[\s\S]*manual\.mjs\?v=0\.1\.36/, "the manual must load the left-aligned variant, color and chance lessons without stale module caches");
+assert.match(siteDemos["docs/manual.mjs"], /blocks\.setGrid\(6,\s*53\)[\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\][\s\S]*?id:\s*"manual-finish"[\s\S]*?place:\s*\[1,\s*8\][\s\S]*?id:\s*"manual-content-html"[\s\S]*?place:\s*\[1,\s*11\][\s\S]*?id:\s*"manual-content-object"[\s\S]*?place:\s*\[3,\s*11\][\s\S]*?id:\s*"manual-content-factory"[\s\S]*?place:\s*\[5,\s*11\]/, "manual 02 must follow one open grid row and sit above the three content examples");
+assert.match(manualHtml, /shell\.mjs\?v=0\.1\.26[\s\S]*manual\.mjs\?v=0\.1\.37/, "the manual must load the compact, variant, color and chance lessons without stale module caches");
 assert.match(siteDemos["docs/manual.mjs"], /const eli10Block\s*=\s*addBlock\([\s\S]*?id:\s*"manual-eli10"[\s\S]*?eli10Block\.color\s*=\s*"cyan"/, "the first manual block must use the public block color control for its cyan shell");
-for (const anchor of ["eli10", "start", "content", "menu", "layout", "appearance", "colors", "chance", "next"]) {
+for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
 }
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
@@ -281,14 +281,18 @@ for (const [minimize, close] of [[true, true], [true, false], [false, true], [fa
 }
 assert.match(docsContent.manual["manual-menu"].code.join("\n"), /block\.menu\([\s\S]*block\.minimized = true[\s\S]*block\.minimized = false[\s\S]*block\.remove\(\)/, "the menu lesson must show title/actions, minimize, restore and close through the returned controller");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /draggable:\s*false/, "the manual must inherit the library's interactive dragging, hover and keyboard defaults");
+const layoutPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-layout"');
+const compactPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-compact"');
 const appearancePosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-appearance"');
 const firstInversePosition = siteDemos["docs/manual.mjs"].indexOf('variant: "inverse"');
+assert.ok(layoutPosition >= 0 && compactPosition > layoutPosition && appearancePosition > compactPosition, "compact must sit between layout and appearance in the beginner route");
 assert.ok(appearancePosition >= 0 && firstInversePosition > appearancePosition, "inverse must not appear before the appearance lesson explains it");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"].slice(0, appearancePosition), /variant:\s*"inverse"/, "content, menu and layout examples must stay regular");
 const colorPosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-colors"');
 const chancePosition = siteDemos["docs/manual.mjs"].indexOf('id: "manual-random"');
 assert.ok(colorPosition > appearancePosition && chancePosition > colorPosition, "direct color must follow variants and precede chance");
-assert.doesNotMatch(siteDemos["docs/manual.mjs"].slice(appearancePosition, colorPosition), /\.color\s*=/, "appearance 05 must stay strictly regular and inverse");
+assert.match(docsContent.manual["manual-compact"].code.join("\n"), /first\.remove\(\)[\s\S]*blocks\.compact\(\)/, "the compact lesson must show the public compact() call after a gap-making change");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"].slice(appearancePosition, colorPosition), /\.color\s*=/, "the appearance lesson must stay strictly regular and inverse");
 assert.match(siteDemos["docs/manual.mjs"], /colorCyanBlock\.color\s*=\s*"cyan"[\s\S]*colorMagentaBlock\.color\s*=\s*"magenta"[\s\S]*colorYellowBlock\.color\s*=\s*"yellow"/, "the color lesson must restore three direct consumer colors");
 assert.equal(new Set(["manual-color-cyan", "manual-color-magenta", "manual-color-yellow"].map((id) => JSON.stringify({
   eyebrow: docsContent.manual[id].eyebrow,
@@ -390,6 +394,7 @@ assert.deepEqual(Object.keys(docsContent.manual), [
   "manual-layout",
   "manual-layout-wide",
   "manual-layout-small",
+  "manual-compact",
   "manual-appearance",
   "manual-appearance-regular",
   "manual-appearance-inverse",
@@ -448,7 +453,7 @@ JSON.stringify(docsContent, function (key, value) {
 for (const forbiddenKey of ["adapter", "anchor", "class", "className", "defaults", "html", "lifecycle", "minimized", "renderer", "span", "variant"]) {
   assert.equal(docsContentKeys.has(forbiddenKey), false, `docs content must not own ${forbiddenKey}`);
 }
-assert.equal(Object.values(docsContent).slice(1).reduce((total, section) => total + Object.keys(section).length, 0), 48, "docs content must cover every living docblock exactly once");
+assert.equal(Object.values(docsContent).slice(1).reduce((total, section) => total + Object.keys(section).length, 0), 49, "docs content must cover every living docblock exactly once");
 for (const [sectionName, section] of Object.entries({ home: docsContent.home, manual: docsContent.manual, reference: docsContent.reference })) {
   for (const [id, block] of Object.entries(section)) {
     assert.equal(typeof block.title, "string", `${sectionName}.${id} needs one visible title`);
@@ -458,7 +463,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.12", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.13", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

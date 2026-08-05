@@ -157,8 +157,22 @@
       "body": "Releases the fixed position, not the size.",
       "code": "block.flow();"
     },
+    "manual-compact": {
+      "title": "05 / compact after changes",
+      "intro": "Use compact() after removing or moving fixed blocks when you want the placed grid to close vertical gaps. It moves fixed blocks upward inside their columns; it does not resize the grid.",
+      "code": [
+        "const first = blocks.add(content, { title: \"first\" });",
+        "const second = blocks.add(content, { title: \"second\" });",
+        "",
+        "first.place(1, 1);",
+        "second.place(1, 4);",
+        "",
+        "first.remove();",
+        "blocks.compact();"
+      ]
+    },
     "manual-appearance": {
-      "title": "05 / choose an appearance",
+      "title": "06 / choose an appearance",
       "intro": "Choose one fixed monochrome variant. Regular uses dark ink on paper; inverse exchanges figure and ground. Color and chance come later.",
       "code": [
         "blocks.add(content, { variant: \"regular\" });",
@@ -178,7 +192,7 @@
       "body": "variant: \"inverse\""
     },
     "manual-colors": {
-      "title": "06 / set a color",
+      "title": "07 / set a color",
       "intro": "Set one block color directly. Any valid CSS color can define its border, titlebar and hover frame; the content surface stays neutral.",
       "code": [
         "const colorBlock = blocks.add(content, {",
@@ -209,7 +223,7 @@
       "body": "Only color changes."
     },
     "manual-random": {
-      "title": "07 / set the chance",
+      "title": "08 / set the chance",
       "intro": "Chance affects only future blocks added with the random variant. The three left cells change the color share; the three right cells change the inverse share of the monochrome remainder. Values run from 0 to 1.",
       "code": [
         "blocks.variant = \"random\";",
@@ -270,7 +284,7 @@
       "statement": "same object"
     },
     "manual-next": {
-      "title": "08 / run an example",
+      "title": "09 / run an example",
       "eyebrow": "next / practice",
       "statement": "Edit one call. Reload.",
       "items": [
