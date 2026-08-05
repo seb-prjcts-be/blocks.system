@@ -5,7 +5,9 @@ const board = document.querySelector("#home-board");
 const blocks = createBlocksSystem({
   variant: "regular",
   snap: true,
-  blockDefaults: { menu: true }
+  blockDefaults: {
+    menu: { minimize: true, close: true }
+  }
 });
 const homeIds = ["home-title", "home-photo", "home-intro"];
 const content = await loadDocsContent("home", homeIds);
@@ -59,8 +61,7 @@ introRoute.append(introSequence, action);
 introContent.append(introLead, introStatement, introRoute);
 const intro = blocks.add(introContent, {
   id: "home-intro",
-  title: content["home-intro"].title,
-  menu: { minimize: false }
+  title: content["home-intro"].title
 });
 intro.span(2, 2);
 intro.place(4, 6);

@@ -33,7 +33,10 @@
         "",
         "const blocks = createBlocksSystem({",
         "  snap: true,",
-        "  variant: \"regular\"",
+        "  variant: \"regular\",",
+        "  blockDefaults: {",
+        "    menu: { minimize: true, close: true }",
+        "  }",
         "});",
         "",
         "blocks.attach(\"#blocks-field\");",
@@ -80,8 +83,42 @@
       "statement": "Final review.",
       "body": "Studio 04 · bring print proofs"
     },
+    "manual-menu": {
+      "title": "03 / menu actions",
+      "intro": "Set both actions once in blockDefaults. Override only the two booleans on a block when that difference is part of the example.",
+      "code": [
+        "menu: { minimize: true, close: true }",
+        "menu: { minimize: true, close: false }",
+        "menu: { minimize: false, close: true }",
+        "menu: { minimize: false, close: false }"
+      ]
+    },
+    "manual-menu-both": {
+      "title": "menu / both on",
+      "eyebrow": "menu options",
+      "statement": "Both on.",
+      "body": "minimize: true · close: true"
+    },
+    "manual-menu-minimize": {
+      "title": "menu / minimize",
+      "eyebrow": "menu options",
+      "statement": "Minimize only.",
+      "body": "minimize: true · close: false"
+    },
+    "manual-menu-close": {
+      "title": "menu / close",
+      "eyebrow": "menu options",
+      "statement": "Close only.",
+      "body": "minimize: false · close: true"
+    },
+    "manual-menu-none": {
+      "title": "menu / both off",
+      "eyebrow": "menu options",
+      "statement": "Both off.",
+      "body": "minimize: false · close: false"
+    },
     "manual-layout": {
-      "title": "03 / size and position",
+      "title": "04 / size and position",
       "intro": "span() and place() use columns before rows; grid coordinates start at 1. flow() restores automatic placement.",
       "code": [
         "block.span(4, 2);",
@@ -103,7 +140,7 @@
       "body": "Studio 04 · bring print proofs"
     },
     "manual-colors": {
-      "title": "04 / add your colors",
+      "title": "05 / add your colors",
       "intro": "Set these values before blocks.add(). At 1, every new random block uses one supplied color for its border and titlebar; its content stays neutral.",
       "code": [
         "blocks.colorArray = [\"cyan\", \"magenta\", \"yellow\"];",
@@ -130,7 +167,7 @@
       "body": "Studio 04 · bring print proofs"
     },
     "manual-random": {
-      "title": "05 / mix random variations",
+      "title": "06 / mix random variations",
       "intro": "Each blocks.add() call resolves one appearance. With these values: 50% color, 25% regular and 25% inverse; content is never changed.",
       "code": [
         "blocks.variant = \"random\";",
@@ -175,7 +212,7 @@
       "body": "Studio 04 · bring print proofs"
     },
     "manual-next": {
-      "title": "06 / run an example",
+      "title": "07 / run an example",
       "eyebrow": "next / practice",
       "statement": "Edit one call. Reload.",
       "items": [

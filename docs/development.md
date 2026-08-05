@@ -81,8 +81,10 @@ library-API.
   minstens één door de gebruiker gekozen CSS-kleur.
 - De library bezit alleen `regular` en `inverse`. Een gekozen gebruikerskleur
   krijgt de generieke `color`-state: de kleur tekent uitsluitend het blockkader
-  en de menubalk. Blockpapier, tekst en zelfgetekende inhoud in HTML, canvas of
-  SVG blijven neutraal.
+  en de menubalk. Het hoverkader hergebruikt voor elke variant `--block-color`:
+  zwart bij `regular`, licht bij `inverse` en de gekozen gebruikerskleur bij
+  `color`. Blockpapier, tekst en zelfgetekende inhoud in HTML, canvas of SVG
+  blijven neutraal.
 - Bewaar een regel hier alleen wanneer de reden niet betrouwbaar uit broncode,
   tests of gitgeschiedenis terug te vinden is.
 

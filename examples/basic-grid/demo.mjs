@@ -8,7 +8,7 @@ const blocks = createBlocksSystem({
   inversionVariation: 0.25,
   random: () => variationSamples[variationIndex++ % variationSamples.length],
   snap: true,
-  blockDefaults: { menu: { close: true } }
+  blockDefaults: { menu: { minimize: true, close: true } }
 });
 
 blocks.attach("#field");

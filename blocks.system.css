@@ -41,7 +41,7 @@
 }
 
 .blocks-system-surface[data-draggable="true"] .blocks-system-object:hover {
-    outline: 3px solid var(--blocks-ink-color);
+    outline: 3px solid var(--block-color);
     outline-offset: -3px;
 }
 

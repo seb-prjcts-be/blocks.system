@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.17";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.18";
 
 const board = document.querySelector("#manual-board");
 const manualVariationSamples = [0.05, 0.4, 0.8, 0.05, 0.25, 0.45, 0.55, 0.75, 0.6];
@@ -10,7 +10,7 @@ const blocks = createBlocksSystem({
   snap: true,
   random: () => manualVariationSamples[manualVariationIndex++ % manualVariationSamples.length],
   blockDefaults: {
-    menu: { minimize: false, close: false }
+    menu: { minimize: true, close: true }
   }
 });
 
@@ -22,6 +22,11 @@ const manualIds = [
   "manual-finish",
   "manual-result-regular",
   "manual-result-inverse",
+  "manual-menu",
+  "manual-menu-both",
+  "manual-menu-minimize",
+  "manual-menu-close",
+  "manual-menu-none",
   "manual-layout",
   "manual-layout-wide",
   "manual-layout-small",
@@ -41,7 +46,7 @@ const manualIds = [
 const content = await loadDocsContent("manual", manualIds);
 
 blocks.attach(board);
-blocks.setGrid(6, 28);
+blocks.setGrid(6, 35);
 quantizeSurface(board);
 
 function createTextElement(name, text, className = "") {
@@ -146,8 +151,10 @@ function createNextContent({ eyebrow, statement, body, items }) {
   return root;
 }
 
-function addBlock({ id, title, content: blockContent, span, place, variant, anchor = "", classes = [] }) {
-  const block = blocks.add(blockContent, { id, title, variant });
+function addBlock({ id, title, content: blockContent, span, place, variant, menu, anchor = "", classes = [] }) {
+  const options = { id, title, variant };
+  if (menu !== undefined) options.menu = menu;
+  const block = blocks.add(blockContent, options);
   block.span(...span);
   block.place(...place);
   block.element.classList.add(...classes);
@@ -227,11 +234,61 @@ addBlock({
 });
 
 addBlock({
+  id: "manual-menu",
+  title: content["manual-menu"].title,
+  content: createCodeContent(content["manual-menu"]),
+  span: [6, 2],
+  place: [1, 12],
+  anchor: "menu",
+  classes: ["manual-code-block", "manual-chapter-start"]
+});
+
+addBlock({
+  id: "manual-menu-both",
+  title: content["manual-menu-both"].title,
+  content: createLessonContent(content["manual-menu-both"]),
+  span: [3, 2],
+  place: [1, 14],
+  menu: { minimize: true, close: true },
+  classes: ["manual-half"]
+});
+
+addBlock({
+  id: "manual-menu-minimize",
+  title: content["manual-menu-minimize"].title,
+  content: createLessonContent(content["manual-menu-minimize"]),
+  span: [3, 2],
+  place: [4, 14],
+  menu: { minimize: true, close: false },
+  classes: ["manual-half"]
+});
+
+addBlock({
+  id: "manual-menu-close",
+  title: content["manual-menu-close"].title,
+  content: createLessonContent(content["manual-menu-close"]),
+  span: [3, 2],
+  place: [1, 16],
+  menu: { minimize: false, close: true },
+  classes: ["manual-half"]
+});
+
+addBlock({
+  id: "manual-menu-none",
+  title: content["manual-menu-none"].title,
+  content: createLessonContent(content["manual-menu-none"]),
+  span: [3, 2],
+  place: [4, 16],
+  menu: { minimize: false, close: false },
+  classes: ["manual-half"]
+});
+
+addBlock({
   id: "manual-layout",
   title: content["manual-layout"].title,
   content: createCodeContent(content["manual-layout"]),
   span: [6, 2],
-  place: [1, 12],
+  place: [1, 19],
   anchor: "layout",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -241,7 +298,7 @@ addBlock({
   title: content["manual-layout-wide"].title,
   content: createLessonContent(content["manual-layout-wide"]),
   span: [4, 2],
-  place: [1, 14],
+  place: [1, 21],
   classes: ["manual-two-thirds"]
 });
 
@@ -250,7 +307,7 @@ addBlock({
   title: content["manual-layout-small"].title,
   content: createLessonContent(content["manual-layout-small"]),
   span: [2, 2],
-  place: [5, 14],
+  place: [5, 21],
   variant: "inverse",
   classes: ["manual-third"]
 });
@@ -260,7 +317,7 @@ addBlock({
   title: content["manual-colors"].title,
   content: createCodeContent(content["manual-colors"]),
   span: [6, 2],
-  place: [1, 17],
+  place: [1, 24],
   variant: "regular",
   anchor: "colors",
   classes: ["manual-code-block", "manual-chapter-start"]
@@ -275,7 +332,7 @@ addBlock({
   title: content["manual-color-cyan"].title,
   content: createLessonContent(content["manual-color-cyan"]),
   span: [2, 2],
-  place: [1, 19],
+  place: [1, 26],
   classes: ["manual-third"]
 });
 
@@ -284,7 +341,7 @@ addBlock({
   title: content["manual-color-magenta"].title,
   content: createLessonContent(content["manual-color-magenta"]),
   span: [2, 2],
-  place: [3, 19],
+  place: [3, 26],
   classes: ["manual-third"]
 });
 
@@ -293,7 +350,7 @@ addBlock({
   title: content["manual-color-yellow"].title,
   content: createLessonContent(content["manual-color-yellow"]),
   span: [2, 2],
-  place: [5, 19],
+  place: [5, 26],
   classes: ["manual-third"]
 });
 
@@ -302,7 +359,7 @@ addBlock({
   title: content["manual-random"].title,
   content: createCodeContent(content["manual-random"]),
   span: [6, 2],
-  place: [1, 22],
+  place: [1, 29],
   variant: "regular",
   anchor: "random",
   classes: ["manual-code-block", "manual-chapter-start"]
@@ -317,7 +374,7 @@ addBlock({
   title: content["manual-random-1"].title,
   content: createLessonContent(content["manual-random-1"]),
   span: [1, 2],
-  place: [1, 24],
+  place: [1, 31],
   classes: ["manual-sixth"]
 });
 
@@ -326,7 +383,7 @@ addBlock({
   title: content["manual-random-2"].title,
   content: createLessonContent(content["manual-random-2"]),
   span: [1, 2],
-  place: [2, 24],
+  place: [2, 31],
   classes: ["manual-sixth"]
 });
 
@@ -335,7 +392,7 @@ addBlock({
   title: content["manual-random-3"].title,
   content: createLessonContent(content["manual-random-3"]),
   span: [1, 2],
-  place: [3, 24],
+  place: [3, 31],
   classes: ["manual-sixth"]
 });
 
@@ -344,7 +401,7 @@ addBlock({
   title: content["manual-random-4"].title,
   content: createLessonContent(content["manual-random-4"]),
   span: [1, 2],
-  place: [4, 24],
+  place: [4, 31],
   classes: ["manual-sixth"]
 });
 
@@ -353,7 +410,7 @@ addBlock({
   title: content["manual-random-5"].title,
   content: createLessonContent(content["manual-random-5"]),
   span: [1, 2],
-  place: [5, 24],
+  place: [5, 31],
   classes: ["manual-sixth"]
 });
 
@@ -362,7 +419,7 @@ addBlock({
   title: content["manual-random-6"].title,
   content: createLessonContent(content["manual-random-6"]),
   span: [1, 2],
-  place: [6, 24],
+  place: [6, 31],
   classes: ["manual-sixth"]
 });
 
@@ -371,7 +428,7 @@ addBlock({
   title: content["manual-next"].title,
   content: createNextContent(content["manual-next"]),
   span: [6, 2],
-  place: [1, 27],
+  place: [1, 34],
   variant: "inverse",
   anchor: "next",
   classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"]

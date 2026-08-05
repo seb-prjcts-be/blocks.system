@@ -51,6 +51,8 @@ for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]
 }
 assert.match(readme, /import \{ createBlocksSystem \}/, "README.md must show creation-time defaults");
 assert.match(readmeNl, /import \{ createBlocksSystem \}/, "README_NL.md must show creation-time defaults");
+assert.match(readme, /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "README.md must explicitly show both menu actions");
+assert.match(readmeNl, /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "README_NL.md must explicitly show both menu actions");
 assert.match(readme + readmeNl, /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "README examples must show a concrete user-supplied color array");
 assert.doesNotMatch(readme + readmeNl, /(?:defaults? to|standaard(?:reeks|array)?)[^\n]*(?:CMY|cyan)/i, "README must not present CMY as library-owned defaults");
 
@@ -95,6 +97,7 @@ const siteDemos = Object.fromEntries(await Promise.all(siteDemoFiles.map(async f
 for (const file of ["examples/basic-grid/demo.mjs", "examples/mixed-content/demo.mjs", "examples/custom-adapter/demo.mjs"]) {
   assert.match(siteDemos[file], /import \{ createBlocksSystem \}/, `${file} must import the configurable system factory`);
   assert.match(siteDemos[file], /const blocks = createBlocksSystem\(/, `${file} must name its configured system blocks`);
+  assert.match(siteDemos[file], /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, `${file} must explicitly expose minimize and close controls`);
   assert.doesNotMatch(siteDemos[file], /const\s+[A-Za-z_$][\w$]*Block\s*=/, `${file} must use block as a prefix, not a suffix`);
 }
 const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileTypes: true }))
@@ -112,13 +115,13 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.8", "docs/style.css?v=0.2.1"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.8", "style.css?v=0.2.3"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.8", "style.css?v=0.2.0"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.9", "docs/style.css?v=0.2.1"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.3"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.0"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.8", "../../docs/style.css?v=0.2.0"]
+    ["../../blocks.system.css?v=0.1.9", "../../docs/style.css?v=0.2.0"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -178,6 +181,8 @@ assert.equal((siteDemos["docs/home.mjs"].match(/blocks\.add\(/g) || []).length, 
 assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "home must use one shared blocks system");
 assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must preserve deliberate empty cells in a six-column field");
 assert.match(siteDemos["docs/home.mjs"], /snap:\s*true/, "home must configure snap once when its system is created");
+assert.match(siteDemos["docs/home.mjs"], /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "home must expose both block actions by default");
+assert.doesNotMatch(siteDemos["docs/home.mjs"], /blocks\.add\([\s\S]*?menu:\s*\{/, "home blocks must not hide inherited menu actions locally");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must rely on the library's draggable default");
 assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-photo[\s\S]*home-intro/, "home must lead from identity through the adjacent image to one concise action");
 assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 2\)[\s\S]*photo\.span\(1, 3\)[\s\S]*photo\.place\(5, 2\)[\s\S]*intro\.span\(2, 2\)[\s\S]*intro\.place\(4, 6\)/, "home must keep all three blocks one row above their original composition and give the start block two rows");
@@ -207,7 +212,7 @@ assert.match(libraryCss, /\.blocks-system-content\s*\{[^}]*display:\s*grid;[^}]*
 assert.match(libraryCss, /data-block-minimized="true"[^}]*align-self:\s*start;[^}]*min-height:\s*0;/s, "a minimized block must override consumer minimum heights while keeping its grid area");
 assert.match(libraryCss, /data-block-minimized="true"\]\s+\.blocks-system-content\s*\{[^}]*display:\s*none;/s, "a minimized block must show only its menu");
 assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "the base block stylesheet must remain separate from motion");
-assert.match(libraryCss, /\.blocks-system-surface\[data-draggable="true"\]\s+\.blocks-system-object:hover\s*\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*-3px;/s, "draggable blocks must expose a full non-layout-shifting hover frame");
+assert.match(libraryCss, /\.blocks-system-surface\[data-draggable="true"\]\s+\.blocks-system-object:hover\s*\{[^}]*outline:\s*3px solid var\(--block-color\);[^}]*outline-offset:\s*-3px;/s, "draggable blocks must expose a full hover frame in their resolved block color");
 assert.match(libraryCss, /\.blocks-system-object:has\(> \.blocks-system-menu:focus-visible\)\s*\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*-3px;/s, "keyboard handles must expose the same full-block frame");
 assert.match(libraryCss, /\.blocks-system-drop-preview\s*\{[^}]*border:\s*1px dashed var\(--blocks-ink-color\);[^}]*pointer-events:\s*none;/s, "pointer dragging must expose one non-interactive dashed landing preview");
 assert.match(libraryCss, /data-drop-state="push"\]\[data-drop-direction="down"\][^}]*border-style:\s*solid;[^}]*background:\s*color-mix/s, "a downward collision must strengthen the magnetic preview");
@@ -245,19 +250,22 @@ assert.match(manualHtml, /id="manual-board"/, "the experimental manual needs one
 assert.match(manualHtml, /href="api\.html">open the complete reference/, "the manual must lead to its complete reference owner");
 assert.match(manualHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the manual must use the four-item index navigation");
 assert.doesNotMatch(manualHtml.match(/<nav id="navbar"[\s\S]*?<\/nav>/)?.[0] || "", /href="[^"]*#/, "the manual main navigation must not use chapter fragments");
-assert.match(manualHtml, /class="docs-chapters"[\s\S]*#start[\s\S]*#result[\s\S]*#layout[\s\S]*#colors[\s\S]*#random/, "the manual masthead must expose a short beginner path");
+assert.match(manualHtml, /class="docs-chapters"[\s\S]*#start[\s\S]*#result[\s\S]*#menu[\s\S]*#layout[\s\S]*#colors[\s\S]*#random/, "the manual masthead must expose a short beginner path including menu actions");
 assert.doesNotMatch(manualHtml + siteCss, /manual-hero-image/, "the photograph belongs to the homepage block composition, not the manual masthead");
 assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/, "the beginner manual must not present layout tooling before the lesson");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
-assert.equal((siteDemos["docs/manual.mjs"].match(/^addBlock\(\{/gm) || []).length, 22, "the manual must build the approved beginner sequence from direct blocks");
-for (const anchor of ["start", "result", "layout", "colors", "random", "next"]) {
+assert.equal((siteDemos["docs/manual.mjs"].match(/^addBlock\(\{/gm) || []).length, 27, "the manual must build the approved beginner sequence from direct blocks");
+for (const anchor of ["start", "result", "menu", "layout", "colors", "random", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
 }
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.ok(JSON.stringify(docsContent.manual).includes(`../examples/${example}/`), `the manual content misses the ${example} route`);
 }
 assert.match(siteDemos["docs/manual.mjs"], /function createTextElement[\s\S]*element\.textContent\s*=\s*text/, "dynamic manual text must still use textContent without turning the content card into an explanation");
-assert.match(siteDemos["docs/manual.mjs"], /variant:\s*"regular"[\s\S]*snap:\s*true[\s\S]*menu:\s*\{\s*minimize:\s*false,\s*close:\s*false\s*\}/, "the manual must stay monochrome while keeping its deliberate action-free headers");
+assert.match(siteDemos["docs/manual.mjs"], /variant:\s*"regular"[\s\S]*snap:\s*true[\s\S]*menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the manual must expose both block actions while staying monochrome");
+for (const [minimize, close] of [[true, true], [true, false], [false, true], [false, false]]) {
+  assert.match(siteDemos["docs/manual.mjs"], new RegExp(`menu:\\s*\\{\\s*minimize:\\s*${minimize},\\s*close:\\s*${close}\\s*\\}`), `the manual must render menu actions with minimize ${minimize} and close ${close}`);
+}
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /draggable:\s*false/, "the manual must inherit the library's interactive dragging, hover and keyboard defaults");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.colorArray\s*=\s*\["cyan",\s*"magenta",\s*"yellow"\][\s\S]*blocks\.colorVariation\s*=\s*1/, "the manual must introduce user colors only inside the color example");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.variant\s*=\s*"random"[\s\S]*blocks\.colorVariation\s*=\s*0\.5[\s\S]*blocks\.inversionVariation\s*=\s*0\.5/, "the manual must demonstrate reproducible random variation after fixed variants");
@@ -342,6 +350,11 @@ assert.deepEqual(Object.keys(docsContent.manual), [
   "manual-finish",
   "manual-result-regular",
   "manual-result-inverse",
+  "manual-menu",
+  "manual-menu-both",
+  "manual-menu-minimize",
+  "manual-menu-close",
+  "manual-menu-none",
   "manual-layout",
   "manual-layout-wide",
   "manual-layout-small",
@@ -379,7 +392,7 @@ JSON.stringify(docsContent, function (key, value) {
 for (const forbiddenKey of ["adapter", "anchor", "class", "className", "defaults", "html", "lifecycle", "minimized", "renderer", "span", "variant"]) {
   assert.equal(docsContentKeys.has(forbiddenKey), false, `docs content must not own ${forbiddenKey}`);
 }
-assert.equal(Object.values(docsContent).slice(1).reduce((total, section) => total + Object.keys(section).length, 0), 35, "docs content must cover every living docblock exactly once");
+assert.equal(Object.values(docsContent).slice(1).reduce((total, section) => total + Object.keys(section).length, 0), 40, "docs content must cover every living docblock exactly once");
 for (const [sectionName, section] of Object.entries({ home: docsContent.home, manual: docsContent.manual, reference: docsContent.reference })) {
   for (const [id, block] of Object.entries(section)) {
     assert.equal(typeof block.title, "string", `${sectionName}.${id} needs one visible title`);
@@ -389,7 +402,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.4", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.5", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
@@ -397,6 +410,7 @@ const serializedReferenceContent = JSON.stringify(docsContent.reference);
 assert.doesNotMatch(siteDemos["docs/reference.mjs"], /Create an independent system|stable detail: id, input, mode/, "the reference module must not duplicate extracted prose");
 assert.equal((siteDemos["docs/reference.mjs"].match(/const blocks = createBlocksSystem\(/g) || []).length, 1, "the reference must use one shared blocks system");
 assert.match(siteDemos["docs/reference.mjs"], /draggable:\s*false/, "the lookup reference must configure its canonical reading order at creation");
+assert.match(siteDemos["docs/reference.mjs"], /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the reference must expose both block actions");
 assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the reference must use the shared whole-pixel geometry");
 for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);

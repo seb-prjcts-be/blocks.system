@@ -21,7 +21,7 @@ adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
     colorArray: ["cyan", "magenta", "yellow"],
     colorVariation: 0.2,
     inversionVariation: 0.5,
-    blockDefaults: { menu: { close: true } }
+    blockDefaults: { menu: { minimize: true, close: true } }
   });
 
   blocks.attach("#blocks-field");
@@ -78,7 +78,9 @@ blockCanvas.remove();
 De ingebouwde varianten zijn `regular` en `inverse`. Een kleur uit je array
 gebruikt één generieke `color`-state: de gekozen kleur tekent het blockkader en
 de menubalk, terwijl het blockpapier en de gerenderde inhoud neutraal blijven.
-Het menu gebruikt neutrale inkt. Andere expliciete variantnamen blijven haken voor je eigen CSS, maar de
+Het menu gebruikt neutrale inkt. Bij versleepbare blocks hergebruikt het
+hoverkader de huidige blockrandkleur, ook bij inverse en gebruikerskleuren.
+Andere expliciete variantnamen blijven haken voor je eigen CSS, maar de
 library geeft ze geen ingebouwde kleurstijl.
 
 ## Einde

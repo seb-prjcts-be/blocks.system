@@ -2,7 +2,7 @@ import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.8";
 
 const blocks = createBlocksSystem({
   snap: true,
-  blockDefaults: { menu: { close: true } }
+  blockDefaults: { menu: { minimize: true, close: true } }
 });
 
 blocks.attach("#field");

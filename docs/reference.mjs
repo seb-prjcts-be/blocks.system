@@ -7,7 +7,7 @@ const blocks = createBlocksSystem({
   snap: true,
   draggable: false,
   blockDefaults: {
-    menu: { minimize: false, close: false }
+    menu: { minimize: true, close: true }
   }
 });
 

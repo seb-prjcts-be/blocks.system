@@ -49,6 +49,7 @@ async function measureHome(width, height, dpr = 1) {
       draggable: field.dataset.draggable,
       devicePixelRatio: window.devicePixelRatio,
       nestedSurfaces: field.querySelectorAll(".blocks-system-surface").length,
+      menuActionCount: field.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
       outsideBoard: objects.filter(function (block) {
         const rect = block.getBoundingClientRect();
         return rect.left < fieldRect.left - 0.5 || rect.right > fieldRect.right + 0.5;
@@ -183,6 +184,81 @@ async function navigateTo(url) {
   await loaded;
 }
 
+async function exerciseBlockActions(boardSelector) {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const board = document.querySelector(${JSON.stringify(boardSelector)});
+      const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
+      const block = objects[0];
+      const content = block.querySelector(":scope > .blocks-system-content");
+      const minimize = block.querySelector(":scope > .blocks-system-menu .blocks-system-minimize");
+      const close = block.querySelector(":scope > .blocks-system-menu .blocks-system-close");
+      const initial = {
+        blockCount: objects.length,
+        minimizeCount: board.querySelectorAll(".blocks-system-minimize").length,
+        closeCount: board.querySelectorAll(".blocks-system-close").length,
+        minimizeLabel: minimize?.getAttribute("aria-label") || null,
+        closeLabel: close?.getAttribute("aria-label") || null
+      };
+      minimize.click();
+      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      const minimized = {
+        state: block.getAttribute("data-block-minimized"),
+        contentHidden: content.getAttribute("aria-hidden"),
+        pressed: minimize.getAttribute("aria-pressed"),
+        symbol: minimize.textContent
+      };
+      minimize.click();
+      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      const restored = {
+        state: block.getAttribute("data-block-minimized"),
+        contentHidden: content.getAttribute("aria-hidden"),
+        pressed: minimize.getAttribute("aria-pressed"),
+        symbol: minimize.textContent
+      };
+      const removedId = block.dataset.blockObject;
+      close.click();
+      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      return {
+        initial,
+        minimized,
+        restored,
+        removedId,
+        blockCountAfterClose: board.querySelectorAll(":scope > .blocks-system-object").length,
+        removedFromDom: !board.querySelector('[data-block-object="' + removedId + '"]')
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+function assertBlockActions(state, page, expectedBlockCount, expectedMinimizeCount = expectedBlockCount, expectedCloseCount = expectedBlockCount) {
+  const { minimizeLabel, closeLabel, ...initialCounts } = state.initial;
+  assert.deepEqual(initialCounts, {
+    blockCount: expectedBlockCount,
+    minimizeCount: expectedMinimizeCount,
+    closeCount: expectedCloseCount
+  }, `${page} toont niet op elk block beide toegankelijke acties`);
+  assert.match(minimizeLabel, / minimize$/, `${page} benoemt de minimaliseeractie niet toegankelijk`);
+  assert.match(closeLabel, / close$/, `${page} benoemt de sluitactie niet toegankelijk`);
+  assert.deepEqual(state.minimized, {
+    state: "true",
+    contentHidden: "true",
+    pressed: "true",
+    symbol: "+"
+  }, `${page} minimaliseert het block niet volledig`);
+  assert.deepEqual(state.restored, {
+    state: "false",
+    contentHidden: "false",
+    pressed: "false",
+    symbol: "−"
+  }, `${page} herstelt het block niet volledig`);
+  assert.equal(state.blockCountAfterClose, expectedBlockCount - 1, `${page} verwijdert geen block met sluiten`);
+  assert.equal(state.removedFromDom, true, `${page} laat het gesloten block in de DOM staan`);
+}
+
 async function measureMainNavigation() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(() => {
@@ -251,7 +327,7 @@ async function measureManual(width, height, dpr = 1) {
       const image = imageDemo.querySelector("img");
       const factoryDemo = board.querySelector(".manual-content-factory-demo");
       const factoryButton = factoryDemo.querySelector("button");
-      const chapterIds = ["result", "layout", "colors", "random", "next"];
+      const chapterIds = ["result", "menu", "layout", "colors", "random", "next"];
       const chapterGaps = chapterIds.map(function (id) {
         const block = document.getElementById(id);
         const previous = block.previousElementSibling;
@@ -282,6 +358,15 @@ async function measureManual(width, height, dpr = 1) {
           eyebrow: lesson.querySelector("small").textContent,
           statement: lesson.querySelector("strong").textContent,
           body: lesson.querySelector("p").textContent
+        };
+      });
+      const menuExamples = ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"].map(function (id) {
+        const block = board.querySelector('[data-block-object="' + id + '"]');
+        return {
+          id,
+          actions: Array.from(block.querySelectorAll(":scope > .blocks-system-menu button"), function (button) {
+            return button.classList.contains("blocks-system-minimize") ? "minimize" : "close";
+          })
         };
       });
       const textOverlaps = objects.flatMap(function (block) {
@@ -369,6 +454,7 @@ async function measureManual(width, height, dpr = 1) {
         codeBlockWidths,
         colorBlockStyles,
         randomExamples,
+        menuExamples,
         textOverlaps
       };
     })()`,
@@ -394,15 +480,58 @@ async function exerciseManualFactory() {
   return result.result.value;
 }
 
-async function manualHoverSignature() {
+async function exerciseManualMenuLesson() {
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width: 1280,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await navigateTo(`${pageUrl}docs/`);
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      const board = document.querySelector("#manual-board");
+      const minimizeBlock = board.querySelector('[data-block-object="manual-menu-minimize"]');
+      const minimize = minimizeBlock.querySelector(".blocks-system-minimize");
+      minimize.click();
+      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      const minimized = {
+        state: minimizeBlock.dataset.blockMinimized,
+        hidden: minimizeBlock.querySelector(":scope > .blocks-system-content").getAttribute("aria-hidden")
+      };
+      minimize.click();
+      const restored = minimizeBlock.dataset.blockMinimized;
+
+      const closeBlock = board.querySelector('[data-block-object="manual-menu-close"]');
+      closeBlock.querySelector(".blocks-system-close").click();
+      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      return {
+        minimized,
+        restored,
+        closeRemoved: !board.querySelector('[data-block-object="manual-menu-close"]'),
+        remainingBlocks: board.querySelectorAll(":scope > .blocks-system-object").length
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function manualHoverSignature(blockId = "manual-random-1") {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(function () {
-      const block = document.querySelector('[data-block-object="manual-random-1"]');
+      const block = document.querySelector(${JSON.stringify(`[data-block-object="${blockId}"]`)});
       const handle = block.querySelector(":scope > .blocks-system-menu");
       const rect = block.getBoundingClientRect();
       const style = getComputedStyle(block);
       return {
+        variant: block.dataset.blockVariant,
         rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+        borderColor: style.borderColor,
         outlineColor: style.outlineColor,
         outlineStyle: style.outlineStyle,
         outlineWidth: style.outlineWidth,
@@ -615,6 +744,7 @@ try {
       assert.match(home.backgroundImage, /linear-gradient/, `home toont zijn constructieve raster niet op ${width}px @${dpr}x`);
       assert.equal(home.draggable, "true", `home start niet versleepbaar op ${width}px @${dpr}x`);
       assert.equal(home.nestedSurfaces, 0, `home bevat ${home.nestedSurfaces} geneste blocks-grids op ${width}px @${dpr}x`);
+      assert.equal(home.menuActionCount, 6, `home toont niet op elk block minimaliseren en sluiten op ${width}px @${dpr}x`);
       assert.deepEqual(home.outsideBoard, [], `home plaatst blocks buiten het board op ${width}px @${dpr}x: ${home.outsideBoard.join(", ")}`);
       assert.deepEqual(home.clippedContent, [], `home knipt inhoud af op ${width}px @${dpr}x: ${home.clippedContent.join(", ")}`);
       assert.deepEqual(home.ids, ["home-title", "home-photo", "home-intro"], `home bewaart titel, foto en actie niet in leesvolgorde op ${width}px @${dpr}x`);
@@ -673,6 +803,7 @@ try {
   assert.equal(afterHover.canvasVisual.outlineOffset, "-3px", "hoverkader moet binnen het block blijven");
   assert.equal(afterHover.canvasVisual.boxShadow, beforeHover.canvasVisual.boxShadow, "hover mag geen onverwachte schaduw toevoegen");
   assert.equal(afterHover.canvasVisual.transform, beforeHover.canvasVisual.transform, "hover mag het block niet verplaatsen");
+  assertBlockActions(await exerciseBlockActions("#home-board"), "home", 3);
 
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
@@ -689,28 +820,45 @@ try {
   });
   const afterManualHover = await manualHoverSignature();
   assert.deepEqual(afterManualHover.rect, beforeManualHover.rect, "manual-hover mag het block niet verplaatsen of vergroten");
-  assert.equal(afterManualHover.outlineColor, "rgb(0, 0, 0)", "manual-hover gebruikt niet het echte zwarte librarykader");
+  assert.equal(afterManualHover.borderColor, "rgb(0, 255, 255)", "de hoverrepro gebruikt geen block met gekozen cyaankleur");
+  assert.equal(afterManualHover.outlineColor, afterManualHover.borderColor, "manual-hover gebruikt niet exact de gekozen kleur van het blockkader");
   assert.equal(afterManualHover.outlineStyle, "solid", "manual-hover toont geen volledig librarykader");
   assert.equal(afterManualHover.outlineWidth, "3px", "manual-hover heeft niet de kracht van het librarykader");
   assert.equal(afterManualHover.outlineOffset, "-3px", "manual-hover moet binnen het block blijven");
   assert.equal(afterManualHover.cursor, "grab", "de manualheader toont geen echte dragcursor");
   await protocol.send("CSS.forcePseudoState", { nodeId: manualRandomNode.nodeId, forcedPseudoClasses: [] });
+
+  const inverseNode = await protocol.send("DOM.querySelector", {
+    nodeId: manualDocumentNode.root.nodeId,
+    selector: '[data-block-object="manual-result-inverse"]'
+  });
+  await protocol.send("CSS.forcePseudoState", {
+    nodeId: inverseNode.nodeId,
+    forcedPseudoClasses: ["hover"]
+  });
+  const inverseHover = await manualHoverSignature("manual-result-inverse");
+  assert.equal(inverseHover.variant, "inverse", "de inverse-hoverrepro gebruikt geen inverse block");
+  assert.equal(inverseHover.borderColor, "rgb(239, 238, 232)", "het inverse block gebruikt niet zijn lichte randkleur");
+  assert.equal(inverseHover.outlineColor, inverseHover.borderColor, "inverse-hover gebruikt niet exact de lichte kleur van het blockkader");
+  assert.equal(inverseHover.outlineWidth, "3px", "inverse-hover verliest de volledige kadersterkte");
+  await protocol.send("CSS.forcePseudoState", { nodeId: inverseNode.nodeId, forcedPseudoClasses: [] });
   for (const [width, height, , documentColumns] of manualViewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
-    assert.equal(manual.blockCount, 22, `manual mist directe lesblokken op ${width}px @${dpr}x`);
+    assert.equal(manual.blockCount, 27, `manual mist directe lesblokken op ${width}px @${dpr}x`);
     assert.deepEqual(manual.ids, [
       "manual-start", "manual-content-html", "manual-content-object", "manual-content-factory", "manual-finish",
-      "manual-result-regular", "manual-result-inverse", "manual-layout", "manual-layout-wide", "manual-layout-small",
+      "manual-result-regular", "manual-result-inverse", "manual-menu", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none",
+      "manual-layout", "manual-layout-wide", "manual-layout-small",
       "manual-colors", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random",
       "manual-random-1", "manual-random-2", "manual-random-3", "manual-random-4", "manual-random-5", "manual-random-6", "manual-next"
     ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.variants, [
-      "regular", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular",
+      "regular", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse", "regular",
       "color", "color", "color", "regular", "color", "color", "color", "regular", "inverse", "regular", "inverse"
     ], `manual beperkt kleur en omkering niet tot de bedoelde resultaten op ${width}px @${dpr}x`);
     assert.deepEqual(manual.colors, [
-      null, null, null, null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
       "cyan", "magenta", "yellow", null, "cyan", "magenta", "yellow", null, null, null, null
     ], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
@@ -725,7 +873,7 @@ try {
     assert.equal(manual.draggable, "true", `manual schakelt het echte librarygedrag uit op ${width}px`);
     assert.equal(manual.lockedHandleState.tabIndex, 0, `manual maakt de dragheader niet toetsenbordbereikbaar op ${width}px`);
     assert.match(manual.lockedHandleState.ariaLabel, /arrow keys/i, `manual legt de toetsenbordverplaatsing niet toegankelijk uit op ${width}px`);
-    assert.equal(manual.menuActionCount, 0, `manual toont nog minimaliseer- of sluitknoppen op ${width}px`);
+    assert.equal(manual.menuActionCount, 50, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.equal(manual.boardBackgroundImage, "none", `manual tekent nog een achtergrondgrid op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
@@ -739,6 +887,12 @@ try {
     assert.ok(manual.colorBlockStyles.every((style) => style.objectBackground === "rgb(239, 238, 232)" && style.contentBackground === "rgb(239, 238, 232)"), `manual laat gebruikerskleur in het inhoudsvlak lekken op ${width}px`);
     assert.ok(manual.colorBlockStyles.every((style) => style.menuColor === "rgb(0, 0, 0)" && style.contentColor === "rgb(20, 20, 15)"), `manual bewaart geen neutrale inkt in gekleurde blocks op ${width}px`);
     assert.equal(new Set(manual.randomExamples.map((example) => JSON.stringify(example))).size, 1, `manual verandert de random-inhoud in plaats van het block op ${width}px`);
+    assert.deepEqual(manual.menuExamples, [
+      { id: "manual-menu-both", actions: ["minimize", "close"] },
+      { id: "manual-menu-minimize", actions: ["minimize"] },
+      { id: "manual-menu-close", actions: ["close"] },
+      { id: "manual-menu-none", actions: [] }
+    ], `manual toont de vier menu-aan/uitcombinaties niet letterlijk op ${width}px`);
     assert.ok(Object.values(manual.randomExamples[0]).every((value) => typeof value === "string" && value.trim() !== ""), `manual toont geen volledig vast random-object op ${width}px`);
     assert.equal(manual.contentExamples.trusted.tag, "ARTICLE", `manual toont trusted HTML niet als echte inhoud op ${width}px`);
     assert.match(manual.contentExamples.trusted.text, /Structure makes movement visible\./, `manual mist de typografische HTML-inhoud op ${width}px`);
@@ -771,8 +925,8 @@ try {
   }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
 
   assert.deepEqual(await exerciseManualKeyboardReorder(), {
-    beforeRow: "24",
-    afterRow: "25",
+    beforeRow: "31",
+    afterRow: "32",
     focusAcquired: true,
     event: { id: "manual-random-1", input: "keyboard", direction: "down" }
   }, "een manualblock moet via zijn echte libraryheader verplaatsbaar zijn");
@@ -784,6 +938,13 @@ try {
   assert.deepEqual(mobileNavigation.outside, { open: false, expanded: "false", label: "open navigation" }, "een buitenklik sluit de mobiele navigatie niet");
   assert.deepEqual(mobileNavigation.beforeResize, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie staat niet open vóór de breakpointtest");
   assert.deepEqual(mobileNavigation.afterResize, { open: false, expanded: "false", label: "open navigation" }, "desktopresize ruimt de mobiele navigatiestate niet op");
+  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 27, 25, 25);
+  assert.deepEqual(await exerciseManualMenuLesson(), {
+    minimized: { state: "true", hidden: "true" },
+    restored: "false",
+    closeRemoved: true,
+    remainingBlocks: 26
+  }, "de menu-aan/uitles moet de overblijvende actie echt uitvoerbaar houden");
 
   await navigateTo(`${pageUrl}docs/api.html`);
   assertMainNavigation(await measureMainNavigation(), "reference", "reference");
@@ -803,7 +964,7 @@ try {
       assert.ok(Number.isInteger(reference.trackWidth) && reference.trackWidth > 0, `reference gebruikt geen hele trackbreedte op ${width}px @${dpr}x`);
       assert.equal(reference.draggable, "false", `reference bewaart zijn leesvolgorde niet op ${width}px @${dpr}x`);
       assert.deepEqual(reference.lockedHandleState, { tabIndex: -1, ariaLabel: null }, `reference zet een niet-werkende verplaatsheader in de tabvolgorde op ${width}px @${dpr}x`);
-      assert.equal(reference.menuActionCount, 0, `reference toont nog minimaliseer- of sluitknoppen op ${width}px @${dpr}x`);
+      assert.equal(reference.menuActionCount, 20, `reference toont niet op elk block minimaliseren en sluiten op ${width}px @${dpr}x`);
       assert.equal(reference.nestedSurfaces, 0, `reference bevat ${reference.nestedSurfaces} geneste grids op ${width}px @${dpr}x`);
       assert.deepEqual(reference.outsideBoard, [], `reference plaatst blocks buiten het board op ${width}px @${dpr}x: ${reference.outsideBoard.join(", ")}`);
       assert.deepEqual(reference.nonIntegerHorizontalGeometry, [], `reference laat fractionele geometrie achter op ${width}px @${dpr}x: ${reference.nonIntegerHorizontalGeometry.join(", ")}`);
@@ -821,6 +982,7 @@ try {
       assert.equal(reference.pageScrollable, true, `reference gebruikt geen natuurlijke paginascroll op ${width}px @${dpr}x`);
     }
   }
+  assertBlockActions(await exerciseBlockActions("#reference-board"), "reference", 10);
 
   for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
     for (const [width, height] of [[1280, 900], [390, 844]]) {
@@ -855,7 +1017,9 @@ try {
             }),
             colors: Array.from(field.querySelectorAll(":scope > .blocks-system-object"), function (block) {
               return block.getAttribute("data-block-color");
-            })
+            }),
+            minimizeCount: field.querySelectorAll(".blocks-system-minimize").length,
+            closeCount: field.querySelectorAll(".blocks-system-close").length
           };
         })()`,
         awaitPromise: true,
@@ -872,10 +1036,13 @@ try {
         assert.match(font, /Instrument Sans/, `${example} gebruikt Instrument Sans niet voor ${part} op ${width}px`);
       }
       assert.equal(exampleStyle.configuredBlockFont, '"Instrument Sans"', `${example} configureert de librarytypografie niet via haar publieke CSS-hook`);
+      assert.equal(exampleStyle.minimizeCount, exampleStyle.variants.length, `${example} toont niet op elk block minimaliseren op ${width}px`);
+      assert.equal(exampleStyle.closeCount, exampleStyle.variants.length, `${example} toont niet op elk block sluiten op ${width}px`);
       if (example === "basic-grid") {
         assert.deepEqual(exampleStyle.variants, ["regular", "inverse", "color", "regular"], `basic-grid gebruikt niet de generieke variant voor de gebruikerskleur op ${width}px`);
         assert.deepEqual(exampleStyle.colors, [null, null, "magenta", null], `basic-grid bewaart de geselecteerde gebruikerskleur niet afzonderlijk op ${width}px`);
       }
+      assertBlockActions(await exerciseBlockActions("#field"), `${example} op ${width}px`, exampleStyle.variants.length);
     }
   }
 

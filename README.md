@@ -21,7 +21,7 @@ addressable HTML, SVG, canvas, custom elements and adapter-driven content.
     colorArray: ["cyan", "magenta", "yellow"],
     colorVariation: 0.2,
     inversionVariation: 0.5,
-    blockDefaults: { menu: { close: true } }
+    blockDefaults: { menu: { minimize: true, close: true } }
   });
 
   blocks.attach("#blocks-field");
@@ -77,7 +77,8 @@ blockCanvas.remove();
 The built-in variants are `regular` and `inverse`. A colour selected from your
 array uses one generic `color` state: the chosen colour draws the block frame
 and menu bar, while the block paper and rendered content stay neutral. The menu
-uses neutral ink.
+uses neutral ink. On draggable blocks, the hover frame reuses the current block
+frame colour, including inverse and user-selected colours.
 Other explicit variant names remain available as hooks for your own CSS, but
 the library does not style them as named colours.
 
