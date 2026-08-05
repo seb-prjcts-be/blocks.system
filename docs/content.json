@@ -23,9 +23,11 @@
   "manual": {
     "manual-eli10": {
       "title": "00 / ELI10",
-      "eyebrow": "three things, in order",
       "statement": "Container. Blocks. One block.",
-      "body": "A container is an empty div. blocks is the system connected to that div. A block is one individual box inside it.",
+      "body": "A container is an empty div. blocks is the system connected to that div. A block is one individual box inside it."
+    },
+    "manual-eli10-steps": {
+      "title": "three things, in order",
       "steps": [
         "Add an empty <div id=\"blocks-field\"></div>.",
         "Create blocks and connect it to that div with blocks.attach(...).",

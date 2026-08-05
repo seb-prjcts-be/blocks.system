@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.8";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.21";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.22";
 
 const board = document.querySelector("#manual-board");
 const manualVariationSamples = [0.05, 0.4, 0.8, 0.05, 0.25, 0.45, 0.55, 0.75, 0.6];
@@ -16,6 +16,7 @@ const blocks = createBlocksSystem({
 
 const manualIds = [
   "manual-eli10",
+  "manual-eli10-steps",
   "manual-start",
   "manual-content-html",
   "manual-content-object",
@@ -83,15 +84,20 @@ function createLessonContent({ eyebrow, statement, body, code }) {
   return root;
 }
 
-function createEli10Content({ eyebrow, statement, body, steps }) {
-  if (!Array.isArray(steps) || steps.length !== 3) throw new TypeError("ELI10 content needs three visible steps.");
+function createEli10Content({ statement, body }) {
   const root = document.createElement("article");
   root.className = "manual-eli10";
   root.append(
-    createTextElement("small", eyebrow),
     createTextElement("strong", statement),
     createTextElement("p", body)
   );
+  return root;
+}
+
+function createEli10StepsContent({ steps }) {
+  if (!Array.isArray(steps) || steps.length !== 3) throw new TypeError("ELI10 content needs three visible steps.");
+  const root = document.createElement("article");
+  root.className = "manual-eli10-steps";
   const list = document.createElement("ol");
   for (const step of steps) list.append(createTextElement("li", step));
   root.append(list);
@@ -185,12 +191,21 @@ const eli10Block = addBlock({
   id: "manual-eli10",
   title: content["manual-eli10"].title,
   content: createEli10Content(content["manual-eli10"]),
-  span: [6, 2],
+  span: [4, 2],
   place: [1, 1],
   anchor: "eli10",
-  classes: ["manual-full", "manual-eli10-block"]
+  classes: ["manual-two-thirds", "manual-eli10-block"]
 });
 eli10Block.color = "cyan";
+
+addBlock({
+  id: "manual-eli10-steps",
+  title: content["manual-eli10-steps"].title,
+  content: createEli10StepsContent(content["manual-eli10-steps"]),
+  span: [2, 2],
+  place: [5, 1],
+  classes: ["manual-third", "manual-eli10-steps-block"]
+});
 
 addBlock({
   id: "manual-start",
