@@ -84,7 +84,8 @@ library-API.
   en de menubalk. Het hoverkader hergebruikt voor elke variant `--block-color`:
   zwart bij `regular`, licht bij `inverse` en de gekozen gebruikerskleur bij
   `color`. Blockpapier, tekst en zelfgetekende inhoud in HTML, canvas of SVG
-  blijven neutraal.
+  blijven neutraal. Voor een gebruikerskleur kiest de library tussen de neutrale
+  systeeminkt en het systeempapier op basis van de sterkste contrastverhouding.
 - Bewaar een regel hier alleen wanneer de reden niet betrouwbaar uit broncode,
   tests of gitgeschiedenis terug te vinden is.
 
@@ -119,8 +120,9 @@ alleen op verzoek en push nooit zonder expliciete toestemming. Voor publicatie:
 5. maak pas een versie-tag wanneer de publieke API klaar is om via jsDelivr te
    pinnen.
 
-De eerste vaste distributie is GitHub-release `v0.1.0`. Gebruik in publieke
-voorbeelden altijd de onveranderlijke tag, niet `main`:
+De eerste vaste distributie is GitHub-release `v0.1.0`; de actuele
+contrastcorrectie staat in `v0.1.1`. Gebruik in publieke voorbeelden altijd de
+onveranderlijke actuele tag, niet `main`:
 
-- ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.0/blocks.system.mjs`
-- CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.0/blocks.system.css`
+- ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.1/blocks.system.mjs`
+- CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.1/blocks.system.css`

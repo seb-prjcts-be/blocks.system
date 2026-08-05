@@ -125,6 +125,64 @@ function normalizeColorArray(value) {
     return Object.freeze(colors);
 }
 
+function resolveColorChannels(host, value) {
+    if (typeof document === "undefined" || typeof globalThis.getComputedStyle !== "function") return null;
+    const probe = document.createElement("span");
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext?.("2d", { willReadFrequently: true });
+    if (!context) return null;
+    probe.hidden = true;
+    probe.style.color = String(value);
+    if (!probe.style.color) return null;
+    host.appendChild(probe);
+    const resolved = globalThis.getComputedStyle(probe).color;
+    probe.remove();
+    canvas.width = 1;
+    canvas.height = 1;
+    context.clearRect(0, 0, 1, 1);
+    context.fillStyle = resolved;
+    context.fillRect(0, 0, 1, 1);
+    const [red, green, blue, alpha] = context.getImageData(0, 0, 1, 1).data;
+    return { red, green, blue, alpha: alpha / 255 };
+}
+
+function compositeColor(foreground, background) {
+    const alpha = foreground.alpha;
+    return {
+        red: foreground.red * alpha + background.red * (1 - alpha),
+        green: foreground.green * alpha + background.green * (1 - alpha),
+        blue: foreground.blue * alpha + background.blue * (1 - alpha),
+        alpha: 1
+    };
+}
+
+function colorLuminance(color) {
+    const channel = (value) => {
+        const unit = value / 255;
+        return unit <= 0.04045 ? unit / 12.92 : ((unit + 0.055) / 1.055) ** 2.4;
+    };
+    return 0.2126 * channel(color.red) + 0.7152 * channel(color.green) + 0.0722 * channel(color.blue);
+}
+
+function colorContrast(first, second) {
+    const firstLuminance = colorLuminance(first);
+    const secondLuminance = colorLuminance(second);
+    return (Math.max(firstLuminance, secondLuminance) + 0.05) /
+        (Math.min(firstLuminance, secondLuminance) + 0.05);
+}
+
+function resolveReadableMenuColor(host, backgroundValue) {
+    const background = resolveColorChannels(host, backgroundValue);
+    const blockPaper = resolveColorChannels(host, "var(--block-paper-color)");
+    const ink = resolveColorChannels(host, "var(--blocks-ink-color)");
+    const paper = resolveColorChannels(host, "var(--blocks-paper-color)");
+    if (!background || !blockPaper || !ink || !paper) return null;
+    const opaqueBackground = compositeColor(background, blockPaper);
+    return colorContrast(ink, opaqueBackground) >= colorContrast(paper, opaqueBackground)
+        ? "var(--blocks-ink-color)"
+        : "var(--blocks-paper-color)";
+}
+
 function normalizeVariation(value, property, fallback) {
     if (value === undefined) return fallback;
     if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1) {
@@ -1010,16 +1068,30 @@ export function createBlocksSystem(options = {}) {
         let placeRow = null;
         let block;
 
+        function syncMenuContrast() {
+            const customColor = colorValue || appearanceValue.color;
+            if (!customColor) {
+                shell.style.removeProperty("--block-menu-color");
+                return;
+            }
+            const fallback = variantValue === "inverse"
+                ? "var(--blocks-paper-color)"
+                : "var(--blocks-ink-color)";
+            shell.style.setProperty("--block-menu-color", resolveReadableMenuColor(shell, customColor) || fallback);
+        }
+
         function syncAppearance() {
             variantValue = appearanceValue.variant;
             shell.setAttribute("data-block-variant", variantValue);
             if (appearanceValue.color === null) {
                 shell.removeAttribute("data-block-color");
                 shell.style.removeProperty("--block-array-color");
+                syncMenuContrast();
                 return;
             }
             shell.setAttribute("data-block-color", appearanceValue.color);
             shell.style.setProperty("--block-array-color", appearanceValue.color);
+            syncMenuContrast();
         }
 
         function applyLayout(layout) {
@@ -1188,6 +1260,7 @@ export function createBlocksSystem(options = {}) {
                 colorValue = String(value || "");
                 if (colorValue) shell.style.setProperty("--block-color", colorValue);
                 else shell.style.removeProperty("--block-color");
+                syncMenuContrast();
             }
         });
         Object.defineProperty(controller, "variant", {

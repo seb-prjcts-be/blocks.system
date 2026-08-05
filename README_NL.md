@@ -79,7 +79,8 @@ blockCanvas.remove();
 De ingebouwde varianten zijn `regular` en `inverse`. Een kleur uit je array
 gebruikt één generieke `color`-state: de gekozen kleur tekent het blockkader en
 de menubalk, terwijl het blockpapier en de gerenderde inhoud neutraal blijven.
-Het menu gebruikt neutrale inkt. Bij versleepbare blocks hergebruikt het
+Het menu kiest automatisch de systeeminkt of het systeempapier met het sterkste
+contrast tegen de gekozen kleur. Bij versleepbare blocks hergebruikt het
 hoverkader de huidige blockrandkleur, ook bij inverse en gebruikerskleuren.
 Andere expliciete variantnamen blijven haken voor je eigen CSS, maar de
 library geeft ze geen ingebouwde kleurstijl.

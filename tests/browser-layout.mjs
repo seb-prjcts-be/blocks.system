@@ -137,10 +137,34 @@ async function measureUserColor() {
           title: "proof",
           menu: true
         });
+        const lightDirect = blocks.add("light", {
+          id: "light-direct-color-proof",
+          title: "light",
+          menu: true,
+          variant: "regular"
+        });
+        lightDirect.color = "cyan";
+        const darkDirect = blocks.add("dark", {
+          id: "dark-direct-color-proof",
+          title: "dark",
+          menu: true,
+          variant: "regular"
+        });
+        darkDirect.color = "#222";
+        blocks.colorArray = ["#222"];
+        const darkArray = blocks.add("dark array", {
+          id: "dark-array-color-proof",
+          title: "dark array",
+          menu: true
+        });
         await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
         const objectStyle = getComputedStyle(block.element);
         const menuStyle = getComputedStyle(block.element.querySelector(".blocks-system-menu"));
         const contentStyle = getComputedStyle(block.content);
+        const lightDirectMenuColor = getComputedStyle(lightDirect.element.querySelector(".blocks-system-menu")).color;
+        const darkDirectMenuColor = getComputedStyle(darkDirect.element.querySelector(".blocks-system-menu")).color;
+        const darkArrayMenuColor = getComputedStyle(darkArray.element.querySelector(".blocks-system-menu")).color;
+        lightDirect.color = "";
         return {
           variant: block.variant,
           dataBlockColor: block.element.getAttribute("data-block-color"),
@@ -150,7 +174,11 @@ async function measureUserColor() {
           menuBackground: menuStyle.backgroundColor,
           menuColor: menuStyle.color,
           contentBackground: contentStyle.backgroundColor,
-          contentColor: contentStyle.color
+          contentColor: contentStyle.color,
+          lightDirectMenuColor,
+          lightDirectRestoredMenuColor: getComputedStyle(lightDirect.element.querySelector(".blocks-system-menu")).color,
+          darkDirectMenuColor,
+          darkArrayMenuColor
         };
       } finally {
         field.remove();
@@ -457,6 +485,7 @@ async function measureManual(width, height, dpr = 1) {
           blockWidth: eli10Block.getBoundingClientRect().width,
           border: getComputedStyle(eli10Block).borderColor,
           menuBackground: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-menu")).backgroundColor,
+          menuColor: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-menu")).color,
           contentBackground: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-content")).backgroundColor,
           title: eli10Block.querySelector(".blocks-system-title").textContent,
           eyebrow: eli10.querySelector("small").textContent,
@@ -825,7 +854,11 @@ try {
     menuBackground: "rgb(255, 255, 0)",
     menuColor: "rgb(0, 0, 0)",
     contentBackground: "rgba(0, 0, 0, 0)",
-    contentColor: "rgb(20, 20, 15)"
+    contentColor: "rgb(20, 20, 15)",
+    lightDirectMenuColor: "rgb(0, 0, 0)",
+    lightDirectRestoredMenuColor: "rgb(239, 238, 232)",
+    darkDirectMenuColor: "rgb(239, 238, 232)",
+    darkArrayMenuColor: "rgb(239, 238, 232)"
   }, "een kleur uit de gebruikersarray moet alleen het blockkader en menu kleuren en de inhoud neutraal laten");
 
   await measureHome(1280, 900);
@@ -933,6 +966,7 @@ try {
     assert.ok(Math.abs(manual.eli10.blockWidth - manual.boardWidth) <= 2, `ELI10 gebruikt niet de volle breedte op ${width}px`);
     assert.equal(manual.eli10.border, "rgb(0, 255, 255)", `ELI10 heeft geen cyaan kader op ${width}px`);
     assert.equal(manual.eli10.menuBackground, "rgb(0, 255, 255)", `ELI10 heeft geen cyaan titelbalk op ${width}px`);
+    assert.equal(manual.eli10.menuColor, "rgb(0, 0, 0)", `ELI10 gebruikt geen leesbare neutrale inkt op de cyaan titelbalk op ${width}px`);
     assert.equal(manual.eli10.contentBackground, "rgb(239, 238, 232)", `ELI10 laat cyaan in het inhoudsvlak lekken op ${width}px`);
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);

@@ -220,12 +220,16 @@ const minDefaultMenuBlock = minConfigured.add("<p>min default menu</p>", {
   id: "min-default-menu",
   title: "min default menu"
 });
+defaultMenuBlock.color = "cyan";
+minDefaultMenuBlock.color = "cyan";
 assert.equal(minConfigured.snap, configured.snap, "source and minified creation-time snap must match");
 assert.equal(minConfigured.draggable, configured.draggable, "source and minified creation-time dragging must match");
 assert.deepEqual(minConfigured.colorArray, configured.colorArray, "source and minified creation-time color arrays must match");
 assert.equal(minConfigured.colorVariation, configured.colorVariation, "source and minified creation-time color variation must match");
 assert.equal(minConfigured.inversionVariation, configured.inversionVariation, "source and minified creation-time inversion variation must match");
 assert.equal(minDefaultMenuBlock.element.children[0].children[1].children.length, 2, "source and minified block menu defaults must match");
+assert.equal(minDefaultMenuBlock.element.style.getPropertyValue("--block-color"), defaultMenuBlock.element.style.getPropertyValue("--block-color"), "source and minified direct block colors must match");
+assert.equal(minDefaultMenuBlock.element.style.getPropertyValue("--block-menu-color"), "var(--blocks-ink-color)", "direct block colors must keep a readable neutral menu fallback outside a rendered browser");
 
 const colorSamples = [0, 0.199999, 0.2, 0.999999];
 const colorful = createBlocksSystem({

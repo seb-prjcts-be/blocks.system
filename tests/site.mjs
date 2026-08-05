@@ -165,10 +165,12 @@ for (const file of retiredAssets) {
 }
 
 assert.equal(manifest.version, packageData.version, "manifest and package version must match");
+assert.ok(apiHtml.includes(`blocks.system · reference · v${packageData.version}`), "reference footer must show the released package version");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
 assert.ok(["attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
 assert.ok(manifest.design_rules.includes("colorArray is consumer-owned and defaults empty; positive colorVariation requires user-supplied CSS colors"), "manifest must record consumer ownership of the palette");
 assert.ok(manifest.design_rules.includes("the library owns only regular and inverse; automatic user colors share one generic color state that colors only the block shell"), "manifest must keep user color on the generic block shell instead of rendered content");
+assert.ok(manifest.design_rules.includes("custom block colors choose the higher-contrast neutral menu color from the system ink and paper tokens"), "manifest must record automatic readable menu contrast for user colors");
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose the TypeScript declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "the published file list must include the TypeScript declarations");
 for (const declaration of ["BlocksSystem", "BlockController", "BlockDefaults", "BlocksLabels", "BlocksReorderDetail", "createBlocksSystem"]) {
@@ -431,7 +433,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.7", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.8", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
