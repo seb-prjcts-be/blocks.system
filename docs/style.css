@@ -438,6 +438,58 @@ footer a { color: var(--ink); }
   grid-column: 1 / -1;
 }
 
+.manual-full {
+  grid-column: 1 / -1;
+}
+
+.manual-eli10 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.9fr);
+  grid-template-rows: auto 1fr auto;
+  gap: 10px 28px;
+  width: 100%;
+  height: 100%;
+  padding: clamp(16px, 2vw, 28px);
+}
+
+.manual-eli10 small {
+  grid-column: 1;
+  font: 400 11px/1.25 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.manual-eli10 strong {
+  grid-column: 1;
+  align-self: end;
+  font-size: clamp(2.2rem, 3.3vw, 4rem);
+  font-weight: 600;
+  line-height: 0.9;
+  letter-spacing: -0.055em;
+}
+
+.manual-eli10 p {
+  grid-column: 1;
+  max-width: 56ch;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.manual-eli10 ol {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  align-self: center;
+  margin: 0;
+  padding-left: 1.5rem;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.manual-eli10 li + li {
+  margin-top: 8px;
+}
+
 .manual-lesson {
   display: grid;
   box-sizing: border-box;
@@ -675,11 +727,13 @@ footer a { color: var(--ink); }
     min-height: 250px;
   }
   .manual-board > .manual-code-block,
+  .manual-board > .manual-full,
   .manual-board > .manual-half { --block-span-columns: 3 !important; }
   .manual-board > .manual-third,
   .manual-board > .manual-sixth { --block-span-columns: 1 !important; }
   .manual-board > .manual-two-thirds { --block-span-columns: 2 !important; }
-  .manual-code-block { grid-column: 1 / -1; }
+  .manual-code-block,
+  .manual-full { grid-column: 1 / -1; }
   .manual-chapter-start { margin-top: 54px; }
 }
 
@@ -691,6 +745,19 @@ footer a { color: var(--ink); }
   .manual-page #navbar { align-items: flex-start; gap: 8px; padding-inline: 14px; }
   .manual-main { padding: 104px 8px 18px; }
   .manual-masthead h1 { font-size: clamp(3.2rem, 17vw, 5.2rem); }
+  .manual-eli10 {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 8px;
+    height: auto;
+  }
+  .manual-eli10 small,
+  .manual-eli10 strong,
+  .manual-eli10 p,
+  .manual-eli10 ol {
+    grid-column: 1;
+    grid-row: auto;
+  }
   .manual-board > .blocks-system-object {
     --block-span-columns: 1 !important;
     min-height: 240px;

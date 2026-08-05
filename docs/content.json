@@ -21,6 +21,17 @@
     }
   },
   "manual": {
+    "manual-eli10": {
+      "title": "00 / ELI10",
+      "eyebrow": "three things, in order",
+      "statement": "Container. Blocks. One block.",
+      "body": "A container is an empty div. blocks is the system connected to that div. A block is one individual box inside it.",
+      "steps": [
+        "Add an empty <div id=\"blocks-field\"></div>.",
+        "Create blocks and connect it to that div with blocks.attach(...).",
+        "Add one individual block with blocks.add(...)."
+      ]
+    },
     "manual-start": {
       "title": "01 / start the system",
       "intro": "Attach the system before adding content. setGrid(6, 4) creates six columns and four rows.",

@@ -327,6 +327,8 @@ async function measureManual(width, height, dpr = 1) {
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
       const code = board.querySelector(".manual-code");
       const rootStyle = getComputedStyle(document.documentElement);
+      const eli10Block = board.querySelector('[data-block-object="manual-eli10"]');
+      const eli10 = eli10Block.querySelector(".manual-eli10");
       const contentOptions = ["manual-content-html", "manual-content-object", "manual-content-factory"].map(function (id) {
         const blockRect = board.querySelector('[data-block-object="' + id + '"]').getBoundingClientRect();
         return {
@@ -340,7 +342,7 @@ async function measureManual(width, height, dpr = 1) {
       const image = imageDemo.querySelector("img");
       const factoryDemo = board.querySelector(".manual-content-factory-demo");
       const factoryButton = factoryDemo.querySelector("button");
-      const chapterIds = ["result", "menu", "layout", "colors", "random", "next"];
+      const chapterIds = ["start", "result", "menu", "layout", "colors", "random", "next"];
       const chapterGaps = chapterIds.map(function (id) {
         const block = document.getElementById(id);
         const previous = block.previousElementSibling;
@@ -451,6 +453,14 @@ async function measureManual(width, height, dpr = 1) {
         mastheadGap: boardRect.top - mastheadRect.bottom,
         rowHeight: parseFloat(getComputedStyle(board).gridAutoRows),
         rowGap: parseFloat(getComputedStyle(board).rowGap),
+        eli10: {
+          blockWidth: eli10Block.getBoundingClientRect().width,
+          title: eli10Block.querySelector(".blocks-system-title").textContent,
+          eyebrow: eli10.querySelector("small").textContent,
+          statement: eli10.querySelector("strong").textContent,
+          body: eli10.querySelector("p").textContent,
+          steps: Array.from(eli10.querySelectorAll("li"), function (item) { return item.textContent; })
+        },
         contentOptions,
         contentExamples: {
           trusted: {
@@ -878,20 +888,20 @@ try {
   for (const [width, height, , documentColumns] of manualViewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
-    assert.equal(manual.blockCount, 27, `manual mist directe lesblokken op ${width}px @${dpr}x`);
+    assert.equal(manual.blockCount, 28, `manual mist ELI10 of directe lesblokken op ${width}px @${dpr}x`);
     assert.deepEqual(manual.ids, [
-      "manual-start", "manual-content-html", "manual-content-object", "manual-content-factory", "manual-finish",
+      "manual-eli10", "manual-start", "manual-content-html", "manual-content-object", "manual-content-factory", "manual-finish",
       "manual-result-regular", "manual-result-inverse", "manual-menu", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none",
       "manual-layout", "manual-layout-wide", "manual-layout-small",
       "manual-colors", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random",
       "manual-random-1", "manual-random-2", "manual-random-3", "manual-random-4", "manual-random-5", "manual-random-6", "manual-next"
     ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.variants, [
-      "regular", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse", "regular",
+      "regular", "regular", "regular", "regular", "inverse", "regular", "regular", "inverse", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse", "regular",
       "color", "color", "color", "regular", "color", "color", "color", "regular", "inverse", "regular", "inverse"
     ], `manual beperkt kleur en omkering niet tot de bedoelde resultaten op ${width}px @${dpr}x`);
     assert.deepEqual(manual.colors, [
-      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
       "cyan", "magenta", "yellow", null, "cyan", "magenta", "yellow", null, null, null, null
     ], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
@@ -906,12 +916,18 @@ try {
     assert.equal(manual.draggable, "true", `manual schakelt het echte librarygedrag uit op ${width}px`);
     assert.equal(manual.lockedHandleState.tabIndex, 0, `manual maakt de dragheader niet toetsenbordbereikbaar op ${width}px`);
     assert.match(manual.lockedHandleState.ariaLabel, /arrow keys/i, `manual legt de toetsenbordverplaatsing niet toegankelijk uit op ${width}px`);
-    assert.equal(manual.menuActionCount, 50, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
+    assert.equal(manual.menuActionCount, 52, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
+    assert.equal(manual.eli10.title, "00 / ELI10", `manual begint niet met ELI10 op ${width}px`);
+    assert.equal(manual.eli10.eyebrow, "three things, in order", `ELI10 mist zijn leesingang op ${width}px`);
+    assert.equal(manual.eli10.statement, "Container. Blocks. One block.", `ELI10 mist zijn kernzin op ${width}px`);
+    assert.match(manual.eli10.body, /A container is an empty div\.[\s\S]*blocks is the system[\s\S]*A block is one individual box/, `ELI10 definieert container, blocks en block niet eenvoudig op ${width}px`);
+    assert.equal(manual.eli10.steps.length, 3, `ELI10 toont niet drie concrete stappen op ${width}px`);
+    assert.ok(Math.abs(manual.eli10.blockWidth - manual.boardWidth) <= 2, `ELI10 gebruikt niet de volle breedte op ${width}px`);
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
     assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - manual.mastheadGap) <= 0.5; }), `manual gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px: ${manual.mastheadGap}px versus ${JSON.stringify(manual.chapterGaps)}`);
@@ -964,8 +980,8 @@ try {
   }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
 
   assert.deepEqual(await exerciseManualKeyboardReorder(), {
-    beforeRow: "31",
-    afterRow: "32",
+    beforeRow: "34",
+    afterRow: "35",
     focusAcquired: true,
     event: { id: "manual-random-1", input: "keyboard", direction: "down" }
   }, "een manualblock moet via zijn echte libraryheader verplaatsbaar zijn");
@@ -977,12 +993,12 @@ try {
   assert.deepEqual(mobileNavigation.outside, { open: false, expanded: "false", label: "open navigation" }, "een buitenklik sluit de mobiele navigatie niet");
   assert.deepEqual(mobileNavigation.beforeResize, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie staat niet open vóór de breakpointtest");
   assert.deepEqual(mobileNavigation.afterResize, { open: false, expanded: "false", label: "open navigation" }, "desktopresize ruimt de mobiele navigatiestate niet op");
-  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 27, 25, 25);
+  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 28, 26, 26);
   assert.deepEqual(await exerciseManualMenuLesson(), {
     minimized: { state: "true", hidden: "true" },
     restored: "false",
     closeRemoved: true,
-    remainingBlocks: 26
+    remainingBlocks: 27
   }, "de menu-aan/uitles moet de overblijvende actie echt uitvoerbaar houden");
 
   await navigateTo(`${pageUrl}docs/api.html`);
