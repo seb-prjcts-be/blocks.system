@@ -12,7 +12,7 @@ const source = await readFile(sourcePath, "utf8");
 const minified = await readFile(minPath, "utf8");
 
 assert.doesNotMatch(source, /vanilla\.waves|p5\.waves|VanillaWaves|WavesLoader|P5WindowSketches|\bWEL\b/, "the core must not know a local runtime");
-assert.ok(["attach", "setGrid", "add", "register", "registerAdapter", "mount", "unmount"]
+assert.ok(["attach", "setGrid", "compact", "add", "register", "registerAdapter", "mount", "unmount"]
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
 assert.equal(singleton.snap, false, "snap must be disabled by default");
 assert.equal(singleton.draggable, true, "dragging must be enabled by default");
@@ -80,15 +80,31 @@ class TestElement {
     this.attributes = new Map();
     this.children = [];
     this.classList = { add() {}, remove() {} };
+    this.listeners = new Map();
     this.parentElement = null;
     this.parentNode = null;
     this.style = new TestStyle();
   }
-  addEventListener() {}
-  removeEventListener() {}
+  addEventListener(type, listener) {
+    const listeners = this.listeners.get(type) || [];
+    listeners.push(listener);
+    this.listeners.set(type, listeners);
+  }
+  removeEventListener(type, listener) {
+    const listeners = this.listeners.get(type) || [];
+    this.listeners.set(type, listeners.filter((item) => item !== listener));
+  }
+  dispatchEvent(event) {
+    for (const listener of this.listeners.get(event.type) || []) listener.call(this, event);
+    return true;
+  }
   setAttribute(name, value) { this.attributes.set(name, String(value)); }
   getAttribute(name) { return this.attributes.get(name) ?? null; }
   removeAttribute(name) { this.attributes.delete(name); }
+  matches(selector) {
+    if (selector !== ".blocks-system-object") return false;
+    return String(this.className || "").split(/\s+/).includes("blocks-system-object");
+  }
   querySelectorAll(selector) {
     if (selector !== 'link[rel="stylesheet"]') return [];
     return this.children.filter((child) => child.getAttribute("rel") === "stylesheet");
@@ -182,6 +198,36 @@ assert.throws(function () {
 assert.throws(function () {
   createBlocksSystem({ blockDefaults: { menu: "yes" } });
 }, /blockDefaults\.menu/, "blockDefaults.menu must be boolean or an options object");
+
+const compacting = createBlocksSystem({ variant: "regular" });
+const compactingField = new TestElement();
+const compactChanges = [];
+compactingField.addEventListener("blocks:change", function (event) {
+  compactChanges.push(event.detail);
+});
+compacting.attach(compactingField).setGrid(1, 6);
+const compactFirst = compacting.add("first", { id: "compact-first" }).place(1, 1);
+const compactSecond = compacting.add("second", { id: "compact-second" }).place(1, 3);
+const compactThird = compacting.add("third", { id: "compact-third" }).span(1, 2).place(1, 5);
+assert.equal(compacting.compact(), compacting, "compact must remain chainable on the system");
+assert.equal(compactFirst.element.style.getPropertyValue("--block-row"), "1", "compact must keep already tight blocks in place");
+assert.equal(compactSecond.element.style.getPropertyValue("--block-row"), "2", "compact must fill the first vertical gap");
+assert.equal(compactThird.element.style.getPropertyValue("--block-row"), "3", "compact must preserve spans while moving upward");
+assert.equal(compactingField.style.getPropertyValue("--blocks-rows"), "6", "compact must not silently shrink the configured grid");
+assert.deepEqual(compactChanges.pop(), {
+  type: "compact",
+  id: null,
+  ids: ["compact-second", "compact-third"]
+}, "compact must publish the moved block ids");
+compacting.compact();
+assert.equal(compactChanges.length, 0, "a no-op compact must not publish a change event");
+compactSecond.minimized = true;
+compactSecond.minimized = true;
+compactSecond.minimized = false;
+compactThird.remove();
+assert.deepEqual(compactChanges.map((change) => change.type), ["minimize", "restore", "remove"], "state changes must publish one stable change event");
+assert.deepEqual(compactChanges.map((change) => change.id), ["compact-second", "compact-second", "compact-third"], "state change events must identify their block");
+
 assert.deepEqual(createBlocksSystem({ colorArray: [] }).colorArray, [], "an empty user color array must be valid while color variation is disabled");
 assert.deepEqual(
   createBlocksSystem({ colorArray: [" #00ffff ", "var(--accent-color)", "#00ffff"] }).colorArray,
@@ -209,6 +255,7 @@ assert.throws(function () {
 const minConfigured = createMinBlocksSystem({
   snap: true,
   draggable: false,
+  variant: "regular",
   colorArray: ["yellow", "blue", "yellow"],
   colorVariation: 0.2,
   inversionVariation: 0.5,

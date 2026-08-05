@@ -337,6 +337,7 @@
         { "cells": ["get(id)", "definition | null", "Read one registered definition."] },
         { "id": "api-attach", "cells": ["attach(target)", "blocks", "Attach to a selector or Element."] },
         { "id": "api-set-grid", "cells": ["setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
+        { "id": "api-compact", "cells": ["compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] },
         { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, an element object or a content factory."] },
         { "id": "api-mount", "cells": ["mount(id, target, overrides?)", "Promise<Element>", "Mount a registered definition through its adapter."] },
         { "id": "api-unmount", "cells": ["unmount(target)", "boolean", "Run optional cleanup and remove mounted content."] },
@@ -402,17 +403,21 @@
       ]
     },
     "reference-event": {
-      "title": "08 / reorder event",
-      "intro": "The field dispatches blocks:reorder after pointer or keyboard reordering.",
+      "title": "08 / events",
+      "intro": "The field dispatches blocks:reorder after pointer or keyboard reordering and blocks:change after explicit state changes.",
       "code": [
         "field.addEventListener(\"blocks:reorder\", (event) => {",
         "  const {",
         "    id, input, mode, key,",
         "    fromIndex, toIndex, from, to, direction",
         "  } = event.detail;",
+        "});",
+        "",
+        "field.addEventListener(\"blocks:change\", (event) => {",
+        "  const { type, id, ids } = event.detail;",
         "});"
       ],
-      "details": "input is pointer or keyboard. mode is grid or flow. direction is up, right, down, left or still. Positions are { column, row } or null."
+      "details": "For blocks:reorder, input is pointer or keyboard, mode is grid or flow, and positions are { column, row } or null. For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks."
     },
     "reference-hooks": {
       "title": "09 / css hooks",

@@ -95,6 +95,14 @@ export interface BlocksReorderDetail {
   direction: "up" | "right" | "down" | "left" | "still";
 }
 
+export type BlocksChangeType = "compact" | "minimize" | "restore" | "remove";
+
+export interface BlocksChangeDetail {
+  type: BlocksChangeType;
+  id: string | null;
+  ids: readonly string[];
+}
+
 export interface BlocksSystemOptions {
   catalogUrl?: string | URL;
   random?: () => number;
@@ -132,6 +140,7 @@ export interface BlocksSystem {
   get(id: string): Readonly<BlockDefinition> | null;
   attach(target: string | Element): BlocksSystem;
   setGrid(columns: number, rows: number): BlocksSystem;
+  compact(): BlocksSystem;
   add(content: BlockContent, options?: AddBlockOptions): BlockController;
   mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
   unmount(target: string | Element): boolean;
@@ -150,5 +159,6 @@ declare global {
 
   interface HTMLElementEventMap {
     "blocks:reorder": CustomEvent<BlocksReorderDetail>;
+    "blocks:change": CustomEvent<BlocksChangeDetail>;
   }
 }

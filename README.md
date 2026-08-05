@@ -111,7 +111,7 @@ blocks.register({
 ## API map
 
 - Creation: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Shared system: `attach`, `setGrid`, `snap`, `draggable`, `font`, `variant`,
+- Shared system: `attach`, `setGrid`, `compact`, `snap`, `draggable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
@@ -136,6 +136,12 @@ same grid movement without a pointer. The surface emits `blocks:reorder` after
 pointer and keyboard moves with one stable detail shape: `id`, `input`, `mode`,
 `key`, indices, grid positions and direction. Set `blocks.draggable = false` to
 lock the layout.
+
+Use `blocks.compact()` only when you explicitly want gap filling. It keeps each
+placed block in its column, moves fixed grid blocks upward in DOM order and does
+not shrink the configured grid. `block.minimized` remains collapse-in-place.
+The field emits `blocks:change` for `compact`, `minimize`, `restore` and
+`remove`.
 Trackpad and wheel input over ordinary block content continues scrolling the
 page; only genuinely overflowing inner content scrolls locally first.
 The measured mechanics and boundaries are recorded in

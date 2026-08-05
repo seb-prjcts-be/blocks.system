@@ -10,6 +10,7 @@
     "attach",
     "colorArray",
     "colorVariation",
+    "compact",
     "draggable",
     "field",
     "font",
@@ -74,8 +75,10 @@
     "a draggable block hover frame reuses the resolved block color",
     "documentation examples choose CMY for block shells; block paper and consumer-rendered HTML, canvas and SVG content stay neutral",
     "minimized blocks keep their configured grid area reserved for conflict-free restore",
+    "compact() is explicit vertical gap filling; it keeps placed blocks in their column and preserves the configured grid size",
     "accessible menu labels follow the document language and remain configurable",
     "blocks:reorder always exposes the same detail keys for pointer and keyboard input",
+    "blocks:change reports compact, minimize, restore and remove state changes",
     "base block CSS defines states and scrolling but contains no animation",
     "attach() always receives an explicit field"
   ]

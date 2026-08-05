@@ -113,7 +113,7 @@ blocks.register({
 ## API-overzicht
 
 - Aanmaak: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Gedeeld systeem: `attach`, `setGrid`, `snap`, `draggable`, `font`, `variant`,
+- Gedeeld systeem: `attach`, `setGrid`, `compact`, `snap`, `draggable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
@@ -138,6 +138,12 @@ gebruik de pijltjestoetsen voor dezelfde rasterbeweging zonder pointer. Na een
 pointer- of toetsverplaatsing vuurt de surface `blocks:reorder` met één vaste
 detailvorm: `id`, `input`, `mode`, `key`, indices, rasterposities en richting.
 Zet `blocks.draggable = false` om de layout te vergrendelen.
+
+Gebruik `blocks.compact()` alleen wanneer je expliciet gaten wil vullen. De
+methode houdt ieder geplaatst block in zijn kolom, schuift vaste gridblocks in
+DOM-volgorde omhoog en verkleint het ingestelde raster niet stilzwijgend.
+`block.minimized` blijft inklappen op dezelfde plaats. Het veld vuurt
+`blocks:change` voor `compact`, `minimize`, `restore` en `remove`.
 Trackpad- en wheelscroll boven gewone blockinhoud blijft de pagina scrollen;
 alleen echt overlopende binneninhoud scrollt eerst lokaal.
 De gemeten werking en grenzen staan duurzaam in

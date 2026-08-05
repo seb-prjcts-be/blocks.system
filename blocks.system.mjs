@@ -977,6 +977,31 @@ export function createBlocksSystem(options = {}) {
         return api;
     }
 
+    function emitChange(detail) {
+        if (!surface || typeof surface.dispatchEvent !== "function") return;
+        surface.dispatchEvent(
+            new CustomEvent("blocks:change", {
+                detail: {
+                    type: detail.type,
+                    id: detail.id ?? null,
+                    ids: detail.ids ?? (detail.id ? [detail.id] : []),
+                },
+            }),
+        );
+    }
+
+    function directObjectElements() {
+        if (!surface) return [];
+        return Array.from(surface.children).filter((element) => element.matches?.(".blocks-system-object"));
+    }
+
+    function layoutsOverlap(first, second) {
+        return first.column < second.column + second.columns &&
+            first.column + first.columns > second.column &&
+            first.row < second.row + second.rows &&
+            first.row + first.rows > second.row;
+    }
+
     function assertLayoutFits(id, layout, gridColumns = columns, gridRows = rows) {
         const lastColumn = layout.column === null
             ? layout.columns
@@ -990,11 +1015,7 @@ export function createBlocksSystem(options = {}) {
         if (layout.column === null || layout.row === null) return;
         for (const [otherId, other] of objectLayouts) {
             if (otherId === id || other.column === null || other.row === null) continue;
-            const overlaps = layout.column < other.column + other.columns &&
-                layout.column + layout.columns > other.column &&
-                layout.row < other.row + other.rows &&
-                layout.row + layout.rows > other.row;
-            if (overlaps) throw new RangeError(`Plaats van ${id} overlapt ${otherId}.`);
+            if (layoutsOverlap(layout, other)) throw new RangeError(`Plaats van ${id} overlapt ${otherId}.`);
         }
     }
 
@@ -1010,6 +1031,28 @@ export function createBlocksSystem(options = {}) {
         columns = nextColumns;
         rows = nextRows;
         applySurfaceState();
+        return api;
+    }
+
+    function compact() {
+        drag.stop();
+        const placed = [];
+        const movedIds = [];
+        for (const element of directObjectElements()) {
+            const id = element.getAttribute("data-block-object");
+            const layout = objectLayouts.get(id);
+            if (!layout || layout.column === null || layout.row === null) continue;
+            const nextLayout = { ...layout, row: 1 };
+            while (placed.some((other) => layoutsOverlap(nextLayout, other))) nextLayout.row += 1;
+            placed.push(nextLayout);
+            if (nextLayout.row === layout.row) continue;
+            objectLayoutSetters.get(id)?.(nextLayout.column, nextLayout.row);
+            movedIds.push(id);
+        }
+        if (movedIds.length > 0) {
+            applySurfaceState();
+            emitChange({ type: "compact", ids: movedIds });
+        }
         return api;
     }
 
@@ -1133,8 +1176,11 @@ export function createBlocksSystem(options = {}) {
 
         function setMinimized(value) {
             if (block && objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
-            minimizedValue = Boolean(value);
+            const nextValue = Boolean(value);
+            if (minimizedValue === nextValue) return;
+            minimizedValue = nextValue;
             syncMinimizedState();
+            emitChange({ type: minimizedValue ? "minimize" : "restore", id });
         }
 
         function remove() {
@@ -1144,6 +1190,7 @@ export function createBlocksSystem(options = {}) {
             objectLayoutSetters.delete(id);
             menuInteractionSetters.delete(id);
             shell.remove();
+            emitChange({ type: "remove", id });
             return true;
         }
 
@@ -1304,6 +1351,7 @@ export function createBlocksSystem(options = {}) {
         get,
         attach,
         setGrid,
+        compact,
         add,
         mount,
         unmount,

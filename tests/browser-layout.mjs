@@ -190,6 +190,50 @@ async function measureUserColor() {
   return result.result.value;
 }
 
+async function measureCompactLayout() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const { createBlocksSystem } = await import("./blocks.system.mjs?compact-proof");
+      const field = document.createElement("div");
+      field.style.cssText = "position:fixed;left:0;top:0;width:120px;height:360px";
+      document.body.append(field);
+      try {
+        const blocks = createBlocksSystem({
+          snap: true,
+          draggable: false,
+          variant: "regular"
+        });
+        const changes = [];
+        field.addEventListener("blocks:change", function (event) {
+          changes.push(event.detail);
+        });
+        blocks.attach(field).setGrid(1, 6);
+        blocks.add("first", { id: "compact-first" }).place(1, 1);
+        blocks.add("second", { id: "compact-second" }).place(1, 3);
+        blocks.add("third", { id: "compact-third" }).span(1, 2).place(1, 5);
+        blocks.compact();
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+        const objects = Array.from(field.querySelectorAll(":scope > .blocks-system-object"));
+        return {
+          rows: objects.map(function (block) { return block.style.getPropertyValue("--block-row"); }),
+          columns: objects.map(function (block) { return block.style.getPropertyValue("--block-column"); }),
+          gridRows: field.style.getPropertyValue("--blocks-rows"),
+          change: changes[0],
+          rects: objects.map(function (block) {
+            const rect = block.getBoundingClientRect();
+            return { left: rect.left, top: rect.top, height: rect.height };
+          })
+        };
+      } finally {
+        field.remove();
+      }
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
 async function hoverSignature() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(() => {
@@ -890,6 +934,19 @@ try {
     darkDirectMenuColor: "rgb(239, 238, 232)",
     darkArrayMenuColor: "rgb(239, 238, 232)"
   }, "een kleur uit de gebruikersarray moet alleen het blockkader en menu kleuren en de inhoud neutraal laten");
+
+  const compactLayout = await measureCompactLayout();
+  assert.deepEqual(compactLayout.rows, ["1", "2", "3"], "compact() vult verticale gaten niet in echte Chromium-layout");
+  assert.deepEqual(compactLayout.columns, ["1", "1", "1"], "compact() mag blocks niet naar een andere kolom verplaatsen");
+  assert.equal(compactLayout.gridRows, "6", "compact() mag de ingestelde gridhoogte niet stilzwijgend verkleinen");
+  assert.deepEqual(compactLayout.change, {
+    type: "compact",
+    id: null,
+    ids: ["compact-second", "compact-third"]
+  }, "compact() publiceert niet welke blocks verplaatst zijn");
+  assert.ok(compactLayout.rects[0].top < compactLayout.rects[1].top && compactLayout.rects[1].top < compactLayout.rects[2].top, "compact() levert geen oplopende visuele rijvolgorde op");
+  assert.ok(compactLayout.rects.every(function (rect) { return Math.abs(rect.left - compactLayout.rects[0].left) <= 0.5; }), "compact() bewaart geen vaste kolom in de echte layout");
+  assert.ok(compactLayout.rects[2].height > compactLayout.rects[1].height, "compact() bewaart de spanhoogte niet in de echte layout");
 
   await measureHome(1280, 900);
   const beforeHover = await hoverSignature();

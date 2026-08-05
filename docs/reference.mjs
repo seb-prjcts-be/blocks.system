@@ -19,14 +19,14 @@ const referenceBlocks = [
   { id: "reference-block", anchor: "block-controller", span: [6, 5], place: [1, 20] },
   { id: "reference-add-options", anchor: "add-options", span: [6, 3], place: [1, 26] },
   { id: "reference-adapters", anchor: "adapters", span: [6, 5], place: [1, 30] },
-  { id: "reference-event", anchor: "reorder-event", span: [6, 3], place: [1, 36] },
-  { id: "reference-hooks", anchor: "css-hooks", span: [6, 4], place: [1, 40] },
-  { id: "reference-errors", anchor: "errors", span: [6, 2], place: [1, 45] }
+  { id: "reference-event", anchor: "reorder-event", span: [6, 4], place: [1, 36] },
+  { id: "reference-hooks", anchor: "css-hooks", span: [6, 4], place: [1, 41] },
+  { id: "reference-errors", anchor: "errors", span: [6, 2], place: [1, 46] }
 ];
 const referenceContent = await loadDocsContent("reference", referenceBlocks.map(({ id }) => id));
 
 blocks.attach(board);
-blocks.setGrid(6, 46);
+blocks.setGrid(6, 47);
 quantizeSurface(board);
 
 function createTextElement(name, text, className = "") {

@@ -41,7 +41,7 @@ for (const page of pages) {
 
 const readme = await readFile(resolve(root, "README.md"), "utf8");
 const readmeNl = await readFile(resolve(root, "README_NL.md"), "utf8");
-for (const apiName of ["createBlocksSystem", "blockDefaults", "attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "add", "registerAdapter", "menu", "span", "place", "flow", "minimized", "color"]) {
+for (const apiName of ["createBlocksSystem", "blockDefaults", "attach", "setGrid", "compact", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "add", "registerAdapter", "menu", "span", "place", "flow", "minimized", "color"]) {
   assert.ok(readme.includes(apiName), `README.md misses ${apiName}`);
   assert.ok(readmeNl.includes(apiName), `README_NL.md misses ${apiName}`);
 }
@@ -167,13 +167,13 @@ for (const file of retiredAssets) {
 assert.equal(manifest.version, packageData.version, "manifest and package version must match");
 assert.ok(apiHtml.includes(`blocks.system · reference · v${packageData.version}`), "reference footer must show the released package version");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
-assert.ok(["attach", "setGrid", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
+assert.ok(["attach", "setGrid", "compact", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
 assert.ok(manifest.design_rules.includes("colorArray is consumer-owned and defaults empty; positive colorVariation requires user-supplied CSS colors"), "manifest must record consumer ownership of the palette");
 assert.ok(manifest.design_rules.includes("the library owns only regular and inverse; automatic user colors share one generic color state that colors only the block shell"), "manifest must keep user color on the generic block shell instead of rendered content");
 assert.ok(manifest.design_rules.includes("custom block colors choose the higher-contrast neutral menu color from the system ink and paper tokens"), "manifest must record automatic readable menu contrast for user colors");
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose the TypeScript declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "the published file list must include the TypeScript declarations");
-for (const declaration of ["BlocksSystem", "BlockController", "BlockDefaults", "BlocksLabels", "BlocksReorderDetail", "createBlocksSystem"]) {
+for (const declaration of ["BlocksSystem", "BlockController", "BlockDefaults", "BlocksLabels", "BlocksReorderDetail", "BlocksChangeDetail", "createBlocksSystem"]) {
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);
 }
 
@@ -471,7 +471,7 @@ assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the 
 for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);
 }
-for (const apiName of ["createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation", "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)", "flow()", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)", "unmount(target)", "address(id)", "blocks:reorder"]) {
+for (const apiName of ["createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "compact()", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation", "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)", "flow()", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)", "unmount(target)", "address(id)", "blocks:reorder", "blocks:change"]) {
   assert.ok(serializedReferenceContent.includes(apiName), `the reference content misses ${apiName}`);
 }
 assert.match(serializedReferenceContent, /User-owned CSS colors[\s\S]*?defaults to empty/i, "the reference must identify colorArray as empty and consumer-owned");
