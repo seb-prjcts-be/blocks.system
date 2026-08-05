@@ -181,7 +181,7 @@ function addBlock({ id, title, content: blockContent, span, place, variant, menu
   return block;
 }
 
-addBlock({
+const eli10Block = addBlock({
   id: "manual-eli10",
   title: content["manual-eli10"].title,
   content: createEli10Content(content["manual-eli10"]),
@@ -190,6 +190,7 @@ addBlock({
   anchor: "eli10",
   classes: ["manual-full", "manual-eli10-block"]
 });
+eli10Block.color = "cyan";
 
 addBlock({
   id: "manual-start",

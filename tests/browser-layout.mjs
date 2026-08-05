@@ -455,6 +455,9 @@ async function measureManual(width, height, dpr = 1) {
         rowGap: parseFloat(getComputedStyle(board).rowGap),
         eli10: {
           blockWidth: eli10Block.getBoundingClientRect().width,
+          border: getComputedStyle(eli10Block).borderColor,
+          menuBackground: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-menu")).backgroundColor,
+          contentBackground: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-content")).backgroundColor,
           title: eli10Block.querySelector(".blocks-system-title").textContent,
           eyebrow: eli10.querySelector("small").textContent,
           statement: eli10.querySelector("strong").textContent,
@@ -928,6 +931,9 @@ try {
     assert.match(manual.eli10.body, /A container is an empty div\.[\s\S]*blocks is the system[\s\S]*A block is one individual box/, `ELI10 definieert container, blocks en block niet eenvoudig op ${width}px`);
     assert.equal(manual.eli10.steps.length, 3, `ELI10 toont niet drie concrete stappen op ${width}px`);
     assert.ok(Math.abs(manual.eli10.blockWidth - manual.boardWidth) <= 2, `ELI10 gebruikt niet de volle breedte op ${width}px`);
+    assert.equal(manual.eli10.border, "rgb(0, 255, 255)", `ELI10 heeft geen cyaan kader op ${width}px`);
+    assert.equal(manual.eli10.menuBackground, "rgb(0, 255, 255)", `ELI10 heeft geen cyaan titelbalk op ${width}px`);
+    assert.equal(manual.eli10.contentBackground, "rgb(239, 238, 232)", `ELI10 laat cyaan in het inhoudsvlak lekken op ${width}px`);
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
     assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - manual.mastheadGap) <= 0.5; }), `manual gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px: ${manual.mastheadGap}px versus ${JSON.stringify(manual.chapterGaps)}`);

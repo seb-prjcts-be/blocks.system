@@ -260,8 +260,9 @@ assert.match(manualHtml, /class="docs-chapters"[\s\S]*#eli10[\s\S]*#start[\s\S]*
 assert.doesNotMatch(manualHtml + siteCss, /manual-hero-image/, "the photograph belongs to the homepage block composition, not the manual masthead");
 assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/, "the beginner manual must not present layout tooling before the lesson");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
-assert.equal((siteDemos["docs/manual.mjs"].match(/^addBlock\(\{/gm) || []).length, 28, "the manual must build ELI10 and the approved beginner sequence from direct blocks");
+assert.equal((siteDemos["docs/manual.mjs"].match(/(?:^addBlock|=\s*addBlock)\(\{/gm) || []).length, 28, "the manual must build ELI10 and the approved beginner sequence from direct blocks");
 assert.match(siteDemos["docs/manual.mjs"], /id:\s*"manual-eli10"[\s\S]*?span:\s*\[6,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\]/, "ELI10 must occupy rows 1–2, leave row 3 open and start part 1 on row 4");
+assert.match(siteDemos["docs/manual.mjs"], /const eli10Block\s*=\s*addBlock\([\s\S]*?id:\s*"manual-eli10"[\s\S]*?eli10Block\.color\s*=\s*"cyan"/, "the first manual block must use the public block color control for its cyan shell");
 for (const anchor of ["eli10", "start", "result", "menu", "layout", "colors", "random", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
 }
