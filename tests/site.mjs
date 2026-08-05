@@ -121,8 +121,8 @@ const navigationPages = [
 
 const canonicalStylesheets = [
   ["home", homeHtml, ["blocks.system.css?v=0.1.9", "docs/style.css?v=0.2.2"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.4"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.1"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.5"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.9", "style.css?v=0.2.2"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
@@ -207,7 +207,7 @@ assert.match(siteDemos["docs/shell.mjs"], /export async function loadDocsContent
 assert.equal((siteCss.match(/@import\s+url\(/g) || []).length, 1, "consumer CSS must own one font import");
 assert.doesNotMatch(siteCss, /\b(?:Inter|Oswald)\b/, "all site and example typography must use the canonical Instrument Sans family");
 assert.doesNotMatch(siteCss, /\.hero-|\.demo-|#field|\.docs-pagination|\.api-table/, "shared CSS must not retain retired page systems");
-assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[^}]*background-image:\s*none;/s, "manual and reference must share one invisible editorial grid owner");
+assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[^}]*background-image:[^}]*linear-gradient\(to right,[^}]*linear-gradient\(to bottom,[^}]*background-position:[^}]*background-size:/s, "manual and reference must temporarily expose their shared editorial grid");
 assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*min-height:\s*22px;[^}]*padding:\s*3px 7px;/s, "the menu must preserve the compact original proportions");
 assert.match(libraryCss, /\.blocks-system-surface\s*\{[^}]*--blocks-font-family:\s*"Segoe UI",\s*Arial,\s*sans-serif;/s, "the core must use a delivered system fallback instead of implying an unloaded webfont");
 assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*font:\s*600 13px\/1 var\(--blocks-font-family\);/s, "the menu must use the configurable font family at its original weight");
@@ -429,7 +429,7 @@ assert.match(serializedReferenceContent, /built-in variants are regular and inve
 for (const hook of [".blocks-system-surface", ".blocks-system-object", ".blocks-system-menu", ".blocks-system-content", ".blocks-system-drop-preview", "[data-block-object]", "[data-block-variant]", "[data-block-color]", "[data-block-minimized]", "[data-draggable]"]) {
   assert.ok(serializedReferenceContent.includes(hook), `the reference content misses stable hook ${hook}`);
 }
-assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[^}]*background-image:\s*none;/s, "the reference must use the shared invisible editorial grid");
+assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[^}]*background-image:[^}]*linear-gradient\(to right,[^}]*linear-gradient\(to bottom,[^}]*background-position:[^}]*background-size:/s, "the reference must use the shared temporarily visible editorial grid");
 assert.doesNotMatch(libraryCss, /\.reference-/, "the reusable library stylesheet must not absorb reference composition");
 
 const canonicalDemos = ["docs/home.mjs", "docs/manual.mjs", "docs/reference.mjs"]

@@ -901,7 +901,7 @@ try {
     assert.equal(manual.lockedHandleState.tabIndex, 0, `manual maakt de dragheader niet toetsenbordbereikbaar op ${width}px`);
     assert.match(manual.lockedHandleState.ariaLabel, /arrow keys/i, `manual legt de toetsenbordverplaatsing niet toegankelijk uit op ${width}px`);
     assert.equal(manual.menuActionCount, 50, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
-    assert.equal(manual.boardBackgroundImage, "none", `manual tekent nog een achtergrondgrid op ${width}px`);
+    assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
@@ -987,7 +987,7 @@ try {
       assert.equal(reference.columnCount, documentColumns, `reference gebruikt ${reference.columnCount} in plaats van ${documentColumns} kolommen op ${width}px @${dpr}x`);
       assert.equal(reference.devicePixelRatio, dpr, `reference test niet werkelijk op DPR ${dpr}`);
       assert.ok(reference.horizontalOverflow <= 0.5, `reference heeft ${reference.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
-      assert.equal(reference.boardBackgroundImage, "none", `reference tekent nog een achtergrondgrid op ${width}px @${dpr}x`);
+      assert.match(reference.boardBackgroundImage, /linear-gradient/, `reference toont het tijdelijke achtergrondgrid niet op ${width}px @${dpr}x`);
       assert.equal(reference.quantized, "true", `reference quantiseert het grid niet op ${width}px @${dpr}x`);
       assert.ok(Number.isInteger(reference.trackWidth) && reference.trackWidth > 0, `reference gebruikt geen hele trackbreedte op ${width}px @${dpr}x`);
       assert.equal(reference.draggable, "false", `reference bewaart zijn leesvolgorde niet op ${width}px @${dpr}x`);
