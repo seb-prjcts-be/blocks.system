@@ -694,6 +694,7 @@ async function measureReference(width, height, dpr = 1) {
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
         menuActionCount: board.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
         mastheadGap: boardRect.top - mastheadRect.bottom,
+        rowGap: parseFloat(getComputedStyle(board).rowGap),
         chapterGaps: objects.slice(1).map(function (block, index) {
           return block.getBoundingClientRect().top - objects[index].getBoundingClientRect().bottom;
         }),
@@ -722,6 +723,7 @@ async function measureReference(width, height, dpr = 1) {
           return Math.abs(block.getBoundingClientRect().width - boardRect.width);
         }),
         table: {
+          exportRowCount: firstTable.querySelectorAll("tbody tr").length,
           fontSize: getComputedStyle(firstTable).fontSize,
           rowDisplay: getComputedStyle(firstTableRow).display,
           purposeFontSize: getComputedStyle(firstPurpose).fontSize
@@ -1079,7 +1081,13 @@ try {
       assert.deepEqual(reference.lockedHandleState, { tabIndex: -1, ariaLabel: null }, `reference zet een niet-werkende verplaatsheader in de tabvolgorde op ${width}px @${dpr}x`);
       assert.equal(reference.menuActionCount, 20, `reference toont niet op elk block minimaliseren en sluiten op ${width}px @${dpr}x`);
       assert.equal(reference.nestedSurfaces, 0, `reference bevat ${reference.nestedSurfaces} geneste grids op ${width}px @${dpr}x`);
-      assert.ok(reference.chapterGaps.every((gap) => Math.abs(gap - reference.mastheadGap) <= 0.5), `reference gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px @${dpr}x: ${reference.mastheadGap}px versus ${reference.chapterGaps.join(", ")}`);
+      assert.equal(reference.table.exportRowCount, 3, `reference 01 toont niet zijn drie exportresultaten op ${width}px @${dpr}x`);
+      if (width > 900) {
+        assert.ok(Math.abs(reference.chapterGaps[0] - reference.rowGap) <= 0.5, `reference 02 sluit niet exact één gridgap onder de drie exports aan op ${width}px @${dpr}x`);
+        assert.ok(reference.chapterGaps.slice(1).every((gap) => Math.abs(gap - reference.mastheadGap) <= 0.5), `reference bewaart na 02 niet hetzelfde hoofdstukinterval als de masthead op ${width}px @${dpr}x: ${reference.mastheadGap}px versus ${reference.chapterGaps.slice(1).join(", ")}`);
+      } else {
+        assert.ok(reference.chapterGaps.every((gap) => Math.abs(gap - reference.mastheadGap) <= 0.5), `reference bewaart zijn responsive hoofdstukinterval niet op ${width}px @${dpr}x: ${reference.mastheadGap}px versus ${reference.chapterGaps.join(", ")}`);
+      }
       assert.deepEqual(reference.outsideBoard, [], `reference plaatst blocks buiten het board op ${width}px @${dpr}x: ${reference.outsideBoard.join(", ")}`);
       assert.deepEqual(reference.nonIntegerHorizontalGeometry, [], `reference laat fractionele geometrie achter op ${width}px @${dpr}x: ${reference.nonIntegerHorizontalGeometry.join(", ")}`);
       assert.deepEqual(reference.missingAnchors, [], `reference mist anchors op ${width}px @${dpr}x: ${reference.missingAnchors.join(", ")}`);
