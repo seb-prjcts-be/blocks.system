@@ -376,7 +376,7 @@ async function measureManual(width, height, dpr = 1) {
       const image = imageDemo.querySelector("img");
       const factoryDemo = board.querySelector(".manual-content-factory-demo");
       const factoryButton = factoryDemo.querySelector("button");
-      const chapterIds = ["start", "content", "menu", "layout", "appearance", "random", "next"];
+      const chapterIds = ["start", "content", "menu", "layout", "appearance", "colors", "chance", "next"];
       const chapterGaps = chapterIds.map(function (id) {
         const block = document.getElementById(id);
         const previous = block.previousElementSibling;
@@ -389,7 +389,7 @@ async function measureManual(width, height, dpr = 1) {
       const codeBlockWidths = Array.from(board.querySelectorAll(":scope > .manual-code-block"), function (block) {
         return { id: block.dataset.blockObject, width: block.getBoundingClientRect().width };
       });
-      const colorBlockStyles = ["manual-appearance-color", "manual-random-color-50", "manual-random-color-100", "manual-random-mix-1", "manual-random-mix-2"].map(function (id) {
+      const colorBlockStyles = ["manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random-color-50", "manual-random-color-100", "manual-random-mix-1", "manual-random-mix-2"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         const objectStyle = getComputedStyle(block);
         const menuStyle = getComputedStyle(block.querySelector(":scope > .blocks-system-menu"));
@@ -409,17 +409,15 @@ async function measureManual(width, height, dpr = 1) {
         "manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3", "manual-random-mix-4"
       ].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
-        const lesson = block.querySelector(":scope > .blocks-system-content > .manual-lesson");
+        const lesson = block.querySelector(":scope > .blocks-system-content > .manual-chance-cell");
         return {
-          eyebrow: lesson.querySelector("small").textContent,
-          statement: lesson.querySelector("strong").textContent,
-          body: lesson.querySelector("p").textContent
+          statement: lesson.querySelector("strong").textContent
         };
       });
       function measureMiniGrid(ids) {
         return ids.map(function (id) {
           const rect = board.querySelector('[data-block-object="' + id + '"]').getBoundingClientRect();
-          return { id, left: rect.left, right: rect.right, top: rect.top, width: rect.width };
+          return { id, left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height };
         });
       }
       const randomMiniGrids = {
@@ -615,7 +613,7 @@ async function exerciseManualMenuLesson() {
   return result.result.value;
 }
 
-async function manualHoverSignature(blockId = "manual-appearance-color") {
+async function manualHoverSignature(blockId = "manual-color-cyan") {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(function () {
       const block = document.querySelector(${JSON.stringify(`[data-block-object="${blockId}"]`)});
@@ -923,7 +921,7 @@ try {
   const manualDocumentNode = await protocol.send("DOM.getDocument");
   const manualRandomNode = await protocol.send("DOM.querySelector", {
     nodeId: manualDocumentNode.root.nodeId,
-    selector: '[data-block-object="manual-appearance-color"]'
+    selector: '[data-block-object="manual-color-cyan"]'
   });
   await protocol.send("CSS.forcePseudoState", {
     nodeId: manualRandomNode.nodeId,
@@ -956,22 +954,23 @@ try {
   for (const [width, height, , documentColumns] of manualViewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
-    assert.equal(manual.blockCount, 32, `manual mist een block uit de volledige beginnersroute op ${width}px @${dpr}x`);
+    assert.equal(manual.blockCount, 35, `manual mist een block uit de volledige beginnersroute op ${width}px @${dpr}x`);
     assert.deepEqual(manual.ids, [
       "manual-eli10", "manual-eli10-steps", "manual-start", "manual-finish", "manual-content-html", "manual-content-object", "manual-content-factory",
       "manual-menu", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none",
       "manual-layout", "manual-layout-wide", "manual-layout-small",
-      "manual-appearance", "manual-appearance-regular", "manual-appearance-inverse", "manual-appearance-color", "manual-random",
+      "manual-appearance", "manual-appearance-regular", "manual-appearance-inverse",
+      "manual-colors", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random",
       "manual-random-color-0", "manual-random-color-50", "manual-random-color-100",
       "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100", "manual-random-combined",
       "manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3", "manual-random-mix-4", "manual-next"
     ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.variants, [
-      "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse", "regular", "regular",
-      "regular", "color", "color", "regular", "inverse", "inverse", "regular", "color", "color", "inverse", "regular", "regular"
+      "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse",
+      "regular", "regular", "regular", "regular", "regular", "regular", "color", "color", "regular", "inverse", "inverse", "regular", "color", "color", "inverse", "regular", "regular"
     ], `manual beperkt kleur en omkering niet tot de bedoelde resultaten op ${width}px @${dpr}x`);
     assert.deepEqual(manual.colors, [
-      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
       "cyan", "magenta", null, null, null, null, "cyan", "yellow", null, null, null
     ], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
@@ -986,7 +985,7 @@ try {
     assert.equal(manual.draggable, "true", `manual schakelt het echte librarygedrag uit op ${width}px`);
     assert.equal(manual.lockedHandleState.tabIndex, 0, `manual maakt de dragheader niet toetsenbordbereikbaar op ${width}px`);
     assert.match(manual.lockedHandleState.ariaLabel, /arrow keys/i, `manual legt de toetsenbordverplaatsing niet toegankelijk uit op ${width}px`);
-    assert.equal(manual.menuActionCount, 60, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
+    assert.equal(manual.menuActionCount, 66, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
@@ -1024,8 +1023,9 @@ try {
       assert.ok(Math.abs(manual.randomMiniGrids.inverse[0].left - manual.randomMiniGrids.color[2].right - manual.columnGap) <= 0.5, `de color- en inverse-mini-grid sluiten niet als twee rasterhelften op elkaar aan op ${width}px`);
       assert.equal(new Set(manual.randomMiniGrids.combined.map((item) => item.top)).size, 1, `de gecombineerde randomproef vormt geen eigen rij op ${width}px`);
       assert.ok(Math.abs(manual.randomMiniGrids.combined[0].left - manual.randomMiniGrids.color[1].left) <= 0.5 && Math.abs(manual.randomMiniGrids.combined[3].right - manual.randomMiniGrids.inverse[1].right) <= 0.5, `de gecombineerde vierdelige proef staat niet gecentreerd onder de twee mini-grids op ${width}px`);
+      assert.ok([...manual.randomMiniGrids.color, ...manual.randomMiniGrids.inverse, ...manual.randomMiniGrids.combined].every(function (item) { return Math.abs(item.height - manual.rowHeight) <= 0.5; }), `de chance-resultaten zijn geen echte 1×1-gridcellen op ${width}px`);
     }
-    const expectedShellColors = ["rgb(0, 255, 255)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"];
+    const expectedShellColors = ["rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"];
     assert.deepEqual(manual.colorBlockStyles.map((style) => style.border), expectedShellColors, `manual zet de gebruikerskleur niet op het blockkader op ${width}px`);
     assert.deepEqual(manual.colorBlockStyles.map((style) => style.menuBackground), expectedShellColors, `manual zet de gebruikerskleur niet op de blockheader op ${width}px`);
     assert.ok(manual.colorBlockStyles.every((style) => style.objectBackground === "rgb(239, 238, 232)" && style.contentBackground === "rgb(239, 238, 232)"), `manual laat gebruikerskleur in het inhoudsvlak lekken op ${width}px`);
@@ -1082,12 +1082,12 @@ try {
   assert.deepEqual(mobileNavigation.outside, { open: false, expanded: "false", label: "open navigation" }, "een buitenklik sluit de mobiele navigatie niet");
   assert.deepEqual(mobileNavigation.beforeResize, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie staat niet open vóór de breakpointtest");
   assert.deepEqual(mobileNavigation.afterResize, { open: false, expanded: "false", label: "open navigation" }, "desktopresize ruimt de mobiele navigatiestate niet op");
-  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 32, 30, 30);
+  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 35, 33, 33);
   assert.deepEqual(await exerciseManualMenuLesson(), {
     minimized: { state: "true", hidden: "true" },
     restored: "false",
     closeRemoved: true,
-    remainingBlocks: 31
+    remainingBlocks: 34
   }, "de menu-aan/uitles moet de overblijvende actie echt uitvoerbaar houden");
 
   await navigateTo(`${pageUrl}docs/api.html`);

@@ -111,3 +111,30 @@ Resultaat: **alle tien kenmerken halen minstens 8/10 na vier van maximaal vijf r
 - `npm test`: groen bij de afsluitende run.
 - `npm run check`: build en manifest zijn groen, maar de bestaande niet-deterministische minified contrasttest kan falen doordat haar testsysteem `variant: "regular"` niet vastzet; deze librarytest bleef buiten de docs-opdracht.
 - Librarybestanden en vijf ongebruikte lokale beelden bleven ongewijzigd.
+
+## Ronde 5 — definitieve scheiding van variant, kleur en kans
+
+Aanleiding: hoofdstuk 05 vermengde de vaste varianten nog met cyaan, terwijl direct kleur instellen geen volwaardig eigen leermoment meer had. De laatste ronde maakt daarom drie opeenvolgende, zelfstandige lessen: `05 / choose an appearance`, `06 / set a color` en `07 / set the chance`.
+
+| Kenmerk | Score | Bewijs |
+|---|---:|---|
+| Helder | 10 | Hoofdstuk 05 toont uitsluitend regular en inverse; hoofdstuk 06 uitsluitend directe kleur; hoofdstuk 07 uitsluitend kansinstellingen. |
+| Systematisch | 10 | De route bouwt nu deterministisch op van variant naar kleur en pas daarna naar random gedrag; practice wordt deel 08. |
+| Asymmetrisch | 9 | De 3/3-variantvergelijking, het 2/2/2-kleurdrieluik en de gecentreerde kansreeks geven verschillende maar rastervaste spanningen. |
+| Typografisch | 9 | Dezelfde inhoudsrollen blijven gelijk over de vergelijkingen; in de kleine kanscellen blijft alleen het noodzakelijke resultaatlabel over. |
+| Functioneel | 10 | De code toont het echte publieke contract voor `variant`, `block.color`, `colorVariation` en `inversionVariation`, elk op het moment dat het wordt uitgelegd. |
+| Leesbaar | 9 | Desktop heeft geen clipping of overlap; mobiel stapelt de lessen in dezelfde leesvolgorde met interne codescroll waar nodig. |
+| Modulair | 10 | Elke les en ieder resultaat blijft een direct block op het ene gedeelde grid; de tien kansresultaten zijn echte 1×1-blocks. |
+| Ritmisch | 10 | Iedere nieuwe begrippenfamilie begint na één open rasterrij; de resultaten sluiten direct onder hun eigen uitleg aan. |
+| Precies | 10 | De browsertest meet de volledige volgorde, vaste inhoud, shellkleuren, neutrale inhoud en de exacte hoogte van alle 1×1-kanscellen. |
+| Sober | 10 | Cyaan is uit hoofdstuk 05 verwijderd; kleur verschijnt alleen in de kleurles en waar de kansuitkomst haar functioneel vereist. |
+
+Resultaat: **alle tien kenmerken halen minstens 8/10 na vijf van maximaal vijf rondes**.
+
+## Verificatie ronde 5
+
+- `node tests/site.mjs`: groen; inhoudseigenaarschap, hoofdstukvolgorde en 1×1-spans gecontroleerd.
+- `node tests/browser-layout.mjs`: groen op 1440–320 px en DPR 1 en 2; 35 manualblocks, rastergeometrie, kleurcontract en interacties gecontroleerd.
+- Gerichte headless Chromium-inspectie: hoofdstukken 05–07 op 1440 px en hoofdstuk 07 op 390 px visueel gecontroleerd.
+- `npm test`: de docs- en browsertests zijn groen; de vooraf bestaande niet-deterministische librarytest op `tests/contract.mjs:232` faalde opnieuw en bleef buiten deze documentatiecorrectie.
+- Librarybestanden en vijf ongebruikte lokale beelden bleven ongewijzigd.

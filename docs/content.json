@@ -159,36 +159,58 @@
     },
     "manual-appearance": {
       "title": "05 / choose an appearance",
-      "intro": "Appearance is deterministic until you ask for random. Regular and inverse are variants. block.color applies one direct shell color while the content remains neutral.",
+      "intro": "Choose one fixed monochrome variant. Regular uses dark ink on paper; inverse exchanges figure and ground. Color and chance come later.",
       "code": [
         "blocks.add(content, { variant: \"regular\" });",
-        "blocks.add(content, { variant: \"inverse\" });",
-        "",
-        "const colorBlock = blocks.add(content, { variant: \"regular\" });",
-        "colorBlock.color = \"cyan\";"
+        "blocks.add(content, { variant: \"inverse\" });"
       ]
     },
     "manual-appearance-regular": {
       "title": "appearance / regular",
-      "eyebrow": "fixed variant",
-      "statement": "Regular.",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
       "body": "variant: \"regular\""
     },
     "manual-appearance-inverse": {
       "title": "appearance / inverse",
-      "eyebrow": "fixed variant",
-      "statement": "Inverse.",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
       "body": "variant: \"inverse\""
     },
-    "manual-appearance-color": {
-      "title": "appearance / cyan",
-      "eyebrow": "direct color",
-      "statement": "Cyan.",
-      "body": "block.color = \"cyan\""
+    "manual-colors": {
+      "title": "06 / set a color",
+      "intro": "Set one block color directly. Any valid CSS color can define its border, titlebar and hover frame; the content surface stays neutral.",
+      "code": [
+        "const colorBlock = blocks.add(content, {",
+        "  id: \"color-cyan\",",
+        "  title: \"cyan\",",
+        "  variant: \"regular\"",
+        "});",
+        "",
+        "colorBlock.color = \"cyan\";"
+      ]
+    },
+    "manual-color-cyan": {
+      "title": "color / cyan",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only color changes."
+    },
+    "manual-color-magenta": {
+      "title": "color / magenta",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only color changes."
+    },
+    "manual-color-yellow": {
+      "title": "color / yellow",
+      "eyebrow": "fixed content",
+      "statement": "Same object.",
+      "body": "Only color changes."
     },
     "manual-random": {
-      "title": "06 / random appearance",
-      "intro": "Each blocks.add() call resolves one appearance. The left mini-grid changes only colorVariation, the share of all blocks using color. The right changes only inversionVariation, the inverse share of the monochrome remainder. Values run from 0 to 1.",
+      "title": "07 / set the chance",
+      "intro": "Chance affects only future blocks added with the random variant. The three left cells change the color share; the three right cells change the inverse share of the monochrome remainder. Values run from 0 to 1.",
       "code": [
         "blocks.variant = \"random\";",
         "blocks.colorArray = [\"cyan\", \"magenta\", \"yellow\"];",
@@ -199,43 +221,31 @@
     },
     "manual-random-color-0": {
       "title": "color chance / 0",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-random-color-50": {
       "title": "color chance / 0.5",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-random-color-100": {
       "title": "color chance / 1",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-random-inverse-0": {
       "title": "inverse chance / 0",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-random-inverse-50": {
       "title": "inverse chance / 0.5",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-random-inverse-100": {
       "title": "inverse chance / 1",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-random-combined": {
       "title": "combine / 0.5 + 0.5",
-      "intro": "Now combine the two settings. In this fixed four-call demonstration, two blocks use color, one is regular and one is inverse. Real calls remain random.",
+      "intro": "Combine both chances only after reading them separately. In this fixed four-call demonstration, two cells use color, one is regular and one is inverse. Real calls remain random.",
       "code": [
         "blocks.colorVariation = 0.5;",
         "blocks.inversionVariation = 0.5;",
@@ -245,30 +255,22 @@
     },
     "manual-random-mix-1": {
       "title": "combined / 01",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-random-mix-2": {
       "title": "combined / 02",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-random-mix-3": {
       "title": "combined / 03",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-random-mix-4": {
       "title": "combined / 04",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
-      "body": "Only the setting changes."
+      "statement": "same object"
     },
     "manual-next": {
-      "title": "07 / run an example",
+      "title": "08 / run an example",
       "eyebrow": "next / practice",
       "statement": "Edit one call. Reload.",
       "items": [
