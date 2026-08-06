@@ -96,6 +96,8 @@ async function measureHome(width, height, dpr = 1) {
         text: intro.textContent.replace(/\\s+/g, " ").trim(),
         object: introObject.textContent,
         objectWhiteSpace: introObjectStyle.whiteSpace,
+        objectTextBoxTrim: introObjectStyle.getPropertyValue("text-box-trim"),
+        objectTextBoxEdge: introObjectStyle.getPropertyValue("text-box-edge"),
         objectLineBoxHeight: introObjectRect.height,
         objectInkHeight: introTextMetrics.actualBoundingBoxAscent + introTextMetrics.actualBoundingBoxDescent,
         objectBottomSpace: introRect.bottom - introObjectRect.bottom,
@@ -963,8 +965,14 @@ try {
       assert.ok(Math.abs(home.intro.blockWidth - (expectedColumnWidth * 2 + home.columnGap)) <= 1, `home geeft de objectboodschap niet twee rasterkolommen op ${width}px @${dpr}x`);
       assert.equal(home.intro.object, "object.", `home maakt object niet tot de visuele hoofdboodschap op ${width}px @${dpr}x`);
       assert.equal(home.intro.objectWhiteSpace, "nowrap", `home kan object. afbreken op ${width}px @${dpr}x`);
-      assert.ok(home.intro.objectLineBoxHeight + 1 >= home.intro.objectInkHeight, `home geeft object. geen volledige regelbox op ${width}px @${dpr}x: ${home.intro.objectLineBoxHeight}px voor ${home.intro.objectInkHeight}px inkt`);
-      assert.ok(home.intro.objectPaintedBottomSpace >= 8, `home geeft de zichtbare inkt van object. minder dan 8px onderruimte op ${width}px @${dpr}x: ${home.intro.objectPaintedBottomSpace}px`);
+      if (home.intro.objectTextBoxTrim === "trim-both") {
+        assert.equal(home.intro.objectTextBoxEdge, "cap alphabetic", `home gebruikt niet de gevraagde text-box-rand voor object. op ${width}px @${dpr}x`);
+        assert.ok(home.intro.objectLineBoxHeight > 0, `home verliest de getrimde typografische box van object. op ${width}px @${dpr}x`);
+      } else {
+        assert.ok(home.intro.objectLineBoxHeight + 1 >= home.intro.objectInkHeight, `home geeft object. geen volledige regelbox op ${width}px @${dpr}x: ${home.intro.objectLineBoxHeight}px voor ${home.intro.objectInkHeight}px inkt`);
+      }
+      const minimumObjectBottomSpace = home.intro.objectTextBoxTrim === "trim-both" ? 4 : 8;
+      assert.ok(home.intro.objectPaintedBottomSpace >= minimumObjectBottomSpace, `home geeft de zichtbare inkt van object. minder dan ${minimumObjectBottomSpace}px onderruimte op ${width}px @${dpr}x: ${home.intro.objectPaintedBottomSpace}px`);
       assert.equal(home.intro.sequence, "add · span · place", `home spreekt de werkwoordentaal van het systeem niet op ${width}px @${dpr}x`);
       assert.match(home.intro.text, /your content becomes an object\./, `home legt de overgang van inhoud naar object niet uit op ${width}px @${dpr}x`);
       assert.equal(home.intro.href, "docs/", `home verwijst niet rechtstreeks naar de manual op ${width}px @${dpr}x`);
@@ -974,7 +982,8 @@ try {
   const shortHome = await measureHome(826, 395);
   assert.equal(shortHome.clippedContent.includes("home-intro"), false, "object / start mag op de aangeleverde lage probleemmaat geen inhoud afsnijden");
   assert.equal(shortHome.intro.objectWhiteSpace, "nowrap", "object. moet op de aangeleverde lage probleemmaat één woord blijven");
-  assert.ok(shortHome.intro.objectPaintedBottomSpace >= 8, `object. heeft op de aangeleverde lage probleemmaat maar ${shortHome.intro.objectPaintedBottomSpace}px zichtbare onderruimte`);
+  const minimumShortObjectBottomSpace = shortHome.intro.objectTextBoxTrim === "trim-both" ? 4 : 8;
+  assert.ok(shortHome.intro.objectPaintedBottomSpace >= minimumShortObjectBottomSpace, `object. heeft op de aangeleverde lage probleemmaat maar ${shortHome.intro.objectPaintedBottomSpace}px zichtbare onderruimte`);
 
   const userColor = await measureUserColor();
   assert.deepEqual(userColor, {

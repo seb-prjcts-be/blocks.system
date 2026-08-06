@@ -159,6 +159,10 @@ footer a { color: var(--ink); }
   background: var(--block-paper-color);
 }
 
+.home-board > [data-block-object="home-title"] > .blocks-system-content {
+  overflow: hidden;
+}
+
 .home-board > [data-block-object="home-intro"] > .blocks-system-content {
   overflow: hidden;
 }
@@ -166,6 +170,8 @@ footer a { color: var(--ink); }
 .home-title {
   justify-self: start;
   margin: 0;
+  margin-inline-end: -0.055em;
+  padding-inline-start: 0.11em;
   font: 600 clamp(3rem, 7.2vw, 8.6rem)/0.76 "Instrument Sans", sans-serif;
   letter-spacing: -0.055em;
   white-space: pre-line;
@@ -194,9 +200,18 @@ footer a { color: var(--ink); }
   grid-column: 1;
   grid-row: 2;
   align-self: end;
+  margin-inline-end: -0.055em;
+  padding-inline-start: 0.11em;
   font: 600 clamp(2.15rem, 4vw, 4.8rem)/1 "Instrument Sans", sans-serif;
   letter-spacing: -0.06em;
   white-space: nowrap;
+}
+
+@supports (text-box: trim-both cap alphabetic) {
+  .home-title,
+  .home-intro-object {
+    text-box: trim-both cap alphabetic;
+  }
 }
 
 .home-intro-route {
