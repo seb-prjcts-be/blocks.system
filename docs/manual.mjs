@@ -196,7 +196,8 @@ function createChanceContent({ statement }) {
 }
 
 function addBlock({ id, title, content: blockContent, span, place, variant, menu, anchor = "", classes = [] }) {
-  const options = { id, title, variant };
+  const options = { id, variant };
+  if (title !== undefined) options.title = title;
   if (menu !== undefined) options.menu = menu;
   if (anchor && blockContent instanceof Node) blockContent.prepend(createChapterHeading(title));
   const block = blocks.add(blockContent, options);
@@ -252,7 +253,6 @@ addBlock({
 
 addBlock({
   id: "manual-content-html",
-  title: content["manual-content-html"].title,
   content: createTrustedHtmlContent(content["manual-content-html"]),
   span: [2, 2],
   place: [1, 11],
@@ -261,7 +261,6 @@ addBlock({
 
 addBlock({
   id: "manual-content-object",
-  title: content["manual-content-object"].title,
   content: createImageObjectContent(content["manual-content-object"]),
   span: [2, 2],
   place: [3, 11],
@@ -270,7 +269,6 @@ addBlock({
 
 addBlock({
   id: "manual-content-factory",
-  title: content["manual-content-factory"].title,
   content: createFactoryContent(content["manual-content-factory"]),
   span: [2, 2],
   place: [5, 11],
@@ -289,7 +287,6 @@ addBlock({
 
 addBlock({
   id: "manual-menu-both",
-  title: content["manual-menu-both"].title,
   content: createLessonContent(content["manual-menu-both"]),
   span: [3, 2],
   place: [1, 17],
@@ -299,7 +296,6 @@ addBlock({
 
 addBlock({
   id: "manual-menu-minimize",
-  title: content["manual-menu-minimize"].title,
   content: createLessonContent(content["manual-menu-minimize"]),
   span: [3, 2],
   place: [4, 17],
@@ -309,7 +305,6 @@ addBlock({
 
 addBlock({
   id: "manual-menu-close",
-  title: content["manual-menu-close"].title,
   content: createLessonContent(content["manual-menu-close"]),
   span: [3, 2],
   place: [1, 19],
@@ -319,7 +314,6 @@ addBlock({
 
 addBlock({
   id: "manual-menu-none",
-  title: content["manual-menu-none"].title,
   content: createLessonContent(content["manual-menu-none"]),
   span: [3, 2],
   place: [4, 19],
@@ -329,7 +323,6 @@ addBlock({
 
 addBlock({
   id: "manual-menu-title",
-  title: content["manual-menu-title"].title,
   content: createLessonContent(content["manual-menu-title"]),
   span: [6, 2],
   place: [1, 21],
@@ -348,7 +341,6 @@ addBlock({
 
 addBlock({
   id: "manual-layout-wide",
-  title: content["manual-layout-wide"].title,
   content: createLessonContent(content["manual-layout-wide"]),
   span: [4, 2],
   place: [1, 27],
@@ -357,7 +349,6 @@ addBlock({
 
 addBlock({
   id: "manual-layout-small",
-  title: content["manual-layout-small"].title,
   content: createLessonContent(content["manual-layout-small"]),
   span: [2, 2],
   place: [5, 27],
@@ -387,7 +378,6 @@ addBlock({
 
 addBlock({
   id: "manual-appearance-regular",
-  title: content["manual-appearance-regular"].title,
   content: createLessonContent(content["manual-appearance-regular"]),
   span: [3, 2],
   place: [1, 37],
@@ -397,7 +387,6 @@ addBlock({
 
 addBlock({
   id: "manual-appearance-inverse",
-  title: content["manual-appearance-inverse"].title,
   content: createLessonContent(content["manual-appearance-inverse"]),
   span: [3, 2],
   place: [4, 37],
@@ -418,7 +407,6 @@ addBlock({
 
 const colorCyanBlock = addBlock({
   id: "manual-color-cyan",
-  title: content["manual-color-cyan"].title,
   content: createLessonContent(content["manual-color-cyan"]),
   span: [2, 2],
   place: [1, 43],
@@ -429,7 +417,6 @@ colorCyanBlock.color = "cyan";
 
 const colorMagentaBlock = addBlock({
   id: "manual-color-magenta",
-  title: content["manual-color-magenta"].title,
   content: createLessonContent(content["manual-color-magenta"]),
   span: [2, 2],
   place: [3, 43],
@@ -440,7 +427,6 @@ colorMagentaBlock.color = "magenta";
 
 const colorYellowBlock = addBlock({
   id: "manual-color-yellow",
-  title: content["manual-color-yellow"].title,
   content: createLessonContent(content["manual-color-yellow"]),
   span: [2, 2],
   place: [5, 43],
@@ -527,7 +513,6 @@ addBlock({
 
 addBlock({
   id: "manual-random-combined",
-  title: content["manual-random-combined"].title,
   content: createCodeContent(content["manual-random-combined"]),
   span: [6, 2],
   place: [1, 50],

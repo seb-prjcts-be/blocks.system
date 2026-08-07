@@ -696,6 +696,9 @@ async function measureManual(width, height, dpr = 1) {
       return {
         blockCount: objects.length,
         ids: objects.map(function (block) { return block.dataset.blockObject; }),
+        untitledIds: objects.filter(function (block) {
+          return block.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent === "";
+        }).map(function (block) { return block.dataset.blockObject; }),
         variants: objects.map(function (block) { return block.dataset.blockVariant; }),
         colors: objects.map(function (block) { return block.getAttribute("data-block-color"); }),
         columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
@@ -1287,6 +1290,14 @@ try {
       "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100", "manual-random-combined",
       "manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3", "manual-random-mix-4", "manual-next"
     ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
+    assert.deepEqual(manual.untitledIds, [
+      "manual-content-html", "manual-content-object", "manual-content-factory",
+      "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none", "manual-menu-title",
+      "manual-layout-wide", "manual-layout-small",
+      "manual-appearance-regular", "manual-appearance-inverse",
+      "manual-color-cyan", "manual-color-magenta", "manual-color-yellow",
+      "manual-random-combined"
+    ], `manual laat dubbele menuteksten niet weg op ${width}px @${dpr}x`);
     assert.deepEqual(manual.variants, [
       "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse",
       "regular", "regular", "regular", "regular", "regular", "regular", "color", "color", "regular", "inverse", "inverse", "regular", "color", "color", "inverse", "regular", "regular"
