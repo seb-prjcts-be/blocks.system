@@ -49,16 +49,6 @@ jobs:
             ./ _site/
           touch _site/.nojekyll
 
-      - name: pin deployed manifest commit
-        run: |
-          node -e '
-            const fs = require("fs");
-            const path = "_site/docs/blocks.system.manifest.json";
-            const manifest = JSON.parse(fs.readFileSync(path, "utf8"));
-            manifest.commit = (process.env.GITHUB_SHA || "unknown").slice(0, 7);
-            fs.writeFileSync(path, JSON.stringify(manifest, null, 2) + "\n");
-          '
-
       - name: upload artifact
         uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
         with:
