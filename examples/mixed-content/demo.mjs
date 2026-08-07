@@ -1,10 +1,9 @@
-import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.14";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.15";
 
 const blocks = createBlocksSystem({
   snap: true,
   blockDefaults: { menu: { minimize: true, close: true } }
 });
-blocks.margin = 24;
 
 blocks.attach("#field");
 blocks.setGrid(3, 2);

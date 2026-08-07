@@ -124,14 +124,14 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.12", "docs/style.css?v=0.2.12"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.12", "style.css?v=0.2.12"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.12", "style.css?v=0.2.12"]],
-  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.12", "../docs/style.css?v=0.2.12"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.13", "docs/style.css?v=0.2.13"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.13"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.13"]],
+  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.13", "../docs/style.css?v=0.2.13"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.12", "../../docs/style.css?v=0.2.12"]
+    ["../../blocks.system.css?v=0.1.13", "../../docs/style.css?v=0.2.13"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -273,7 +273,7 @@ assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.match(siteDemos["docs/manual.mjs"], /id:\s*"manual-eli10"[\s\S]*?span:\s*\[4,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?id:\s*"manual-eli10-steps"[\s\S]*?span:\s*\[2,\s*2\][\s\S]*?place:\s*\[5,\s*1\][\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\]/, "ELI10 must use adjacent 4x2 and 2x2 blocks, leave row 3 open and start part 1 on row 4");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.setGrid\(6,\s*55\)[\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\][\s\S]*?id:\s*"manual-finish"[\s\S]*?place:\s*\[1,\s*8\][\s\S]*?id:\s*"manual-content-html"[\s\S]*?place:\s*\[1,\s*11\][\s\S]*?id:\s*"manual-content-object"[\s\S]*?place:\s*\[3,\s*11\][\s\S]*?id:\s*"manual-content-factory"[\s\S]*?place:\s*\[5,\s*11\]/, "manual 02 must follow one open grid row and sit above the three content examples");
-assert.match(manualHtml, /shell\.mjs\?v=0\.1\.32[\s\S]*manual\.mjs\?v=0\.1\.46/, "the manual must load the compact, variant, color and chance lessons without stale module caches");
+assert.match(manualHtml, /shell\.mjs\?v=0\.1\.33[\s\S]*manual\.mjs\?v=0\.1\.47/, "the manual must load the compact, variant, color and chance lessons without stale module caches");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /eli10Block\.color\s*=/, "the first manual block must keep the standard regular black shell");
 for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
@@ -472,7 +472,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.26", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.27", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
@@ -500,9 +500,6 @@ assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[
 assert.doesNotMatch(libraryCss, /\.reference-/, "the reusable library stylesheet must not absorb reference composition");
 
 const canonicalDemoFiles = ["docs/home.mjs", "docs/manual.mjs", "docs/reference.mjs"];
-for (const demo of [...canonicalDemoFiles, "examples/basic-grid/demo.mjs", "examples/mixed-content/demo.mjs", "examples/custom-adapter/demo.mjs"]) {
-  assert.match(siteDemos[demo], /const blocks\s*=\s*createBlocksSystem\([\s\S]*?\);\s*blocks\.margin\s*=\s*24/, `${demo} must demonstrate one uniform grid margin through the public system property`);
-}
 const canonicalDemos = canonicalDemoFiles.map((file) => siteDemos[file]).join("\n");
 assert.doesNotMatch(canonicalDemos, pureBlockColor, "canonical docs must not assign RGB/CMY block colors to rendered content");
 

@@ -8,7 +8,6 @@
     --blocks-text-color: #14140f;
     --blocks-font-family: "Segoe UI", Arial, sans-serif;
     --blocks-content-padding: 7px;
-    --blocks-grid-inset: 0px;
     box-sizing: border-box;
     position: relative;
     min-width: 0;
@@ -16,7 +15,6 @@
     background-color: var(--blocks-field-color);
     color: var(--blocks-text-color);
     gap: var(--blocks-gap);
-    padding: var(--blocks-grid-inset);
 }
 
 .blocks-system-surface[data-snap="false"] {

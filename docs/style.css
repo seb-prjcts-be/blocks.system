@@ -161,8 +161,6 @@ footer a { color: var(--ink); }
   height: 100%;
   min-height: 0;
   border: 0;
-  background-origin: content-box;
-  background-clip: content-box;
   background-color: var(--home-field);
   background-image:
     linear-gradient(to right, rgba(20, 20, 15, 0.16) 1px, transparent 1px),
@@ -402,20 +400,8 @@ footer a { color: var(--ink); }
 }
 
 .manual-board {
-  background-origin: content-box;
-  background-clip: content-box;
 }
 
-.manual-board::before {
-  content: "";
-  position: absolute;
-  inset: var(--blocks-grid-inset);
-  z-index: 0;
-  border: 1px dashed rgb(17 17 17 / 52%);
-  pointer-events: none;
-}
-
-.manual-board > .blocks-system-object { z-index: 1; }
 
 .docs-board > .blocks-system-object > .blocks-system-content {
   place-items: stretch;

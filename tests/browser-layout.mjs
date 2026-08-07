@@ -49,10 +49,6 @@ async function measureHome(width, height, dpr = 1) {
     return {
       blockCount: objects.length,
       columnCount: fieldStyle.gridTemplateColumns.split(" ").length,
-      gridMargin: field.style.getPropertyValue("--blocks-grid-inset"),
-      effectiveGridMargin: fieldStyle.paddingLeft,
-      gridBackgroundOrigin: fieldStyle.backgroundOrigin,
-      gridBackgroundClip: fieldStyle.backgroundClip,
       gridWidth: field.clientWidth - parseFloat(fieldStyle.paddingLeft) - parseFloat(fieldStyle.paddingRight),
       columnGap: parseFloat(fieldStyle.columnGap),
       horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -379,62 +375,6 @@ async function measurePointerCaptureFallback() {
   return result.result.value;
 }
 
-async function measureMarginLayout() {
-  const result = await protocol.send("Runtime.evaluate", {
-    expression: `(async function () {
-      const { createBlocksSystem } = await import("./blocks.system.mjs?margin-proof");
-      const field = document.createElement("div");
-      field.style.cssText = "position:fixed;left:0;top:0;width:400px;height:300px;margin:17px";
-      document.body.append(field);
-      try {
-        const blocks = createBlocksSystem({
-          snap: true,
-          draggable: false,
-          margin: 12,
-          variant: "regular"
-        });
-        blocks.attach(field).setGrid(2, 2);
-        const first = blocks.add("first", { id: "margin-first" }).place(1, 1);
-        const last = blocks.add("last", { id: "margin-last" }).place(2, 2);
-        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
-        const fieldRect = field.getBoundingClientRect();
-        const firstRect = first.element.getBoundingClientRect();
-        const lastRect = last.element.getBoundingClientRect();
-        const style = getComputedStyle(field);
-        const before = {
-          value: blocks.margin,
-          customProperty: field.style.getPropertyValue("--blocks-grid-inset"),
-          cssMargin: field.style.margin,
-          padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
-          edges: {
-            top: firstRect.top - fieldRect.top,
-            right: fieldRect.right - lastRect.right,
-            bottom: fieldRect.bottom - lastRect.bottom,
-            left: firstRect.left - fieldRect.left
-          }
-        };
-        blocks.margin = 20;
-        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
-        const updatedStyle = getComputedStyle(field);
-        return {
-          before,
-          after: {
-            value: blocks.margin,
-            customProperty: field.style.getPropertyValue("--blocks-grid-inset"),
-            cssMargin: field.style.margin,
-            padding: [updatedStyle.paddingTop, updatedStyle.paddingRight, updatedStyle.paddingBottom, updatedStyle.paddingLeft]
-          }
-        };
-      } finally {
-        field.remove();
-      }
-    })()`,
-    awaitPromise: true,
-    returnByValue: true
-  });
-  return result.result.value;
-}
-
 async function hoverSignature() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(() => {
@@ -717,8 +657,6 @@ async function measureManual(width, height, dpr = 1) {
         pageScrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight,
         boardOverflowY: getComputedStyle(board).overflowY,
         boardBackgroundImage: getComputedStyle(board).backgroundImage,
-        gridMargin: board.style.getPropertyValue("--blocks-grid-inset"),
-        marginGuideInset: getComputedStyle(board, "::before").inset,
         quantized: board.dataset.quantized,
         trackWidth: Number(board.dataset.trackWidth),
         nonIntegerHorizontalGeometry: objects.filter(function (block) {
@@ -1106,10 +1044,6 @@ try {
       assert.equal(home.blockCount, 3, `home toont ${home.blockCount} in plaats van drie directe blocks op ${width}px @${dpr}x`);
       assert.equal(home.columnCount, homeColumns, `home gebruikt ${home.columnCount} in plaats van ${homeColumns} kolommen op ${width}px @${dpr}x`);
       assert.equal(home.devicePixelRatio, dpr, `home test niet werkelijk op DPR ${dpr}`);
-      assert.equal(home.gridMargin, "24px", `home zet de publieke grid-inset niet op 24px op ${width}px @${dpr}x`);
-      assert.equal(home.effectiveGridMargin, "24px", `home-CSS overschrijft blocks.margin op ${width}px @${dpr}x`);
-      assert.equal(home.gridBackgroundOrigin, "content-box, content-box", `home tekent het achtergrondgrid niet binnen blocks.margin op ${width}px @${dpr}x`);
-      assert.equal(home.gridBackgroundClip, "content-box, content-box", `home toont het achtergrondgrid nog in de margin op ${width}px @${dpr}x`);
       assert.ok(home.horizontalOverflow <= 0.5, `home heeft ${home.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
       assert.match(home.backgroundImage, /linear-gradient/, `home toont zijn constructieve raster niet op ${width}px @${dpr}x`);
       assert.equal(home.draggable, "true", `home start niet versleepbaar op ${width}px @${dpr}x`);
@@ -1150,8 +1084,6 @@ try {
   }
 
   const shortHome = await measureHome(826, 395);
-  assert.equal(shortHome.gridMargin, "24px", "home zet de publieke grid-inset niet op 24px op de lage probleemmaat");
-  assert.equal(shortHome.effectiveGridMargin, "24px", "home-CSS overschrijft blocks.margin op de lage probleemmaat");
   assert.equal(shortHome.clippedContent.includes("home-intro"), false, "object / start mag op de aangeleverde lage probleemmaat geen inhoud afsnijden");
   assert.equal(shortHome.intro.objectWhiteSpace, "nowrap", "object. moet op de aangeleverde lage probleemmaat één woord blijven");
   const minimumShortObjectBottomSpace = shortHome.intro.objectTextBoxTrim === "trim-both" ? 4 : 8;
@@ -1224,17 +1156,6 @@ try {
     afterUpDragging: false,
     stillDragging: false
   }, "een drag zonder pointer capture moet op een pointerup buiten het veld stoppen");
-
-  const marginLayout = await measureMarginLayout();
-  assert.equal(marginLayout.before.value, 12, "margin bewaart niet de opgegeven librarywaarde");
-  assert.equal(marginLayout.before.customProperty, "12px", "margin bereikt de surface niet via de private librarytoken");
-  assert.equal(marginLayout.before.cssMargin, "17px", "de library mag gewone CSS margin niet aanpassen");
-  assert.deepEqual(marginLayout.before.padding, ["12px", "12px", "12px", "12px"], "margin maakt niet langs alle vier randen dezelfde library-inset");
-  assert.deepEqual(marginLayout.before.edges, { top: 13, right: 13, bottom: 13, left: 13 }, "margin ligt niet binnen de veldrand en rond het volledige grid");
-  assert.equal(marginLayout.after.value, 20, "margin blijft niet leesbaar na een runtimewijziging");
-  assert.equal(marginLayout.after.customProperty, "20px", "een runtimewijziging bereikt de surface niet");
-  assert.equal(marginLayout.after.cssMargin, "17px", "een runtimewijziging mag gewone CSS margin niet aanpassen");
-  assert.deepEqual(marginLayout.after.padding, ["20px", "20px", "20px", "20px"], "één marginwaarde past niet alle vier randen aan");
 
   await measureHome(1280, 900);
   const beforeHover = await hoverSignature();
@@ -1343,8 +1264,6 @@ try {
     assert.equal(manual.lockedHandleState.shortcuts, "ArrowLeft ArrowUp ArrowRight ArrowDown", `manual publiceert de ondersteunde dragtoetsen niet op ${width}px`);
     assert.equal(manual.menuActionCount, 70, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
-    assert.equal(manual.gridMargin, "24px", `manual demonstreert geen enkele grid-insetwaarde rond het grid op ${width}px`);
-    assert.equal(manual.marginGuideInset, "24px", `manual tekent de grid-inset niet binnen het veld op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
@@ -1360,8 +1279,7 @@ try {
     assert.equal(manual.eli10.menuBackground, "rgb(0, 0, 0)", `ELI10 gebruikt niet de standaard zwarte titelbalk op ${width}px`);
     assert.equal(manual.eli10.menuColor, "rgb(239, 238, 232)", `ELI10 gebruikt geen leesbare lichte inkt op de zwarte titelbalk op ${width}px`);
     assert.equal(manual.eli10.contentBackground, "rgb(239, 238, 232)", `ELI10 bewaart zijn neutrale inhoudsvlak niet op ${width}px`);
-    const manualInnerWidth = manual.boardWidth - 2 * parseFloat(manual.gridMargin);
-    assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manualInnerWidth) <= 2; }), `manual gebruikt niet de volle binnenbreedte voor lescode op ${width}px`);
+    assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volledige boardbreedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
     assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - manual.mastheadGap) <= 0.5; }), `manual gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px: ${manual.mastheadGap}px versus ${JSON.stringify(manual.chapterGaps)}`);
     if (width > 900) {
@@ -1369,7 +1287,7 @@ try {
       const firstContentTop = Math.min(...manual.contentOptions.map(function (option) { return option.blockTop; }));
       assert.ok(Math.abs(manual.finishBlockTop - manual.startBlockBottom - openRowInterval) <= 0.5, `manual laat boven 02 niet exact één open rasterrij op ${width}px @${dpr}x`);
       assert.ok(Math.abs(firstContentTop - manual.finishBlockBottom - manual.rowGap) <= 0.5, `de drie voorbeelden sluiten niet direct onder 02 aan op ${width}px @${dpr}x`);
-      assert.ok(Math.abs(manual.eli10.blockWidth + manual.eli10.stepsBlockWidth + manual.columnGap - manualInnerWidth) <= 2, `de ELI10-opening vult niet exact de binnenbreedte op ${width}px`);
+      assert.ok(Math.abs(manual.eli10.blockWidth + manual.eli10.stepsBlockWidth + manual.columnGap - manual.boardWidth) <= 2, `de ELI10-opening vult niet exact de boardbreedte op ${width}px`);
       assert.ok(Math.abs(manual.eli10.stepsBlockLeft - manual.eli10.blockRight - manual.columnGap) <= 0.5, `de twee ELI10-blocks volgen niet exact de gridgap op ${width}px`);
       assert.ok(Math.abs(manual.eli10.stepsBlockTop - manual.eli10.blockTop) <= 0.5, `de twee ELI10-blocks beginnen niet op dezelfde rij op ${width}px`);
       assert.ok(Math.abs(manual.eli10.stepsBlockHeight - manual.eli10.blockHeight) <= 0.5, `de twee ELI10-blocks zijn niet allebei twee rijen hoog op ${width}px`);

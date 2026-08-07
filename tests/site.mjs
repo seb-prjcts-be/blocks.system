@@ -78,7 +78,7 @@ const standaloneExamples = Object.fromEntries(await Promise.all(exampleDirectori
 
 const documentedApi = [
   "createBlocksSystem", "blockDefaults", "attach", "setGrid", "compact", "columns", "rows",
-  "snap", "draggable", "margin", "variant", "variants", "colorArray", "colorVariation",
+  "snap", "draggable", "variant", "variants", "colorArray", "colorVariation",
   "inversionVariation", "add", "registerAdapter", "menu", "span", "place", "flow",
   "minimized", "color"
 ];
@@ -99,7 +99,7 @@ assert.equal(manifest.source_ref, "v0.2.0", "manifest must expose its immutable 
 assert.equal(manifest.release_status, "released", "manifest must identify its immutable release");
 assert.equal(manifest.package_version, packageData.version, "manifest must retain the package metadata version");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
-for (const apiName of ["attach", "setGrid", "compact", "columns", "rows", "snap", "draggable", "margin", "labels", "add"]) {
+for (const apiName of ["attach", "setGrid", "compact", "columns", "rows", "snap", "draggable", "labels", "add"]) {
   assert.ok(manifest.core_api.includes(apiName), `manifest misses ${apiName}`);
 }
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose declarations");
@@ -112,7 +112,7 @@ for (const declaration of ["BlocksSystem", "BlockController", "BlocksReorderDeta
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);
 }
 assert.match(declarations, /readonly columns:\s*number;[\s\S]*readonly rows:\s*number;/, "grid dimensions must stay read-only in TypeScript");
-assert.match(declarations, /margin\?:\s*number;[\s\S]*margin:\s*number;/, "margin must be a numeric library setting in TypeScript");
+assert.doesNotMatch(declarations, /\bmargin\??\s*:/, "margin must remain ordinary consumer CSS, not a library setting");
 
 const aliasTargets = {
   "manual.html": "start",
@@ -155,7 +155,7 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
 const styleVersions = new Set(Object.entries(pageHtml)
   .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.12"], "one consumer stylesheet must use one cache version across all pages");
+assert.deepEqual([...styleVersions], ["0.2.13"], "one consumer stylesheet must use one cache version across all pages");
 const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
 assert.match(examplesCss, /var\(--docs-field\)/, "example pages must use the shared docs field token");
 assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
@@ -227,7 +227,6 @@ for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", 
 const manualCopy = JSON.stringify(docsContent.manual).toLowerCase();
 assert.doesNotMatch(manualCopy, /same object/, "manual copy must speak about the reader's content, not its own test fixture");
 assert.ok((manualCopy.match(/\byour\b/g) || []).length >= 15, "manual copy must repeatedly address the reader where appearance varies");
-assert.match(manualCopy, /blocks\.margin/, "manual layout onboarding must introduce the grid margin");
 for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `reference misses #${anchor}`);
 }
@@ -235,7 +234,7 @@ for (const anchor of ["exports", "options", "system-state", "system-methods", "b
 const serializedReference = JSON.stringify(docsContent.reference);
 for (const apiName of [
   "createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "compact()",
-  "columns", "rows", "draggable", "margin", "labels", "colorArray", "colorVariation", "inversionVariation",
+  "columns", "rows", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation",
   "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)",
   "flow()", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",
   "unmount(target)", "address(id)", "blocks:reorder", "blocks:change"
@@ -243,7 +242,6 @@ for (const apiName of [
   assert.ok(serializedReference.includes(apiName), `reference misses ${apiName}`);
 }
 assert.match(serializedReference, /columns[\s\S]*readonly number[\s\S]*rows[\s\S]*may also grow after dragging/i, "reference must explain readable grid dimensions");
-assert.match(serializedReference, /margin[\s\S]*integer pixels[\s\S]*does not set CSS margin/i, "reference must distinguish the library inset from CSS margin");
 assert.match(serializedReference, /Do not call element\.remove\(\); use remove\(\)/, "reference must prevent direct DOM removal that leaves a stale layout");
 assert.match(serializedReference, /snap true[\s\S]*place\(\)[\s\S]*span\(\)[\s\S]*compact\(\)[\s\S]*visual grid layout/i, "reference must explain snap-dependent layout");
 assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textContent/i, "reference must warn about trusted string HTML");
@@ -251,13 +249,13 @@ assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textC
 const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0";
 const manualStartContent = JSON.stringify(docsContent.manual["manual-start"]);
 const manualPinsRelease = new RegExp(`blocks\\.system@v${packageData.version}\\b`).test(manualStartContent);
-const documentsMainOnlyApi = /\b(?:compact|margin)\b/.test(JSON.stringify({
+const documentsMainOnlyApi = /\bcompact\b/.test(JSON.stringify({
   manual: docsContent.manual,
   reference: docsContent.reference
 }));
 const referencePinsRelease = apiHtml.includes(`reference · v${packageData.version}`);
 assert.ok(manualPinsRelease && documentsMainOnlyApi, "the tagged manual must document the APIs included in its release");
-assert.ok(referencePinsRelease && ["compact", "margin"].every((name) => manifest.core_api.includes(name)), "the tagged reference must expose its released APIs");
+assert.ok(referencePinsRelease && ["compact"].every((name) => manifest.core_api.includes(name)), "the tagged reference must expose its released APIs");
 assert.deepEqual(packageData.exports["."], {
   types: "./blocks.system.d.ts",
   default: "./blocks.system.mjs"

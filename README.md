@@ -110,8 +110,8 @@ blocks.register({
 
 ## API map
 
-- Creation: `createBlocksSystem({ snap, draggable, margin, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Shared system: `attach`, `setGrid`, `compact`, `columns`, `rows`, `snap`, `draggable`, `margin`, `font`, `variant`,
+- Creation: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Shared system: `attach`, `setGrid`, `compact`, `columns`, `rows`, `snap`, `draggable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
@@ -126,14 +126,6 @@ their minimize and close buttons remain available.
 is optional: when omitted, the menu has no visible title while the block `id`
 remains the accessible fallback name for its controls. Use `menu: false` to
 remove the whole menu, or a local `menu` object for an exception.
-
-`margin` is a library grid inset in integer pixels: it reserves the same space on
-all four sides inside the field border. It does not set or override CSS
-`margin` on the field or its content:
-
-```js
-blocks.margin = 24;
-```
 
 Dragging by a block's menu bar is enabled by default. During pointer dragging,
 a magnetic preview marks the block's landing position while the other blocks
@@ -164,7 +156,7 @@ for arguments and return values.
 
 As checked on 2026-08-07, the entire documented public surface is implemented
 in this `main` working tree: block creation and lifecycle, menus, grid layout,
-snap/keyboard movement, `compact()`, margin, variants and random colour,
+snap/keyboard movement, `compact()`, variants and random colour,
 adapters, events, TypeScript declarations, the homepage, manual, reference and
 three runnable examples.
 

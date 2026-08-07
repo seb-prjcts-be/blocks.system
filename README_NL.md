@@ -113,8 +113,8 @@ blocks.register({
 
 ## API-overzicht
 
-- Aanmaak: `createBlocksSystem({ snap, draggable, margin, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Gedeeld systeem: `attach`, `setGrid`, `compact`, `columns`, `rows`, `snap`, `draggable`, `margin`, `font`, `variant`,
+- Aanmaak: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Gedeeld systeem: `attach`, `setGrid`, `compact`, `columns`, `rows`, `snap`, `draggable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
@@ -130,14 +130,6 @@ optioneel: zonder titel heeft het menu geen zichtbare titel, terwijl het block-
 `id` de toegankelijke fallbacknaam voor de knoppen blijft. Gebruik `menu: false`
 om de volledige balk weg te laten, of een lokaal `menu`-object voor een
 uitzondering.
-
-`margin` is een library-inset in gehele pixels: één waarde geldt gelijk op alle
-vier zijden binnen het veld. Het verandert geen gewone CSS-`margin` op het veld
-of de inhoud:
-
-```js
-blocks.margin = 24;
-```
 
 Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen
 toont een magnetische preview waar het block zal landen, terwijl de andere
@@ -167,7 +159,7 @@ voor argumenten en returnwaarden.
 
 Op 2026-08-07 is de volledige gedocumenteerde publieke werking in deze
 `main`-werkmap afgewerkt: blocks aanmaken en beheren, menu's, gridlayout,
-snap- en toetsenbordbeweging, `compact()`, margin, varianten en toevalskleur,
+snap- en toetsenbordbeweging, `compact()`, varianten en toevalskleur,
 adapters, events, TypeScript-declaraties, home, manual, reference en drie
 uitvoerbare voorbeelden.
 

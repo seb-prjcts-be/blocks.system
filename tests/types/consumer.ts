@@ -11,7 +11,6 @@ import { createBlocksSystem as createMinBlocksSystem } from "blocks.system/min";
 const blocks: BlocksSystem = createBlocksSystem({
   snap: true,
   draggable: true,
-  margin: 12,
   blockDefaults: { menu: { minimize: true, close: true } }
 });
 
@@ -24,8 +23,6 @@ const block: BlockController = blocks
 
 const columns: number = blocks.columns;
 const rows: number = blocks.rows;
-blocks.margin = 24;
-const margin: number = blocks.margin;
 const minified: BlocksSystem = createMinBlocksSystem({ variant: "regular" });
 const shared: BlocksSystem = system;
 
@@ -42,4 +39,4 @@ document.body.addEventListener("blocks:change", (event) => {
 // @ts-expect-error Grid dimensions are readable state, not writable settings.
 blocks.columns = 9;
 
-void [block, columns, rows, margin, minified, shared];
+void [block, columns, rows, minified, shared];

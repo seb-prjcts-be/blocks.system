@@ -8,7 +8,6 @@
 const BUILT_IN_VARIANTS = Object.freeze(["regular", "inverse"]);
 const EMPTY_COLOR_ARRAY = Object.freeze([]);
 const DEFAULT_INVERSION_VARIATION = 1 / 3;
-const DEFAULT_MARGIN = 0;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
 const DEFAULT_MENU_OPTIONS = Object.freeze({ close: false, minimize: true });
@@ -190,14 +189,6 @@ function normalizeVariation(value, property, fallback) {
         throw new TypeError(`blocks.system.${property} verwacht een getal van 0 tot en met 1.`);
     }
     return value;
-}
-
-function normalizeMargin(value) {
-    const margin = value === undefined ? DEFAULT_MARGIN : value;
-    if (!Number.isInteger(margin) || margin < 0) {
-        throw new TypeError("blocks.system.margin verwacht een niet-negatief geheel aantal pixels.");
-    }
-    return margin;
 }
 
 function assertColorVariationHasColors(colors, variation) {
@@ -388,7 +379,6 @@ export function createBlocksSystem(options = {}) {
     let rows = 1;
     let snapEnabled = options.snap === undefined ? false : Boolean(options.snap);
     let draggableEnabled = options.draggable === undefined ? true : Boolean(options.draggable);
-    let marginState = normalizeMargin(options.margin);
     let fontState = normalizeFont(options.font);
     const labels = normalizeLabels(options.labels);
     const blockDefaults = normalizeBlockDefaults(options.blockDefaults);
@@ -449,7 +439,6 @@ export function createBlocksSystem(options = {}) {
         surface.setAttribute("data-draggable", String(draggableEnabled));
         surface.style.setProperty("--blocks-columns", String(columns));
         surface.style.setProperty("--blocks-rows", String(rows));
-        surface.style.setProperty("--blocks-grid-inset", `${marginState}px`);
         applyFontState();
         for (const syncMenuInteraction of menuInteractionSetters.values()) syncMenuInteraction();
     }
@@ -1010,7 +999,6 @@ export function createBlocksSystem(options = {}) {
             surface.removeAttribute("data-draggable");
             surface.style.removeProperty("--blocks-columns");
             surface.style.removeProperty("--blocks-rows");
-            surface.style.removeProperty("--blocks-grid-inset");
         }
         if (surface !== nextSurface) drag.bind(nextSurface);
         surface = nextSurface;
@@ -1510,14 +1498,6 @@ export function createBlocksSystem(options = {}) {
             set(value) {
                 draggableEnabled = Boolean(value);
                 if (!draggableEnabled) drag.stop();
-                applySurfaceState();
-            }
-        },
-        margin: {
-            enumerable: true,
-            get: () => marginState,
-            set(value) {
-                marginState = normalizeMargin(value);
                 applySurfaceState();
             }
         },
