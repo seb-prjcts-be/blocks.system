@@ -220,7 +220,6 @@ const eli10Block = addBlock({
   anchor: "eli10",
   classes: ["manual-two-thirds", "manual-eli10-block"]
 });
-eli10Block.color = "cyan";
 
 addBlock({
   id: "manual-eli10-steps",

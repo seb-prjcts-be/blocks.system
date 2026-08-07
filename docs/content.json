@@ -96,7 +96,7 @@
     },
     "manual-menu": {
       "title": "03 / menu actions",
-      "intro": "The titlebar can show minimize, close, both or neither. The four blocks below are the complete on/off set. A controller can also minimize, restore or remove its own block.",
+      "intro": "The titlebar can show minimize, close, both or neither. The four blocks below are the complete on/off set. A controller can also minimize, restore or remove its own block. Close removes this example; reload the page to restore the full manual.",
       "code": [
         "const block = blocks.add(content, {",
         "  menu: { minimize: true, close: true },",

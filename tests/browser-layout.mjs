@@ -1336,10 +1336,10 @@ try {
     assert.equal(manual.eli10.steps.length, 3, `ELI10 toont niet drie concrete stappen op ${width}px`);
     assert.ok(manual.finishBlockTop > manual.startBlockBottom, `manual 02 staat niet onder 01 op ${width}px @${dpr}x`);
     assert.ok(manual.contentOptions.every(function (option) { return option.blockTop > manual.finishBlockBottom; }), `manual 02 staat niet boven alle drie contentvoorbeelden op ${width}px @${dpr}x`);
-    assert.equal(manual.eli10.border, "rgb(0, 255, 255)", `ELI10 heeft geen cyaan kader op ${width}px`);
-    assert.equal(manual.eli10.menuBackground, "rgb(0, 255, 255)", `ELI10 heeft geen cyaan titelbalk op ${width}px`);
-    assert.equal(manual.eli10.menuColor, "rgb(0, 0, 0)", `ELI10 gebruikt geen leesbare neutrale inkt op de cyaan titelbalk op ${width}px`);
-    assert.equal(manual.eli10.contentBackground, "rgb(239, 238, 232)", `ELI10 laat cyaan in het inhoudsvlak lekken op ${width}px`);
+    assert.equal(manual.eli10.border, "rgb(0, 0, 0)", `ELI10 gebruikt niet de standaard zwarte rand op ${width}px`);
+    assert.equal(manual.eli10.menuBackground, "rgb(0, 0, 0)", `ELI10 gebruikt niet de standaard zwarte titelbalk op ${width}px`);
+    assert.equal(manual.eli10.menuColor, "rgb(239, 238, 232)", `ELI10 gebruikt geen leesbare lichte inkt op de zwarte titelbalk op ${width}px`);
+    assert.equal(manual.eli10.contentBackground, "rgb(239, 238, 232)", `ELI10 bewaart zijn neutrale inhoudsvlak niet op ${width}px`);
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
     assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - manual.mastheadGap) <= 0.5; }), `manual gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px: ${manual.mastheadGap}px versus ${JSON.stringify(manual.chapterGaps)}`);
