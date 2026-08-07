@@ -117,6 +117,10 @@ Open daarna `http://localhost/blocks.system/`, `/docs/` en
 Werk volgens de lokale `AGENTS.md`: projectwerk gebeurt hier op `main`, commit
 alleen op verzoek en push nooit zonder expliciete toestemming. Voor publicatie:
 
+`package.json` heeft `private`: true: dit project is geen npm-package en mag
+niet via npm publiceren. De publieke distributieroute is een GitHub-release-tag
+die jsDelivr voor ESM en CSS kan leveren.
+
 1. draai `npm run check` en `git diff --check`;
 2. stage uitsluitend bedoelde publieke bestanden;
 3. push alleen na Sebs expliciete opdracht;
@@ -125,8 +129,13 @@ alleen op verzoek en push nooit zonder expliciete toestemming. Voor publicatie:
    pinnen.
 
 De eerste vaste distributie is GitHub-release `v0.1.0`; de actuele
-contrastcorrectie staat in `v0.1.1`. Gebruik in publieke voorbeelden altijd de
-onveranderlijke actuele tag, niet `main`:
+contrastcorrectie staat in `v0.1.1`. Zelfstandige publieke voorbeelden gebruiken
+altijd de onveranderlijke actuele tag, niet `main`:
 
 - ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.1/blocks.system.mjs`
 - CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.1/blocks.system.css`
+
+De publiceerde manual en reference documenteren momenteel bewust `main`, omdat
+zij API's bevatten die nog niet in `v0.1.1` zitten. Zij noemen dit zichtbaar
+`current main · unreleased`; behandel die snippets dus niet als vaste
+releasevoorbeelden.

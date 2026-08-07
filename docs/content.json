@@ -36,13 +36,13 @@
     },
     "manual-start": {
       "title": "01 / start the system",
-      "intro": "Load the fixed v0.1.1 release, then attach the system before adding content. setGrid(6, 4) creates six columns and four rows.",
+      "intro": "Load the current main branch (unreleased), then attach the system before adding content. setGrid(6, 4) creates six columns and four rows.",
       "code": [
-        "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.1/blocks.system.css\">",
+        "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@main/blocks.system.css\">",
         "<div id=\"blocks-field\"></div>",
         "",
         "<script type=\"module\">",
-        "import { createBlocksSystem } from \"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.1/blocks.system.mjs\";",
+        "import { createBlocksSystem } from \"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@main/blocks.system.mjs\";",
         "",
         "const blocks = createBlocksSystem({",
         "  snap: true,",
@@ -135,10 +135,11 @@
     },
     "manual-layout": {
       "title": "04 / layout and movement",
-      "intro": "Set size first, then position. Columns come before rows and coordinates start at 1. Read the current grid size through blocks.columns and blocks.rows. With snap and draggable on, drag the titlebar or focus it and use the arrow keys.",
+      "intro": "Set size first, then position. Columns come before rows and coordinates start at 1. Read the current grid size through blocks.columns and blocks.rows. margin reserves empty space inside the field border. With snap and draggable on, drag the titlebar or focus it and use the arrow keys.",
       "code": [
         "blocks.snap = true;",
         "blocks.draggable = true;",
+        "blocks.margin = \"24px\";",
         "",
         "block.span(4, 2);",
         "block.place(1, 1);"
@@ -181,14 +182,14 @@
     },
     "manual-appearance-regular": {
       "title": "appearance / regular",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
+      "eyebrow": "your content",
+      "statement": "your content",
       "body": "variant: \"regular\""
     },
     "manual-appearance-inverse": {
       "title": "appearance / inverse",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
+      "eyebrow": "your content",
+      "statement": "your content",
       "body": "variant: \"inverse\""
     },
     "manual-colors": {
@@ -206,20 +207,20 @@
     },
     "manual-color-cyan": {
       "title": "color / cyan",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
+      "eyebrow": "your content",
+      "statement": "your content",
       "body": "Only color changes."
     },
     "manual-color-magenta": {
       "title": "color / magenta",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
+      "eyebrow": "your content",
+      "statement": "your content",
       "body": "Only color changes."
     },
     "manual-color-yellow": {
       "title": "color / yellow",
-      "eyebrow": "fixed content",
-      "statement": "Same object.",
+      "eyebrow": "your content",
+      "statement": "your content",
       "body": "Only color changes."
     },
     "manual-random": {
@@ -235,27 +236,27 @@
     },
     "manual-random-color-0": {
       "title": "color chance / 0",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-random-color-50": {
       "title": "color chance / 0.5",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-random-color-100": {
       "title": "color chance / 1",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-random-inverse-0": {
       "title": "inverse chance / 0",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-random-inverse-50": {
       "title": "inverse chance / 0.5",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-random-inverse-100": {
       "title": "inverse chance / 1",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-random-combined": {
       "title": "combine / 0.5 + 0.5",
@@ -269,19 +270,19 @@
     },
     "manual-random-mix-1": {
       "title": "combined / 01",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-random-mix-2": {
       "title": "combined / 02",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-random-mix-3": {
       "title": "combined / 03",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-random-mix-4": {
       "title": "combined / 04",
-      "statement": "same object"
+      "statement": "your content"
     },
     "manual-next": {
       "title": "09 / run an example",
@@ -370,7 +371,7 @@
       "headers": ["member", "type or return", "purpose"],
       "rows": [
         { "cells": ["id", "readonly string", "Stable lowercase kebab-case id."] },
-        { "cells": ["element", "readonly HTMLElement", "The outer block element."] },
+        { "cells": ["element", "readonly HTMLElement", "The outer block element. Do not call element.remove(); use remove() so the system releases its layout."] },
         { "cells": ["content", "readonly HTMLDivElement", "The content host inside the block."] },
         { "cells": ["color", "string", "Read or set its CSS color."] },
         { "cells": ["variant", "string", "Read or set its resolved appearance."] },

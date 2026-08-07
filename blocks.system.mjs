@@ -464,6 +464,7 @@ export function createBlocksSystem(options = {}) {
 
     function createDragController() {
         let dragState = null;
+        let pointerFallbackTarget = null;
         const dragAnimations = new Set();
 
         function directObjects() {
@@ -631,6 +632,7 @@ export function createBlocksSystem(options = {}) {
             placed.sort((first, second) => first.row - second.row || first.col - second.col);
             for (const layout of placed) surface.appendChild(layout.element);
             applySurfaceState();
+            shell.querySelector(":scope > .blocks-system-menu > .blocks-system-title")?.focus({ preventScroll: true });
             animateDragSettlement(elements, before);
             emitReorder({
                 id: shell.getAttribute("data-block-object"),
@@ -759,6 +761,7 @@ export function createBlocksSystem(options = {}) {
             if (!dragState || (pointerId !== undefined && dragState.pointerId !== pointerId)) return;
             const current = dragState;
             dragState = null;
+            removePointerFallback();
             const animatedObjects = current.objects.filter((element) => element.parentElement === surface);
             const before = new Map(animatedObjects.map((element) => [element, element.getBoundingClientRect()]));
             let changed = false;
@@ -799,6 +802,22 @@ export function createBlocksSystem(options = {}) {
                     direction: current.previewDirection,
                 });
             }
+        }
+
+        function addPointerFallback() {
+            if (pointerFallbackTarget || typeof window !== "object") return;
+            pointerFallbackTarget = window;
+            pointerFallbackTarget.addEventListener("pointermove", moveDragging);
+            pointerFallbackTarget.addEventListener("pointerup", finishDragging);
+            pointerFallbackTarget.addEventListener("pointercancel", finishDragging);
+        }
+
+        function removePointerFallback() {
+            if (!pointerFallbackTarget) return;
+            pointerFallbackTarget.removeEventListener("pointermove", moveDragging);
+            pointerFallbackTarget.removeEventListener("pointerup", finishDragging);
+            pointerFallbackTarget.removeEventListener("pointercancel", finishDragging);
+            pointerFallbackTarget = null;
         }
 
         function startDragging(event) {
@@ -887,7 +906,16 @@ export function createBlocksSystem(options = {}) {
                 showLandingSlot(dragState, slots[originalIndex]);
             }
             surface.setAttribute("data-dragging", shell.getAttribute("data-block-object") || "");
-            handle.setPointerCapture?.(event.pointerId);
+            let pointerCaptured = false;
+            if (typeof handle.setPointerCapture === "function") {
+                try {
+                    handle.setPointerCapture(event.pointerId);
+                    pointerCaptured = handle.hasPointerCapture?.(event.pointerId) ?? true;
+                } catch {
+                    pointerCaptured = false;
+                }
+            }
+            if (!pointerCaptured) addPointerFallback();
             event.preventDefault();
         }
 
@@ -958,6 +986,7 @@ export function createBlocksSystem(options = {}) {
         }
 
         function unbindSurfaceEvents(target) {
+            removePointerFallback();
             target.removeEventListener("pointerdown", startDragging);
             target.removeEventListener("pointermove", moveDragging);
             target.removeEventListener("pointerup", finishDragging);
@@ -1058,13 +1087,29 @@ export function createBlocksSystem(options = {}) {
         drag.stop();
         const placed = [];
         const movedIds = [];
-        for (const element of directObjectElements()) {
-            const id = element.getAttribute("data-block-object");
-            const layout = objectLayouts.get(id);
-            if (!layout || layout.column === null || layout.row === null) continue;
+        const orderedLayouts = directObjectElements()
+            .map((element, index) => {
+                const id = element.getAttribute("data-block-object");
+                return { id, index, layout: objectLayouts.get(id) };
+            })
+            .filter((item) => item.layout && item.layout.column !== null && item.layout.row !== null)
+            .sort((first, second) =>
+                first.layout.row - second.layout.row ||
+                first.layout.column - second.layout.column ||
+                first.index - second.index);
+        for (const { id, layout } of orderedLayouts) {
+            const originalLayout = { ...layout };
             const nextLayout = { ...layout, row: 1 };
-            while (placed.some((other) => layoutsOverlap(nextLayout, other))) nextLayout.row += 1;
-            placed.push(nextLayout);
+            for (const other of placed) {
+                const sharesColumn =
+                    originalLayout.column < other.original.column + other.original.columns &&
+                    originalLayout.column + originalLayout.columns > other.original.column;
+                if (sharesColumn && other.original.row < originalLayout.row) {
+                    nextLayout.row = Math.max(nextLayout.row, other.layout.row + other.layout.rows);
+                }
+            }
+            while (placed.some((other) => layoutsOverlap(nextLayout, other.layout))) nextLayout.row += 1;
+            placed.push({ original: originalLayout, layout: nextLayout });
             if (nextLayout.row === layout.row) continue;
             objectLayoutSetters.get(id)?.(nextLayout.column, nextLayout.row);
             movedIds.push(id);

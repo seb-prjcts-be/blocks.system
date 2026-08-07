@@ -1,5 +1,5 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.11";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.30";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.12";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.31";
 
 const board = document.querySelector("#manual-board");
 const manualVariationSamples = [0.05, 0.1, 0.6, 0.05, 0.8, 0.6, 0.05, 0.4, 0.8, 0.6];
@@ -63,6 +63,13 @@ function createTextElement(name, text, className = "") {
   if (className) element.className = className;
   element.textContent = text;
   return element;
+}
+
+function createChapterHeading(title) {
+  const heading = document.createElement("h2");
+  heading.className = "manual-chapter-heading";
+  heading.textContent = title;
+  return heading;
 }
 
 function createCodeContent({ intro, code }) {
@@ -190,6 +197,7 @@ function createChanceContent({ statement }) {
 function addBlock({ id, title, content: blockContent, span, place, variant, menu, anchor = "", classes = [] }) {
   const options = { id, title, variant };
   if (menu !== undefined) options.menu = menu;
+  if (anchor && blockContent instanceof Node) blockContent.prepend(createChapterHeading(title));
   const block = blocks.add(blockContent, options);
   block.span(...span);
   block.place(...place);

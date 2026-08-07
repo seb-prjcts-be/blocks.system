@@ -236,6 +236,113 @@ async function measureCompactLayout() {
   return result.result.value;
 }
 
+async function measureCompactOrderPreservation() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const { createBlocksSystem } = await import("./blocks.system.mjs?compact-order-proof");
+      const field = document.createElement("div");
+      field.style.cssText = "position:fixed;left:0;top:0;width:120px;height:360px";
+      document.body.append(field);
+      try {
+        const blocks = createBlocksSystem({
+          snap: true,
+          draggable: false,
+          variant: "regular"
+        });
+        blocks.attach(field).setGrid(1, 6);
+        blocks.add("lower", { id: "compact-order-lower" }).place(1, 4);
+        blocks.add("upper", { id: "compact-order-upper" }).place(1, 1);
+        blocks.compact();
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+        const objects = Array.from(field.querySelectorAll(":scope > .blocks-system-object"));
+        const rowsById = Object.fromEntries(objects.map(function (block) {
+          return [block.dataset.blockObject, block.style.getPropertyValue("--block-row")];
+        }));
+        const rectsById = Object.fromEntries(objects.map(function (block) {
+          const rect = block.getBoundingClientRect();
+          return [block.dataset.blockObject, { top: rect.top, left: rect.left }];
+        }));
+        return {
+          domOrder: objects.map(function (block) { return block.dataset.blockObject; }),
+          rowsById,
+          rectsById
+        };
+      } finally {
+        field.remove();
+      }
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function measureCompactSpanOrderPreservation() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const { createBlocksSystem } = await import("./blocks.system.mjs?compact-span-order-proof");
+      const field = document.createElement("div");
+      field.style.cssText = "position:fixed;left:0;top:0;width:240px;height:600px";
+      document.body.append(field);
+      try {
+        const blocks = createBlocksSystem({
+          snap: true,
+          draggable: false,
+          variant: "regular"
+        });
+        blocks.attach(field).setGrid(2, 5);
+        blocks.add("left blocker", { id: "compact-span-left-blocker" }).place(1, 1);
+        blocks.add("wide", { id: "compact-span-wide" }).span(2, 1).place(1, 2);
+        blocks.add("right lower", { id: "compact-span-right-lower" }).place(2, 3);
+        blocks.compact();
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+        const objects = Array.from(field.querySelectorAll(":scope > .blocks-system-object"));
+        return Object.fromEntries(objects.map(function (block) {
+          return [block.dataset.blockObject, block.style.getPropertyValue("--block-row")];
+        }));
+      } finally {
+        field.remove();
+      }
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function measurePointerCaptureFallback() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const { createBlocksSystem } = await import("./blocks.system.mjs?pointer-capture-fallback-proof");
+      const field = document.createElement("div");
+      field.style.cssText = "position:fixed;left:0;top:0;width:240px;height:240px";
+      document.body.append(field);
+      try {
+        const blocks = createBlocksSystem({ snap: false, variant: "regular" });
+        blocks.attach(field);
+        const block = blocks.add("drag", { id: "pointer-fallback-block", title: "drag", menu: true });
+        const handle = block.element.querySelector(".blocks-system-title");
+        Object.defineProperty(handle, "setPointerCapture", { configurable: true, value: undefined });
+        const bounds = handle.getBoundingClientRect();
+        const pointer = { bubbles: true, cancelable: true, button: 0, pointerId: 41, clientX: bounds.left + 4, clientY: bounds.top + 4 };
+        handle.dispatchEvent(new PointerEvent("pointerdown", pointer));
+        const afterDown = field.getAttribute("data-dragging");
+        window.dispatchEvent(new PointerEvent("pointerup", pointer));
+        return {
+          afterDown,
+          afterUpDragging: field.hasAttribute("data-dragging"),
+          stillDragging: block.element.classList.contains("is-dragging")
+        };
+      } finally {
+        field.remove();
+      }
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
 async function measureMarginLayout() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(async function () {
@@ -755,19 +862,29 @@ async function exerciseManualKeyboardReorder() {
       const block = board.querySelector('[data-block-object="manual-layout-wide"]');
       const handle = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
       const beforeRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
-      let reorderDetail = null;
-      board.addEventListener("blocks:reorder", function (event) { reorderDetail = event.detail; }, { once: true });
+      const reorderDetails = [];
+      board.addEventListener("blocks:reorder", function (event) { reorderDetails.push(event.detail); });
       handle.focus();
       const focusAcquired = document.activeElement === handle;
       handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }));
       await new Promise(function (resolveFrame) {
         requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
       });
+      const focusAfterFirstMove = document.activeElement === handle;
+      const afterFirstRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
+      document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }));
+      await new Promise(function (resolveFrame) {
+        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+      });
       return {
         beforeRow,
-        afterRow: getComputedStyle(block).getPropertyValue("--block-row").trim(),
+        afterFirstRow,
+        afterSecondRow: getComputedStyle(block).getPropertyValue("--block-row").trim(),
         focusAcquired,
-        event: reorderDetail && { id: reorderDetail.id, input: reorderDetail.input, direction: reorderDetail.direction }
+        focusAfterFirstMove,
+        events: reorderDetails.map(function (detail) {
+          return { id: detail.id, input: detail.input, direction: detail.direction };
+        })
       };
     })()`,
     awaitPromise: true,
@@ -1015,6 +1132,33 @@ try {
   assert.ok(compactLayout.rects.every(function (rect) { return Math.abs(rect.left - compactLayout.rects[0].left) <= 0.5; }), "compact() bewaart geen vaste kolom in de echte layout");
   assert.ok(compactLayout.rects[2].height > compactLayout.rects[1].height, "compact() bewaart de spanhoogte niet in de echte layout");
 
+  const compactOrder = await measureCompactOrderPreservation();
+  assert.deepEqual(compactOrder.domOrder, ["compact-order-lower", "compact-order-upper"], "de regressieprobe moet het lagere block eerst in DOM-volgorde zetten");
+  assert.deepEqual(compactOrder.rowsById, {
+    "compact-order-lower": "2",
+    "compact-order-upper": "1"
+  }, "compact() mag de bestaande visuele volgorde in dezelfde kolom niet omdraaien");
+  assert.ok(
+    compactOrder.rectsById["compact-order-upper"].top < compactOrder.rectsById["compact-order-lower"].top,
+    "compact() moet het oorspronkelijk bovenste block ook visueel boven houden"
+  );
+  assert.ok(
+    Math.abs(compactOrder.rectsById["compact-order-upper"].left - compactOrder.rectsById["compact-order-lower"].left) <= 0.5,
+    "compact() moet de kolom behouden terwijl de volgorde behouden blijft"
+  );
+
+  assert.deepEqual(await measureCompactSpanOrderPreservation(), {
+    "compact-span-left-blocker": "1",
+    "compact-span-wide": "2",
+    "compact-span-right-lower": "3"
+  }, "compact() mag een lager block niet boven een ouder breed block in een gedeelde kolom zetten");
+
+  assert.deepEqual(await measurePointerCaptureFallback(), {
+    afterDown: "pointer-fallback-block",
+    afterUpDragging: false,
+    stillDragging: false
+  }, "een drag zonder pointer capture moet op een pointerup buiten het veld stoppen");
+
   const marginLayout = await measureMarginLayout();
   assert.equal(marginLayout.before.value, "12px 24px 36px 48px", "margin bewaart niet de vier opgegeven randwaarden");
   assert.equal(marginLayout.before.customProperty, "12px 24px 36px 48px", "margin bereikt de surface niet via de librarytoken");
@@ -1206,9 +1350,14 @@ try {
 
   assert.deepEqual(await exerciseManualKeyboardReorder(), {
     beforeRow: "25",
-    afterRow: "26",
+    afterFirstRow: "26",
+    afterSecondRow: "27",
     focusAcquired: true,
-    event: { id: "manual-layout-wide", input: "keyboard", direction: "down" }
+    focusAfterFirstMove: true,
+    events: [
+      { id: "manual-layout-wide", input: "keyboard", direction: "down" },
+      { id: "manual-layout-wide", input: "keyboard", direction: "down" }
+    ]
   }, "een manualblock moet via zijn echte libraryheader verplaatsbaar zijn");
 
   const mobileNavigation = await exerciseMobileNavigation();

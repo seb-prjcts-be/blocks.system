@@ -16,6 +16,7 @@ const pages = [
   "docs/guide-finish.html",
   "docs/about.html",
   "docs/manual.html",
+  "examples/index.html",
   "examples/basic-grid/index.html",
   "examples/mixed-content/index.html",
   "examples/custom-adapter/index.html"
@@ -64,7 +65,7 @@ assert.doesNotMatch(readme + readmeNl, /(?:defaults? to|standaard(?:reeks|array)
 const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
 const docsContent = JSON.parse(await readFile(resolve(root, "docs", "content.json"), "utf8"));
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
-const releaseCdnBase = `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v${packageData.version}`;
+const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@main";
 const declarations = await readFile(resolve(root, "blocks.system.d.ts"), "utf8");
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
@@ -73,6 +74,7 @@ const mediaPoster = await readFile(resolve(root, "docs", "references", "media-co
 const apiHtml = await readFile(resolve(root, "docs", "api.html"), "utf8");
 const manualHtml = await readFile(resolve(root, "docs", "index.html"), "utf8");
 const homeHtml = await readFile(resolve(root, "index.html"), "utf8");
+const exampleIndexHtml = await readFile(resolve(root, "examples", "index.html"), "utf8");
 const aliasTargets = {
   "manual.html": "start",
   "system.html": "start",
@@ -117,17 +119,19 @@ const navigationPages = [
   ["home", homeHtml, "home"],
   ["manual", manualHtml, "manual"],
   ["reference", apiHtml, "reference"],
+  ["examples index", exampleIndexHtml, null],
   ...Object.entries(standaloneExamples).map(([name, html]) => [`example ${name}`, html, null])
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.11", "docs/style.css?v=0.2.2"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.11", "style.css?v=0.2.9"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.11", "style.css?v=0.2.3"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.11", "docs/style.css?v=0.2.10"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.11", "style.css?v=0.2.10"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.11", "style.css?v=0.2.10"]],
+  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.11", "../docs/style.css?v=0.2.10"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.11", "../../docs/style.css?v=0.2.0"]
+    ["../../blocks.system.css?v=0.1.11", "../../docs/style.css?v=0.2.10"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -164,8 +168,11 @@ for (const file of retiredAssets) {
   await assert.rejects(access(resolve(root, file)), { code: "ENOENT" }, `${file} must remain retired`);
 }
 
-assert.equal(manifest.version, packageData.version, "manifest and package version must match");
-assert.ok(apiHtml.includes(`blocks.system · reference · v${packageData.version}`), "reference footer must show the released package version");
+assert.equal(manifest.version, "main", "manifest must identify its current source ref");
+assert.equal(manifest.source_ref, "main", "manifest must expose its current source ref");
+assert.equal(manifest.release_status, "unreleased", "manifest must not claim a release");
+assert.equal(manifest.package_version, packageData.version, "manifest must retain the package metadata version");
+assert.ok(apiHtml.includes("blocks.system · reference · current main · unreleased"), "reference footer must label its unreleased source ref");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
 assert.ok(["attach", "setGrid", "compact", "columns", "rows", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
 assert.ok(manifest.design_rules.includes("colorArray is consumer-owned and defaults empty; positive colorVariation requires user-supplied CSS colors"), "manifest must record consumer ownership of the palette");
@@ -246,7 +253,7 @@ assert.doesNotMatch(siteDemos["examples/basic-grid/demo.mjs"], /blockItem\.varia
 assert.match(standaloneExamples["basic-grid"], /system-level color and inversion variation/, "the basic example copy must name its actual variation mode");
 assert.ok(siteDemos["examples/basic-grid/demo.mjs"].includes("blockItem.minimized = index === 1"), "the basic grid must demonstrate a restorable minimized block");
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
-  assert.match(standaloneExamples[example], /href="demo\.mjs" download/, `${example} must offer its copyable module explicitly`);
+  assert.doesNotMatch(standaloneExamples[example], /href="demo\.mjs" download/, `${example} must not offer a module download that cannot run on its own`);
 }
 for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.match(standaloneExamples[example], /href="\.\.\/\.\.\/docs\/">← manual<\/a>/, `${example} must return to the canonical manual without a fragment`);
@@ -265,7 +272,7 @@ assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.match(siteDemos["docs/manual.mjs"], /id:\s*"manual-eli10"[\s\S]*?span:\s*\[4,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?id:\s*"manual-eli10-steps"[\s\S]*?span:\s*\[2,\s*2\][\s\S]*?place:\s*\[5,\s*1\][\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\]/, "ELI10 must use adjacent 4x2 and 2x2 blocks, leave row 3 open and start part 1 on row 4");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.setGrid\(6,\s*53\)[\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\][\s\S]*?id:\s*"manual-finish"[\s\S]*?place:\s*\[1,\s*8\][\s\S]*?id:\s*"manual-content-html"[\s\S]*?place:\s*\[1,\s*11\][\s\S]*?id:\s*"manual-content-object"[\s\S]*?place:\s*\[3,\s*11\][\s\S]*?id:\s*"manual-content-factory"[\s\S]*?place:\s*\[5,\s*11\]/, "manual 02 must follow one open grid row and sit above the three content examples");
-assert.match(manualHtml, /shell\.mjs\?v=0\.1\.30[\s\S]*manual\.mjs\?v=0\.1\.38/, "the manual must load the compact, variant, color and chance lessons without stale module caches");
+assert.match(manualHtml, /shell\.mjs\?v=0\.1\.31[\s\S]*manual\.mjs\?v=0\.1\.39/, "the manual must load the compact, variant, color and chance lessons without stale module caches");
 assert.match(siteDemos["docs/manual.mjs"], /const eli10Block\s*=\s*addBlock\([\s\S]*?id:\s*"manual-eli10"[\s\S]*?eli10Block\.color\s*=\s*"cyan"/, "the first manual block must use the public block color control for its cyan shell");
 for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
@@ -429,9 +436,9 @@ assert.deepEqual(docsContent.manual["manual-eli10-steps"], {
     "Add one individual block with blocks.add(...)."
   ]
 }, "ELI10 must keep its three concrete beginner steps in the adjacent block");
-assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${releaseCdnBase}/blocks.system.css">`), "the manual must load the fixed release stylesheet from jsDelivr");
-assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${releaseCdnBase}/blocks.system.mjs";`), "the manual must import the fixed ESM release from jsDelivr");
-assert.doesNotMatch(JSON.stringify(docsContent.manual["manual-start"]), /blocks\.system@(?:main|master|latest)\b/, "the manual must not point its release example at a moving branch");
+assert.ok(docsContent.manual["manual-start"].intro.includes("current main branch (unreleased)"), "the manual must label its unreleased source ref");
+assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${mainCdnBase}/blocks.system.css">`), "the manual must load the labelled main stylesheet from jsDelivr");
+assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${mainCdnBase}/blocks.system.mjs";`), "the manual must import the labelled main ESM module from jsDelivr");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner-facing manual copy must say object instead of node");
 assert.deepEqual(Object.keys(docsContent.reference), [
   "reference-exports",
@@ -463,7 +470,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.17", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.19", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

@@ -56,9 +56,10 @@ is alleen de keuze van dit voorbeeld. De library bezit geen RGB/CMY-palet.
 
 ## Midden
 
-`blocks.add(content)` aanvaardt vertrouwde HTML, een DOM-node of een functie die
-een van beide teruggeeft. Geef onvertrouwde tekst nooit als HTML door; maak een
-node en gebruik `textContent`.
+`blocks.add(content)` aanvaardt vertrouwde HTML, een object uit de DOM
+(bijvoorbeeld een element) of een functie die een van beide teruggeeft. Geef
+onvertrouwde tekst nooit als HTML door; maak een element en gebruik
+`textContent`.
 
 Eén `block…`-controller bezit het menu, de span, plaats, variant,
 minimaliseerstatus en verwijdering van één object:
@@ -148,9 +149,9 @@ detailvorm: `id`, `input`, `mode`, `key`, indices, rasterposities en richting.
 Zet `blocks.draggable = false` om de layout te vergrendelen.
 
 Gebruik `blocks.compact()` alleen wanneer je expliciet gaten wil vullen. De
-methode houdt ieder geplaatst block in zijn kolom, schuift vaste gridblocks in
-DOM-volgorde omhoog en verkleint het ingestelde raster niet stilzwijgend.
-`block.minimized` blijft inklappen op dezelfde plaats. Het veld vuurt
+methode houdt ieder geplaatst block in zijn kolom en bewaart de verticale
+volgorde van blocks met overlappende kolommen; het ingestelde raster verkleint
+niet stilzwijgend. `block.minimized` blijft inklappen op dezelfde plaats. Het veld vuurt
 `blocks:change` voor `compact`, `minimize`, `restore` en `remove`.
 Trackpad- en wheelscroll boven gewone blockinhoud blijft de pagina scrollen;
 alleen echt overlopende binneninhoud scrollt eerst lokaal.
@@ -159,6 +160,24 @@ De gemeten werking en grenzen staan duurzaam in
 
 Bekijk de [volledige API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
 voor argumenten en returnwaarden.
+
+## Gecontroleerde status
+
+Op 2026-08-07 is de volledige gedocumenteerde publieke werking in deze
+`main`-werkmap afgewerkt: blocks aanmaken en beheren, menu's, gridlayout,
+snap- en toetsenbordbeweging, `compact()`, margin, varianten en toevalskleur,
+adapters, events, TypeScript-declaraties, home, manual, reference en drie
+uitvoerbare voorbeelden.
+
+Lokaal geslaagd:
+
+- `npm run check`: minified ESM, manifest, contracten, TypeScript, pagina's,
+  links, voorbeelden en responsieve browser-layoutchecks.
+- `npm run test:presentation`: presentatie- en publieke paginastructuurchecks.
+- Apache/XAMPP: `/`, `/docs/` en `/examples/` geven elk HTTP 200.
+
+Dit beschrijft de huidige bron op `main`. Die blijft als unreleased aangeduid
+tot er een GitHub-release-tag is gemaakt.
 
 ## Ontwikkelen
 

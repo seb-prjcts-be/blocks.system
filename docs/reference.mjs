@@ -1,5 +1,5 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.11";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.30";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.12";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.31";
 
 const board = document.querySelector("#reference-board");
 const blocks = createBlocksSystem({

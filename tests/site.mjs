@@ -16,6 +16,7 @@ const pages = [
   "docs/guide-finish.html",
   "docs/about.html",
   "docs/manual.html",
+  "examples/index.html",
   "examples/basic-grid/index.html",
   "examples/mixed-content/index.html",
   "examples/custom-adapter/index.html"
@@ -54,7 +55,8 @@ const siteCss = await read("docs/style.css");
 const homeHtml = pageHtml["index.html"];
 const manualHtml = pageHtml["docs/index.html"];
 const apiHtml = pageHtml["docs/api.html"];
-
+const exampleIndexHtml = pageHtml["examples/index.html"];
+const developmentGuide = await read("docs/development.md");
 const siteDemoFiles = [
   "docs/home.mjs",
   "docs/manual.mjs",
@@ -90,14 +92,21 @@ for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]
   assert.match(content, /\[Home\]\(https:\/\/seb-prjcts-be\.github\.io\/blocks\.system\/\)/, `${file} must link to the public homepage`);
   assert.match(content, /https:\/\/seb-prjcts-be\.github\.io\/blocks\.system\/docs\/#next/, `${file} examples link must land on the example index`);
 }
+assert.doesNotMatch(readmeNl, /\b(?:DOM-)?node\b/i, "README_NL beginnerstaal must say object or element instead of node");
 
-assert.equal(manifest.version, packageData.version, "manifest and package version must match");
+assert.equal(manifest.version, "main", "manifest must identify its current source ref");
+assert.equal(manifest.source_ref, "main", "manifest must expose its current source ref");
+assert.equal(manifest.release_status, "unreleased", "manifest must not claim a release");
+assert.equal(manifest.package_version, packageData.version, "manifest must retain the package metadata version");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
 for (const apiName of ["attach", "setGrid", "compact", "columns", "rows", "snap", "draggable", "margin", "labels", "add"]) {
   assert.ok(manifest.core_api.includes(apiName), `manifest misses ${apiName}`);
 }
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "package files must include declarations");
+assert.equal(packageData.private, true, "the package must remain private because npm is not its distribution channel");
+assert.match(developmentGuide, /`private`: true[\s\S]*niet via npm publiceren/i, "development docs must explain the private npm boundary");
+assert.match(developmentGuide, /GitHub-release-tag[\s\S]*jsDelivr/i, "development docs must name the public tag-and-CDN distribution channel");
 assert.equal(packageData.scripts["test:presentation"], "node tests/site-presentation.mjs", "presentation locks must remain available outside the core gate");
 for (const declaration of ["BlocksSystem", "BlockController", "BlocksReorderDetail", "BlocksChangeDetail", "createBlocksSystem"]) {
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);
@@ -125,6 +134,7 @@ const navigationPages = [
   ["home", homeHtml, "home"],
   ["manual", manualHtml, "manual"],
   ["reference", apiHtml, "reference"],
+  ["examples index", exampleIndexHtml, null],
   ...Object.entries(standaloneExamples).map(([name, html]) => [`example ${name}`, html, null])
 ];
 for (const [page, html, currentLabel] of navigationPages) {
@@ -137,6 +147,18 @@ for (const [page, html, currentLabel] of navigationPages) {
   assert.deepEqual(links.filter(({ current }) => current).map(({ label }) => label), currentLabel ? [currentLabel] : [], `${page} must expose its real current page`);
   assert.equal((html.match(/<nav\b/g) || []).length, 1, `${page} must expose one navigation landmark`);
 }
+for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference", apiHtml, "reference"]]) {
+  assert.match(html, /<a class="skip-link" href="#main-content">skip to /, `${page} must expose a keyboard skiplink`);
+  assert.match(html, /<main id="main-content"[^>]*tabindex="-1"/, `${page} must expose a focusable skiplink target`);
+  assert.match(html, new RegExp(`skip to ${label}`), `${page} skiplink must name its destination`);
+}
+const styleVersions = new Set(Object.entries(pageHtml)
+  .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
+  .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
+assert.deepEqual([...styleVersions], ["0.2.10"], "one consumer stylesheet must use one cache version across all pages");
+const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
+assert.match(examplesCss, /var\(--docs-field\)/, "example pages must use the shared docs field token");
+assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
 for (const [page, html] of [["home", homeHtml], ["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /class="nav-hamburger"[^>]*aria-controls="primary-navigation"/, `${page} hamburger must identify its navigation`);
   assert.match(html, /id="primary-navigation" class="nav-links"/, `${page} navigation must expose the controlled id`);
@@ -152,7 +174,7 @@ for (const file of ["examples/basic-grid/demo.mjs", "examples/mixed-content/demo
 }
 for (const example of exampleDirectories) {
   const html = standaloneExamples[example];
-  assert.match(html, /href="demo\.mjs" download/, `${example} must offer its module`);
+  assert.doesNotMatch(html, /href="demo\.mjs" download/, `${example} must not offer a module download that cannot run on its own`);
   assert.match(html, /href="\.\.\/\.\.\/docs\/">← manual<\/a>/, `${example} must return to the manual`);
   assert.match(html, /src="\.\.\/\.\.\/docs\/shell\.mjs\?v=\d+\.\d+\.\d+/, `${example} must load cache-busted shared navigation behavior`);
 }
@@ -197,10 +219,15 @@ assert.match(siteDemos["docs/shell.mjs"], /event\.key !== "Escape"/, "mobile nav
 assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "home must use one system");
 assert.equal((siteDemos["docs/home.mjs"].match(/blocks\.add\(/g) || []).length, 3, "home must contain three functional blocks");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "manual must use one system");
+assert.match(siteDemos["docs/manual.mjs"], /createElement\("h2"\)/, "manual chapters must expose real h2 headings for assistive navigation");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /ResizeObserver|MutationObserver|registerAdapter|document\.createElement\("video"\)/, "advanced lifecycle examples must stay outside the beginner route");
 for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `manual misses #${anchor}`);
 }
+const manualCopy = JSON.stringify(docsContent.manual).toLowerCase();
+assert.doesNotMatch(manualCopy, /same object/, "manual copy must speak about the reader's content, not its own test fixture");
+assert.ok((manualCopy.match(/\byour\b/g) || []).length >= 15, "manual copy must repeatedly address the reader where appearance varies");
+assert.match(manualCopy, /blocks\.margin/, "manual layout onboarding must introduce the grid margin");
 for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `reference misses #${anchor}`);
 }
@@ -217,10 +244,26 @@ for (const apiName of [
 }
 assert.match(serializedReference, /columns[\s\S]*readonly number[\s\S]*rows[\s\S]*may also grow after dragging/i, "reference must explain readable grid dimensions");
 assert.match(serializedReference, /margin[\s\S]*top, right, bottom and left/i, "reference must explain the four margin edges");
+assert.match(serializedReference, /Do not call element\.remove\(\); use remove\(\)/, "reference must prevent direct DOM removal that leaves a stale layout");
 assert.match(serializedReference, /snap true[\s\S]*place\(\)[\s\S]*span\(\)[\s\S]*compact\(\)[\s\S]*visual grid layout/i, "reference must explain snap-dependent layout");
 assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textContent/i, "reference must warn about trusted string HTML");
 
-const releaseCdnBase = `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v${packageData.version}`;
+const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@main";
+const manualStartContent = JSON.stringify(docsContent.manual["manual-start"]);
+const manualPinsRelease = new RegExp(`blocks\\.system@v${packageData.version}\\b`).test(manualStartContent);
+const documentsMainOnlyApi = /\b(?:compact|margin)\b/.test(JSON.stringify({
+  manual: docsContent.manual,
+  reference: docsContent.reference
+}));
+const referencePinsRelease = apiHtml.includes(`reference · v${packageData.version}`);
+assert.ok(
+  !(manualPinsRelease && documentsMainOnlyApi),
+  "a manual pinned to a fixed release must not document APIs absent from that release"
+);
+assert.ok(
+  !(referencePinsRelease && manifest.core_api.some((name) => ["compact", "margin"].includes(name))),
+  "a reference labelled as a fixed release must not expose main-only APIs in its manifest"
+);
 assert.deepEqual(packageData.exports["."], {
   types: "./blocks.system.d.ts",
   default: "./blocks.system.mjs"
@@ -230,9 +273,9 @@ assert.deepEqual(packageData.exports["./min"], {
   default: "./blocks.system.min.mjs"
 }, "the minified package export must resolve the same declarations");
 assert.equal(packageData.exports["./style"], "./blocks.system.css", "the stylesheet package export must remain stable");
-assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${releaseCdnBase}/blocks.system.css">`), "manual must load the fixed release stylesheet");
-assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${releaseCdnBase}/blocks.system.mjs";`), "manual must load the fixed release module");
-assert.doesNotMatch(JSON.stringify(docsContent.manual["manual-start"]), /blocks\.system@(?:main|master|latest)\b/, "manual must not use a moving release branch");
+assert.ok(docsContent.manual["manual-start"].intro.includes("current main branch (unreleased)"), "manual must label its unreleased source ref");
+assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${mainCdnBase}/blocks.system.css">`), "manual must load the labelled main stylesheet");
+assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${mainCdnBase}/blocks.system.mjs";`), "manual must load the labelled main module");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner copy must say object instead of node");
 
 assert.doesNotMatch(libraryCss, /\.(?:home|manual|reference)-/, "library CSS must not own docs composition");
