@@ -233,6 +233,30 @@ assert.deepEqual(compactChanges.pop(), {
 }, "compact must publish the moved block ids");
 compacting.compact();
 assert.equal(compactChanges.length, 0, "a no-op compact must not publish a change event");
+
+const closingCollapse = createBlocksSystem({ snap: true, variant: "regular" });
+const closingCollapseField = new TestElement();
+closingCollapse.attach(closingCollapseField).setGrid(1, 6);
+closingCollapse.add("top", { id: "close-collapse-top" }).place(1, 1);
+const closingGap = closingCollapse.add("gap", { id: "close-collapse-gap" }).place(1, 2);
+const closingLower = closingCollapse.add("lower", { id: "close-collapse-lower" }).place(1, 4);
+closingGap.remove();
+assert.equal(
+  closingLower.element.style.getPropertyValue("--block-row"),
+  "2",
+  "closing a placed block must pull a later block into its released grid cell"
+);
+
+const intentionalSpace = createBlocksSystem({ snap: true, variant: "regular" });
+const intentionalSpaceField = new TestElement();
+intentionalSpace.attach(intentionalSpaceField).setGrid(1, 6);
+const intentionalLower = intentionalSpace.add("lower", { id: "intentional-lower" }).place(1, 4);
+assert.equal(
+  intentionalLower.element.style.getPropertyValue("--block-row"),
+  "4",
+  "a grid cell that was never closed must remain intentional empty space"
+);
+
 compactSecond.minimized = true;
 compactSecond.minimized = true;
 compactSecond.minimized = false;

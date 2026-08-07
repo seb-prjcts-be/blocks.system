@@ -310,6 +310,37 @@ async function measureCompactSpanOrderPreservation() {
   return result.result.value;
 }
 
+async function measureCloseCollapse() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const { createBlocksSystem } = await import("./blocks.system.mjs?close-collapse-proof");
+      const field = document.createElement("div");
+      field.style.cssText = "position:fixed;left:0;top:0;width:120px;height:360px";
+      document.body.append(field);
+      try {
+        const blocks = createBlocksSystem({ snap: true, draggable: false, variant: "regular" });
+        const changes = [];
+        field.addEventListener("blocks:change", function (event) { changes.push(event.detail); });
+        blocks.attach(field).setGrid(1, 6);
+        blocks.add("top", { id: "close-collapse-top" }).place(1, 1);
+        const gap = blocks.add("gap", { id: "close-collapse-gap", title: "gap", menu: { close: true } }).place(1, 2);
+        blocks.add("lower", { id: "close-collapse-lower" }).place(1, 4);
+        gap.element.querySelector(".blocks-system-close").click();
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+        const rows = Object.fromEntries(Array.from(field.querySelectorAll(":scope > .blocks-system-object")).map(function (block) {
+          return [block.dataset.blockObject, block.style.getPropertyValue("--block-row")];
+        }));
+        return { rows, change: changes[0] };
+      } finally {
+        field.remove();
+      }
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
 async function measurePointerCaptureFallback() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(async function () {
@@ -1152,6 +1183,17 @@ try {
     "compact-span-wide": "2",
     "compact-span-right-lower": "3"
   }, "compact() mag een lager block niet boven een ouder breed block in een gedeelde kolom zetten");
+
+  const closeCollapse = await measureCloseCollapse();
+  assert.deepEqual(closeCollapse.rows, {
+    "close-collapse-top": "1",
+    "close-collapse-lower": "2"
+  }, "de ×-knop moet een later block in de vrijgekomen rasterplaats laten klappen");
+  assert.deepEqual(closeCollapse.change, {
+    type: "remove",
+    id: "close-collapse-gap",
+    ids: ["close-collapse-gap", "close-collapse-lower"]
+  }, "een close-event moet ook melden welk block in de vrijgekomen plaats is geklapt");
 
   assert.deepEqual(await measurePointerCaptureFallback(), {
     afterDown: "pointer-fallback-block",

@@ -1121,6 +1121,63 @@ export function createBlocksSystem(options = {}) {
         return api;
     }
 
+    function collapseReleasedLayout(releasedLayout) {
+        if (!snapEnabled || releasedLayout.column === null || releasedLayout.row === null) return [];
+        const releasedCells = new Set();
+        const cellKey = (column, row) => `${column}:${row}`;
+        const markReleased = (layout) => {
+            for (let row = layout.row; row < layout.row + layout.rows; row += 1) {
+                for (let column = layout.column; column < layout.column + layout.columns; column += 1) {
+                    releasedCells.add(cellKey(column, row));
+                }
+            }
+        };
+        const canFillAt = (layout, row) => {
+            for (let cellRow = row; cellRow < row + layout.rows; cellRow += 1) {
+                for (let column = layout.column; column < layout.column + layout.columns; column += 1) {
+                    if (!releasedCells.has(cellKey(column, cellRow))) return false;
+                }
+            }
+            return true;
+        };
+        const occupy = (layout, row) => {
+            for (let cellRow = row; cellRow < row + layout.rows; cellRow += 1) {
+                for (let column = layout.column; column < layout.column + layout.columns; column += 1) {
+                    releasedCells.delete(cellKey(column, cellRow));
+                }
+            }
+        };
+
+        markReleased(releasedLayout);
+        const movedIds = [];
+        const orderedLayouts = directObjectElements()
+            .map((element, index) => {
+                const id = element.getAttribute("data-block-object");
+                return { id, index, layout: objectLayouts.get(id) };
+            })
+            .filter((item) => item.layout && item.layout.column !== null && item.layout.row !== null)
+            .sort((first, second) =>
+                first.layout.row - second.layout.row ||
+                first.layout.column - second.layout.column ||
+                first.index - second.index);
+
+        for (const { id, layout } of orderedLayouts) {
+            let nextRow = null;
+            for (let row = 1; row < layout.row; row += 1) {
+                if (!canFillAt(layout, row)) continue;
+                nextRow = row;
+                break;
+            }
+            if (nextRow === null) continue;
+            occupy(layout, nextRow);
+            markReleased(layout);
+            objectLayoutSetters.get(id)?.(layout.column, nextRow);
+            movedIds.push(id);
+        }
+        if (movedIds.length > 0) applySurfaceState();
+        return movedIds;
+    }
+
     function appendContent(container, content) {
         const resolved = typeof content === "function" ? content() : content;
         if (typeof resolved === "string") {
@@ -1261,12 +1318,14 @@ export function createBlocksSystem(options = {}) {
         function remove() {
             assertActive();
             drag.stop();
+            const releasedLayout = objectLayouts.get(id);
             objects.delete(id);
             objectLayouts.delete(id);
             objectLayoutSetters.delete(id);
             menuInteractionSetters.delete(id);
             shell.remove();
-            emitChange({ type: "remove", id });
+            const movedIds = releasedLayout ? collapseReleasedLayout(releasedLayout) : [];
+            emitChange({ type: "remove", id, ids: [id, ...movedIds] });
             return true;
         }
 
