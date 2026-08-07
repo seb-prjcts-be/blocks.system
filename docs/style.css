@@ -394,6 +394,22 @@ footer a { color: var(--ink); }
   grid-auto-rows: var(--docs-row);
 }
 
+.manual-board {
+  background-origin: content-box;
+  background-clip: content-box;
+}
+
+.manual-board::before {
+  content: "";
+  position: absolute;
+  inset: var(--blocks-margin);
+  z-index: 0;
+  border: 1px dashed rgb(17 17 17 / 52%);
+  pointer-events: none;
+}
+
+.manual-board > .blocks-system-object { z-index: 1; }
+
 .docs-board > .blocks-system-object > .blocks-system-content {
   place-items: stretch;
   overflow: hidden;

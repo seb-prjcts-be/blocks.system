@@ -712,6 +712,7 @@ async function measureManual(width, height, dpr = 1) {
         boardOverflowY: getComputedStyle(board).overflowY,
         boardBackgroundImage: getComputedStyle(board).backgroundImage,
         gridMargin: board.style.getPropertyValue("--blocks-margin"),
+        marginGuideInset: getComputedStyle(board, "::before").inset,
         quantized: board.dataset.quantized,
         trackWidth: Number(board.dataset.trackWidth),
         nonIntegerHorizontalGeometry: objects.filter(function (block) {
@@ -1328,6 +1329,7 @@ try {
     assert.equal(manual.menuActionCount, 70, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
     assert.equal(manual.gridMargin, "24px", `manual demonstreert geen enkele marginwaarde rond het grid op ${width}px`);
+    assert.equal(manual.marginGuideInset, "24px", `manual tekent de margin niet binnen het veld op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
