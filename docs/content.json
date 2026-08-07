@@ -23,7 +23,6 @@
   "manual": {
     "manual-eli10": {
       "title": "00 / ELI10",
-      "statement": "Container. Blocks. One block.",
       "body": "A container is an empty div. blocks is the system connected to that div. A block is one individual box inside it."
     },
     "manual-eli10-steps": {

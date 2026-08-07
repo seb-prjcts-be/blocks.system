@@ -482,20 +482,9 @@ footer a { color: var(--ink); }
 }
 
 .manual-eli10 {
-  display: grid;
-  grid-template-rows: 1fr auto;
-  gap: 10px;
   width: 100%;
   height: 100%;
   padding: clamp(16px, 2vw, 28px);
-}
-
-.manual-eli10 strong {
-  align-self: end;
-  font-size: clamp(2.2rem, 3.3vw, 4rem);
-  font-weight: 600;
-  line-height: 0.9;
-  letter-spacing: -0.055em;
 }
 
 .manual-eli10 p {

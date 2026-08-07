@@ -591,6 +591,7 @@ async function measureManual(width, height, dpr = 1) {
       const board = document.querySelector("#manual-board");
       const boardRect = board.getBoundingClientRect();
       const mastheadRect = document.querySelector(".manual-masthead").getBoundingClientRect();
+      const mastheadTitle = document.querySelector(".manual-masthead h1");
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
       const code = board.querySelector(".manual-code");
       const rootStyle = getComputedStyle(document.documentElement);
@@ -743,6 +744,7 @@ async function measureManual(width, height, dpr = 1) {
         scrollbarWidth: rootStyle.scrollbarWidth,
         scrollbarColor: rootStyle.scrollbarColor,
         boardWidth: boardRect.width,
+        mastheadTitle: mastheadTitle.textContent,
         mastheadGap: boardRect.top - mastheadRect.bottom,
         rowHeight: parseFloat(getComputedStyle(board).gridAutoRows),
         rowGap: parseFloat(getComputedStyle(board).rowGap),
@@ -757,7 +759,6 @@ async function measureManual(width, height, dpr = 1) {
           menuColor: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-menu")).color,
           contentBackground: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-content")).backgroundColor,
           title: eli10Block.querySelector(".blocks-system-title").textContent,
-          statement: eli10.querySelector("strong").textContent,
           body: eli10.querySelector("p").textContent,
           stepsBlockWidth: eli10StepsBlockRect.width,
           stepsBlockLeft: eli10StepsBlockRect.left,
@@ -1330,8 +1331,8 @@ try {
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
     assert.equal(manual.eli10.title, "00 / ELI10", `manual begint niet met ELI10 op ${width}px`);
-    assert.equal(manual.eli10.statement, "Container. Blocks. One block.", `ELI10 mist zijn kernzin op ${width}px`);
-    assert.match(manual.eli10.body, /A container is an empty div\.[\s\S]*blocks is the system[\s\S]*A block is one individual box/, `ELI10 definieert container, blocks en block niet eenvoudig op ${width}px`);
+    assert.equal(manual.mastheadTitle, "Container. Blocks. Block.", `manual mist zijn nieuwe hoofdtitel op ${width}px`);
+    assert.match(manual.eli10.body, /^ELI10: A container is an empty div\.[\s\S]*blocks is the system[\s\S]*A block is one individual box/, `ELI10 blijft niet één eenvoudige uitlegparagraaf op ${width}px`);
     assert.equal(manual.eli10.stepsTitle, "three things, in order", `het tweede ELI10-block mist zijn functionele titel op ${width}px`);
     assert.equal(manual.eli10.steps.length, 3, `ELI10 toont niet drie concrete stappen op ${width}px`);
     assert.ok(manual.finishBlockTop > manual.startBlockBottom, `manual 02 staat niet onder 01 op ${width}px @${dpr}x`);

@@ -273,7 +273,7 @@ assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.match(siteDemos["docs/manual.mjs"], /id:\s*"manual-eli10"[\s\S]*?span:\s*\[4,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?id:\s*"manual-eli10-steps"[\s\S]*?span:\s*\[2,\s*2\][\s\S]*?place:\s*\[5,\s*1\][\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\]/, "ELI10 must use adjacent 4x2 and 2x2 blocks, leave row 3 open and start part 1 on row 4");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.setGrid\(6,\s*55\)[\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\][\s\S]*?id:\s*"manual-finish"[\s\S]*?place:\s*\[1,\s*8\][\s\S]*?id:\s*"manual-content-html"[\s\S]*?place:\s*\[1,\s*11\][\s\S]*?id:\s*"manual-content-object"[\s\S]*?place:\s*\[3,\s*11\][\s\S]*?id:\s*"manual-content-factory"[\s\S]*?place:\s*\[5,\s*11\]/, "manual 02 must follow one open grid row and sit above the three content examples");
-assert.match(manualHtml, /shell\.mjs\?v=0\.1\.31[\s\S]*manual\.mjs\?v=0\.1\.43/, "the manual must load the compact, variant, color and chance lessons without stale module caches");
+assert.match(manualHtml, /shell\.mjs\?v=0\.1\.31[\s\S]*manual\.mjs\?v=0\.1\.44/, "the manual must load the compact, variant, color and chance lessons without stale module caches");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /eli10Block\.color\s*=/, "the first manual block must keep the standard regular black shell");
 for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
@@ -282,7 +282,7 @@ for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
   assert.ok(JSON.stringify(docsContent.manual).includes(`../examples/${example}/`), `the manual content misses the ${example} route`);
 }
 assert.match(siteDemos["docs/manual.mjs"], /function createTextElement[\s\S]*element\.textContent\s*=\s*text/, "dynamic manual text must still use textContent without turning the content card into an explanation");
-assert.match(siteDemos["docs/manual.mjs"], /function createEli10Content[\s\S]*createTextElement\("strong", statement\)[\s\S]*function createEli10StepsContent[\s\S]*steps\.length !== 3[\s\S]*createTextElement\("li", step\)/, "ELI10 must split its plain statement and three visible learner steps into separate content objects");
+assert.match(siteDemos["docs/manual.mjs"], /function createEli10Content\(\{ body \}\)[\s\S]*createTextElement\("p", `ELI10: \$\{body\}`\)[\s\S]*function createEli10StepsContent[\s\S]*steps\.length !== 3[\s\S]*createTextElement\("li", step\)/, "ELI10 must remain one plain explanation beside its three visible learner steps");
 assert.match(siteDemos["docs/manual.mjs"], /variant:\s*"regular"[\s\S]*snap:\s*true[\s\S]*menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the manual must expose both block actions while staying monochrome");
 for (const [minimize, close] of [[true, true], [true, false], [false, true], [false, false]]) {
   assert.match(siteDemos["docs/manual.mjs"], new RegExp(`menu:\\s*\\{\\s*minimize:\\s*${minimize},\\s*close:\\s*${close}\\s*\\}`), `the manual must render menu actions with minimize ${minimize} and close ${close}`);
@@ -352,7 +352,7 @@ assert.match(addLessonCode, /const trustedHtml[\s\S]*document\.createElement\("i
 assert.doesNotMatch(addLessonCode, /blocks\.add\(content\b/, "the beginner snippet must not depend on an undefined content variable");
 await access(resolve(root, "docs", "img", "pexels-peter-dyllong-2158803154-37352130.jpg"));
 assert.match(siteCss, /\.manual-content-image-demo img\s*\{[^}]*object-fit:\s*cover;/s, "the object example must present the supplied image as full-bleed content");
-assert.match(siteCss, /\.manual-eli10\s*\{[^}]*display:\s*grid;[^}]*grid-template-rows:\s*1fr auto;[^}]*padding:\s*clamp\(/s, "the ELI10 statement block must retain a readable inset and vertical hierarchy");
+assert.match(siteCss, /\.manual-eli10\s*\{[^}]*padding:\s*clamp\(/s, "the ELI10 paragraph must retain a readable inset");
 assert.match(siteCss, /\.manual-eli10-steps\s*\{[^}]*display:\s*grid;[^}]*place-items:\s*center;[^}]*padding:\s*clamp\(/s, "the separate ELI10 steps block must keep its list centered and readable");
 assert.match(siteCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
 assert.doesNotMatch(siteCss, /\.manual-chapter-start\s*\{\s*margin-top:\s*18px;/s, "desktop chapter spacing must come from an open grid row, not an inset margin");
@@ -428,7 +428,6 @@ assert.deepEqual(Object.keys(docsContent.manual), [
 ], "manual content must own the complete beginner sequence in reading order");
 assert.deepEqual(docsContent.manual["manual-eli10"], {
   title: "00 / ELI10",
-  statement: "Container. Blocks. One block.",
   body: "A container is an empty div. blocks is the system connected to that div. A block is one individual box inside it."
 }, "ELI10 must define container, blocks and one block in its primary block");
 assert.deepEqual(docsContent.manual["manual-eli10-steps"], {
@@ -473,7 +472,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.23", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.24", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

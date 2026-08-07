@@ -99,13 +99,10 @@ function createLessonContent({ eyebrow, statement, body, code }) {
   return root;
 }
 
-function createEli10Content({ statement, body }) {
+function createEli10Content({ body }) {
   const root = document.createElement("article");
   root.className = "manual-eli10";
-  root.append(
-    createTextElement("strong", statement),
-    createTextElement("p", body)
-  );
+  root.append(createTextElement("p", `ELI10: ${body}`));
   return root;
 }
 
