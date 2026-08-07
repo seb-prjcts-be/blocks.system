@@ -513,6 +513,7 @@ addBlock({
 
 addBlock({
   id: "manual-random-combined",
+  title: content["manual-random-combined"].title,
   content: createCodeContent(content["manual-random-combined"]),
   span: [6, 2],
   place: [1, 50],

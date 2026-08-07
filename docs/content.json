@@ -265,7 +265,7 @@
       "statement": "your content"
     },
     "manual-random-combined": {
-      "title": "combine / 0.5 + 0.5",
+      "title": "color + inverse / 0.5 + 0.5",
       "intro": "Combine both chances only after reading them separately. In this fixed four-call demonstration, two cells use color, one is regular and one is inverse. Real calls remain random.",
       "code": [
         "blocks.colorVariation = 0.5;",

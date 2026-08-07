@@ -696,6 +696,9 @@ async function measureManual(width, height, dpr = 1) {
       return {
         blockCount: objects.length,
         ids: objects.map(function (block) { return block.dataset.blockObject; }),
+        menuTitles: Object.fromEntries(objects.map(function (block) {
+          return [block.dataset.blockObject, block.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent];
+        })),
         untitledIds: objects.filter(function (block) {
           return block.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent === "";
         }).map(function (block) { return block.dataset.blockObject; }),
@@ -1295,9 +1298,9 @@ try {
       "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none", "manual-menu-title",
       "manual-layout-wide", "manual-layout-small",
       "manual-appearance-regular", "manual-appearance-inverse",
-      "manual-color-cyan", "manual-color-magenta", "manual-color-yellow",
-      "manual-random-combined"
+      "manual-color-cyan", "manual-color-magenta", "manual-color-yellow"
     ], `manual laat dubbele menuteksten niet weg op ${width}px @${dpr}x`);
+    assert.equal(manual.menuTitles["manual-random-combined"], "color + inverse / 0.5 + 0.5", `het gecombineerde kansblock benoemt beide kansen niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.variants, [
       "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "regular", "inverse",
       "regular", "regular", "regular", "regular", "regular", "regular", "color", "color", "regular", "inverse", "inverse", "regular", "color", "color", "inverse", "regular", "regular"
