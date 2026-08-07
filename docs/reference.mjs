@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.12";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.13";
 import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.31";
 
 const board = document.querySelector("#reference-board");
@@ -10,6 +10,7 @@ const blocks = createBlocksSystem({
     menu: { minimize: true, close: true }
   }
 });
+blocks.margin = 24;
 
 const referenceBlocks = [
   { id: "reference-exports", anchor: "exports", span: [6, 2], place: [1, 1] },

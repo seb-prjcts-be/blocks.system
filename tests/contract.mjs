@@ -179,7 +179,10 @@ configured.margin = "clamp(8px, 2vw, 24px)";
 assert.equal(configured.margin, "clamp(8px, 2vw, 24px)", "margin must remain writable with responsive CSS lengths");
 assert.equal(configuredField.style.getPropertyValue("--blocks-margin"), "clamp(8px, 2vw, 24px)", "runtime margin changes must update the field");
 assert.throws(function () { configured.margin = ""; }, /margin/, "empty margin values must fail early");
-assert.throws(function () { createBlocksSystem({ margin: 12 }); }, /margin/, "margin must require explicit CSS units");
+configured.margin = 12;
+assert.equal(configured.margin, "12px", "a numeric margin must normalize to pixels");
+assert.equal(configuredField.style.getPropertyValue("--blocks-margin"), "12px", "a numeric runtime margin must update the field in pixels");
+assert.throws(function () { createBlocksSystem({ margin: -1 }); }, /margin/, "a negative numeric margin must fail early");
 const defaultMenuBlock = configured.add("<p>default menu</p>", {
   id: "default-menu",
   title: "default menu"

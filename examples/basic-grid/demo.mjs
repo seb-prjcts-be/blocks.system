@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.12";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.13";
 
 const variationSamples = [0.4, 0.9, 0.1, 0.5];
 let variationIndex = 0;
@@ -10,6 +10,7 @@ const blocks = createBlocksSystem({
   snap: true,
   blockDefaults: { menu: { minimize: true, close: true } }
 });
+blocks.margin = 24;
 
 blocks.attach("#field");
 blocks.setGrid(2, 2);

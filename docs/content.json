@@ -144,7 +144,7 @@
       "code": [
         "blocks.snap = true;",
         "blocks.draggable = true;",
-        "blocks.margin = \"24px\";",
+        "blocks.margin = 24;",
         "",
         "block.span(4, 2);",
         "block.place(1, 1);"
@@ -339,7 +339,7 @@
         { "cells": ["rows", "readonly number", "Current number of grid rows; starts at 1 and may also grow after dragging."] },
         { "cells": ["snap", "boolean", "Readable and writable. Set snap true before relying on place(), span() or compact() for visual grid layout; snap false keeps blocks in flow layout."] },
         { "cells": ["draggable", "boolean", "Readable and writable."] },
-        { "cells": ["margin", "string", "Readable and writable CSS padding shorthand for empty space around the grid."] },
+        { "cells": ["margin", "string | number", "Readable and writable CSS padding shorthand for empty space around the grid; a number is pixels."] },
         { "cells": ["font", "object | null", "Readable and writable."] },
         { "cells": ["variant", "string", "Readable and writable; built-in variants are regular and inverse, plus random selection."] },
         { "cells": ["variants", "readonly string[]", "The built-in list: regular and inverse."] },

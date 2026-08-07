@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.12";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.13";
 import { loadDocsContent } from "./shell.mjs?v=0.1.31";
 
 const board = document.querySelector("#home-board");
@@ -9,6 +9,7 @@ const blocks = createBlocksSystem({
     menu: { minimize: true, close: true }
   }
 });
+blocks.margin = 24;
 const homeIds = ["home-title", "home-photo", "home-intro"];
 const content = await loadDocsContent("home", homeIds);
 

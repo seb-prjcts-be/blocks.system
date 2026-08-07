@@ -49,7 +49,7 @@ async function measureHome(width, height, dpr = 1) {
     return {
       blockCount: objects.length,
       columnCount: fieldStyle.gridTemplateColumns.split(" ").length,
-      gridWidth: field.clientWidth,
+      gridWidth: field.clientWidth - parseFloat(fieldStyle.paddingLeft) - parseFloat(fieldStyle.paddingRight),
       columnGap: parseFloat(fieldStyle.columnGap),
       horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       backgroundImage: getComputedStyle(field).backgroundImage,
@@ -408,7 +408,7 @@ async function measureMarginLayout() {
             left: firstRect.left - fieldRect.left
           }
         };
-        blocks.margin = "20px";
+        blocks.margin = 20;
         await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
         const updatedStyle = getComputedStyle(field);
         return {
@@ -999,7 +999,8 @@ async function measureReference(width, height, dpr = 1) {
         localOverflowModes: Array.from(board.querySelectorAll(".reference-code"))
           .map(function (node) { return getComputedStyle(node).overflow; }),
         fullWidthDifferences: objects.map(function (block) {
-          return Math.abs(block.getBoundingClientRect().width - boardRect.width);
+          const style = getComputedStyle(board);
+          return Math.abs(block.getBoundingClientRect().width - (boardRect.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)));
         }),
         table: {
           fontSize: getComputedStyle(firstTable).fontSize,

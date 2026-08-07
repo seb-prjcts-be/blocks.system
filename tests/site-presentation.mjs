@@ -273,7 +273,7 @@ assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
 assert.match(siteDemos["docs/manual.mjs"], /id:\s*"manual-eli10"[\s\S]*?span:\s*\[4,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?id:\s*"manual-eli10-steps"[\s\S]*?span:\s*\[2,\s*2\][\s\S]*?place:\s*\[5,\s*1\][\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\]/, "ELI10 must use adjacent 4x2 and 2x2 blocks, leave row 3 open and start part 1 on row 4");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.setGrid\(6,\s*55\)[\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\][\s\S]*?id:\s*"manual-finish"[\s\S]*?place:\s*\[1,\s*8\][\s\S]*?id:\s*"manual-content-html"[\s\S]*?place:\s*\[1,\s*11\][\s\S]*?id:\s*"manual-content-object"[\s\S]*?place:\s*\[3,\s*11\][\s\S]*?id:\s*"manual-content-factory"[\s\S]*?place:\s*\[5,\s*11\]/, "manual 02 must follow one open grid row and sit above the three content examples");
-assert.match(manualHtml, /shell\.mjs\?v=0\.1\.31[\s\S]*manual\.mjs\?v=0\.1\.45/, "the manual must load the compact, variant, color and chance lessons without stale module caches");
+assert.match(manualHtml, /shell\.mjs\?v=0\.1\.31[\s\S]*manual\.mjs\?v=0\.1\.46/, "the manual must load the compact, variant, color and chance lessons without stale module caches");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /eli10Block\.color\s*=/, "the first manual block must keep the standard regular black shell");
 for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
@@ -499,8 +499,11 @@ for (const hook of [".blocks-system-surface", ".blocks-system-object", ".blocks-
 assert.match(siteCss, /\.docs-board\s*\{[^}]*background:\s*var\(--docs-field\);[^}]*background-image:[^}]*linear-gradient\(to right,[^}]*linear-gradient\(to bottom,[^}]*background-position:[^}]*background-size:/s, "the reference must use the shared temporarily visible editorial grid");
 assert.doesNotMatch(libraryCss, /\.reference-/, "the reusable library stylesheet must not absorb reference composition");
 
-const canonicalDemos = ["docs/home.mjs", "docs/manual.mjs", "docs/reference.mjs"]
-  .map((file) => siteDemos[file]).join("\n");
+const canonicalDemoFiles = ["docs/home.mjs", "docs/manual.mjs", "docs/reference.mjs"];
+for (const demo of [...canonicalDemoFiles, "examples/basic-grid/demo.mjs", "examples/mixed-content/demo.mjs", "examples/custom-adapter/demo.mjs"]) {
+  assert.match(siteDemos[demo], /const blocks\s*=\s*createBlocksSystem\([\s\S]*?\);\s*blocks\.margin\s*=\s*24/, `${demo} must demonstrate one uniform grid margin through the public system property`);
+}
+const canonicalDemos = canonicalDemoFiles.map((file) => siteDemos[file]).join("\n");
 assert.doesNotMatch(canonicalDemos, pureBlockColor, "canonical docs must not assign RGB/CMY block colors to rendered content");
 
 console.log(`blocks.system site presentation — ok (${pages.length} pages, ${exampleDirectories.length} examples)`);

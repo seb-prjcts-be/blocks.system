@@ -25,6 +25,7 @@ const block: BlockController = blocks
 const columns: number = blocks.columns;
 const rows: number = blocks.rows;
 blocks.margin = "clamp(8px, 2vw, 24px)";
+blocks.margin = 24;
 const margin: string = blocks.margin;
 const minified: BlocksSystem = createMinBlocksSystem({ variant: "regular" });
 const shared: BlocksSystem = system;

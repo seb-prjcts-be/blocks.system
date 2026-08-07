@@ -1,4 +1,4 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.12";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.13";
 import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.31";
 
 const board = document.querySelector("#manual-board");
@@ -8,12 +8,12 @@ let manualVariationIndex = 0;
 const blocks = createBlocksSystem({
   variant: "regular",
   snap: true,
-  margin: "24px",
   random: () => manualVariationSamples[manualVariationIndex++ % manualVariationSamples.length],
   blockDefaults: {
     menu: { minimize: true, close: true }
   }
 });
+blocks.margin = 24;
 
 const manualIds = [
   "manual-eli10",

@@ -112,7 +112,7 @@ for (const declaration of ["BlocksSystem", "BlockController", "BlocksReorderDeta
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);
 }
 assert.match(declarations, /readonly columns:\s*number;[\s\S]*readonly rows:\s*number;/, "grid dimensions must stay read-only in TypeScript");
-assert.match(declarations, /margin\?:\s*string;[\s\S]*margin:\s*string;/, "margin must be configurable and writable in TypeScript");
+assert.match(declarations, /margin\?:\s*string\s*\|\s*number;[\s\S]*get margin\(\):\s*string;[\s\S]*set margin\(value:\s*string\s*\|\s*number\);/, "margin must accept numeric pixels and expose its resolved CSS value in TypeScript");
 
 const aliasTargets = {
   "manual.html": "start",

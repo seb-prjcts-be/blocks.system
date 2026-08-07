@@ -295,6 +295,8 @@ footer a { color: var(--ink); }
 }
 
 @media (max-height: 500px) and (min-width: 561px) {
+  .home-board { --blocks-margin: 12px !important; }
+
   .home-intro {
     padding-block: 4px 12px;
   }
@@ -305,6 +307,8 @@ footer a { color: var(--ink); }
 }
 
 @media (max-width: 560px) {
+  .home-board { --blocks-margin: 12px !important; }
+
   .home-board > [data-block-object="home-intro"] {
     --block-span-rows: 2 !important;
   }

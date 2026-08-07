@@ -194,15 +194,21 @@ function normalizeVariation(value, property, fallback) {
 
 function normalizeMargin(value) {
     const margin = value === undefined ? DEFAULT_MARGIN : value;
+    if (typeof margin === "number") {
+        if (!Number.isFinite(margin) || margin < 0) {
+            throw new TypeError("blocks.system.margin verwacht een niet-negatief aantal pixels of een geldige CSS padding-shorthand.");
+        }
+        return `${margin}px`;
+    }
     if (typeof margin !== "string" || !margin.trim()) {
-        throw new TypeError("blocks.system.margin verwacht een geldige CSS padding-shorthand als string.");
+        throw new TypeError("blocks.system.margin verwacht een aantal pixels of een geldige CSS padding-shorthand.");
     }
     const normalized = margin.trim();
     if (typeof document !== "undefined" && document.createElement) {
         const probe = document.createElement("div");
         probe.style.setProperty("padding", normalized);
         if (!probe.style.getPropertyValue("padding")) {
-            throw new TypeError("blocks.system.margin verwacht een geldige CSS padding-shorthand als string.");
+            throw new TypeError("blocks.system.margin verwacht een aantal pixels of een geldige CSS padding-shorthand.");
         }
     }
     return normalized;
