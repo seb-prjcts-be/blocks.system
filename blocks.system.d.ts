@@ -50,6 +50,7 @@ export interface RegisterOptions {
 
 export interface AddBlockOptions {
   id?: string;
+  /** Optional visible menu title. When omitted, id remains an accessible fallback but is not rendered. */
   title?: string;
   menu?: boolean | BlockMenuOptions;
   variant?: string;

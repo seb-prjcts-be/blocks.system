@@ -133,6 +133,12 @@
       "statement": "Both off.",
       "body": "minimize: false · close: false"
     },
+    "manual-menu-title": {
+      "title": "title / optional",
+      "eyebrow": "block identity",
+      "statement": "A title is not an id.",
+      "body": "id identifies the block. Add title only when you want visible text in its menu bar; without it, the id stays available to the controls but is not shown."
+    },
     "manual-layout": {
       "title": "04 / layout and movement",
       "intro": "Set size first, then position. Columns come before rows and coordinates start at 1. Read the current grid size through blocks.columns and blocks.rows. margin reserves empty space inside the field border. With snap and draggable on, drag the titlebar or focus it and use the arrow keys.",
@@ -385,10 +391,11 @@
     },
     "reference-add-options": {
       "title": "06 / add and menu options",
+      "intro": "id identifies a block. title is only optional visible text in its menu bar.",
       "headers": ["option", "type", "purpose"],
       "rows": [
         { "cells": ["id", "string", "Stable id; generated when omitted."] },
-        { "cells": ["title", "string", "Title shown when a menu exists."] },
+        { "cells": ["title", "string", "Optional visible menu text. When omitted, no id is shown; id remains the accessible fallback for menu actions."] },
         { "cells": ["menu", "boolean | object", "Enable, disable or configure a menu for this block."] },
         { "cells": ["variant", "string", "Override the system appearance for this block."] },
         { "cells": ["minimized", "boolean", "Initial minimized state."] },

@@ -1203,7 +1203,7 @@ export function createBlocksSystem(options = {}) {
             "blocks.system.add() options.menu"
         );
         const block = createBlockController(id, content, addOptions);
-        if (automaticMenu) block.menu(addOptions.title ?? id, automaticMenu);
+        if (automaticMenu) block.menu(addOptions.title ?? "", automaticMenu);
         return block;
     }
 

@@ -122,9 +122,10 @@ be overridden with `createBlocksSystem({ labels: { move, minimize, restore,
 close } })`. A locked layout removes menu headers from the keyboard tab order;
 their minimize and close buttons remain available.
 
-`blockDefaults.menu` applies the same menu controls to every new block. Give
-each block its own `title`; use `menu: false` or a local `menu` object in
-`add()` for an exception.
+`blockDefaults.menu` applies the same menu controls to every new block. `title`
+is optional: when omitted, the menu has no visible title while the block `id`
+remains the accessible fallback name for its controls. Use `menu: false` to
+remove the whole menu, or a local `menu` object for an exception.
 
 `margin` reserves empty space inside the field border and around the grid. It
 uses CSS padding shorthand, so one value applies everywhere and four values run

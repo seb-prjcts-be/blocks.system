@@ -125,9 +125,11 @@ overschrijfbaar via `createBlocksSystem({ labels: { move, minimize, restore,
 close } })`. Bij een vergrendelde layout verdwijnen menuheaders uit de
 toetsenbordvolgorde; hun minimaliseer- en sluitknoppen blijven bereikbaar.
 
-`blockDefaults.menu` geeft ieder nieuw block dezelfde menuknoppen. Geef ieder
-block zijn eigen `title`; gebruik `menu: false` of een lokaal `menu`-object in
-`add()` voor een uitzondering.
+`blockDefaults.menu` geeft ieder nieuw block dezelfde menuknoppen. `title` is
+optioneel: zonder titel heeft het menu geen zichtbare titel, terwijl het block-
+`id` de toegankelijke fallbacknaam voor de knoppen blijft. Gebruik `menu: false`
+om de volledige balk weg te laten, of een lokaal `menu`-object voor een
+uitzondering.
 
 `margin` reserveert lege ruimte binnen de veldrand en rond het grid. De waarde
 volgt de CSS padding-shorthand: één waarde geldt overal; vier waarden lopen

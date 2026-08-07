@@ -27,6 +27,7 @@ const manualIds = [
   "manual-menu-minimize",
   "manual-menu-close",
   "manual-menu-none",
+  "manual-menu-title",
   "manual-layout",
   "manual-layout-wide",
   "manual-layout-small",
@@ -55,7 +56,7 @@ const manualIds = [
 const content = await loadDocsContent("manual", manualIds);
 
 blocks.attach(board);
-blocks.setGrid(6, 53);
+blocks.setGrid(6, 55);
 quantizeSurface(board);
 
 function createTextElement(name, text, className = "") {
@@ -327,11 +328,20 @@ addBlock({
 });
 
 addBlock({
+  id: "manual-menu-title",
+  title: content["manual-menu-title"].title,
+  content: createLessonContent(content["manual-menu-title"]),
+  span: [6, 2],
+  place: [1, 21],
+  classes: ["manual-full"]
+});
+
+addBlock({
   id: "manual-layout",
   title: content["manual-layout"].title,
   content: createCodeContent(content["manual-layout"]),
   span: [6, 3],
-  place: [1, 22],
+  place: [1, 24],
   anchor: "layout",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -341,7 +351,7 @@ addBlock({
   title: content["manual-layout-wide"].title,
   content: createLessonContent(content["manual-layout-wide"]),
   span: [4, 2],
-  place: [1, 25],
+  place: [1, 27],
   classes: ["manual-two-thirds"]
 });
 
@@ -350,7 +360,7 @@ addBlock({
   title: content["manual-layout-small"].title,
   content: createLessonContent(content["manual-layout-small"]),
   span: [2, 2],
-  place: [5, 25],
+  place: [5, 27],
   classes: ["manual-third"]
 });
 
@@ -359,7 +369,7 @@ addBlock({
   title: content["manual-compact"].title,
   content: createCodeContent(content["manual-compact"]),
   span: [6, 3],
-  place: [1, 28],
+  place: [1, 30],
   anchor: "compact",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -369,7 +379,7 @@ addBlock({
   title: content["manual-appearance"].title,
   content: createCodeContent(content["manual-appearance"]),
   span: [6, 3],
-  place: [1, 32],
+  place: [1, 34],
   variant: "regular",
   anchor: "appearance",
   classes: ["manual-code-block", "manual-chapter-start"]
@@ -380,7 +390,7 @@ addBlock({
   title: content["manual-appearance-regular"].title,
   content: createLessonContent(content["manual-appearance-regular"]),
   span: [3, 2],
-  place: [1, 35],
+  place: [1, 37],
   variant: "regular",
   classes: ["manual-half"]
 });
@@ -390,7 +400,7 @@ addBlock({
   title: content["manual-appearance-inverse"].title,
   content: createLessonContent(content["manual-appearance-inverse"]),
   span: [3, 2],
-  place: [4, 35],
+  place: [4, 37],
   variant: "inverse",
   classes: ["manual-half"]
 });
@@ -400,7 +410,7 @@ addBlock({
   title: content["manual-colors"].title,
   content: createCodeContent(content["manual-colors"]),
   span: [6, 3],
-  place: [1, 38],
+  place: [1, 40],
   variant: "regular",
   anchor: "colors",
   classes: ["manual-code-block", "manual-chapter-start"]
@@ -411,7 +421,7 @@ const colorCyanBlock = addBlock({
   title: content["manual-color-cyan"].title,
   content: createLessonContent(content["manual-color-cyan"]),
   span: [2, 2],
-  place: [1, 41],
+  place: [1, 43],
   variant: "regular",
   classes: ["manual-third"]
 });
@@ -422,7 +432,7 @@ const colorMagentaBlock = addBlock({
   title: content["manual-color-magenta"].title,
   content: createLessonContent(content["manual-color-magenta"]),
   span: [2, 2],
-  place: [3, 41],
+  place: [3, 43],
   variant: "regular",
   classes: ["manual-third"]
 });
@@ -433,7 +443,7 @@ const colorYellowBlock = addBlock({
   title: content["manual-color-yellow"].title,
   content: createLessonContent(content["manual-color-yellow"]),
   span: [2, 2],
-  place: [5, 41],
+  place: [5, 43],
   variant: "regular",
   classes: ["manual-third"]
 });
@@ -444,7 +454,7 @@ addBlock({
   title: content["manual-random"].title,
   content: createCodeContent(content["manual-random"]),
   span: [6, 3],
-  place: [1, 44],
+  place: [1, 46],
   variant: "regular",
   anchor: "chance",
   classes: ["manual-code-block", "manual-chapter-start"]
@@ -460,7 +470,7 @@ addBlock({
   title: content["manual-random-color-0"].title,
   content: createChanceContent(content["manual-random-color-0"]),
   span: [1, 1],
-  place: [1, 47],
+  place: [1, 49],
   classes: ["manual-sixth"]
 });
 
@@ -470,7 +480,7 @@ addBlock({
   title: content["manual-random-color-50"].title,
   content: createChanceContent(content["manual-random-color-50"]),
   span: [1, 1],
-  place: [2, 47],
+  place: [2, 49],
   classes: ["manual-sixth"]
 });
 
@@ -480,7 +490,7 @@ addBlock({
   title: content["manual-random-color-100"].title,
   content: createChanceContent(content["manual-random-color-100"]),
   span: [1, 1],
-  place: [3, 47],
+  place: [3, 49],
   classes: ["manual-sixth"]
 });
 
@@ -491,7 +501,7 @@ addBlock({
   title: content["manual-random-inverse-0"].title,
   content: createChanceContent(content["manual-random-inverse-0"]),
   span: [1, 1],
-  place: [4, 47],
+  place: [4, 49],
   classes: ["manual-sixth"]
 });
 
@@ -501,7 +511,7 @@ addBlock({
   title: content["manual-random-inverse-50"].title,
   content: createChanceContent(content["manual-random-inverse-50"]),
   span: [1, 1],
-  place: [5, 47],
+  place: [5, 49],
   classes: ["manual-sixth"]
 });
 
@@ -511,7 +521,7 @@ addBlock({
   title: content["manual-random-inverse-100"].title,
   content: createChanceContent(content["manual-random-inverse-100"]),
   span: [1, 1],
-  place: [6, 47],
+  place: [6, 49],
   classes: ["manual-sixth"]
 });
 
@@ -520,7 +530,7 @@ addBlock({
   title: content["manual-random-combined"].title,
   content: createCodeContent(content["manual-random-combined"]),
   span: [6, 2],
-  place: [1, 48],
+  place: [1, 50],
   variant: "regular",
   classes: ["manual-code-block"]
 });
@@ -535,7 +545,7 @@ for (const [index, column] of [1, 2, 3, 4].entries()) {
     title: content[id].title,
     content: createChanceContent(content[id]),
     span: [1, 1],
-    place: [column, 50],
+    place: [column, 52],
     classes: ["manual-sixth"]
   });
 }
@@ -545,7 +555,7 @@ addBlock({
   title: content["manual-next"].title,
   content: createNextContent(content["manual-next"]),
   span: [6, 2],
-  place: [1, 52],
+  place: [1, 54],
   variant: "regular",
   anchor: "next",
   classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"]

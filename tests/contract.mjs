@@ -188,6 +188,19 @@ assert.equal(defaultMenuBlock.element.children[0].children[0].textContent, "defa
 assert.equal(defaultMenuBlock.element.children[0].children[1].children.length, 2, "blockDefaults.menu must apply shared minimize and close controls");
 assert.equal(defaultMenuBlock.element.children[0].children[0].tabIndex, -1, "an initially locked system must keep automatic menu handles outside the tab order");
 assert.equal(defaultMenuBlock.element.children[0].getAttribute("role"), null, "a menu containing action buttons must remain a structural header");
+const untitledMenuBlock = configured.add("<p>untitled menu</p>", {
+  id: "untitled-menu"
+});
+assert.equal(
+  untitledMenuBlock.element.children[0].children[0].textContent,
+  "",
+  "an omitted title must not turn the block id into visible menu text"
+);
+assert.match(
+  untitledMenuBlock.element.children[0].children[1].children[1].getAttribute("aria-label"),
+  /untitled-menu.*close/,
+  "an untitled menu must retain the id as its accessible action name"
+);
 const overriddenMenuBlock = configured.add("<p>overridden menu</p>", {
   id: "overridden-menu",
   title: "overridden menu",
