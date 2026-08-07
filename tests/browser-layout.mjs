@@ -49,7 +49,7 @@ async function measureHome(width, height, dpr = 1) {
     return {
       blockCount: objects.length,
       columnCount: fieldStyle.gridTemplateColumns.split(" ").length,
-      gridMargin: field.style.getPropertyValue("--blocks-margin"),
+      gridMargin: field.style.getPropertyValue("--blocks-grid-inset"),
       effectiveGridMargin: fieldStyle.paddingLeft,
       gridBackgroundOrigin: fieldStyle.backgroundOrigin,
       gridBackgroundClip: fieldStyle.backgroundClip,
@@ -384,13 +384,13 @@ async function measureMarginLayout() {
     expression: `(async function () {
       const { createBlocksSystem } = await import("./blocks.system.mjs?margin-proof");
       const field = document.createElement("div");
-      field.style.cssText = "position:fixed;left:0;top:0;width:400px;height:300px";
+      field.style.cssText = "position:fixed;left:0;top:0;width:400px;height:300px;margin:17px";
       document.body.append(field);
       try {
         const blocks = createBlocksSystem({
           snap: true,
           draggable: false,
-          margin: "12px 24px 36px 48px",
+          margin: 12,
           variant: "regular"
         });
         blocks.attach(field).setGrid(2, 2);
@@ -403,7 +403,8 @@ async function measureMarginLayout() {
         const style = getComputedStyle(field);
         const before = {
           value: blocks.margin,
-          customProperty: field.style.getPropertyValue("--blocks-margin"),
+          customProperty: field.style.getPropertyValue("--blocks-grid-inset"),
+          cssMargin: field.style.margin,
           padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
           edges: {
             top: firstRect.top - fieldRect.top,
@@ -419,7 +420,8 @@ async function measureMarginLayout() {
           before,
           after: {
             value: blocks.margin,
-            customProperty: field.style.getPropertyValue("--blocks-margin"),
+            customProperty: field.style.getPropertyValue("--blocks-grid-inset"),
+            cssMargin: field.style.margin,
             padding: [updatedStyle.paddingTop, updatedStyle.paddingRight, updatedStyle.paddingBottom, updatedStyle.paddingLeft]
           }
         };
@@ -715,7 +717,7 @@ async function measureManual(width, height, dpr = 1) {
         pageScrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight,
         boardOverflowY: getComputedStyle(board).overflowY,
         boardBackgroundImage: getComputedStyle(board).backgroundImage,
-        gridMargin: board.style.getPropertyValue("--blocks-margin"),
+        gridMargin: board.style.getPropertyValue("--blocks-grid-inset"),
         marginGuideInset: getComputedStyle(board, "::before").inset,
         quantized: board.dataset.quantized,
         trackWidth: Number(board.dataset.trackWidth),
@@ -1104,7 +1106,7 @@ try {
       assert.equal(home.blockCount, 3, `home toont ${home.blockCount} in plaats van drie directe blocks op ${width}px @${dpr}x`);
       assert.equal(home.columnCount, homeColumns, `home gebruikt ${home.columnCount} in plaats van ${homeColumns} kolommen op ${width}px @${dpr}x`);
       assert.equal(home.devicePixelRatio, dpr, `home test niet werkelijk op DPR ${dpr}`);
-      assert.equal(home.gridMargin, "24px", `home zet de publieke gridmargin niet op 24px op ${width}px @${dpr}x`);
+      assert.equal(home.gridMargin, "24px", `home zet de publieke grid-inset niet op 24px op ${width}px @${dpr}x`);
       assert.equal(home.effectiveGridMargin, "24px", `home-CSS overschrijft blocks.margin op ${width}px @${dpr}x`);
       assert.equal(home.gridBackgroundOrigin, "content-box, content-box", `home tekent het achtergrondgrid niet binnen blocks.margin op ${width}px @${dpr}x`);
       assert.equal(home.gridBackgroundClip, "content-box, content-box", `home toont het achtergrondgrid nog in de margin op ${width}px @${dpr}x`);
@@ -1148,7 +1150,7 @@ try {
   }
 
   const shortHome = await measureHome(826, 395);
-  assert.equal(shortHome.gridMargin, "24px", "home zet de publieke gridmargin niet op 24px op de lage probleemmaat");
+  assert.equal(shortHome.gridMargin, "24px", "home zet de publieke grid-inset niet op 24px op de lage probleemmaat");
   assert.equal(shortHome.effectiveGridMargin, "24px", "home-CSS overschrijft blocks.margin op de lage probleemmaat");
   assert.equal(shortHome.clippedContent.includes("home-intro"), false, "object / start mag op de aangeleverde lage probleemmaat geen inhoud afsnijden");
   assert.equal(shortHome.intro.objectWhiteSpace, "nowrap", "object. moet op de aangeleverde lage probleemmaat één woord blijven");
@@ -1224,12 +1226,14 @@ try {
   }, "een drag zonder pointer capture moet op een pointerup buiten het veld stoppen");
 
   const marginLayout = await measureMarginLayout();
-  assert.equal(marginLayout.before.value, "12px 24px 36px 48px", "margin bewaart niet de vier opgegeven randwaarden");
-  assert.equal(marginLayout.before.customProperty, "12px 24px 36px 48px", "margin bereikt de surface niet via de librarytoken");
-  assert.deepEqual(marginLayout.before.padding, ["12px", "24px", "36px", "48px"], "margin maakt niet langs alle vier randen de gevraagde leegte");
-  assert.deepEqual(marginLayout.before.edges, { top: 13, right: 25, bottom: 37, left: 49 }, "margin ligt niet binnen de veldrand en rond het volledige grid");
-  assert.equal(marginLayout.after.value, "20px", "margin blijft niet leesbaar na een runtimewijziging");
+  assert.equal(marginLayout.before.value, 12, "margin bewaart niet de opgegeven librarywaarde");
+  assert.equal(marginLayout.before.customProperty, "12px", "margin bereikt de surface niet via de private librarytoken");
+  assert.equal(marginLayout.before.cssMargin, "17px", "de library mag gewone CSS margin niet aanpassen");
+  assert.deepEqual(marginLayout.before.padding, ["12px", "12px", "12px", "12px"], "margin maakt niet langs alle vier randen dezelfde library-inset");
+  assert.deepEqual(marginLayout.before.edges, { top: 13, right: 13, bottom: 13, left: 13 }, "margin ligt niet binnen de veldrand en rond het volledige grid");
+  assert.equal(marginLayout.after.value, 20, "margin blijft niet leesbaar na een runtimewijziging");
   assert.equal(marginLayout.after.customProperty, "20px", "een runtimewijziging bereikt de surface niet");
+  assert.equal(marginLayout.after.cssMargin, "17px", "een runtimewijziging mag gewone CSS margin niet aanpassen");
   assert.deepEqual(marginLayout.after.padding, ["20px", "20px", "20px", "20px"], "één marginwaarde past niet alle vier randen aan");
 
   await measureHome(1280, 900);
@@ -1339,8 +1343,8 @@ try {
     assert.equal(manual.lockedHandleState.shortcuts, "ArrowLeft ArrowUp ArrowRight ArrowDown", `manual publiceert de ondersteunde dragtoetsen niet op ${width}px`);
     assert.equal(manual.menuActionCount, 70, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
-    assert.equal(manual.gridMargin, "24px", `manual demonstreert geen enkele marginwaarde rond het grid op ${width}px`);
-    assert.equal(manual.marginGuideInset, "24px", `manual tekent de margin niet binnen het veld op ${width}px`);
+    assert.equal(manual.gridMargin, "24px", `manual demonstreert geen enkele grid-insetwaarde rond het grid op ${width}px`);
+    assert.equal(manual.marginGuideInset, "24px", `manual tekent de grid-inset niet binnen het veld op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);

@@ -131,12 +131,12 @@ optioneel: zonder titel heeft het menu geen zichtbare titel, terwijl het block-
 om de volledige balk weg te laten, of een lokaal `menu`-object voor een
 uitzondering.
 
-`margin` reserveert lege ruimte binnen de veldrand en rond het grid. De waarde
-volgt de CSS padding-shorthand: één waarde geldt overal; vier waarden lopen
-langs boven, rechts, onder en links. CSS-lengtes blijven responsief:
+`margin` is een library-inset in gehele pixels: één waarde geldt gelijk op alle
+vier zijden binnen het veld. Het verandert geen gewone CSS-`margin` op het veld
+of de inhoud:
 
 ```js
-blocks.margin = "clamp(12px, 2vw, 32px) 3vw";
+blocks.margin = 24;
 ```
 
 Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen

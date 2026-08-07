@@ -110,8 +110,8 @@ export interface BlocksSystemOptions {
   random?: () => number;
   snap?: boolean;
   draggable?: boolean;
-  /** Empty space inside the field border, using CSS padding shorthand order. */
-  margin?: string | number;
+  /** Library grid inset in whole pixels. It does not set CSS margin. */
+  margin?: number;
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
   variant?: string;
@@ -129,10 +129,8 @@ export interface BlocksSystem {
   readonly rows: number;
   snap: boolean;
   draggable: boolean;
-  /** Resolved CSS padding shorthand for empty space inside the field border. */
-  get margin(): string;
-  /** A number is pixels; a string uses CSS padding shorthand order. */
-  set margin(value: string | number);
+  /** Library grid inset in whole pixels. It does not set CSS margin. */
+  margin: number;
   font: Readonly<BlocksFont> | null;
   variant: string;
   readonly variants: readonly string[];

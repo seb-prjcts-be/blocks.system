@@ -409,7 +409,7 @@ footer a { color: var(--ink); }
 .manual-board::before {
   content: "";
   position: absolute;
-  inset: var(--blocks-margin);
+  inset: var(--blocks-grid-inset);
   z-index: 0;
   border: 1px dashed rgb(17 17 17 / 52%);
   pointer-events: none;

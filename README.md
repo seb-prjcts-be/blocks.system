@@ -127,12 +127,12 @@ is optional: when omitted, the menu has no visible title while the block `id`
 remains the accessible fallback name for its controls. Use `menu: false` to
 remove the whole menu, or a local `menu` object for an exception.
 
-`margin` reserves empty space inside the field border and around the grid. A
-number is pixels, while a CSS padding shorthand supports one value everywhere
-or four values in top, right, bottom and left order. CSS lengths stay responsive:
+`margin` is a library grid inset in integer pixels: it reserves the same space on
+all four sides inside the field border. It does not set or override CSS
+`margin` on the field or its content:
 
 ```js
-blocks.margin = "clamp(12px, 2vw, 32px) 3vw";
+blocks.margin = 24;
 ```
 
 Dragging by a block's menu bar is enabled by default. During pointer dragging,

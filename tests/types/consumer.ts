@@ -11,7 +11,7 @@ import { createBlocksSystem as createMinBlocksSystem } from "blocks.system/min";
 const blocks: BlocksSystem = createBlocksSystem({
   snap: true,
   draggable: true,
-  margin: "1rem 2vw 3rem 4vw",
+  margin: 12,
   blockDefaults: { menu: { minimize: true, close: true } }
 });
 
@@ -24,9 +24,8 @@ const block: BlockController = blocks
 
 const columns: number = blocks.columns;
 const rows: number = blocks.rows;
-blocks.margin = "clamp(8px, 2vw, 24px)";
 blocks.margin = 24;
-const margin: string = blocks.margin;
+const margin: number = blocks.margin;
 const minified: BlocksSystem = createMinBlocksSystem({ variant: "regular" });
 const shared: BlocksSystem = system;
 

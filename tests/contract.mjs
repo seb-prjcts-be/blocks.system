@@ -18,7 +18,7 @@ assert.equal(singleton.snap, false, "snap must be disabled by default");
 assert.equal(singleton.columns, 1, "grid columns must be readable from the default system");
 assert.equal(singleton.rows, 1, "grid rows must be readable from the default system");
 assert.equal(singleton.draggable, true, "dragging must be enabled by default");
-assert.equal(singleton.margin, "0px", "grid margin must default to no empty edge space");
+assert.equal(singleton.margin, 0, "grid margin must default to no empty edge space");
 assert.equal(singleton.font, null, "external fonts must remain opt-in");
 assert.equal(singleton.variant, "random", "visual variants must be random by default");
 assert.deepEqual(singleton.variants, ["regular", "inverse"], "only the monochrome library variants must be discoverable");
@@ -157,7 +157,7 @@ globalThis.document = {
 const configured = createBlocksSystem({
   snap: true,
   draggable: false,
-  margin: "1rem 2rem 3rem 4rem",
+  margin: 12,
   variant: "regular",
   colorArray: ["yellow", "blue", "yellow"],
   colorVariation: 0.2,
@@ -168,21 +168,19 @@ const configured = createBlocksSystem({
 });
 assert.equal(configured.snap, true, "snap must be configurable when a system is created");
 assert.equal(configured.draggable, false, "dragging must be configurable when a system is created");
-assert.equal(configured.margin, "1rem 2rem 3rem 4rem", "margin must retain the four CSS edge values");
+assert.equal(configured.margin, 12, "margin must retain its whole-pixel library value");
 assert.deepEqual(configured.colorArray, ["yellow", "blue"], "creation-time color arrays must normalize and deduplicate CSS colors");
 assert.equal(configured.colorVariation, 0.2, "creation-time color variation must remain readable");
 assert.equal(configured.inversionVariation, 0.5, "creation-time inversion variation must remain readable");
 const configuredField = new TestElement();
 configured.attach(configuredField);
-assert.equal(configuredField.style.getPropertyValue("--blocks-margin"), "1rem 2rem 3rem 4rem", "margin must reach the attached field");
-configured.margin = "clamp(8px, 2vw, 24px)";
-assert.equal(configured.margin, "clamp(8px, 2vw, 24px)", "margin must remain writable with responsive CSS lengths");
-assert.equal(configuredField.style.getPropertyValue("--blocks-margin"), "clamp(8px, 2vw, 24px)", "runtime margin changes must update the field");
-assert.throws(function () { configured.margin = ""; }, /margin/, "empty margin values must fail early");
+assert.equal(configuredField.style.getPropertyValue("--blocks-grid-inset"), "12px", "margin must reach the attached field through its private grid token");
+assert.throws(function () { configured.margin = "12px"; }, /margin/, "CSS lengths must not be accepted as library margin values");
 configured.margin = 12;
-assert.equal(configured.margin, "12px", "a numeric margin must normalize to pixels");
-assert.equal(configuredField.style.getPropertyValue("--blocks-margin"), "12px", "a numeric runtime margin must update the field in pixels");
+assert.equal(configured.margin, 12, "a numeric margin must remain a numeric library value");
+assert.equal(configuredField.style.getPropertyValue("--blocks-grid-inset"), "12px", "a numeric runtime margin must update the field in pixels");
 assert.throws(function () { createBlocksSystem({ margin: -1 }); }, /margin/, "a negative numeric margin must fail early");
+assert.throws(function () { createBlocksSystem({ margin: 1.5 }); }, /margin/, "a fractional numeric margin must fail early");
 const defaultMenuBlock = configured.add("<p>default menu</p>", {
   id: "default-menu",
   title: "default menu"

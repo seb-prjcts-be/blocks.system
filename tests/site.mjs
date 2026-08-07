@@ -112,7 +112,7 @@ for (const declaration of ["BlocksSystem", "BlockController", "BlocksReorderDeta
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);
 }
 assert.match(declarations, /readonly columns:\s*number;[\s\S]*readonly rows:\s*number;/, "grid dimensions must stay read-only in TypeScript");
-assert.match(declarations, /margin\?:\s*string\s*\|\s*number;[\s\S]*get margin\(\):\s*string;[\s\S]*set margin\(value:\s*string\s*\|\s*number\);/, "margin must accept numeric pixels and expose its resolved CSS value in TypeScript");
+assert.match(declarations, /margin\?:\s*number;[\s\S]*margin:\s*number;/, "margin must be a numeric library setting in TypeScript");
 
 const aliasTargets = {
   "manual.html": "start",
@@ -243,7 +243,7 @@ for (const apiName of [
   assert.ok(serializedReference.includes(apiName), `reference misses ${apiName}`);
 }
 assert.match(serializedReference, /columns[\s\S]*readonly number[\s\S]*rows[\s\S]*may also grow after dragging/i, "reference must explain readable grid dimensions");
-assert.match(serializedReference, /margin[\s\S]*top, right, bottom and left/i, "reference must explain the four margin edges");
+assert.match(serializedReference, /margin[\s\S]*integer pixels[\s\S]*does not set CSS margin/i, "reference must distinguish the library inset from CSS margin");
 assert.match(serializedReference, /Do not call element\.remove\(\); use remove\(\)/, "reference must prevent direct DOM removal that leaves a stale layout");
 assert.match(serializedReference, /snap true[\s\S]*place\(\)[\s\S]*span\(\)[\s\S]*compact\(\)[\s\S]*visual grid layout/i, "reference must explain snap-dependent layout");
 assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textContent/i, "reference must warn about trusted string HTML");
