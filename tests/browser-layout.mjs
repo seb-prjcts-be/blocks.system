@@ -711,6 +711,7 @@ async function measureManual(width, height, dpr = 1) {
         pageScrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight,
         boardOverflowY: getComputedStyle(board).overflowY,
         boardBackgroundImage: getComputedStyle(board).backgroundImage,
+        gridMargin: board.style.getPropertyValue("--blocks-margin"),
         quantized: board.dataset.quantized,
         trackWidth: Number(board.dataset.trackWidth),
         nonIntegerHorizontalGeometry: objects.filter(function (block) {
@@ -1326,6 +1327,7 @@ try {
     assert.equal(manual.lockedHandleState.shortcuts, "ArrowLeft ArrowUp ArrowRight ArrowDown", `manual publiceert de ondersteunde dragtoetsen niet op ${width}px`);
     assert.equal(manual.menuActionCount, 70, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
+    assert.equal(manual.gridMargin, "24px", `manual demonstreert geen enkele marginwaarde rond het grid op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
@@ -1341,7 +1343,8 @@ try {
     assert.equal(manual.eli10.menuBackground, "rgb(0, 0, 0)", `ELI10 gebruikt niet de standaard zwarte titelbalk op ${width}px`);
     assert.equal(manual.eli10.menuColor, "rgb(239, 238, 232)", `ELI10 gebruikt geen leesbare lichte inkt op de zwarte titelbalk op ${width}px`);
     assert.equal(manual.eli10.contentBackground, "rgb(239, 238, 232)", `ELI10 bewaart zijn neutrale inhoudsvlak niet op ${width}px`);
-    assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volle breedte voor lescode op ${width}px`);
+    const manualInnerWidth = manual.boardWidth - 2 * parseFloat(manual.gridMargin);
+    assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manualInnerWidth) <= 2; }), `manual gebruikt niet de volle binnenbreedte voor lescode op ${width}px`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
     assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - manual.mastheadGap) <= 0.5; }), `manual gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px: ${manual.mastheadGap}px versus ${JSON.stringify(manual.chapterGaps)}`);
     if (width > 900) {
@@ -1349,10 +1352,7 @@ try {
       const firstContentTop = Math.min(...manual.contentOptions.map(function (option) { return option.blockTop; }));
       assert.ok(Math.abs(manual.finishBlockTop - manual.startBlockBottom - openRowInterval) <= 0.5, `manual laat boven 02 niet exact één open rasterrij op ${width}px @${dpr}x`);
       assert.ok(Math.abs(firstContentTop - manual.finishBlockBottom - manual.rowGap) <= 0.5, `de drie voorbeelden sluiten niet direct onder 02 aan op ${width}px @${dpr}x`);
-      const expectedEli10Width = manual.trackWidth * 4 + manual.columnGap * 3;
-      const expectedStepsWidth = manual.trackWidth * 2 + manual.columnGap;
-      assert.ok(Math.abs(manual.eli10.blockWidth - expectedEli10Width) <= 0.5, `ELI10 gebruikt geen exact 4x2 desktopblock op ${width}px: ${manual.eli10.blockWidth}px versus ${expectedEli10Width}px`);
-      assert.ok(Math.abs(manual.eli10.stepsBlockWidth - expectedStepsWidth) <= 0.5, `ELI10-stappen gebruiken geen exact 2x2 desktopblock op ${width}px: ${manual.eli10.stepsBlockWidth}px versus ${expectedStepsWidth}px`);
+      assert.ok(Math.abs(manual.eli10.blockWidth + manual.eli10.stepsBlockWidth + manual.columnGap - manualInnerWidth) <= 2, `de ELI10-opening vult niet exact de binnenbreedte op ${width}px`);
       assert.ok(Math.abs(manual.eli10.stepsBlockLeft - manual.eli10.blockRight - manual.columnGap) <= 0.5, `de twee ELI10-blocks volgen niet exact de gridgap op ${width}px`);
       assert.ok(Math.abs(manual.eli10.stepsBlockTop - manual.eli10.blockTop) <= 0.5, `de twee ELI10-blocks beginnen niet op dezelfde rij op ${width}px`);
       assert.ok(Math.abs(manual.eli10.stepsBlockHeight - manual.eli10.blockHeight) <= 0.5, `de twee ELI10-blocks zijn niet allebei twee rijen hoog op ${width}px`);

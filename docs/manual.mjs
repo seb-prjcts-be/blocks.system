@@ -8,6 +8,7 @@ let manualVariationIndex = 0;
 const blocks = createBlocksSystem({
   variant: "regular",
   snap: true,
+  margin: "24px",
   random: () => manualVariationSamples[manualVariationIndex++ % manualVariationSamples.length],
   blockDefaults: {
     menu: { minimize: true, close: true }
