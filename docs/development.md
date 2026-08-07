@@ -24,7 +24,6 @@ Status: canonieke structuur uitgevoerd op 3 augustus 2026.
   Navigatie, paginametadata, toolbars en footers blijven in semantische HTML.
   De library leest dit bestand niet.
 - `examples/<naam>/` is zelfstandig, uitvoerbaar en kopieerbaar.
-- `docs/blocks.system.manifest.json` wordt door `npm run manifest` gemaakt.
 
 `docs/shell.mjs` bezit uitsluitend gedeelde docsfuncties: navigatie, één
 gecachete en streng gevalideerde contentloader en hele-pixelkwantisering. De
@@ -54,7 +53,6 @@ Wanneer publiek gedrag verandert, controleer in dezelfde commit:
 2. de relevante manual- en referenceblocks;
 3. de drie standalone examples;
 4. contract-, link- en browsertests;
-5. het gegenereerde manifest wanneer exports of versie veranderen.
 
 `npm run test:types` compileert hetzelfde consumentenfixture met Node16- en
 bundler-resolutie. Voeg een publieke API-wijziging daar toe wanneer de
@@ -101,7 +99,7 @@ npm run check
 git diff --check
 ```
 
-`npm run check` bouwt source/min-pariteit en manifest, controleert lokale links
+`npm run check` bouwt source/min-pariteit, controleert lokale links
 en opent echte Chromium. Home, manual en reference worden gemeten op 1440,
 1280, 1024, 800, 390 en 320 CSS-pixels bij DPR 1 en 2. Dezelfde test bedient
 drag, keyboard reorder, lock, reset, anchorstatus, canvasresize, videopause en
@@ -124,7 +122,7 @@ die jsDelivr voor ESM en CSS kan leveren.
 1. draai `npm run check` en `git diff --check`;
 2. stage uitsluitend bedoelde publieke bestanden;
 3. push alleen na Sebs expliciete opdracht;
-4. verifieer daarna live home, manual, reference, examples en manifest;
+4. verifieer daarna live home, manual, reference en examples;
 5. maak pas een versie-tag wanneer de publieke API klaar is om via jsDelivr te
    pinnen.
 

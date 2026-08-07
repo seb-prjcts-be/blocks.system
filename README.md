@@ -162,7 +162,7 @@ three runnable examples.
 
 The following checks passed locally:
 
-- `npm run check`: minified ESM, manifest, contracts, TypeScript, pages, links,
+- `npm run check`: minified ESM, contracts, TypeScript, pages, links,
   examples and responsive browser-layout checks.
 - `npm run test:presentation`: presentation and public-page structure checks.
 - Apache/XAMPP: `/`, `/docs/` and `/examples/` each returned HTTP 200.
@@ -177,7 +177,7 @@ npm install
 npm run check
 ```
 
-`npm run check` rebuilds the minified module and manifest, then checks the API,
+`npm run check` rebuilds the minified module, then checks the API,
 docs, examples, local links and the real showcase layout in headless Chrome.
 Set `CHROME_PATH` when Chrome or Edge is not installed in a standard location.
 

@@ -4,7 +4,7 @@
 standaard `npm test`-gate:
 
 - lokale routes en assets bestaan;
-- manifest, package, declarations, README's en reference noemen dezelfde API;
+- package, declarations, README's en reference noemen dezelfde API;
 - docscontent heeft de juiste eigenaarsgrens en wordt volledig geladen;
 - navigatie, aliases, voorbeelden en toegankelijkheidscontracten blijven heel;
 - librarycode en library-CSS nemen geen projectspecifieke compositie over.

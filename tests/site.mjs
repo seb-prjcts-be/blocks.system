@@ -46,7 +46,6 @@ for (const [page, html] of Object.entries(pageHtml)) {
 const readme = await read("README.md");
 const readmeNl = await read("README_NL.md");
 const packageData = JSON.parse(await read("package.json"));
-const manifest = JSON.parse(await read("docs/blocks.system.manifest.json"));
 const docsContent = JSON.parse(await read("docs/content.json"));
 const declarations = await read("blocks.system.d.ts");
 const librarySource = await read("blocks.system.mjs");
@@ -94,14 +93,6 @@ for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]
 }
 assert.doesNotMatch(readmeNl, /\b(?:DOM-)?node\b/i, "README_NL beginnerstaal must say object or element instead of node");
 
-assert.equal(manifest.version, "v0.2.0", "manifest must identify its immutable release");
-assert.equal(manifest.source_ref, "v0.2.0", "manifest must expose its immutable release");
-assert.equal(manifest.release_status, "released", "manifest must identify its immutable release");
-assert.equal(manifest.package_version, packageData.version, "manifest must retain the package metadata version");
-assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
-for (const apiName of ["attach", "setGrid", "compact", "columns", "rows", "snap", "draggable", "labels", "add"]) {
-  assert.ok(manifest.core_api.includes(apiName), `manifest misses ${apiName}`);
-}
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "package files must include declarations");
 assert.equal(packageData.private, true, "the package must remain private because npm is not its distribution channel");
@@ -255,7 +246,7 @@ const documentsMainOnlyApi = /\bcompact\b/.test(JSON.stringify({
 }));
 const referencePinsRelease = apiHtml.includes(`reference · v${packageData.version}`);
 assert.ok(manualPinsRelease && documentsMainOnlyApi, "the tagged manual must document the APIs included in its release");
-assert.ok(referencePinsRelease && ["compact"].every((name) => manifest.core_api.includes(name)), "the tagged reference must expose its released APIs");
+assert.ok(referencePinsRelease, "the reference must expose its released source ref");
 assert.deepEqual(packageData.exports["."], {
   types: "./blocks.system.d.ts",
   default: "./blocks.system.mjs"

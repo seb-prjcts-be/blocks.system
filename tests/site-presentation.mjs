@@ -62,7 +62,6 @@ assert.match(readmeNl, /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "R
 assert.match(readme + readmeNl, /colorArray:\s*\["cyan",\s*"magenta",\s*"yellow"\]/, "README examples must show a concrete user-supplied color array");
 assert.doesNotMatch(readme + readmeNl, /(?:defaults? to|standaard(?:reeks|array)?)[^\n]*(?:CMY|cyan)/i, "README must not present CMY as library-owned defaults");
 
-const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
 const docsContent = JSON.parse(await readFile(resolve(root, "docs", "content.json"), "utf8"));
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
 const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0";
@@ -168,16 +167,7 @@ for (const file of retiredAssets) {
   await assert.rejects(access(resolve(root, file)), { code: "ENOENT" }, `${file} must remain retired`);
 }
 
-assert.equal(manifest.version, "v0.2.0", "manifest must identify its immutable release");
-assert.equal(manifest.source_ref, "v0.2.0", "manifest must expose its immutable release");
-assert.equal(manifest.release_status, "released", "manifest must identify its immutable release");
-assert.equal(manifest.package_version, packageData.version, "manifest must retain the package metadata version");
 assert.ok(apiHtml.includes("blocks.system · reference · v0.2.0 · released"), "reference footer must label its immutable source ref");
-assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
-assert.ok(["attach", "setGrid", "compact", "columns", "rows", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
-assert.ok(manifest.design_rules.includes("colorArray is consumer-owned and defaults empty; positive colorVariation requires user-supplied CSS colors"), "manifest must record consumer ownership of the palette");
-assert.ok(manifest.design_rules.includes("the library owns only regular and inverse; automatic user colors share one generic color state that colors only the block shell"), "manifest must keep user color on the generic block shell instead of rendered content");
-assert.ok(manifest.design_rules.includes("custom block colors choose the higher-contrast neutral menu color from the system ink and paper tokens"), "manifest must record automatic readable menu contrast for user colors");
 assert.equal(packageData.types, "./blocks.system.d.ts", "package metadata must expose the TypeScript declarations");
 assert.ok(packageData.files.includes("blocks.system.d.ts"), "the published file list must include the TypeScript declarations");
 for (const declaration of ["BlocksSystem", "BlockController", "BlockDefaults", "BlocksLabels", "BlocksReorderDetail", "BlocksChangeDetail", "createBlocksSystem"]) {

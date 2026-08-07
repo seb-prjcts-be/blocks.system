@@ -165,7 +165,7 @@ uitvoerbare voorbeelden.
 
 Lokaal geslaagd:
 
-- `npm run check`: minified ESM, manifest, contracten, TypeScript, pagina's,
+- `npm run check`: minified ESM, contracten, TypeScript, pagina's,
   links, voorbeelden en responsieve browser-layoutchecks.
 - `npm run test:presentation`: presentatie- en publieke paginastructuurchecks.
 - Apache/XAMPP: `/`, `/docs/` en `/examples/` geven elk HTTP 200.
@@ -180,7 +180,7 @@ npm install
 npm run check
 ```
 
-`npm run check` bouwt de minified module en het manifest opnieuw en controleert
+`npm run check` bouwt de minified module opnieuw en controleert
 daarna API, docs, voorbeelden, lokale links en de echte showcase-layout in
 headless Chrome. Stel `CHROME_PATH` in wanneer Chrome of Edge niet op een
 standaardlocatie staat.
