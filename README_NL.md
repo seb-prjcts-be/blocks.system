@@ -178,8 +178,8 @@ Lokaal geslaagd:
 - `npm run test:presentation`: presentatie- en publieke paginastructuurchecks.
 - Apache/XAMPP: `/`, `/docs/` en `/examples/` geven elk HTTP 200.
 
-Dit beschrijft de huidige bron op `main`. Die blijft als unreleased aangeduid
-tot er een GitHub-release-tag is gemaakt.
+Dit beschrijft de uitgebrachte bron `v0.2.0`, beschikbaar via de onveranderlijke
+GitHub-release-tag.
 
 ## Ontwikkelen
 

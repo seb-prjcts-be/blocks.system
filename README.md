@@ -175,8 +175,8 @@ The following checks passed locally:
 - `npm run test:presentation`: presentation and public-page structure checks.
 - Apache/XAMPP: `/`, `/docs/` and `/examples/` each returned HTTP 200.
 
-This describes the current `main` source. It is still labelled unreleased until
-a GitHub release tag is created.
+This describes the released `v0.2.0` source, available through its immutable
+GitHub release tag.
 
 ## Develop
 

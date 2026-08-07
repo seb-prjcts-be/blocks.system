@@ -65,7 +65,7 @@ assert.doesNotMatch(readme + readmeNl, /(?:defaults? to|standaard(?:reeks|array)
 const manifest = JSON.parse(await readFile(resolve(root, "docs", "blocks.system.manifest.json"), "utf8"));
 const docsContent = JSON.parse(await readFile(resolve(root, "docs", "content.json"), "utf8"));
 const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
-const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@main";
+const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0";
 const declarations = await readFile(resolve(root, "blocks.system.d.ts"), "utf8");
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
@@ -168,11 +168,11 @@ for (const file of retiredAssets) {
   await assert.rejects(access(resolve(root, file)), { code: "ENOENT" }, `${file} must remain retired`);
 }
 
-assert.equal(manifest.version, "main", "manifest must identify its current source ref");
-assert.equal(manifest.source_ref, "main", "manifest must expose its current source ref");
-assert.equal(manifest.release_status, "unreleased", "manifest must not claim a release");
+assert.equal(manifest.version, "v0.2.0", "manifest must identify its immutable release");
+assert.equal(manifest.source_ref, "v0.2.0", "manifest must expose its immutable release");
+assert.equal(manifest.release_status, "released", "manifest must identify its immutable release");
 assert.equal(manifest.package_version, packageData.version, "manifest must retain the package metadata version");
-assert.ok(apiHtml.includes("blocks.system · reference · current main · unreleased"), "reference footer must label its unreleased source ref");
+assert.ok(apiHtml.includes("blocks.system · reference · v0.2.0 · released"), "reference footer must label its immutable source ref");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
 assert.ok(["attach", "setGrid", "compact", "columns", "rows", "snap", "draggable", "variant", "variants", "colorArray", "colorVariation", "inversionVariation", "labels", "add"].every(function (name) { return manifest.core_api.includes(name); }), "manifest misses the core API");
 assert.ok(manifest.design_rules.includes("colorArray is consumer-owned and defaults empty; positive colorVariation requires user-supplied CSS colors"), "manifest must record consumer ownership of the palette");
@@ -438,9 +438,9 @@ assert.deepEqual(docsContent.manual["manual-eli10-steps"], {
     "Add one individual block with blocks.add(...)."
   ]
 }, "ELI10 must keep its three concrete beginner steps in the adjacent block");
-assert.ok(docsContent.manual["manual-start"].intro.includes("current main branch (unreleased)"), "the manual must label its unreleased source ref");
-assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${mainCdnBase}/blocks.system.css">`), "the manual must load the labelled main stylesheet from jsDelivr");
-assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${mainCdnBase}/blocks.system.mjs";`), "the manual must import the labelled main ESM module from jsDelivr");
+assert.ok(docsContent.manual["manual-start"].intro.includes("released v0.2.0 build"), "the manual must label its immutable source ref");
+assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${mainCdnBase}/blocks.system.css">`), "the manual must load the tagged stylesheet from jsDelivr");
+assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${mainCdnBase}/blocks.system.mjs";`), "the manual must import the tagged ESM module from jsDelivr");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner-facing manual copy must say object instead of node");
 assert.deepEqual(Object.keys(docsContent.reference), [
   "reference-exports",
@@ -472,7 +472,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.24", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.25", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");

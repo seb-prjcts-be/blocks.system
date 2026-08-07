@@ -35,13 +35,13 @@
     },
     "manual-start": {
       "title": "01 / start the system",
-      "intro": "Load the current main branch (unreleased), then attach the system before adding content. setGrid(6, 4) creates six columns and four rows.",
+      "intro": "Load the released v0.2.0 build, then attach the system before adding content. setGrid(6, 4) creates six columns and four rows.",
       "code": [
-        "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@main/blocks.system.css\">",
+        "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.css\">",
         "<div id=\"blocks-field\"></div>",
         "",
         "<script type=\"module\">",
-        "import { createBlocksSystem } from \"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@main/blocks.system.mjs\";",
+        "import { createBlocksSystem } from \"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.mjs\";",
         "",
         "const blocks = createBlocksSystem({",
         "  snap: true,",

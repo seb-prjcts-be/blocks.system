@@ -94,9 +94,9 @@ for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]
 }
 assert.doesNotMatch(readmeNl, /\b(?:DOM-)?node\b/i, "README_NL beginnerstaal must say object or element instead of node");
 
-assert.equal(manifest.version, "main", "manifest must identify its current source ref");
-assert.equal(manifest.source_ref, "main", "manifest must expose its current source ref");
-assert.equal(manifest.release_status, "unreleased", "manifest must not claim a release");
+assert.equal(manifest.version, "v0.2.0", "manifest must identify its immutable release");
+assert.equal(manifest.source_ref, "v0.2.0", "manifest must expose its immutable release");
+assert.equal(manifest.release_status, "released", "manifest must identify its immutable release");
 assert.equal(manifest.package_version, packageData.version, "manifest must retain the package metadata version");
 assert.deepEqual(manifest.examples, exampleDirectories, "manifest examples must match the filesystem");
 for (const apiName of ["attach", "setGrid", "compact", "columns", "rows", "snap", "draggable", "margin", "labels", "add"]) {
@@ -248,7 +248,7 @@ assert.match(serializedReference, /Do not call element\.remove\(\); use remove\(
 assert.match(serializedReference, /snap true[\s\S]*place\(\)[\s\S]*span\(\)[\s\S]*compact\(\)[\s\S]*visual grid layout/i, "reference must explain snap-dependent layout");
 assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textContent/i, "reference must warn about trusted string HTML");
 
-const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@main";
+const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0";
 const manualStartContent = JSON.stringify(docsContent.manual["manual-start"]);
 const manualPinsRelease = new RegExp(`blocks\\.system@v${packageData.version}\\b`).test(manualStartContent);
 const documentsMainOnlyApi = /\b(?:compact|margin)\b/.test(JSON.stringify({
@@ -256,14 +256,8 @@ const documentsMainOnlyApi = /\b(?:compact|margin)\b/.test(JSON.stringify({
   reference: docsContent.reference
 }));
 const referencePinsRelease = apiHtml.includes(`reference · v${packageData.version}`);
-assert.ok(
-  !(manualPinsRelease && documentsMainOnlyApi),
-  "a manual pinned to a fixed release must not document APIs absent from that release"
-);
-assert.ok(
-  !(referencePinsRelease && manifest.core_api.some((name) => ["compact", "margin"].includes(name))),
-  "a reference labelled as a fixed release must not expose main-only APIs in its manifest"
-);
+assert.ok(manualPinsRelease && documentsMainOnlyApi, "the tagged manual must document the APIs included in its release");
+assert.ok(referencePinsRelease && ["compact", "margin"].every((name) => manifest.core_api.includes(name)), "the tagged reference must expose its released APIs");
 assert.deepEqual(packageData.exports["."], {
   types: "./blocks.system.d.ts",
   default: "./blocks.system.mjs"
@@ -273,9 +267,9 @@ assert.deepEqual(packageData.exports["./min"], {
   default: "./blocks.system.min.mjs"
 }, "the minified package export must resolve the same declarations");
 assert.equal(packageData.exports["./style"], "./blocks.system.css", "the stylesheet package export must remain stable");
-assert.ok(docsContent.manual["manual-start"].intro.includes("current main branch (unreleased)"), "manual must label its unreleased source ref");
-assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${mainCdnBase}/blocks.system.css">`), "manual must load the labelled main stylesheet");
-assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${mainCdnBase}/blocks.system.mjs";`), "manual must load the labelled main module");
+assert.ok(docsContent.manual["manual-start"].intro.includes("released v0.2.0 build"), "manual must label its immutable source ref");
+assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${mainCdnBase}/blocks.system.css">`), "manual must load the tagged stylesheet");
+assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${mainCdnBase}/blocks.system.mjs";`), "manual must load the tagged module");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner copy must say object instead of node");
 
 assert.doesNotMatch(libraryCss, /\.(?:home|manual|reference)-/, "library CSS must not own docs composition");

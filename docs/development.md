@@ -129,13 +129,12 @@ die jsDelivr voor ESM en CSS kan leveren.
    pinnen.
 
 De eerste vaste distributie is GitHub-release `v0.1.0`; de actuele
-contrastcorrectie staat in `v0.1.1`. Zelfstandige publieke voorbeelden gebruiken
+contrastcorrectie staat in `v0.1.1`; `v0.2.0` bevat de huidige publieke API en
+manual. Zelfstandige publieke voorbeelden gebruiken
 altijd de onveranderlijke actuele tag, niet `main`:
 
-- ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.1/blocks.system.mjs`
-- CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.1.1/blocks.system.css`
+- ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.mjs`
+- CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.css`
 
-De publiceerde manual en reference documenteren momenteel bewust `main`, omdat
-zij API's bevatten die nog niet in `v0.1.1` zitten. Zij noemen dit zichtbaar
-`current main · unreleased`; behandel die snippets dus niet als vaste
-releasevoorbeelden.
+De publiceerde manual en reference documenteren `v0.2.0` en pinnen hun snippets
+op diezelfde tag.
