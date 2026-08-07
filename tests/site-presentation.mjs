@@ -198,6 +198,7 @@ assert.match(siteDemos["docs/home.mjs"], /blocks\.setGrid\(6, 8\)/, "home must p
 assert.match(siteDemos["docs/home.mjs"], /snap:\s*true/, "home must configure snap once when its system is created");
 assert.match(siteDemos["docs/home.mjs"], /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "home must expose both block actions by default");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /blocks\.add\([\s\S]*?menu:\s*\{/, "home blocks must not hide inherited menu actions locally");
+assert.doesNotMatch(siteDemos["docs/home.mjs"], /\btitle\s*:/, "home blocks must not render visible menu titles");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /blocks\.draggable = true/, "home must rely on the library's draggable default");
 assert.match(siteDemos["docs/home.mjs"], /home-title[\s\S]*home-photo[\s\S]*home-intro/, "home must lead from identity through the adjacent image to one concise action");
 assert.match(siteDemos["docs/home.mjs"], /title\.place\(2, 2\)[\s\S]*photo\.span\(1, 3\)[\s\S]*photo\.place\(5, 2\)[\s\S]*intro\.span\(2, 2\)[\s\S]*intro\.place\(4, 6\)/, "home must keep all three blocks one row above their original composition and give the start block two rows");

@@ -73,6 +73,7 @@ async function measureHome(width, height, dpr = 1) {
         return child && (child.scrollWidth > content.clientWidth + 1 || child.scrollHeight > content.clientHeight + 1);
       }).map(function (block) { return block.dataset.blockObject; }),
       ids: objects.map(function (block) { return block.dataset.blockObject; }),
+      menuTitles: objects.map(function (block) { return block.querySelector(".blocks-system-title").textContent; }),
       title: {
         text: title.textContent,
         fontFamily: getComputedStyle(title).fontFamily,
@@ -1097,6 +1098,7 @@ try {
       assert.deepEqual(home.outsideBoard, [], `home plaatst blocks buiten het board op ${width}px @${dpr}x: ${home.outsideBoard.join(", ")}`);
       assert.deepEqual(home.clippedContent, [], `home knipt inhoud af op ${width}px @${dpr}x: ${home.clippedContent.join(", ")}`);
       assert.deepEqual(home.ids, ["home-title", "home-photo", "home-intro"], `home bewaart titel, foto en actie niet in leesvolgorde op ${width}px @${dpr}x`);
+      assert.deepEqual(home.menuTitles, ["", "", ""], `home toont nog zichtbare blocktitels op ${width}px @${dpr}x`);
       assert.equal(home.title.text.trim(), "blocks.\nsystem.", `home verliest zijn canonieke titel op ${width}px @${dpr}x`);
       assert.match(home.title.fontFamily, /Instrument Sans/, `home gebruikt Instrument Sans niet voor de hoofdboodschap op ${width}px @${dpr}x`);
       assert.equal(home.title.whiteSpace, "pre-line", `home bewaart de titelregeleinde niet op ${width}px @${dpr}x`);

@@ -19,8 +19,7 @@ const heading = document.createElement("h1");
 heading.className = "home-title";
 heading.textContent = content["home-title"].heading;
 const title = blocks.add(heading, {
-  id: "home-title",
-  title: content["home-title"].title
+  id: "home-title"
 });
 title.span(3, 3);
 title.place(2, 2);
@@ -35,8 +34,7 @@ photoImage.alt = content["home-photo"].alt;
 photoImage.decoding = "async";
 photoContent.append(photoImage);
 const photo = blocks.add(photoContent, {
-  id: "home-photo",
-  title: content["home-photo"].title
+  id: "home-photo"
 });
 photo.span(1, 3);
 photo.place(5, 2);
@@ -60,8 +58,7 @@ action.textContent = content["home-intro"].action.label;
 introRoute.append(introSequence, action);
 introContent.append(introLead, introStatement, introRoute);
 const intro = blocks.add(introContent, {
-  id: "home-intro",
-  title: content["home-intro"].title
+  id: "home-intro"
 });
 intro.span(2, 2);
 intro.place(4, 6);
