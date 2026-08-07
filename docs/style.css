@@ -161,6 +161,8 @@ footer a { color: var(--ink); }
   height: 100%;
   min-height: 0;
   border: 0;
+  background-origin: content-box;
+  background-clip: content-box;
   background-color: var(--home-field);
   background-image:
     linear-gradient(to right, rgba(20, 20, 15, 0.16) 1px, transparent 1px),

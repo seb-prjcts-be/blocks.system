@@ -51,6 +51,8 @@ async function measureHome(width, height, dpr = 1) {
       columnCount: fieldStyle.gridTemplateColumns.split(" ").length,
       gridMargin: field.style.getPropertyValue("--blocks-margin"),
       effectiveGridMargin: fieldStyle.paddingLeft,
+      gridBackgroundOrigin: fieldStyle.backgroundOrigin,
+      gridBackgroundClip: fieldStyle.backgroundClip,
       gridWidth: field.clientWidth - parseFloat(fieldStyle.paddingLeft) - parseFloat(fieldStyle.paddingRight),
       columnGap: parseFloat(fieldStyle.columnGap),
       horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -1104,6 +1106,8 @@ try {
       assert.equal(home.devicePixelRatio, dpr, `home test niet werkelijk op DPR ${dpr}`);
       assert.equal(home.gridMargin, "24px", `home zet de publieke gridmargin niet op 24px op ${width}px @${dpr}x`);
       assert.equal(home.effectiveGridMargin, "24px", `home-CSS overschrijft blocks.margin op ${width}px @${dpr}x`);
+      assert.equal(home.gridBackgroundOrigin, "content-box, content-box", `home tekent het achtergrondgrid niet binnen blocks.margin op ${width}px @${dpr}x`);
+      assert.equal(home.gridBackgroundClip, "content-box, content-box", `home toont het achtergrondgrid nog in de margin op ${width}px @${dpr}x`);
       assert.ok(home.horizontalOverflow <= 0.5, `home heeft ${home.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
       assert.match(home.backgroundImage, /linear-gradient/, `home toont zijn constructieve raster niet op ${width}px @${dpr}x`);
       assert.equal(home.draggable, "true", `home start niet versleepbaar op ${width}px @${dpr}x`);

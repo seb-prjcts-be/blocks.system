@@ -124,14 +124,14 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.11", "docs/style.css?v=0.2.11"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.11", "style.css?v=0.2.11"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.11", "style.css?v=0.2.11"]],
-  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.11", "../docs/style.css?v=0.2.11"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.11", "docs/style.css?v=0.2.12"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.11", "style.css?v=0.2.12"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.11", "style.css?v=0.2.12"]],
+  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.11", "../docs/style.css?v=0.2.12"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.11", "../../docs/style.css?v=0.2.11"]
+    ["../../blocks.system.css?v=0.1.11", "../../docs/style.css?v=0.2.12"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
