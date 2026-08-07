@@ -49,6 +49,8 @@ async function measureHome(width, height, dpr = 1) {
     return {
       blockCount: objects.length,
       columnCount: fieldStyle.gridTemplateColumns.split(" ").length,
+      gridMargin: field.style.getPropertyValue("--blocks-margin"),
+      effectiveGridMargin: fieldStyle.paddingLeft,
       gridWidth: field.clientWidth - parseFloat(fieldStyle.paddingLeft) - parseFloat(fieldStyle.paddingRight),
       columnGap: parseFloat(fieldStyle.columnGap),
       horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -1100,6 +1102,8 @@ try {
       assert.equal(home.blockCount, 3, `home toont ${home.blockCount} in plaats van drie directe blocks op ${width}px @${dpr}x`);
       assert.equal(home.columnCount, homeColumns, `home gebruikt ${home.columnCount} in plaats van ${homeColumns} kolommen op ${width}px @${dpr}x`);
       assert.equal(home.devicePixelRatio, dpr, `home test niet werkelijk op DPR ${dpr}`);
+      assert.equal(home.gridMargin, "24px", `home zet de publieke gridmargin niet op 24px op ${width}px @${dpr}x`);
+      assert.equal(home.effectiveGridMargin, "24px", `home-CSS overschrijft blocks.margin op ${width}px @${dpr}x`);
       assert.ok(home.horizontalOverflow <= 0.5, `home heeft ${home.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
       assert.match(home.backgroundImage, /linear-gradient/, `home toont zijn constructieve raster niet op ${width}px @${dpr}x`);
       assert.equal(home.draggable, "true", `home start niet versleepbaar op ${width}px @${dpr}x`);
@@ -1140,6 +1144,8 @@ try {
   }
 
   const shortHome = await measureHome(826, 395);
+  assert.equal(shortHome.gridMargin, "24px", "home zet de publieke gridmargin niet op 24px op de lage probleemmaat");
+  assert.equal(shortHome.effectiveGridMargin, "24px", "home-CSS overschrijft blocks.margin op de lage probleemmaat");
   assert.equal(shortHome.clippedContent.includes("home-intro"), false, "object / start mag op de aangeleverde lage probleemmaat geen inhoud afsnijden");
   assert.equal(shortHome.intro.objectWhiteSpace, "nowrap", "object. moet op de aangeleverde lage probleemmaat één woord blijven");
   const minimumShortObjectBottomSpace = shortHome.intro.objectTextBoxTrim === "trim-both" ? 4 : 8;
