@@ -552,6 +552,7 @@ footer a { color: var(--ink); }
   align-self: end;
   max-width: 42ch;
   margin: 0;
+  padding: clamp(14px, 1.6vw, 24px);
   font-size: clamp(0.85rem, 1.1vw, 1.05rem);
   line-height: 1.5;
 }

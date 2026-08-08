@@ -124,14 +124,14 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.13", "docs/style.css?v=0.2.15"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.15"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.15"]],
-  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.13", "../docs/style.css?v=0.2.15"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.13", "docs/style.css?v=0.2.16"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.16"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.16"]],
+  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.13", "../docs/style.css?v=0.2.16"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.13", "../../docs/style.css?v=0.2.15"]
+    ["../../blocks.system.css?v=0.1.13", "../../docs/style.css?v=0.2.16"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -351,6 +351,7 @@ assert.match(siteCss, /\.eli10-schema canvas\s*\{[^}]*max-width:\s*100%;[^}]*hei
 assert.doesNotMatch(siteCss, /manual-eli10-steps/, "the ELI10 visual must not retain CSS for a duplicated step card");
 assert.match(siteCss, /\.manual-code\s*\{[^}]*overflow:\s*auto;[^}]*overscroll-behavior:\s*auto;/s, "long code must scroll locally and then chain trackpad scroll back to the page");
 assert.match(siteCss, /\.manual-lesson-code\s*\{[^}]*padding:\s*0;/s, "manual code must use the complete content plane without an extra inner margin");
+assert.match(siteCss, /\.manual-explanation\s*\{[^}]*padding:\s*clamp\(14px,\s*1\.6vw,\s*24px\);/s, "manual explanations must share the code inset instead of touching the block edges");
 assert.doesNotMatch(siteCss, /\.manual-chapter-start\s*\{\s*margin-top:\s*18px;/s, "desktop chapter spacing must come from an open grid row, not an inset margin");
 assert.doesNotMatch(siteCss, /\.manual-page\s*\{[^}]*--docs-chapter-space:\s*162px;/s, "manual masthead spacing must match the same open-row interval as the grid");
 assert.match(siteCss, /@media \(max-width:\s*900px\)[\s\S]*\.manual-chapter-start\s*\{[^}]*margin-top:\s*54px;/s, "the responsive auto-flow layout must retain its separate compact chapter spacing");
