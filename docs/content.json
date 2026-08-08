@@ -23,15 +23,8 @@
   "manual": {
     "manual-eli10": {
       "title": "00 / ELI10",
-      "body": "A container is an empty div. blocks is the system connected to that div. A block is one individual box inside it."
-    },
-    "manual-eli10-steps": {
-      "title": "three things, in order",
-      "steps": [
-        "Add an empty <div id=\"blocks-field\"></div>.",
-        "Create blocks and connect it to that div with blocks.attach(...).",
-        "Add one individual block with blocks.add(...)."
-      ]
+      "src": "./img/eli10-container-blocks-block.svg",
+      "alt": "Diagram: een lege div is de container, blocks koppelt aan die div en blocks.add voegt één block toe."
     },
     "manual-start": {
       "title": "01 / start the system",
