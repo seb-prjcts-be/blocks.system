@@ -124,14 +124,14 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.13", "docs/style.css?v=0.2.17"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.17"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.17"]],
-  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.13", "../docs/style.css?v=0.2.17"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.13", "docs/style.css?v=0.2.18"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.18"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.18"]],
+  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.13", "../docs/style.css?v=0.2.18"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.13", "../../docs/style.css?v=0.2.17"]
+    ["../../blocks.system.css?v=0.1.13", "../../docs/style.css?v=0.2.18"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -463,6 +463,22 @@ const referenceOrder = [
   "reference-errors"
 ];
 assert.deepEqual(Object.keys(docsContent.reference), referenceOrder, "the reference content must own the complete lookup sequence in reading order");
+assert.deepEqual(
+  referenceOrder.map((id) => docsContent.reference[id].title),
+  [
+    "01 / module",
+    "02 / BlocksSystem options",
+    "03 / BlocksSystem state",
+    "04 / BlocksSystem methods",
+    "05 / add() options",
+    "06 / BlockController",
+    "07 / BlockDefinition + BlockAdapter",
+    "08 / events",
+    "09 / CSS hooks",
+    "10 / errors and boundaries"
+  ],
+  "the reference must group its public contracts by module and API object"
+);
 const docsContentKeys = new Set();
 JSON.stringify(docsContent, function (key, value) {
   if (key) docsContentKeys.add(key);
@@ -481,7 +497,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.30", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.31", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
@@ -491,16 +507,31 @@ assert.equal((siteDemos["docs/reference.mjs"].match(/const blocks = createBlocks
 assert.match(siteDemos["docs/reference.mjs"], /draggable:\s*false/, "the lookup reference must configure its canonical reading order at creation");
 assert.match(siteDemos["docs/reference.mjs"], /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the reference must expose both block actions");
 assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the reference must use the shared whole-pixel geometry");
-const referenceAnchors = ["exports", "options", "system-state", "system-methods", "add-options", "block-controller", "adapters", "reorder-event", "css-hooks", "errors"];
+assert.match(siteDemos["docs/reference.mjs"], /root\.append\(createTextElement\("h2", entry\.title, "reference-section-heading"\)\);/, "the reference must expose every JSON-owned object group as a real semantic chapter heading");
+assert.match(siteCss, /\.manual-chapter-heading,\s*\.reference-section-heading\s*\{[^}]*clip-path:\s*inset\(50%\)/s, "manual and reference chapter headings must use the same visually quiet accessible pattern");
+assert.match(apiHtml, /reference\.mjs\?v=0\.1\.22/, "the changed reference module must use a new cache version");
+const referenceIndex = [
+  ["exports", "module"],
+  ["options", "BlocksSystem options"],
+  ["system-state", "BlocksSystem state"],
+  ["system-methods", "BlocksSystem methods"],
+  ["add-options", "add() options"],
+  ["block-controller", "BlockController"],
+  ["adapters", "BlockDefinition + BlockAdapter"],
+  ["reorder-event", "reorder event"],
+  ["css-hooks", "CSS hooks"],
+  ["errors", "errors"]
+];
+const referenceAnchors = referenceIndex.map(([anchor]) => anchor);
 assert.deepEqual(
   Array.from(siteDemos["docs/reference.mjs"].matchAll(/\{ id: "([^"]+)", anchor:/g), (match) => match[1]),
   referenceOrder,
   "the reference composition must use the canonical reading order"
 );
 assert.deepEqual(
-  Array.from(apiHtml.matchAll(/<li><a href="#([^"]+)">/g), (match) => match[1]),
-  referenceAnchors,
-  "the reference index must use the canonical reading order"
+  Array.from(apiHtml.matchAll(/<li><a href="#([^"]+)">([^<]+)<\/a><\/li>/g), (match) => [match[1], match[2]]),
+  referenceIndex,
+  "the reference index must name and order the canonical API groups"
 );
 for (const anchor of referenceAnchors) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);

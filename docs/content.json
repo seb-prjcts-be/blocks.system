@@ -319,7 +319,7 @@
   },
   "reference": {
     "reference-exports": {
-      "title": "01 / exports",
+      "title": "01 / module",
       "intro": "Import a factory for an independent system, or use the shared system export.",
       "headers": ["member", "returns", "purpose"],
       "rows": [
@@ -329,7 +329,7 @@
       ]
     },
     "reference-options": {
-      "title": "02 / creation options",
+      "title": "02 / BlocksSystem options",
       "intro": "All creation options are optional. These are their initial values.",
       "headers": ["option", "initial value", "purpose"],
       "rows": [
@@ -348,7 +348,7 @@
       ]
     },
     "reference-state": {
-      "title": "03 / system state",
+      "title": "03 / BlocksSystem state",
       "headers": ["member", "type", "notes"],
       "rows": [
         { "cells": ["columns", "readonly number", "Current number of grid columns; starts at 1 and changes through setGrid()."] },
@@ -366,7 +366,7 @@
       ]
     },
     "reference-methods": {
-      "title": "04 / system methods",
+      "title": "04 / BlocksSystem methods",
       "headers": ["method", "returns", "purpose"],
       "rows": [
         { "id": "api-register", "cells": ["register(definition, options?)", "blocks", "Register a reusable block definition."] },
@@ -386,7 +386,7 @@
       ]
     },
     "reference-add-options": {
-      "title": "05 / add and menu options",
+      "title": "05 / add() options",
       "intro": "id identifies a block. title is only optional visible text in its menu bar.",
       "headers": ["option", "type", "purpose"],
       "rows": [
@@ -400,7 +400,7 @@
       ]
     },
     "reference-block": {
-      "title": "06 / block controller",
+      "title": "06 / BlockController",
       "intro": "add() returns one controller for one block.",
       "headers": ["member", "type or return", "purpose"],
       "rows": [
@@ -418,7 +418,7 @@
       ]
     },
     "reference-adapters": {
-      "title": "07 / definitions and adapters",
+      "title": "07 / BlockDefinition + BlockAdapter",
       "intro": "Definitions describe reusable content. Adapters own its mount and cleanup lifecycle.",
       "code": [
         "const definition = {",
@@ -460,7 +460,7 @@
       "details": "For blocks:reorder, input is pointer or keyboard, mode is grid or flow, and positions are { column, row } or null. For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks."
     },
     "reference-hooks": {
-      "title": "09 / css hooks",
+      "title": "09 / CSS hooks",
       "headers": ["hook", "purpose"],
       "rows": [
         { "cells": [".blocks-system-surface", "The attached field and its layout tokens."] },

@@ -412,7 +412,8 @@ footer a { color: var(--ink); }
 .docs-board .blocks-system-menu { text-transform: lowercase; }
 .manual-anchor,
 .reference-anchor { scroll-margin-top: 68px; }
-.manual-chapter-heading {
+.manual-chapter-heading,
+.reference-section-heading {
   position: absolute;
   width: 1px;
   height: 1px;

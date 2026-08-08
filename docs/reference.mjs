@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.36";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.37";
 
 const board = document.querySelector("#reference-board");
 const blocks = createBlocksSystem({
@@ -61,6 +61,7 @@ function createReferenceTable(headers, rows) {
 function createReferenceContent(entry) {
   const root = document.createElement("div");
   root.className = "reference-entry";
+  root.append(createTextElement("h2", entry.title, "reference-section-heading"));
   if (entry.intro) root.append(createTextElement("p", entry.intro, "reference-intro"));
   if (entry.eyebrow) root.append(createTextElement("small", entry.eyebrow));
   if (entry.statement) root.append(createTextElement("strong", entry.statement));
