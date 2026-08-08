@@ -43,43 +43,70 @@
         "});",
         "",
         "blocks.attach(\"#blocks-field\");",
-        "blocks.setGrid(6, 4);"
-      ]
-    },
-    "manual-finish": {
-      "title": "02 / add the block",
-      "intro": "Choose one content value, then pass it to blocks.add(). The three live blocks below show the accepted forms: trusted HTML, one DOM object and a factory that creates a fresh object.",
-      "code": [
-        "const trustedHtml = \"<strong>Hello.</strong>\";",
-        "",
-        "const object = document.createElement(\"img\");",
-        "object.src = \"./image.jpg\";",
-        "object.alt = \"Describe the image.\";",
-        "",
-        "const factory = () => document.createElement(\"button\");",
-        "",
-        "const block = blocks.add(trustedHtml, {",
-        "  id: \"block-html\",",
-        "  title: \"trusted html\"",
-        "});",
-        "blocks.add(object, { id: \"block-image\", title: \"object\" });",
-        "blocks.add(factory, { id: \"block-button\", title: \"factory\" });",
+        "blocks.setGrid(6, 4);",
         "</script>"
       ]
     },
+    "manual-finish": {
+      "title": "02 / content can be anything",
+      "intro": "A block can hold anything the browser can render. Choose one of three input forms: trusted HTML, an element object or a factory. Paste one focused example after setGrid() and before </script>.",
+      "examples": ["text", "image", "SVG", "canvas", "form", "audio", "video", "custom UI"]
+    },
+    "manual-content-html-code": {
+      "title": "02.1 / trusted HTML",
+      "intro": "Use a string only for markup you trust. The string becomes the block's HTML.",
+      "code": [
+        "const trustedHtml = \"<strong>Hello.</strong>\";",
+        "",
+        "blocks.add(trustedHtml, {",
+        "  id: \"block-html\",",
+        "  title: \"trusted HTML\"",
+        "});"
+      ]
+    },
     "manual-content-html": {
-      "title": "content / trusted html",
+      "title": "result / trusted HTML",
       "eyebrow": "01 / statement",
       "statement": "Structure makes movement visible.",
       "footer": "type · interval · contrast"
     },
+    "manual-content-object-code": {
+      "title": "02.2 / element object",
+      "intro": "Use a browser element for text, images, SVG, canvas, forms or media. For untrusted text, set textContent.",
+      "code": [
+        "const image = document.createElement(\"img\");",
+        "image.src = \"./image.jpg\";",
+        "image.alt = \"Describe the image.\";",
+        "",
+        "blocks.add(image, {",
+        "  id: \"block-image\",",
+        "  title: \"image\"",
+        "});"
+      ]
+    },
     "manual-content-object": {
-      "title": "content / object",
+      "title": "result / element object",
       "caption": "02 / direction",
       "alt": "Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail."
     },
+    "manual-content-factory-code": {
+      "title": "02.3 / factory",
+      "intro": "Use a function when every added block needs a fresh element and its own interaction.",
+      "code": [
+        "const factory = () => {",
+        "  const button = document.createElement(\"button\");",
+        "  button.textContent = \"next state\";",
+        "  return button;",
+        "};",
+        "",
+        "blocks.add(factory, {",
+        "  id: \"block-button\",",
+        "  title: \"interactive\"",
+        "});"
+      ]
+    },
     "manual-content-factory": {
-      "title": "content / factory",
+      "title": "result / factory",
       "eyebrow": "03 / live",
       "states": ["structure", "contrast", "rhythm", "space"],
       "action": "next state"
@@ -131,7 +158,7 @@
     },
     "manual-layout": {
       "title": "04 / layout and movement",
-      "intro": "Set size first, then position. Columns come before rows and coordinates start at 1. Read the current grid size through blocks.columns and blocks.rows. With snap and draggable on, drag the titlebar or focus it and use the arrow keys.",
+      "intro": "Set size first, then position. Columns come before rows and coordinates start at 1. Use the practice block below: drag its titlebar, or focus drag here and use the arrow keys. Watch the cell readout change.",
       "code": [
         "blocks.snap = true;",
         "blocks.draggable = true;",
@@ -140,10 +167,11 @@
       ]
     },
     "manual-layout-wide": {
-      "title": "placed / 4 × 2",
-      "eyebrow": "fixed on the grid",
-      "statement": "Four by two.",
-      "body": "block.span(4, 2) · block.place(1, 1)"
+      "title": "drag here",
+      "eyebrow": "try it / pointer or keyboard",
+      "statement": "Move this block.",
+      "body": "Grab the dotted titlebar, or focus it and press an arrow key.",
+      "statusLabel": "current position"
     },
     "manual-layout-small": {
       "title": "flow / 2 × 2",

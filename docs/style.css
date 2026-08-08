@@ -557,6 +557,50 @@ footer a { color: var(--ink); }
   line-height: 1.5;
 }
 
+.manual-content-overview {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
+  align-items: end;
+  gap: clamp(20px, 4vw, 64px);
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  padding: clamp(16px, 2vw, 28px);
+}
+
+.manual-content-overview-copy {
+  max-width: 44ch;
+  margin: 0;
+  font-size: clamp(0.9rem, 1.15vw, 1.08rem);
+  line-height: 1.5;
+}
+
+.manual-content-spectrum {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.manual-content-spectrum li {
+  padding: 7px 0 5px;
+  border-top: 1px solid currentColor;
+  font: 500 11px/1.2 "Consolas", "Courier New", monospace;
+  text-transform: uppercase;
+}
+
+.manual-content-code {
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: 0;
+}
+
+.manual-content-code .manual-explanation {
+  align-self: start;
+  max-width: none;
+}
+
 .manual-result {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto auto;
@@ -587,6 +631,35 @@ footer a { color: var(--ink); }
   margin: 0;
   font-size: 0.78rem;
   line-height: 1.45;
+}
+
+.manual-drag-demo .blocks-system-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.manual-drag-demo .blocks-system-title::after {
+  content: "";
+  flex: 1 1 48px;
+  border-top: 1px dashed currentColor;
+}
+
+.manual-drag-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  max-width: none !important;
+  padding-top: 7px;
+  border-top: 1px dashed currentColor;
+  font: 400 11px/1.25 "Consolas", "Courier New", monospace !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.manual-drag-status output {
+  font: inherit;
+  white-space: nowrap;
 }
 
 .manual-content-demo {
@@ -775,6 +848,7 @@ footer a { color: var(--ink); }
   .manual-board > .manual-third,
   .manual-board > .manual-sixth { --block-span-columns: 1 !important; }
   .manual-board > .manual-two-thirds { --block-span-columns: 2 !important; }
+  .manual-board > .manual-content-code-block { min-height: 320px; }
   .manual-code-block,
   .manual-full { grid-column: 1 / -1; }
   .manual-chapter-start { margin-top: 54px; }
@@ -793,6 +867,8 @@ footer a { color: var(--ink); }
     min-height: 240px;
   }
   .manual-board > .manual-code-block { min-height: 360px; }
+  .manual-content-overview { grid-template-columns: 1fr; align-items: start; }
+  .manual-content-spectrum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .manual-lesson-code { grid-template-columns: 1fr; }
   .manual-explanation { align-self: start; }
   .manual-content-html-demo,

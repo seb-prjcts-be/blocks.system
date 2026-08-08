@@ -554,8 +554,26 @@ async function measureManual(width, height, dpr = 1) {
           blockWidth: blockRect.width
         };
       });
+      const contentPairs = ["html", "object", "factory"].map(function (name) {
+        const codeBlock = board.querySelector('[data-block-object="manual-content-' + name + '-code"]');
+        const resultBlock = board.querySelector('[data-block-object="manual-content-' + name + '"]');
+        const codeRect = codeBlock.getBoundingClientRect();
+        const resultRect = resultBlock.getBoundingClientRect();
+        return {
+          name,
+          codeTop: codeRect.top,
+          resultTop: resultRect.top,
+          codeWidth: codeRect.width,
+          resultWidth: resultRect.width,
+          codeTitle: codeBlock.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent,
+          resultTitle: resultBlock.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent
+        };
+      });
       const startBlockRect = board.querySelector('[data-block-object="manual-start"]').getBoundingClientRect();
       const finishBlockRect = board.querySelector('[data-block-object="manual-finish"]').getBoundingClientRect();
+      const contentOverview = board.querySelector(".manual-content-overview");
+      const dragDemo = board.querySelector('[data-block-object="manual-layout-wide"]');
+      const dragHandle = dragDemo.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
       const trustedDemo = board.querySelector(".manual-content-html-demo");
       const imageDemo = board.querySelector(".manual-content-image-demo");
       const image = imageDemo.querySelector("img");
@@ -719,6 +737,16 @@ async function measureManual(width, height, dpr = 1) {
         finishBlockTop: finishBlockRect.top,
         finishBlockBottom: finishBlockRect.bottom,
         contentOptions,
+        contentPairs,
+        contentOverview: {
+          intro: contentOverview.querySelector("p").textContent,
+          examples: Array.from(contentOverview.querySelectorAll("li"), function (item) { return item.textContent; })
+        },
+        dragLesson: {
+          title: dragHandle.textContent,
+          guideLine: getComputedStyle(dragHandle, "::after").borderTopStyle,
+          status: dragDemo.querySelector(".manual-drag-status output").textContent
+        },
         contentExamples: {
           trusted: {
             tag: trustedDemo.tagName,
@@ -867,6 +895,7 @@ async function exerciseManualKeyboardReorder() {
         beforeRow,
         afterFirstRow,
         afterSecondRow: getComputedStyle(block).getPropertyValue("--block-row").trim(),
+        status: block.querySelector(".manual-drag-status output").textContent,
         focusAcquired,
         focusAfterFirstMove,
         events: reorderDetails.map(function (detail) {
@@ -1222,9 +1251,12 @@ try {
   for (const [width, height, , documentColumns] of manualViewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
-    assert.equal(manual.blockCount, 36, `manual mist een block uit de volledige beginnersroute op ${width}px @${dpr}x`);
+    assert.equal(manual.blockCount, 39, `manual mist een block uit de volledige beginnersroute op ${width}px @${dpr}x`);
     assert.deepEqual(manual.ids, [
-      "manual-eli10", "manual-start", "manual-finish", "manual-content-html", "manual-content-object", "manual-content-factory",
+      "manual-eli10", "manual-start", "manual-finish",
+      "manual-content-html-code", "manual-content-html",
+      "manual-content-object-code", "manual-content-object",
+      "manual-content-factory-code", "manual-content-factory",
       "manual-menu", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none", "manual-menu-title",
       "manual-layout", "manual-layout-wide", "manual-layout-small",
       "manual-compact",
@@ -1235,19 +1267,18 @@ try {
       "manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3", "manual-random-mix-4", "manual-next"
     ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.untitledIds, [
-      "manual-content-html", "manual-content-object", "manual-content-factory",
       "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none", "manual-menu-title",
-      "manual-layout-wide", "manual-layout-small",
+      "manual-layout-small",
       "manual-appearance-regular", "manual-appearance-inverse",
       "manual-color-cyan", "manual-color-magenta", "manual-color-yellow"
     ], `manual laat dubbele menuteksten niet weg op ${width}px @${dpr}x`);
     assert.equal(manual.menuTitles["manual-random-combined"], "color + inverse / 0.5 + 0.5", `het gecombineerde kansblock benoemt beide kansen niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.variants, [
-      ...Array(18).fill("regular"), "inverse",
+      ...Array(21).fill("regular"), "inverse",
       ...Array(6).fill("regular"), "color", "color", "regular", "inverse", "inverse", "regular", "color", "color", "inverse", "regular", "regular"
     ], `manual beperkt kleur en omkering niet tot de bedoelde resultaten op ${width}px @${dpr}x`);
     assert.deepEqual(manual.colors, [
-      ...Array(25).fill(null), "cyan", "magenta", null, null, null, null, "cyan", "yellow", null, null, null
+      ...Array(28).fill(null), "cyan", "magenta", null, null, null, null, "cyan", "yellow", null, null, null
     ], `manual bewaart de gekozen gebruikerskleuren niet afzonderlijk op ${width}px @${dpr}x`);
     assert.equal(manual.devicePixelRatio, dpr, `manual test niet werkelijk op DPR ${dpr}`);
     assert.equal(manual.columnCount, documentColumns, `manual gebruikt ${manual.columnCount} in plaats van ${documentColumns} kolommen op ${width}px`);
@@ -1263,7 +1294,7 @@ try {
     assert.equal(manual.lockedHandleState.role, "button", `manual kondigt de draghandle niet als bediening aan op ${width}px`);
     assert.match(manual.lockedHandleState.ariaLabel, /arrow keys/i, `manual legt de toetsenbordverplaatsing niet toegankelijk uit op ${width}px`);
     assert.equal(manual.lockedHandleState.shortcuts, "ArrowLeft ArrowUp ArrowRight ArrowDown", `manual publiceert de ondersteunde dragtoetsen niet op ${width}px`);
-    assert.equal(manual.menuActionCount, 68, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
+    assert.equal(manual.menuActionCount, 74, `manual toont niet de volledige menu-aan/uitreeks op ${width}px`);
     assert.match(manual.boardBackgroundImage, /linear-gradient/, `manual toont het tijdelijke achtergrondgrid niet op ${width}px`);
     assert.equal(manual.quantized, "true", `manual quantiseert het grid niet op ${width}px`);
     assert.ok(Number.isInteger(manual.trackWidth) && manual.trackWidth > 0, `manual gebruikt geen hele trackbreedte op ${width}px`);
@@ -1279,6 +1310,11 @@ try {
     assert.ok(manual.eli10.visual.height <= manual.eli10.visual.hostHeight + 1, `ELI10 loopt verticaal buiten zijn host op ${width}px`);
     assert.ok(manual.finishBlockTop > manual.startBlockBottom, `manual 02 staat niet onder 01 op ${width}px @${dpr}x`);
     assert.ok(manual.contentOptions.every(function (option) { return option.blockTop > manual.finishBlockBottom; }), `manual 02 staat niet boven alle drie contentvoorbeelden op ${width}px @${dpr}x`);
+    assert.deepEqual(manual.contentOverview.examples, ["text", "image", "SVG", "canvas", "form", "audio", "video", "custom UI"], `manual maakt de brede contentrange niet concreet op ${width}px`);
+    assert.match(manual.contentOverview.intro, /anything the browser can render/i, `manual legt de gemeenschappelijke contentregel niet uit op ${width}px`);
+    assert.equal(manual.dragLesson.title, "drag here", `de oefenheader benoemt het sleepgebied niet op ${width}px`);
+    assert.equal(manual.dragLesson.guideLine, "dashed", `de oefenheader mist zijn gestippelde draglijn op ${width}px`);
+    assert.equal(manual.dragLesson.status, "column 1 · row 30", `de dragoefening toont zijn startcel niet op ${width}px`);
     assert.equal(manual.eli10.border, "rgb(0, 0, 0)", `ELI10 gebruikt niet de standaard zwarte rand op ${width}px`);
     assert.equal(manual.eli10.menuBackground, "rgb(0, 0, 0)", `ELI10 gebruikt niet de standaard zwarte titelbalk op ${width}px`);
     assert.equal(manual.eli10.menuColor, "rgb(239, 238, 232)", `ELI10 gebruikt geen leesbare lichte inkt op de zwarte titelbalk op ${width}px`);
@@ -1291,6 +1327,8 @@ try {
       const firstContentTop = Math.min(...manual.contentOptions.map(function (option) { return option.blockTop; }));
       assert.ok(Math.abs(manual.finishBlockTop - manual.startBlockBottom - openRowInterval) <= 0.5, `manual laat boven 02 niet exact één open rasterrij op ${width}px @${dpr}x`);
       assert.ok(Math.abs(firstContentTop - manual.finishBlockBottom - manual.rowGap) <= 0.5, `de drie voorbeelden sluiten niet direct onder 02 aan op ${width}px @${dpr}x`);
+      assert.ok(manual.contentPairs.every(function (pair) { return Math.abs(pair.codeTop - pair.resultTop) <= 0.5; }), `elk contentcodeblok staat niet naast zijn resultaat op ${width}px`);
+      assert.ok(manual.contentPairs.every(function (pair) { return Math.abs(pair.codeWidth - pair.resultWidth) <= 0.5; }), `elk contentcodeblok en resultaat krijgen geen gelijke breedte op ${width}px`);
       const expectedEli10Width = manual.trackWidth * 3 + manual.columnGap * 2;
       assert.ok(Math.abs(manual.eli10.blockWidth - expectedEli10Width) <= 2, `de ELI10-visual gebruikt niet exact de linker drie kolommen op ${width}px`);
       assert.ok(manual.chapterGaps.every(function (item) { return item.marginTop === 0; }), `manual gebruikt nog marge binnen een desktop-gridcel op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
@@ -1328,10 +1366,7 @@ try {
     }, `manual start niet met een vers interactief factory-element op ${width}px`);
     assert.equal(manual.scrollbarWidth, "thin", `manual gebruikt geen dunne OS-scrollbar op ${width}px`);
     assert.match(manual.scrollbarColor, /rgba\(17, 17, 17, 0\.58\)/, `manual gebruikt geen neutrale scrollbar op ${width}px`);
-    if (width > 560) {
-      assert.ok(Math.max(...manual.contentOptions.map(function (item) { return item.blockTop; })) - Math.min(...manual.contentOptions.map(function (item) { return item.blockTop; })) <= 0.5, `manual zet de drie inhoudsvormen niet op één rij op ${width}px`);
-      assert.ok(Math.max(...manual.contentOptions.map(function (item) { return item.blockWidth; })) - Math.min(...manual.contentOptions.map(function (item) { return item.blockWidth; })) <= 0.5, `manual geeft de drie inhoudsvormen geen gelijke breedte op ${width}px`);
-    }
+    if (width <= 900) assert.ok(manual.contentPairs.every(function (pair) { return pair.resultTop > pair.codeTop; }), `responsive contentresultaten volgen hun eigen code niet op ${width}px`);
     assert.ok(manual.pageScrollable && manual.documentHeight > height, `manual gebruikt geen natuurlijke paginascroll op ${width}px`);
     assert.notEqual(manual.boardOverflowY, "scroll", `manual maakt het volledige board scrollbaar op ${width}px`);
     }
@@ -1345,9 +1380,10 @@ try {
   }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
 
   assert.deepEqual(await exerciseManualKeyboardReorder(), {
-    beforeRow: "27",
-    afterFirstRow: "28",
-    afterSecondRow: "29",
+    beforeRow: "30",
+    afterFirstRow: "31",
+    afterSecondRow: "32",
+    status: "column 1 · row 32",
     focusAcquired: true,
     focusAfterFirstMove: true,
     events: [
@@ -1363,12 +1399,12 @@ try {
   assert.deepEqual(mobileNavigation.outside, { open: false, expanded: "false", label: "open navigation" }, "een buitenklik sluit de mobiele navigatie niet");
   assert.deepEqual(mobileNavigation.beforeResize, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie staat niet open vóór de breakpointtest");
   assert.deepEqual(mobileNavigation.afterResize, { open: false, expanded: "false", label: "open navigation" }, "desktopresize ruimt de mobiele navigatiestate niet op");
-  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 36, 34, 34);
+  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 39, 37, 37);
   assert.deepEqual(await exerciseManualMenuLesson(), {
     minimized: { state: "true", hidden: "true" },
     restored: "false",
     closeRemoved: true,
-    remainingBlocks: 35
+    remainingBlocks: 38
   }, "de menu-aan/uitles moet de overblijvende actie echt uitvoerbaar houden");
 
   await navigateTo(`${pageUrl}docs/api.html`);
