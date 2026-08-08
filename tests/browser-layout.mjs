@@ -574,6 +574,20 @@ async function measureManual(width, height, dpr = 1) {
       const codeBlockWidths = Array.from(board.querySelectorAll(":scope > .manual-code-block"), function (block) {
         return { id: block.dataset.blockObject, width: block.getBoundingClientRect().width };
       });
+      const codeLessonLayouts = Array.from(board.querySelectorAll(".manual-lesson-code"), function (lesson) {
+        const lessonRect = lesson.getBoundingClientRect();
+        const explanation = lesson.querySelector(".manual-explanation");
+        const codeRect = lesson.querySelector(".manual-code").getBoundingClientRect();
+        return {
+          id: lesson.closest("[data-block-object]").dataset.blockObject,
+          lessonLeft: lessonRect.left,
+          lessonWidth: lessonRect.width,
+          explanationBottom: explanation ? explanation.getBoundingClientRect().bottom : null,
+          codeLeft: codeRect.left,
+          codeTop: codeRect.top,
+          codeWidth: codeRect.width
+        };
+      });
       const colorBlockStyles = ["manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random-color-50", "manual-random-color-100", "manual-random-mix-1", "manual-random-mix-2"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         const objectStyle = getComputedStyle(block);
@@ -686,6 +700,7 @@ async function measureManual(width, height, dpr = 1) {
         menuActionCount: board.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
         devicePixelRatio: window.devicePixelRatio,
         codeOverflow: getComputedStyle(code).overflowX,
+        codeLessonLayouts,
         scrollbarWidth: rootStyle.scrollbarWidth,
         scrollbarColor: rootStyle.scrollbarColor,
         boardWidth: boardRect.width,
@@ -1284,6 +1299,12 @@ try {
     assert.equal(manual.eli10.menuColor, "rgb(239, 238, 232)", `ELI10 gebruikt geen leesbare lichte inkt op de zwarte titelbalk op ${width}px`);
     assert.equal(manual.eli10.contentBackground, "rgb(239, 238, 232)", `ELI10 bewaart zijn neutrale inhoudsvlak niet op ${width}px`);
     assert.ok(manual.codeBlockWidths.every(function (item) { return Math.abs(item.width - manual.boardWidth) <= 2; }), `manual gebruikt niet de volledige boardbreedte voor lescode op ${width}px`);
+    assert.ok(manual.codeLessonLayouts.every(function (item) {
+      return Math.abs(item.codeLeft - item.lessonLeft) <= 1 && Math.abs(item.codeWidth - item.lessonWidth) <= 1;
+    }), `manual zet nog code naast een lege uitlegkolom op ${width}px: ${JSON.stringify(manual.codeLessonLayouts)}`);
+    assert.ok(manual.codeLessonLayouts.every(function (item) {
+      return item.explanationBottom === null || item.codeTop >= item.explanationBottom - 1;
+    }), `manual zet code niet onder zijn uitleg op ${width}px: ${JSON.stringify(manual.codeLessonLayouts)}`);
     assert.ok(manual.chapterGaps.every(function (item) { return item.gap >= 15; }), `manual geeft een hoofdstuk geen ademruimte op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
     assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - manual.mastheadGap) <= 0.5; }), `manual gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px: ${manual.mastheadGap}px versus ${JSON.stringify(manual.chapterGaps)}`);
     if (width > 900) {

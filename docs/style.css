@@ -542,14 +542,14 @@ footer a { color: var(--ink); }
 
 .manual-lesson-code {
   display: grid;
-  grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.3fr);
-  align-items: stretch;
-  gap: clamp(18px, 3vw, 56px);
+  grid-template-columns: 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0;
   padding: 0;
 }
 
 .manual-explanation {
-  align-self: end;
+  align-self: start;
   max-width: 42ch;
   margin: 0;
   font-size: clamp(0.85rem, 1.1vw, 1.05rem);
