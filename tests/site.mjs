@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { access, readFile, readdir } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { renderReferenceFallback } from "../tools/render-reference-fallback.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -11,6 +12,7 @@ const pages = [
   "docs/system.html",
   "docs/examples.html",
   "docs/api.html",
+  "docs/reference-fallback.html",
   "docs/guide.html",
   "docs/guide-blocks.html",
   "docs/guide-finish.html",
@@ -47,6 +49,7 @@ const readme = await read("README.md");
 const readmeNl = await read("README_NL.md");
 const packageData = JSON.parse(await read("package.json"));
 const docsContent = JSON.parse(await read("docs/content.json"));
+assert.equal(pageHtml["docs/reference-fallback.html"], renderReferenceFallback(docsContent), "the no-JavaScript reference must be generated from the canonical JSON content");
 const declarations = await read("blocks.system.d.ts");
 const librarySource = await read("blocks.system.mjs");
 const libraryCss = await read("blocks.system.css");
@@ -66,6 +69,7 @@ const siteDemoFiles = [
   "examples/custom-adapter/demo.mjs"
 ];
 const siteDemos = Object.fromEntries(await Promise.all(siteDemoFiles.map(async (file) => [file, await read(file)])));
+const referenceMatrixSource = await read("docs/reference-matrix.mjs");
 const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileTypes: true }))
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name)
@@ -146,7 +150,7 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
 const styleVersions = new Set(Object.entries(pageHtml)
   .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.18"], "one consumer stylesheet must use one cache version across all pages");
+assert.deepEqual([...styleVersions], ["0.2.20"], "one consumer stylesheet must use one cache version across all pages");
 const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
 assert.match(examplesCss, /var\(--docs-field\)/, "example pages must use the shared docs field token");
 assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
@@ -187,11 +191,12 @@ assert.deepEqual(Object.keys(docsContent), ["schema", "home", "manual", "referen
 const sectionModules = { home: "docs/home.mjs", manual: "docs/manual.mjs", reference: "docs/reference.mjs" };
 for (const [sectionName, moduleName] of Object.entries(sectionModules)) {
   const section = docsContent[sectionName];
+  const source = sectionName === "reference" ? `${siteDemos[moduleName]}\n${referenceMatrixSource}` : siteDemos[moduleName];
   assert.match(siteDemos[moduleName], new RegExp(`loadDocsContent\\("${sectionName}"`), `${moduleName} must load canonical ${sectionName} content`);
   for (const [id, block] of Object.entries(section)) {
     assert.equal(typeof block.title, "string", `${sectionName}.${id} needs a visible title`);
     assert.ok(block.title.length > 0, `${sectionName}.${id} title must not be empty`);
-    assert.ok(siteDemos[moduleName].includes(`"${id}"`), `${moduleName} misses content block ${id}`);
+    assert.ok(source.includes(`"${id}"`), `${moduleName} misses content block ${id}`);
   }
 }
 const docsContentKeys = new Set();
@@ -219,7 +224,7 @@ const manualCopy = JSON.stringify(docsContent.manual).toLowerCase();
 assert.doesNotMatch(manualCopy, /same object/, "manual copy must speak about the reader's content, not its own test fixture");
 assert.ok((manualCopy.match(/\byour\b/g) || []).length >= 15, "manual copy must repeatedly address the reader where appearance varies");
 for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
-  assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `reference misses #${anchor}`);
+  assert.ok(referenceMatrixSource.includes(`"${anchor}"`), `reference matrix misses #${anchor}`);
 }
 
 const serializedReference = JSON.stringify(docsContent.reference);

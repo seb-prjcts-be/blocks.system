@@ -67,6 +67,7 @@ const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "ut
 const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0";
 const declarations = await readFile(resolve(root, "blocks.system.d.ts"), "utf8");
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
+const referenceMatrix = await readFile(resolve(root, "docs", "reference-matrix.mjs"), "utf8");
 const eli10Schema = await readFile(resolve(root, "docs", "eli10-schema.mjs"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
 const librarySource = await readFile(resolve(root, "blocks.system.mjs"), "utf8");
@@ -124,14 +125,14 @@ const navigationPages = [
 ];
 
 const canonicalStylesheets = [
-  ["home", homeHtml, ["blocks.system.css?v=0.1.13", "docs/style.css?v=0.2.18"]],
-  ["manual", manualHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.18"]],
-  ["reference", apiHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.18"]],
-  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.13", "../docs/style.css?v=0.2.18"]],
+  ["home", homeHtml, ["blocks.system.css?v=0.1.13", "docs/style.css?v=0.2.20"]],
+  ["manual", manualHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.20"]],
+  ["reference", apiHtml, ["../blocks.system.css?v=0.1.13", "style.css?v=0.2.20"]],
+  ["examples index", exampleIndexHtml, ["../blocks.system.css?v=0.1.13", "../docs/style.css?v=0.2.20"]],
   ...Object.entries(standaloneExamples).map(([name, html]) => [
     `example ${name}`,
     html,
-    ["../../blocks.system.css?v=0.1.13", "../../docs/style.css?v=0.2.18"]
+    ["../../blocks.system.css?v=0.1.13", "../../docs/style.css?v=0.2.20"]
   ])
 ];
 for (const [page, html, expected] of canonicalStylesheets) {
@@ -391,7 +392,7 @@ assert.doesNotMatch(libraryCss, /\.manual-/, "the reusable library stylesheet mu
 
 assert.match(apiHtml, /<body class="docs-page reference-page">/, "the API route must use the shared docs shell and reference surface");
 assert.match(apiHtml, /home[\s\S]*manual[\s\S]*reference[\s\S]*source/, "the reference must use the four-item shared navigation");
-assert.match(apiHtml, /class="reference-index"[\s\S]*#exports[\s\S]*#options[\s\S]*#system-state[\s\S]*#system-methods[\s\S]*#block-controller[\s\S]*#adapters[\s\S]*#reorder-event[\s\S]*#css-hooks[\s\S]*#errors/, "the reference masthead must expose a complete lookup index");
+assert.match(apiHtml, /class="reference-map-grid"[\s\S]*#exports[\s\S]*#add-options[\s\S]*#adapters[\s\S]*#system-state[\s\S]*#block-controller[\s\S]*#system-methods[\s\S]*#block-methods[\s\S]*#adapter-methods[\s\S]*#errors[\s\S]*#reorder-event/, "the reference masthead must expose the complete matrix map in reading order");
 assert.equal(docsContent.schema, "blocks.system/docs-content@2", "docs content must publish its supported schema");
 assert.deepEqual(Object.keys(docsContent), ["schema", "home", "manual", "reference"], "docs content must expose only the three canonical block sections");
 assert.deepEqual(Object.keys(docsContent.home), ["home-title", "home-photo", "home-intro"], "home content must own title, photograph and action in canonical reading order");
@@ -451,33 +452,33 @@ assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="styleshee
 assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${mainCdnBase}/blocks.system.mjs";`), "the manual must import the tagged ESM module from jsDelivr");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner-facing manual copy must say object instead of node");
 const referenceOrder = [
-  "reference-exports",
-  "reference-options",
-  "reference-state",
-  "reference-methods",
-  "reference-add-options",
-  "reference-block",
-  "reference-adapters",
-  "reference-event",
-  "reference-hooks",
-  "reference-errors"
+  "reference-system-create",
+  "reference-system-state",
+  "reference-system-methods",
+  "reference-system-errors",
+  "reference-block-options",
+  "reference-block-properties",
+  "reference-block-methods",
+  "reference-definition-create",
+  "reference-adapter-methods",
+  "reference-field-signals"
 ];
 assert.deepEqual(Object.keys(docsContent.reference), referenceOrder, "the reference content must own the complete lookup sequence in reading order");
 assert.deepEqual(
   referenceOrder.map((id) => docsContent.reference[id].title),
   [
-    "01 / module",
-    "02 / BlocksSystem options",
-    "03 / BlocksSystem state",
-    "04 / BlocksSystem methods",
-    "05 / add() options",
-    "06 / BlockController",
-    "07 / BlockDefinition + BlockAdapter",
-    "08 / events",
-    "09 / CSS hooks",
-    "10 / errors and boundaries"
+    "A1 / blocks / create + options",
+    "A2 / blocks / state + properties",
+    "A3 / blocks / methods",
+    "A4 / blocks / failures",
+    "B1 / block / create + options",
+    "B2 / block / properties",
+    "B3 / block / methods",
+    "C1 / definition + adapter / create + options",
+    "C3 / definition + adapter / methods",
+    "D4 / field + DOM / reactions + boundaries"
   ],
-  "the reference must group its public contracts by module and API object"
+  "the reference must group every contract by one matrix object and one matrix aspect"
 );
 const docsContentKeys = new Set();
 JSON.stringify(docsContent, function (key, value) {
@@ -497,7 +498,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.31", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.32", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
@@ -505,36 +506,42 @@ const serializedReferenceContent = JSON.stringify(docsContent.reference);
 assert.doesNotMatch(siteDemos["docs/reference.mjs"], /Create an independent system|stable detail: id, input, mode/, "the reference module must not duplicate extracted prose");
 assert.equal((siteDemos["docs/reference.mjs"].match(/const blocks = createBlocksSystem\(/g) || []).length, 1, "the reference must use one shared blocks system");
 assert.match(siteDemos["docs/reference.mjs"], /draggable:\s*false/, "the lookup reference must configure its canonical reading order at creation");
-assert.match(siteDemos["docs/reference.mjs"], /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the reference must expose both block actions");
+assert.match(siteDemos["docs/reference.mjs"], /setGrid\(5, 15\)/, "the reference must reserve one axis column plus four semantic object columns");
+assert.match(siteDemos["docs/reference.mjs"], /colorArray:\s*REFERENCE_COLUMNS\.map\(\(column\) => column\.color\)/, "the reference must use one consumer-owned color per semantic column");
+assert.match(siteDemos["docs/reference.mjs"], /block\.minimized\s*=\s*!showAll\s*&&\s*definition\.column\s*!==\s*columnKey/, "a column focus action must minimize the other object columns through the public controller");
+assert.match(siteDemos["docs/reference.mjs"], /menu:\s*\{\s*minimize:\s*true,\s*close:\s*false\s*\}/, "reference content must dogfood minimize without allowing its contracts to be deleted");
 assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the reference must use the shared whole-pixel geometry");
 assert.match(siteDemos["docs/reference.mjs"], /root\.append\(createTextElement\("h2", entry\.title, "reference-section-heading"\)\);/, "the reference must expose every JSON-owned object group as a real semantic chapter heading");
 assert.match(siteCss, /\.manual-chapter-heading,\s*\.reference-section-heading\s*\{[^}]*clip-path:\s*inset\(50%\)/s, "manual and reference chapter headings must use the same visually quiet accessible pattern");
-assert.match(apiHtml, /reference\.mjs\?v=0\.1\.22/, "the changed reference module must use a new cache version");
-const referenceIndex = [
-  ["exports", "module"],
-  ["options", "BlocksSystem options"],
-  ["system-state", "BlocksSystem state"],
-  ["system-methods", "BlocksSystem methods"],
-  ["add-options", "add() options"],
-  ["block-controller", "BlockController"],
-  ["adapters", "BlockDefinition + BlockAdapter"],
-  ["reorder-event", "reorder event"],
-  ["css-hooks", "CSS hooks"],
-  ["errors", "errors"]
+assert.match(apiHtml, /reference\.mjs\?v=0\.1\.25/, "the changed reference module must use a new cache version");
+assert.match(apiHtml, /<p>columns are objects, rows are aspects — this page is itself a blocks field\.<\/p>/, "the reference must explain how to read its own matrix");
+assert.match(apiHtml, /<section class="reference-map" aria-label="reference matrix">/, "the linear reference index must become a labelled matrix map");
+assert.match(apiHtml, /<noscript>[\s\S]*reference-fallback\.html[\s\S]*<\/noscript>/, "the reference must expose its linear fallback without JavaScript");
+const referenceMap = [
+  ["blocks", "create-options", "exports"],
+  ["block", "create-options", "add-options"],
+  ["definition-adapter", "create-options", "adapters"],
+  ["blocks", "state-properties", "system-state"],
+  ["block", "state-properties", "block-controller"],
+  ["blocks", "methods", "system-methods"],
+  ["block", "methods", "block-methods"],
+  ["definition-adapter", "methods", "adapter-methods"],
+  ["blocks", "reactions-failures", "errors"],
+  ["field-dom", "reactions-failures", "reorder-event"]
 ];
-const referenceAnchors = referenceIndex.map(([anchor]) => anchor);
+const referenceAnchors = referenceMap.map(([, , anchor]) => anchor);
 assert.deepEqual(
-  Array.from(siteDemos["docs/reference.mjs"].matchAll(/\{ id: "([^"]+)", anchor:/g), (match) => match[1]),
+  Array.from(referenceMatrix.matchAll(/\{ id: "([^"]+)", anchor:/g), (match) => match[1]),
   referenceOrder,
-  "the reference composition must use the canonical reading order"
+  "the reference matrix must use the canonical column-by-column reading order"
 );
 assert.deepEqual(
-  Array.from(apiHtml.matchAll(/<li><a href="#([^"]+)">([^<]+)<\/a><\/li>/g), (match) => [match[1], match[2]]),
-  referenceIndex,
-  "the reference index must name and order the canonical API groups"
+  Array.from(apiHtml.matchAll(/<a class="reference-map-cell" data-reference-column="([^"]+)" data-reference-aspect="([^"]+)" href="#([^"]+)">/g), (match) => match.slice(1)),
+  referenceMap,
+  "the reference map must name every occupied object-by-aspect cell"
 );
 for (const anchor of referenceAnchors) {
-  assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);
+  assert.ok(referenceMatrix.includes(`anchor: "${anchor}"`), `the reference matrix misses #${anchor}`);
 }
 for (const apiName of ["createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "compact()", "columns", "rows", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation", "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)", "flow()", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)", "unmount(target)", "address(id)", "blocks:reorder", "blocks:change"]) {
   assert.ok(serializedReferenceContent.includes(apiName), `the reference content misses ${apiName}`);

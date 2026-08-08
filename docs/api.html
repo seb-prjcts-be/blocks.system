@@ -7,7 +7,7 @@
   <title>reference · blocks.system</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../blocks.system.css?v=0.1.13">
-  <link rel="stylesheet" href="style.css?v=0.2.18">
+  <link rel="stylesheet" href="style.css?v=0.2.20">
 </head>
 <body class="docs-page reference-page">
   <a class="skip-link" href="#main-content">skip to reference</a>
@@ -28,31 +28,67 @@
       <h1>reference.</h1>
       <div class="reference-introduction">
         <p>Use <code>blocks</code> for the shared system and <code>block</code> for one returned controller. Learn the sequence in the <a href="./">manual</a>; look up exact contracts here.</p>
-        <ol class="reference-index">
-          <li><a href="#exports">module</a></li>
-          <li><a href="#options">BlocksSystem options</a></li>
-          <li><a href="#system-state">BlocksSystem state</a></li>
-          <li><a href="#system-methods">BlocksSystem methods</a></li>
-          <li><a href="#add-options">add() options</a></li>
-          <li><a href="#block-controller">BlockController</a></li>
-          <li><a href="#adapters">BlockDefinition + BlockAdapter</a></li>
-          <li><a href="#reorder-event">reorder event</a></li>
-          <li><a href="#css-hooks">CSS hooks</a></li>
-          <li><a href="#errors">errors</a></li>
-        </ol>
+        <p>columns are objects, rows are aspects — this page is itself a blocks field.</p>
+        <section class="reference-map" aria-label="reference matrix">
+          <div class="reference-map-grid">
+            <span class="reference-map-corner" aria-hidden="true">aspect × object</span>
+            <span class="reference-map-column">A / blocks</span>
+            <span class="reference-map-column">B / block</span>
+            <span class="reference-map-column">C / definition + adapter</span>
+            <span class="reference-map-column">D / field + DOM</span>
+
+            <span class="reference-map-row">1 / create + options</span>
+            <a class="reference-map-cell" data-reference-column="blocks" data-reference-aspect="create-options" href="#exports">A1 / blocks</a>
+            <a class="reference-map-cell" data-reference-column="block" data-reference-aspect="create-options" href="#add-options">B1 / block</a>
+            <a class="reference-map-cell" data-reference-column="definition-adapter" data-reference-aspect="create-options" href="#adapters">C1 / definition + adapter</a>
+            <span class="reference-map-empty" aria-label="D1 field and DOM: no creation contract">—</span>
+
+            <span class="reference-map-row">2 / state + properties</span>
+            <a class="reference-map-cell" data-reference-column="blocks" data-reference-aspect="state-properties" href="#system-state">A2 / blocks</a>
+            <a class="reference-map-cell" data-reference-column="block" data-reference-aspect="state-properties" href="#block-controller">B2 / block</a>
+            <span class="reference-map-empty" aria-label="C2 definition and adapter: no state contract">—</span>
+            <span class="reference-map-empty" aria-label="D2 field and DOM: no state contract">—</span>
+
+            <span class="reference-map-row">3 / methods</span>
+            <a class="reference-map-cell" data-reference-column="blocks" data-reference-aspect="methods" href="#system-methods">A3 / blocks</a>
+            <a class="reference-map-cell" data-reference-column="block" data-reference-aspect="methods" href="#block-methods">B3 / block</a>
+            <a class="reference-map-cell" data-reference-column="definition-adapter" data-reference-aspect="methods" href="#adapter-methods">C3 / definition + adapter</a>
+            <span class="reference-map-empty" aria-label="D3 field and DOM: no direct method contract">—</span>
+
+            <span class="reference-map-row">4 / reactions + failures</span>
+            <a class="reference-map-cell" data-reference-column="blocks" data-reference-aspect="reactions-failures" href="#errors">A4 / blocks</a>
+            <span class="reference-map-empty" aria-label="B4 block: no direct event or failure contract">—</span>
+            <span class="reference-map-empty" aria-label="C4 definition and adapter: no direct event or failure contract">—</span>
+            <a class="reference-map-cell" data-reference-column="field-dom" data-reference-aspect="reactions-failures" href="#reorder-event">D4 / field + DOM</a>
+          </div>
+        </section>
+        <div id="reference-focus" class="reference-focus" role="group" aria-label="focus one reference column" hidden>
+          <span>focus</span>
+          <button type="button" data-reference-focus="blocks" aria-pressed="false">A / blocks</button>
+          <button type="button" data-reference-focus="block" aria-pressed="false">B / block</button>
+          <button type="button" data-reference-focus="definition-adapter" aria-pressed="false">C / definition + adapter</button>
+          <button type="button" data-reference-focus="field-dom" aria-pressed="false">D / field + DOM</button>
+          <button type="button" data-reference-focus="all" aria-pressed="true">show all</button>
+        </div>
       </div>
     </header>
 
     <section aria-label="blocks.system reference blocks">
       <div id="reference-board" class="docs-board reference-board" aria-label="complete API reference"></div>
     </section>
+    <noscript>
+      <section class="reference-nojs" aria-label="linear reference without JavaScript">
+        <h2>linear reference</h2>
+        <p>The matrix needs JavaScript. The same contracts remain available in a normal, column-by-column reading order in the <a href="reference-fallback.html">linear reference</a>.</p>
+      </section>
+    </noscript>
   </main>
 
   <footer class="reference-foot">
     <span>blocks.system · reference · v0.2.0 · released</span>
   </footer>
 
-  <script type="module" src="shell.mjs?v=0.1.37"></script>
-  <script type="module" src="reference.mjs?v=0.1.22"></script>
+  <script type="module" src="shell.mjs?v=0.1.39"></script>
+  <script type="module" src="reference.mjs?v=0.1.25"></script>
 </body>
 </html>

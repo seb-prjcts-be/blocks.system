@@ -958,15 +958,46 @@ async function measureReference(width, height, dpr = 1) {
       window.scrollTo(0, 0);
       const board = document.querySelector("#reference-board");
       const boardRect = board.getBoundingClientRect();
-      const mastheadRect = document.querySelector(".reference-masthead").getBoundingClientRect();
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
-      const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu > .blocks-system-title");
-      const firstTable = board.querySelector(".reference-table");
+      const contentObjects = objects.filter(function (block) { return block.classList.contains("reference-cell"); });
+      const axisObjects = objects.filter(function (block) { return block.classList.contains("reference-axis-block"); });
+      const firstHandle = contentObjects[0].querySelector(":scope > .blocks-system-menu > .blocks-system-title");
+      const firstTable = contentObjects[0].querySelector(".reference-table");
       const firstTableRow = firstTable.querySelector("tbody tr");
       const firstPurpose = firstTableRow.querySelector("td:last-child");
+      const matrixLayout = function (block) {
+        const style = getComputedStyle(block);
+        return {
+          id: block.dataset.blockObject,
+          column: block.dataset.referenceColumn || null,
+          aspect: block.dataset.referenceAspect || null,
+          gridColumn: style.getPropertyValue("--block-column").trim(),
+          gridRow: style.getPropertyValue("--block-row").trim(),
+          spanColumns: style.getPropertyValue("--block-span-columns").trim(),
+          spanRows: style.getPropertyValue("--block-span-rows").trim(),
+          variant: block.dataset.blockVariant,
+          color: block.dataset.blockColor || null
+        };
+      };
       return {
         blockCount: objects.length,
-        ids: objects.map(function (block) { return block.dataset.blockObject; }),
+        contentBlockCount: contentObjects.length,
+        axisBlockCount: axisObjects.length,
+        ids: contentObjects.map(function (block) { return block.dataset.blockObject; }),
+        matrix: contentObjects.map(matrixLayout),
+        axes: axisObjects.map(matrixLayout),
+        mapCells: Array.from(document.querySelectorAll(".reference-map-cell")).map(function (cell) {
+          const target = document.querySelector(cell.getAttribute("href"));
+          return {
+            column: cell.dataset.referenceColumn,
+            aspect: cell.dataset.referenceAspect,
+            target: cell.getAttribute("href").slice(1),
+            targetColumn: target?.dataset.referenceColumn || null,
+            targetAspect: target?.dataset.referenceAspect || null,
+            targetGridColumn: target ? getComputedStyle(target).getPropertyValue("--block-column").trim() : null,
+            targetGridRow: target ? getComputedStyle(target).getPropertyValue("--block-row").trim() : null
+          };
+        }),
         columnCount: getComputedStyle(board).gridTemplateColumns.split(" ").length,
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         pageScrollable: document.documentElement.scrollHeight > document.documentElement.clientHeight,
@@ -977,16 +1008,17 @@ async function measureReference(width, height, dpr = 1) {
         devicePixelRatio: window.devicePixelRatio,
         nestedSurfaces: board.querySelectorAll(".blocks-system-surface").length,
         menuActionCount: board.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
-        mastheadGap: boardRect.top - mastheadRect.bottom,
-        chapterGaps: objects.slice(1).map(function (block, index) {
-          return block.getBoundingClientRect().top - objects[index].getBoundingClientRect().bottom;
-        }),
+        axisMenuCount: axisObjects.reduce(function (count, block) {
+          return count + block.querySelectorAll(".blocks-system-menu").length;
+        }, 0),
         outsideBoard: objects.filter(function (block) {
           const rect = block.getBoundingClientRect();
+          if (rect.width === 0 && rect.height === 0) return false;
           return rect.left < boardRect.left - 0.5 || rect.right > boardRect.right + 0.5;
         }).map(function (block) { return block.dataset.blockObject; }),
         nonIntegerHorizontalGeometry: objects.filter(function (block) {
           const rect = block.getBoundingClientRect();
+          if (rect.width === 0 && rect.height === 0) return false;
           return [rect.left - boardRect.left, rect.right - boardRect.left, rect.width].some(function (value) {
             return Math.abs(value - Math.round(value)) > 0.01;
           });
@@ -1004,10 +1036,7 @@ async function measureReference(width, height, dpr = 1) {
           .map(function (node) { return getComputedStyle(node).overflow; }),
         localOverflowModes: Array.from(board.querySelectorAll(".reference-code"))
           .map(function (node) { return getComputedStyle(node).overflow; }),
-        fullWidthDifferences: objects.map(function (block) {
-          const style = getComputedStyle(board);
-          return Math.abs(block.getBoundingClientRect().width - (boardRect.width - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight)));
-        }),
+        focusHidden: document.querySelector("#reference-focus")?.hidden,
         table: {
           fontSize: getComputedStyle(firstTable).fontSize,
           rowDisplay: getComputedStyle(firstTableRow).display,
@@ -1019,6 +1048,72 @@ async function measureReference(width, height, dpr = 1) {
     returnByValue: true
   });
   return result.result.value;
+}
+
+async function exerciseReferenceFocus() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      const board = document.querySelector("#reference-board");
+      const objectStates = function () {
+        return Array.from(board.querySelectorAll(":scope > .reference-cell"), function (block) {
+          return { id: block.dataset.blockObject, column: block.dataset.referenceColumn, minimized: block.dataset.blockMinimized };
+        });
+      };
+      document.querySelector('[data-reference-focus="blocks"]').click();
+      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      const focused = {
+        boardFocus: board.dataset.referenceFocus,
+        objects: objectStates(),
+        pressed: Array.from(document.querySelectorAll("#reference-focus [data-reference-focus]"), function (control) {
+          return [control.dataset.referenceFocus, control.getAttribute("aria-pressed")];
+        })
+      };
+      document.querySelector('[data-reference-focus="all"]').click();
+      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      return {
+        focused,
+        restored: {
+          boardFocus: board.dataset.referenceFocus,
+          objects: objectStates(),
+          pressed: Array.from(document.querySelectorAll("#reference-focus [data-reference-focus]"), function (control) {
+            return [control.dataset.referenceFocus, control.getAttribute("aria-pressed")];
+          })
+        }
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function measureReferenceWithoutJavaScript() {
+  await protocol.send("Emulation.setScriptExecutionDisabled", { value: true });
+  try {
+    await navigateTo(`${pageUrl}docs/api.html`);
+    const entry = await protocol.send("Runtime.evaluate", {
+      expression: `(() => {
+        const fallback = document.querySelector(".reference-nojs");
+        return {
+          boardChildren: document.querySelector("#reference-board")?.children.length,
+          fallbackVisible: Boolean(fallback) && getComputedStyle(fallback).display !== "none",
+          fallbackHref: fallback?.querySelector("a")?.getAttribute("href") || null
+        };
+      })()`,
+      returnByValue: true
+    });
+    await navigateTo(`${pageUrl}docs/reference-fallback.html`);
+    const fallback = await protocol.send("Runtime.evaluate", {
+      expression: `(() => Array.from(document.querySelectorAll(".reference-fallback-entry"), function (entry) {
+        return { id: entry.id, title: entry.querySelector("h2")?.textContent };
+      }))()`,
+      returnByValue: true
+    });
+    return { entry: entry.result.value, fallback: fallback.result.value };
+  } finally {
+    await protocol.send("Emulation.setScriptExecutionDisabled", { value: false });
+    await navigateTo(`${pageUrl}docs/api.html`);
+  }
 }
 
 async function exerciseMobileNavigation() {
@@ -1451,15 +1546,60 @@ try {
 
   await navigateTo(`${pageUrl}docs/api.html`);
   assertMainNavigation(await measureMainNavigation(), "reference", "reference");
+  const referenceContentOrder = [
+    "reference-system-create", "reference-system-state", "reference-system-methods", "reference-system-errors",
+    "reference-block-options", "reference-block-properties", "reference-block-methods",
+    "reference-definition-create", "reference-adapter-methods", "reference-field-signals"
+  ];
+  const referenceMatrix = [
+    ["reference-system-create", "blocks", "create-options", "2", "2", "1", "3", "#d64f43"],
+    ["reference-system-state", "blocks", "state-properties", "2", "5", "1", "3", "#d64f43"],
+    ["reference-system-methods", "blocks", "methods", "2", "8", "1", "4", "#d64f43"],
+    ["reference-system-errors", "blocks", "reactions-failures", "2", "12", "1", "4", "#d64f43"],
+    ["reference-block-options", "block", "create-options", "3", "2", "1", "3", "#1675bf"],
+    ["reference-block-properties", "block", "state-properties", "3", "5", "1", "3", "#1675bf"],
+    ["reference-block-methods", "block", "methods", "3", "8", "1", "4", "#1675bf"],
+    ["reference-definition-create", "definition-adapter", "create-options", "4", "2", "1", "3", "#7b4cbf"],
+    ["reference-adapter-methods", "definition-adapter", "methods", "4", "8", "1", "4", "#7b4cbf"],
+    ["reference-field-signals", "field-dom", "reactions-failures", "5", "12", "1", "4", "#008f6b"]
+  ].map(([id, column, aspect, gridColumn, gridRow, spanColumns, spanRows, color]) => ({
+    id, column, aspect, gridColumn, gridRow, spanColumns, spanRows, variant: "color", color
+  }));
+  const referenceAxes = [
+    ["reference-axis-corner", "1", "1", "1", "1"],
+    ["reference-axis-blocks", "2", "1", "1", "1"],
+    ["reference-axis-block", "3", "1", "1", "1"],
+    ["reference-axis-definition-adapter", "4", "1", "1", "1"],
+    ["reference-axis-field-dom", "5", "1", "1", "1"],
+    ["reference-axis-create-options", "1", "2", "1", "3"],
+    ["reference-axis-state-properties", "1", "5", "1", "3"],
+    ["reference-axis-methods", "1", "8", "1", "4"],
+    ["reference-axis-reactions-failures", "1", "12", "1", "4"]
+  ].map(([id, gridColumn, gridRow, spanColumns, spanRows]) => ({
+    id, column: null, aspect: null, gridColumn, gridRow, spanColumns, spanRows, variant: "regular", color: null
+  }));
+  const referenceMap = [
+    ["blocks", "create-options", "exports", "2", "2"],
+    ["block", "create-options", "add-options", "3", "2"],
+    ["definition-adapter", "create-options", "adapters", "4", "2"],
+    ["blocks", "state-properties", "system-state", "2", "5"],
+    ["block", "state-properties", "block-controller", "3", "5"],
+    ["blocks", "methods", "system-methods", "2", "8"],
+    ["block", "methods", "block-methods", "3", "8"],
+    ["definition-adapter", "methods", "adapter-methods", "4", "8"],
+    ["blocks", "reactions-failures", "errors", "2", "12"],
+    ["field-dom", "reactions-failures", "reorder-event", "5", "12"]
+  ].map(([column, aspect, target, targetGridColumn, targetGridRow]) => ({
+    column, aspect, target, targetColumn: column, targetAspect: aspect, targetGridColumn, targetGridRow
+  }));
   for (const [width, height, , documentColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
       const reference = await measureReference(width, height, dpr);
-      assert.equal(reference.blockCount, 10, `reference mist opzoekhoofdstukken op ${width}px @${dpr}x`);
-      assert.deepEqual(reference.ids, [
-        "reference-exports", "reference-options", "reference-state", "reference-methods", "reference-add-options",
-        "reference-block", "reference-adapters", "reference-event", "reference-hooks", "reference-errors"
-      ], `reference bewaart zijn volledige opzoekvolgorde niet op ${width}px @${dpr}x`);
-      assert.equal(reference.columnCount, documentColumns, `reference gebruikt ${reference.columnCount} in plaats van ${documentColumns} kolommen op ${width}px @${dpr}x`);
+      assert.equal(reference.blockCount, 19, `reference mist matrixblokken op ${width}px @${dpr}x`);
+      assert.equal(reference.contentBlockCount, 10, `reference mist inhoudsvakken op ${width}px @${dpr}x`);
+      assert.equal(reference.axisBlockCount, 9, `reference mist vaste matrixassen op ${width}px @${dpr}x`);
+      assert.deepEqual(reference.ids, referenceContentOrder, `reference bewaart geen normale kolom-per-kolom leesvolgorde op ${width}px @${dpr}x`);
+      assert.equal(reference.columnCount, width > 1100 ? 5 : 1, `reference gebruikt ${reference.columnCount} in plaats van de juiste matrix- of leeskolommen op ${width}px @${dpr}x`);
       assert.equal(reference.devicePixelRatio, dpr, `reference test niet werkelijk op DPR ${dpr}`);
       assert.ok(reference.horizontalOverflow <= 0.5, `reference heeft ${reference.horizontalOverflow}px horizontale overflow op ${width}px @${dpr}x`);
       assert.match(reference.boardBackgroundImage, /linear-gradient/, `reference toont het tijdelijke achtergrondgrid niet op ${width}px @${dpr}x`);
@@ -1467,14 +1607,19 @@ try {
       assert.ok(Number.isInteger(reference.trackWidth) && reference.trackWidth > 0, `reference gebruikt geen hele trackbreedte op ${width}px @${dpr}x`);
       assert.equal(reference.draggable, "false", `reference bewaart zijn leesvolgorde niet op ${width}px @${dpr}x`);
       assert.deepEqual(reference.lockedHandleState, { tabIndex: -1, role: null, ariaLabel: null, shortcuts: null }, `reference zet een niet-werkende verplaatsheader in de tabvolgorde op ${width}px @${dpr}x`);
-      assert.equal(reference.menuActionCount, 20, `reference toont niet op elk block minimaliseren en sluiten op ${width}px @${dpr}x`);
+      assert.equal(reference.menuActionCount, 10, `reference moet enkel zijn tien inhoudsvakken kunnen minimaliseren op ${width}px @${dpr}x`);
+      assert.equal(reference.axisMenuCount, 0, `reference-assen moeten vaste, niet-sluitbare labelblokken zijn op ${width}px @${dpr}x`);
+      assert.equal(reference.focusHidden, false, `reference toont de focusacties niet na JavaScript op ${width}px @${dpr}x`);
       assert.equal(reference.nestedSurfaces, 0, `reference bevat ${reference.nestedSurfaces} geneste grids op ${width}px @${dpr}x`);
-      assert.ok(reference.chapterGaps.every((gap) => Math.abs(gap - reference.mastheadGap) <= 0.5), `reference gebruikt na de masthead niet exact hetzelfde interval als tussen hoofdstukken op ${width}px @${dpr}x: ${reference.mastheadGap}px versus ${reference.chapterGaps.join(", ")}`);
       assert.deepEqual(reference.outsideBoard, [], `reference plaatst blocks buiten het board op ${width}px @${dpr}x: ${reference.outsideBoard.join(", ")}`);
       assert.deepEqual(reference.nonIntegerHorizontalGeometry, [], `reference laat fractionele geometrie achter op ${width}px @${dpr}x: ${reference.nonIntegerHorizontalGeometry.join(", ")}`);
       assert.deepEqual(reference.missingAnchors, [], `reference mist anchors op ${width}px @${dpr}x: ${reference.missingAnchors.join(", ")}`);
-      assert.ok(reference.fullWidthDifferences.every(function (difference) { return difference <= 2; }), `reference gebruikt niet voor elk hoofdstuk de volledige breedte op ${width}px @${dpr}x`);
       assert.ok(reference.localOverflowModes.every((mode) => mode === "auto"), `reference code gebruikt geen lokale overflow op ${width}px @${dpr}x`);
+      if (width > 1100) {
+        assert.deepEqual(reference.matrix, referenceMatrix, `reference moet ieder contractvak op zijn object × aspect-cel plaatsen op ${width}px @${dpr}x`);
+        assert.deepEqual(reference.axes, referenceAxes, `reference moet zijn kolom- en rijassen exact op de matrix plaatsen op ${width}px @${dpr}x`);
+        assert.deepEqual(reference.mapCells, referenceMap, `reference-minimap wijst niet naar de echte matrixcellen op ${width}px @${dpr}x`);
+      }
       if (width <= 560) {
         assert.ok(reference.tableOverflowModes.every((mode) => mode === "visible"), `reference laat gestapelde tabellen niet natuurlijk groeien op ${width}px @${dpr}x`);
         assert.equal(reference.table.rowDisplay, "grid", `reference stapelt tabelrijen niet op ${width}px @${dpr}x`);
@@ -1486,7 +1631,41 @@ try {
       assert.equal(reference.pageScrollable, true, `reference gebruikt geen natuurlijke paginascroll op ${width}px @${dpr}x`);
     }
   }
-  assertBlockActions(await exerciseBlockActions("#reference-board"), "reference", 10);
+  assert.deepEqual(await exerciseReferenceFocus(), {
+    focused: {
+      boardFocus: "blocks",
+      objects: referenceContentOrder.map((id, index) => ({
+        id,
+        column: index < 4 ? "blocks" : index < 7 ? "block" : index < 9 ? "definition-adapter" : "field-dom",
+        minimized: index < 4 ? "false" : "true"
+      })),
+      pressed: [["blocks", "true"], ["block", "false"], ["definition-adapter", "false"], ["field-dom", "false"], ["all", "false"]]
+    },
+    restored: {
+      boardFocus: "all",
+      objects: referenceContentOrder.map((id, index) => ({
+        id,
+        column: index < 4 ? "blocks" : index < 7 ? "block" : index < 9 ? "definition-adapter" : "field-dom",
+        minimized: "false"
+      })),
+      pressed: [["blocks", "false"], ["block", "false"], ["definition-adapter", "false"], ["field-dom", "false"], ["all", "true"]]
+    }
+  }, "reference-kolomfocus minimaliseert de andere kolommen niet via blocks.system of herstelt ze niet");
+  assert.deepEqual(await measureReferenceWithoutJavaScript(), {
+    entry: { boardChildren: 0, fallbackVisible: true, fallbackHref: "reference-fallback.html" },
+    fallback: [
+      { id: "exports", title: "A1 / blocks / create + options" },
+      { id: "system-state", title: "A2 / blocks / state + properties" },
+      { id: "system-methods", title: "A3 / blocks / methods" },
+      { id: "errors", title: "A4 / blocks / failures" },
+      { id: "add-options", title: "B1 / block / create + options" },
+      { id: "block-controller", title: "B2 / block / properties" },
+      { id: "block-methods", title: "B3 / block / methods" },
+      { id: "adapters", title: "C1 / definition + adapter / create + options" },
+      { id: "adapter-methods", title: "C3 / definition + adapter / methods" },
+      { id: "reorder-event", title: "D4 / field + DOM / reactions + boundaries" }
+    ]
+  }, "reference houdt zonder JavaScript geen normale, volledige leesroute over");
 
   for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
     for (const [width, height] of [[1280, 900], [390, 844]]) {

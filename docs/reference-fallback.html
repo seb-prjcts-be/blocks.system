@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Linear blocks.system API reference without JavaScript.">
+  <title>linear reference · blocks.system</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../blocks.system.css?v=0.1.13">
+  <link rel="stylesheet" href="style.css?v=0.2.20">
+</head>
+<body class="docs-page reference-page reference-fallback-page">
+  <main class="reference-fallback-main">
+    <header class="reference-fallback-head">
+      <p>blocks.system / reference / no JavaScript</p>
+      <h1>linear reference.</h1>
+      <p>Columns are objects and rows are aspects in the enhanced page. This fallback keeps that same column-by-column reading order.</p>
+      <p><a href="api.html">open the matrix reference</a></p>
+    </header>
+<section id="exports" class="reference-fallback-entry" data-reference-column="blocks" data-reference-aspect="create-options">
+  <h2>A1 / blocks / create + options</h2><span id="options" class="reference-anchor-alias" aria-hidden="true"></span>
+  <p class="reference-intro">Import a factory for an independent system, or use the shared system export. All creation options are optional; their initial values follow.</p>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>member or option</th><th>returns or initial value</th><th>purpose</th></tr></thead><tbody><tr id="api-create"><td data-label="member or option">createBlocksSystem(options?)</td><td data-label="returns or initial value">BlocksSystem</td><td data-label="purpose">Create an independent blocks system.</td></tr>
+<tr id="api-system"><td data-label="member or option">system</td><td data-label="returns or initial value">BlocksSystem</td><td data-label="purpose">The shared module instance.</td></tr>
+<tr id="api-window"><td data-label="member or option">window.blocks.system</td><td data-label="returns or initial value">BlocksSystem</td><td data-label="purpose">The same shared instance exposed in a browser.</td></tr>
+<tr><td data-label="member or option">catalogUrl</td><td data-label="returns or initial value">null</td><td data-label="purpose">Base URL used by address().</td></tr>
+<tr><td data-label="member or option">random</td><td data-label="returns or initial value">Math.random</td><td data-label="purpose">Source used when variant is random.</td></tr>
+<tr><td data-label="member or option">snap</td><td data-label="returns or initial value">false</td><td data-label="purpose">Snap blocks to the configured grid.</td></tr>
+<tr><td data-label="member or option">draggable</td><td data-label="returns or initial value">true</td><td data-label="purpose">Allow pointer and keyboard reordering.</td></tr>
+<tr><td data-label="member or option">font</td><td data-label="returns or initial value">null</td><td data-label="purpose">Optional font family and stylesheet URL.</td></tr>
+<tr><td data-label="member or option">labels</td><td data-label="returns or initial value">document language</td><td data-label="purpose">Override accessible move, restore, minimize and close labels.</td></tr>
+<tr><td data-label="member or option">variant</td><td data-label="returns or initial value">random</td><td data-label="purpose">Appearance used for new blocks.</td></tr>
+<tr><td data-label="member or option">colorArray</td><td data-label="returns or initial value">[]</td><td data-label="purpose">User-owned CSS colors; defaults to empty.</td></tr>
+<tr><td data-label="member or option">colorVariation</td><td data-label="returns or initial value">0</td><td data-label="purpose">Share of random blocks that use colorArray.</td></tr>
+<tr><td data-label="member or option">inversionVariation</td><td data-label="returns or initial value">1 / 3</td><td data-label="purpose">Inverse share inside the remaining monochrome range.</td></tr>
+<tr><td data-label="member or option">blockDefaults</td><td data-label="returns or initial value">no menu</td><td data-label="purpose">Shared menu settings for new blocks.</td></tr>
+<tr><td data-label="member or option">blocks</td><td data-label="returns or initial value">[]</td><td data-label="purpose">Definitions registered during creation.</td></tr></tbody></table></div>
+</section>
+
+<section id="system-state" class="reference-fallback-entry" data-reference-column="blocks" data-reference-aspect="state-properties">
+  <h2>A2 / blocks / state + properties</h2>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>member</th><th>type</th><th>notes</th></tr></thead><tbody><tr><td data-label="member">columns</td><td data-label="type">readonly number</td><td data-label="notes">Current number of grid columns; starts at 1 and changes through setGrid().</td></tr>
+<tr><td data-label="member">rows</td><td data-label="type">readonly number</td><td data-label="notes">Current number of grid rows; starts at 1 and may also grow after dragging.</td></tr>
+<tr><td data-label="member">snap</td><td data-label="type">boolean</td><td data-label="notes">Readable and writable. Set snap true before relying on place(), span() or compact() for visual grid layout; snap false keeps blocks in flow layout.</td></tr>
+<tr><td data-label="member">draggable</td><td data-label="type">boolean</td><td data-label="notes">Readable and writable.</td></tr>
+<tr><td data-label="member">font</td><td data-label="type">object | null</td><td data-label="notes">Readable and writable.</td></tr>
+<tr><td data-label="member">variant</td><td data-label="type">string</td><td data-label="notes">Readable and writable; built-in variants are regular and inverse, plus random selection.</td></tr>
+<tr><td data-label="member">variants</td><td data-label="type">readonly string[]</td><td data-label="notes">The built-in list: regular and inverse.</td></tr>
+<tr><td data-label="member">colorArray</td><td data-label="type">readonly string[]</td><td data-label="notes">User-owned CSS colors for future random blocks.</td></tr>
+<tr><td data-label="member">colorVariation</td><td data-label="type">number</td><td data-label="notes">From 0 to 1; a positive value needs a non-empty colorArray.</td></tr>
+<tr><td data-label="member">inversionVariation</td><td data-label="type">number</td><td data-label="notes">From 0 to 1.</td></tr>
+<tr><td data-label="member">labels</td><td data-label="type">readonly object</td><td data-label="notes">Resolved accessible labels.</td></tr>
+<tr><td data-label="member">field</td><td data-label="type">Element | null</td><td data-label="notes">The currently attached field.</td></tr></tbody></table></div>
+</section>
+
+<section id="system-methods" class="reference-fallback-entry" data-reference-column="blocks" data-reference-aspect="methods">
+  <h2>A3 / blocks / methods</h2>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>method</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-attach"><td data-label="method">attach(target)</td><td data-label="returns">blocks</td><td data-label="purpose">Attach to a selector or Element.</td></tr>
+<tr id="api-set-grid"><td data-label="method">setGrid(columns, rows)</td><td data-label="returns">blocks</td><td data-label="purpose">Set positive whole grid dimensions.</td></tr>
+<tr id="api-compact"><td data-label="method">compact()</td><td data-label="returns">blocks</td><td data-label="purpose">Move fixed grid blocks upward to fill vertical gaps.</td></tr>
+<tr id="api-add"><td data-label="method">add(content, options?)</td><td data-label="returns">block</td><td data-label="purpose">Add trusted HTML, an element object or a content factory. Never pass untrusted text as HTML; create an element and set textContent.</td></tr>
+<tr id="api-address"><td data-label="method">address(id)</td><td data-label="returns">string</td><td data-label="purpose">Build a catalog URL ending in ?block=id.</td></tr></tbody></table></div>
+</section>
+
+<section id="errors" class="reference-fallback-entry" data-reference-column="blocks" data-reference-aspect="reactions-failures">
+  <h2>A4 / blocks / failures</h2>
+  <small>fail early</small>
+  <strong>Invalid input throws.</strong>
+  <p class="reference-details">Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from.</p>
+</section>
+
+<section id="add-options" class="reference-fallback-entry" data-reference-column="block" data-reference-aspect="create-options">
+  <h2>B1 / block / create + options</h2>
+  <p class="reference-intro">id identifies a block. title is only optional visible text in its menu bar.</p>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>option</th><th>type</th><th>purpose</th></tr></thead><tbody><tr><td data-label="option">id</td><td data-label="type">string</td><td data-label="purpose">Stable id; generated when omitted.</td></tr>
+<tr><td data-label="option">title</td><td data-label="type">string</td><td data-label="purpose">Optional visible menu text. When omitted, no id is shown; id remains the accessible fallback for menu actions.</td></tr>
+<tr><td data-label="option">menu</td><td data-label="type">boolean | object</td><td data-label="purpose">Enable, disable or configure a menu for this block.</td></tr>
+<tr><td data-label="option">variant</td><td data-label="type">string</td><td data-label="purpose">Override the system appearance for this block.</td></tr>
+<tr><td data-label="option">minimized</td><td data-label="type">boolean</td><td data-label="purpose">Initial minimized state.</td></tr>
+<tr><td data-label="option">menu.close</td><td data-label="type">boolean</td><td data-label="purpose">Show a remove button.</td></tr>
+<tr><td data-label="option">menu.minimize</td><td data-label="type">boolean</td><td data-label="purpose">Show a minimize and restore button.</td></tr></tbody></table></div>
+</section>
+
+<section id="block-controller" class="reference-fallback-entry" data-reference-column="block" data-reference-aspect="state-properties">
+  <h2>B2 / block / properties</h2>
+  <p class="reference-intro">add() returns one controller for one block.</p>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>member</th><th>type</th><th>purpose</th></tr></thead><tbody><tr><td data-label="member">id</td><td data-label="type">readonly string</td><td data-label="purpose">Stable lowercase kebab-case id.</td></tr>
+<tr><td data-label="member">element</td><td data-label="type">readonly HTMLElement</td><td data-label="purpose">The outer block element. Do not call element.remove(); use remove() so the system releases its layout.</td></tr>
+<tr><td data-label="member">content</td><td data-label="type">readonly HTMLDivElement</td><td data-label="purpose">The content host inside the block.</td></tr>
+<tr><td data-label="member">color</td><td data-label="type">string</td><td data-label="purpose">Read or set its CSS color.</td></tr>
+<tr><td data-label="member">variant</td><td data-label="type">string</td><td data-label="purpose">Read or set its resolved appearance.</td></tr>
+<tr><td data-label="member">minimized</td><td data-label="type">boolean</td><td data-label="purpose">Read or set its minimized state.</td></tr></tbody></table></div>
+</section>
+
+<section id="block-methods" class="reference-fallback-entry" data-reference-column="block" data-reference-aspect="methods">
+  <h2>B3 / block / methods</h2>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>method</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-menu"><td data-label="method">menu(name, options?)</td><td data-label="returns">block</td><td data-label="purpose">Add or update the title bar.</td></tr>
+<tr id="api-span"><td data-label="method">span(columns, rows)</td><td data-label="returns">block</td><td data-label="purpose">Set the size in whole grid units.</td></tr>
+<tr id="api-place"><td data-label="method">place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based grid coordinates.</td></tr>
+<tr id="api-flow"><td data-label="method">flow()</td><td data-label="returns">block</td><td data-label="purpose">Return to CSS automatic order.</td></tr>
+<tr><td data-label="method">remove()</td><td data-label="returns">true</td><td data-label="purpose">Remove the block and release its layout.</td></tr></tbody></table></div>
+</section>
+
+<section id="adapters" class="reference-fallback-entry" data-reference-column="definition-adapter" data-reference-aspect="create-options">
+  <h2>C1 / definition + adapter / create + options</h2>
+  <p class="reference-intro">Definitions describe reusable content. Register definitions and their lifecycle adapters on the shared system.</p>
+  <pre class="reference-code"><code>const definition = {
+  id: &quot;block-note&quot;,
+  adapter: &quot;note&quot;,
+  label: &quot;note&quot;,
+  medium: &quot;html&quot;,
+  category: &quot;text&quot;,
+  description: &quot;a small note&quot;,
+  defaults: { text: &quot;hello&quot; },
+  attributes: [],
+  requires: []
+};</code></pre>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>method</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-register"><td data-label="method">register(definition, options?)</td><td data-label="returns">blocks</td><td data-label="purpose">Register a reusable block definition.</td></tr>
+<tr id="api-register-adapter"><td data-label="method">registerAdapter(id, adapter, options?)</td><td data-label="returns">blocks</td><td data-label="purpose">Register a lifecycle adapter.</td></tr>
+<tr><td data-label="method">listAdapters()</td><td data-label="returns">string[]</td><td data-label="purpose">List registered adapter ids.</td></tr>
+<tr><td data-label="method">list(filters?)</td><td data-label="returns">definition[]</td><td data-label="purpose">Filter definitions by query, adapter, medium or category.</td></tr>
+<tr><td data-label="method">get(id)</td><td data-label="returns">definition | null</td><td data-label="purpose">Read one registered definition.</td></tr></tbody></table></div>
+</section>
+
+<section id="adapter-methods" class="reference-fallback-entry" data-reference-column="definition-adapter" data-reference-aspect="methods">
+  <h2>C3 / definition + adapter / methods</h2>
+  <p class="reference-intro">Adapters own mount and cleanup lifecycle; the system methods below use those lifecycle hooks for registered definitions.</p>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>member</th><th>returns or required</th><th>purpose</th></tr></thead><tbody><tr id="api-mount"><td data-label="member">mount(id, target, overrides?)</td><td data-label="returns or required">Promise&lt;Element&gt;</td><td data-label="purpose">Mount a registered definition through its adapter.</td></tr>
+<tr id="api-unmount"><td data-label="member">unmount(target)</td><td data-label="returns or required">boolean</td><td data-label="purpose">Run optional cleanup and remove mounted content.</td></tr>
+<tr><td data-label="member">remount(id, target, overrides?)</td><td data-label="returns or required">Promise&lt;Element&gt;</td><td data-label="purpose">Unmount and mount again with new settings.</td></tr>
+<tr><td data-label="member">snippet(id, overrides?)</td><td data-label="returns or required">string</td><td data-label="purpose">Ask the adapter for a reusable snippet.</td></tr>
+<tr><td data-label="member">mount(context)</td><td data-label="returns or required">yes</td><td data-label="purpose">Return an Element or { node }, directly or through a Promise.</td></tr>
+<tr><td data-label="member">ready(context)</td><td data-label="returns or required">no</td><td data-label="purpose">Prepare before mount.</td></tr>
+<tr><td data-label="member">unmount(mounted)</td><td data-label="returns or required">no</td><td data-label="purpose">Release listeners or resources.</td></tr>
+<tr><td data-label="member">snippet(context)</td><td data-label="returns or required">no</td><td data-label="purpose">Return reusable source text.</td></tr>
+<tr><td data-label="member">context</td><td data-label="returns or required">—</td><td data-label="purpose">Contains block, host, settings and adapter.</td></tr></tbody></table></div>
+</section>
+
+<section id="reorder-event" class="reference-fallback-entry" data-reference-column="field-dom" data-reference-aspect="reactions-failures">
+  <h2>D4 / field + DOM / reactions + boundaries</h2><span id="css-hooks" class="reference-anchor-alias" aria-hidden="true"></span>
+  <p class="reference-intro">The field dispatches blocks:reorder after pointer or keyboard reordering and blocks:change after explicit state changes.</p>
+  <pre class="reference-code"><code>field.addEventListener(&quot;blocks:reorder&quot;, (event) =&gt; {
+  const {
+    id, input, mode, key,
+    fromIndex, toIndex, from, to, direction
+  } = event.detail;
+});
+
+field.addEventListener(&quot;blocks:change&quot;, (event) =&gt; {
+  const { type, id, ids } = event.detail;
+});</code></pre>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>hook</th><th>purpose</th></tr></thead><tbody><tr><td data-label="hook">.blocks-system-surface</td><td data-label="purpose">The attached field and its layout tokens.</td></tr>
+<tr><td data-label="hook">.blocks-system-object</td><td data-label="purpose">One outer block.</td></tr>
+<tr><td data-label="hook">.blocks-system-menu</td><td data-label="purpose">Structural title bar and pointer drag area.</td></tr>
+<tr><td data-label="hook">.blocks-system-title</td><td data-label="purpose">Keyboard drag handle with button semantics while dragging is enabled.</td></tr>
+<tr><td data-label="hook">.blocks-system-content</td><td data-label="purpose">Content host.</td></tr>
+<tr><td data-label="hook">.blocks-system-drop-preview</td><td data-label="purpose">Pointer landing preview.</td></tr>
+<tr><td data-label="hook">[data-block-object]</td><td data-label="purpose">Stable block id.</td></tr>
+<tr><td data-label="hook">[data-block-variant]</td><td data-label="purpose">Resolved appearance.</td></tr>
+<tr><td data-label="hook">[data-block-color]</td><td data-label="purpose">Color selected from the user's array.</td></tr>
+<tr><td data-label="hook">[data-block-minimized]</td><td data-label="purpose">Minimized state.</td></tr>
+<tr><td data-label="hook">[data-draggable]</td><td data-label="purpose">Surface drag state.</td></tr></tbody></table></div>
+  <p class="reference-details">For blocks:reorder, input is pointer or keyboard, mode is grid or flow, and positions are { column, row } or null. For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks.</p>
+</section>
+  </main>
+</body>
+</html>

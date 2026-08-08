@@ -318,21 +318,14 @@
     }
   },
   "reference": {
-    "reference-exports": {
-      "title": "01 / module",
-      "intro": "Import a factory for an independent system, or use the shared system export.",
-      "headers": ["member", "returns", "purpose"],
+    "reference-system-create": {
+      "title": "A1 / blocks / create + options",
+      "intro": "Import a factory for an independent system, or use the shared system export. All creation options are optional; their initial values follow.",
+      "headers": ["member or option", "returns or initial value", "purpose"],
       "rows": [
         { "id": "api-create", "cells": ["createBlocksSystem(options?)", "BlocksSystem", "Create an independent blocks system."] },
         { "id": "api-system", "cells": ["system", "BlocksSystem", "The shared module instance."] },
-        { "id": "api-window", "cells": ["window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] }
-      ]
-    },
-    "reference-options": {
-      "title": "02 / BlocksSystem options",
-      "intro": "All creation options are optional. These are their initial values.",
-      "headers": ["option", "initial value", "purpose"],
-      "rows": [
+        { "id": "api-window", "cells": ["window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] },
         { "cells": ["catalogUrl", "null", "Base URL used by address()."] },
         { "cells": ["random", "Math.random", "Source used when variant is random."] },
         { "cells": ["snap", "false", "Snap blocks to the configured grid."] },
@@ -347,8 +340,8 @@
         { "cells": ["blocks", "[]", "Definitions registered during creation."] }
       ]
     },
-    "reference-state": {
-      "title": "03 / BlocksSystem state",
+    "reference-system-state": {
+      "title": "A2 / blocks / state + properties",
       "headers": ["member", "type", "notes"],
       "rows": [
         { "cells": ["columns", "readonly number", "Current number of grid columns; starts at 1 and changes through setGrid()."] },
@@ -365,28 +358,25 @@
         { "cells": ["field", "Element | null", "The currently attached field."] }
       ]
     },
-    "reference-methods": {
-      "title": "04 / BlocksSystem methods",
+    "reference-system-methods": {
+      "title": "A3 / blocks / methods",
       "headers": ["method", "returns", "purpose"],
       "rows": [
-        { "id": "api-register", "cells": ["register(definition, options?)", "blocks", "Register a reusable block definition."] },
-        { "id": "api-register-adapter", "cells": ["registerAdapter(id, adapter, options?)", "blocks", "Register a lifecycle adapter."] },
-        { "cells": ["listAdapters()", "string[]", "List registered adapter ids."] },
-        { "cells": ["list(filters?)", "definition[]", "Filter definitions by query, adapter, medium or category."] },
-        { "cells": ["get(id)", "definition | null", "Read one registered definition."] },
         { "id": "api-attach", "cells": ["attach(target)", "blocks", "Attach to a selector or Element."] },
         { "id": "api-set-grid", "cells": ["setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
         { "id": "api-compact", "cells": ["compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] },
         { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, an element object or a content factory. Never pass untrusted text as HTML; create an element and set textContent."] },
-        { "id": "api-mount", "cells": ["mount(id, target, overrides?)", "Promise<Element>", "Mount a registered definition through its adapter."] },
-        { "id": "api-unmount", "cells": ["unmount(target)", "boolean", "Run optional cleanup and remove mounted content."] },
-        { "cells": ["remount(id, target, overrides?)", "Promise<Element>", "Unmount and mount again with new settings."] },
-        { "cells": ["snippet(id, overrides?)", "string", "Ask the adapter for a reusable snippet."] },
         { "id": "api-address", "cells": ["address(id)", "string", "Build a catalog URL ending in ?block=id."] }
       ]
     },
-    "reference-add-options": {
-      "title": "05 / add() options",
+    "reference-system-errors": {
+      "title": "A4 / blocks / failures",
+      "eyebrow": "fail early",
+      "statement": "Invalid input throws.",
+      "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from."
+    },
+    "reference-block-options": {
+      "title": "B1 / block / create + options",
       "intro": "id identifies a block. title is only optional visible text in its menu bar.",
       "headers": ["option", "type", "purpose"],
       "rows": [
@@ -399,17 +389,23 @@
         { "cells": ["menu.minimize", "boolean", "Show a minimize and restore button."] }
       ]
     },
-    "reference-block": {
-      "title": "06 / BlockController",
+    "reference-block-properties": {
+      "title": "B2 / block / properties",
       "intro": "add() returns one controller for one block.",
-      "headers": ["member", "type or return", "purpose"],
+      "headers": ["member", "type", "purpose"],
       "rows": [
         { "cells": ["id", "readonly string", "Stable lowercase kebab-case id."] },
         { "cells": ["element", "readonly HTMLElement", "The outer block element. Do not call element.remove(); use remove() so the system releases its layout."] },
         { "cells": ["content", "readonly HTMLDivElement", "The content host inside the block."] },
         { "cells": ["color", "string", "Read or set its CSS color."] },
         { "cells": ["variant", "string", "Read or set its resolved appearance."] },
-        { "cells": ["minimized", "boolean", "Read or set its minimized state."] },
+        { "cells": ["minimized", "boolean", "Read or set its minimized state."] }
+      ]
+    },
+    "reference-block-methods": {
+      "title": "B3 / block / methods",
+      "headers": ["method", "returns", "purpose"],
+      "rows": [
         { "id": "api-menu", "cells": ["menu(name, options?)", "block", "Add or update the title bar."] },
         { "id": "api-span", "cells": ["span(columns, rows)", "block", "Set the size in whole grid units."] },
         { "id": "api-place", "cells": ["place(column, row)", "block", "Set one-based grid coordinates."] },
@@ -417,9 +413,9 @@
         { "cells": ["remove()", "true", "Remove the block and release its layout."] }
       ]
     },
-    "reference-adapters": {
-      "title": "07 / BlockDefinition + BlockAdapter",
-      "intro": "Definitions describe reusable content. Adapters own its mount and cleanup lifecycle.",
+    "reference-definition-create": {
+      "title": "C1 / definition + adapter / create + options",
+      "intro": "Definitions describe reusable content. Register definitions and their lifecycle adapters on the shared system.",
       "code": [
         "const definition = {",
         "  id: \"block-note\",",
@@ -433,8 +429,24 @@
         "  requires: []",
         "};"
       ],
-      "headers": ["adapter member", "required", "purpose"],
+      "headers": ["method", "returns", "purpose"],
       "rows": [
+        { "id": "api-register", "cells": ["register(definition, options?)", "blocks", "Register a reusable block definition."] },
+        { "id": "api-register-adapter", "cells": ["registerAdapter(id, adapter, options?)", "blocks", "Register a lifecycle adapter."] },
+        { "cells": ["listAdapters()", "string[]", "List registered adapter ids."] },
+        { "cells": ["list(filters?)", "definition[]", "Filter definitions by query, adapter, medium or category."] },
+        { "cells": ["get(id)", "definition | null", "Read one registered definition."] }
+      ]
+    },
+    "reference-adapter-methods": {
+      "title": "C3 / definition + adapter / methods",
+      "intro": "Adapters own mount and cleanup lifecycle; the system methods below use those lifecycle hooks for registered definitions.",
+      "headers": ["member", "returns or required", "purpose"],
+      "rows": [
+        { "id": "api-mount", "cells": ["mount(id, target, overrides?)", "Promise<Element>", "Mount a registered definition through its adapter."] },
+        { "id": "api-unmount", "cells": ["unmount(target)", "boolean", "Run optional cleanup and remove mounted content."] },
+        { "cells": ["remount(id, target, overrides?)", "Promise<Element>", "Unmount and mount again with new settings."] },
+        { "cells": ["snippet(id, overrides?)", "string", "Ask the adapter for a reusable snippet."] },
         { "cells": ["mount(context)", "yes", "Return an Element or { node }, directly or through a Promise."] },
         { "cells": ["ready(context)", "no", "Prepare before mount."] },
         { "cells": ["unmount(mounted)", "no", "Release listeners or resources."] },
@@ -442,8 +454,8 @@
         { "cells": ["context", "—", "Contains block, host, settings and adapter."] }
       ]
     },
-    "reference-event": {
-      "title": "08 / events",
+    "reference-field-signals": {
+      "title": "D4 / field + DOM / reactions + boundaries",
       "intro": "The field dispatches blocks:reorder after pointer or keyboard reordering and blocks:change after explicit state changes.",
       "code": [
         "field.addEventListener(\"blocks:reorder\", (event) => {",
@@ -457,10 +469,7 @@
         "  const { type, id, ids } = event.detail;",
         "});"
       ],
-      "details": "For blocks:reorder, input is pointer or keyboard, mode is grid or flow, and positions are { column, row } or null. For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks."
-    },
-    "reference-hooks": {
-      "title": "09 / CSS hooks",
+      "details": "For blocks:reorder, input is pointer or keyboard, mode is grid or flow, and positions are { column, row } or null. For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks.",
       "headers": ["hook", "purpose"],
       "rows": [
         { "cells": [".blocks-system-surface", "The attached field and its layout tokens."] },
@@ -475,12 +484,6 @@
         { "cells": ["[data-block-minimized]", "Minimized state."] },
         { "cells": ["[data-draggable]", "Surface drag state."] }
       ]
-    },
-    "reference-errors": {
-      "title": "10 / errors and boundaries",
-      "eyebrow": "fail early",
-      "statement": "Invalid input throws.",
-      "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from."
     }
   }
 }

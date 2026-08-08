@@ -1,32 +1,26 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.37";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.39";
+import { REFERENCE_ASPECTS, REFERENCE_AXIS_BLOCKS, REFERENCE_BLOCKS, REFERENCE_COLUMNS } from "./reference-matrix.mjs?v=0.1.0";
 
 const board = document.querySelector("#reference-board");
+let activeColorColumn = 0;
 const blocks = createBlocksSystem({
-  variant: "regular",
+  variant: "random",
   snap: true,
   draggable: false,
+  colorArray: REFERENCE_COLUMNS.map((column) => column.color),
+  colorVariation: 1,
+  inversionVariation: 0,
+  random: () => (activeColorColumn + 0.5) / REFERENCE_COLUMNS.length,
   blockDefaults: {
-    menu: { minimize: true, close: true }
+    menu: { minimize: true, close: false }
   }
 });
-
-const referenceBlocks = [
-  { id: "reference-exports", anchor: "exports", span: [6, 2], place: [1, 1] },
-  { id: "reference-options", anchor: "options", span: [6, 4], place: [1, 4] },
-  { id: "reference-state", anchor: "system-state", span: [6, 4], place: [1, 9] },
-  { id: "reference-methods", anchor: "system-methods", span: [6, 5], place: [1, 14] },
-  { id: "reference-add-options", anchor: "add-options", span: [6, 3], place: [1, 20] },
-  { id: "reference-block", anchor: "block-controller", span: [6, 5], place: [1, 24] },
-  { id: "reference-adapters", anchor: "adapters", span: [6, 5], place: [1, 30] },
-  { id: "reference-event", anchor: "reorder-event", span: [6, 4], place: [1, 36] },
-  { id: "reference-hooks", anchor: "css-hooks", span: [6, 4], place: [1, 41] },
-  { id: "reference-errors", anchor: "errors", span: [6, 2], place: [1, 46] }
-];
-const referenceContent = await loadDocsContent("reference", referenceBlocks.map(({ id }) => id));
+const referenceContent = await loadDocsContent("reference", REFERENCE_BLOCKS.map(({ id }) => id));
+const contentBlocks = new Map();
 
 blocks.attach(board);
-blocks.setGrid(6, 47);
+blocks.setGrid(5, 15);
 quantizeSurface(board);
 
 function createTextElement(name, text, className = "") {
@@ -58,10 +52,15 @@ function createReferenceTable(headers, rows) {
   return wrapper;
 }
 
-function createReferenceContent(entry) {
+function createReferenceContent(entry, aliases) {
   const root = document.createElement("div");
   root.className = "reference-entry";
   root.append(createTextElement("h2", entry.title, "reference-section-heading"));
+  for (const alias of aliases) {
+    const anchor = createTextElement("span", "", "reference-anchor-alias");
+    anchor.id = alias;
+    root.append(anchor);
+  }
   if (entry.intro) root.append(createTextElement("p", entry.intro, "reference-intro"));
   if (entry.eyebrow) root.append(createTextElement("small", entry.eyebrow));
   if (entry.statement) root.append(createTextElement("strong", entry.statement));
@@ -76,15 +75,64 @@ function createReferenceContent(entry) {
   return root;
 }
 
-function addReference({ id, anchor, span, place }) {
-  const entry = referenceContent[id];
-  const block = blocks.add(createReferenceContent(entry), { id, title: entry.title });
-  block.span(...span);
-  block.place(...place);
-  block.element.id = anchor;
-  block.element.classList.add("reference-anchor", "reference-full");
+function createAxisContent(definition) {
+  return createTextElement("span", definition.label, `reference-axis-label reference-axis-label-${definition.axis}`);
 }
 
-for (const definition of referenceBlocks) addReference(definition);
+function addReference(definition) {
+  const entry = referenceContent[definition.id];
+  const columnIndex = REFERENCE_COLUMNS.findIndex((column) => column.key === definition.column);
+  activeColorColumn = columnIndex;
+  const block = blocks.add(createReferenceContent(entry, definition.aliases), {
+    id: definition.id,
+    title: entry.title,
+    menu: { minimize: true, close: false }
+  });
+  block.span(...definition.span);
+  block.place(...definition.place);
+  block.element.id = definition.anchor;
+  block.element.classList.add("reference-anchor", "reference-cell");
+  block.element.dataset.referenceColumn = definition.column;
+  block.element.dataset.referenceAspect = definition.aspect;
+  contentBlocks.set(definition.id, block);
+}
 
+function addAxis(definition) {
+  const block = blocks.add(createAxisContent(definition), {
+    id: definition.id,
+    menu: false,
+    variant: "regular"
+  });
+  block.span(...definition.span);
+  block.place(...definition.place);
+  block.element.classList.add("reference-axis-block", `reference-axis-${definition.axis}`);
+  block.element.setAttribute("aria-hidden", "true");
+  if (definition.column) {
+    const column = REFERENCE_COLUMNS.find((candidate) => candidate.key === definition.column);
+    block.color = column.color;
+  }
+}
+
+function setFocusedColumn(columnKey) {
+  const showAll = columnKey === "all";
+  for (const definition of REFERENCE_BLOCKS) {
+    const block = contentBlocks.get(definition.id);
+    block.minimized = !showAll && definition.column !== columnKey;
+    block.element.toggleAttribute("data-reference-focused", !showAll && definition.column === columnKey);
+  }
+  for (const control of document.querySelectorAll("#reference-focus [data-reference-focus]")) {
+    control.setAttribute("aria-pressed", String(control.dataset.referenceFocus === columnKey));
+  }
+  board.dataset.referenceFocus = columnKey;
+}
+
+for (const definition of REFERENCE_BLOCKS) addReference(definition);
+for (const definition of REFERENCE_AXIS_BLOCKS) addAxis(definition);
+
+for (const control of document.querySelectorAll("#reference-focus [data-reference-focus]")) {
+  control.addEventListener("click", () => setFocusedColumn(control.dataset.referenceFocus));
+}
+document.querySelector("#reference-focus")?.removeAttribute("hidden");
+board.dataset.referenceColumns = REFERENCE_COLUMNS.map((column) => column.key).join(",");
+board.dataset.referenceAspects = REFERENCE_ASPECTS.map((aspect) => aspect.key).join(",");
 board.dataset.referenceReady = "true";
