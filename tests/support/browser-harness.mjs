@@ -27,8 +27,7 @@ function mimeType(path) {
     ".html": "text/html; charset=utf-8",
     ".js": "text/javascript; charset=utf-8",
     ".json": "application/json; charset=utf-8",
-    ".mjs": "text/javascript; charset=utf-8",
-    ".svg": "image/svg+xml"
+    ".mjs": "text/javascript; charset=utf-8"
   })[extname(path)] || "application/octet-stream";
 }
 

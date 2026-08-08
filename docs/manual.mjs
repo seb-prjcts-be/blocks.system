@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.34";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.33";
 
 const board = document.querySelector("#manual-board");
 const manualVariationSamples = [0.05, 0.1, 0.6, 0.05, 0.8, 0.6, 0.05, 0.4, 0.8, 0.6];
@@ -16,6 +16,7 @@ const blocks = createBlocksSystem({
 
 const manualIds = [
   "manual-eli10",
+  "manual-eli10-steps",
   "manual-start",
   "manual-finish",
   "manual-content-html",
@@ -55,7 +56,7 @@ const manualIds = [
 const content = await loadDocsContent("manual", manualIds);
 
 blocks.attach(board);
-blocks.setGrid(6, 57);
+blocks.setGrid(6, 55);
 quantizeSurface(board);
 
 function createTextElement(name, text, className = "") {
@@ -98,17 +99,21 @@ function createLessonContent({ eyebrow, statement, body, code }) {
   return root;
 }
 
-function createEli10VisualContent({ src, alt }) {
-  const figure = document.createElement("figure");
-  figure.className = "manual-eli10-visual";
-  const image = document.createElement("img");
-  image.src = new URL(src, import.meta.url).href;
-  image.width = 652;
-  image.height = 348;
-  image.alt = alt;
-  image.decoding = "async";
-  figure.append(image);
-  return figure;
+function createEli10Content({ body }) {
+  const root = document.createElement("article");
+  root.className = "manual-eli10";
+  root.append(createTextElement("p", `ELI10: ${body}`));
+  return root;
+}
+
+function createEli10StepsContent({ steps }) {
+  if (!Array.isArray(steps) || steps.length !== 3) throw new TypeError("ELI10 content needs three visible steps.");
+  const root = document.createElement("article");
+  root.className = "manual-eli10-steps";
+  const list = document.createElement("ol");
+  for (const step of steps) list.append(createTextElement("li", step));
+  root.append(list);
+  return root;
 }
 
 function createTrustedHtmlContent({ eyebrow, statement, footer }) {
@@ -203,14 +208,23 @@ function addBlock({ id, title, content: blockContent, span, place, variant, menu
   return block;
 }
 
-addBlock({
+const eli10Block = addBlock({
   id: "manual-eli10",
   title: content["manual-eli10"].title,
-  content: createEli10VisualContent(content["manual-eli10"]),
-  span: [6, 4],
+  content: createEli10Content(content["manual-eli10"]),
+  span: [4, 2],
   place: [1, 1],
   anchor: "eli10",
-  classes: ["manual-full", "manual-eli10-block"]
+  classes: ["manual-two-thirds", "manual-eli10-block"]
+});
+
+addBlock({
+  id: "manual-eli10-steps",
+  title: content["manual-eli10-steps"].title,
+  content: createEli10StepsContent(content["manual-eli10-steps"]),
+  span: [2, 2],
+  place: [5, 1],
+  classes: ["manual-third", "manual-eli10-steps-block"]
 });
 
 addBlock({
@@ -218,7 +232,7 @@ addBlock({
   title: content["manual-start"].title,
   content: createCodeContent(content["manual-start"]),
   span: [6, 3],
-  place: [1, 6],
+  place: [1, 4],
   anchor: "start",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -228,7 +242,7 @@ addBlock({
   title: content["manual-finish"].title,
   content: createCodeContent(content["manual-finish"]),
   span: [6, 3],
-  place: [1, 10],
+  place: [1, 8],
   anchor: "content",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -237,7 +251,7 @@ addBlock({
   id: "manual-content-html",
   content: createTrustedHtmlContent(content["manual-content-html"]),
   span: [2, 2],
-  place: [1, 13],
+  place: [1, 11],
   classes: ["manual-third"]
 });
 
@@ -245,7 +259,7 @@ addBlock({
   id: "manual-content-object",
   content: createImageObjectContent(content["manual-content-object"]),
   span: [2, 2],
-  place: [3, 13],
+  place: [3, 11],
   classes: ["manual-third"]
 });
 
@@ -253,7 +267,7 @@ addBlock({
   id: "manual-content-factory",
   content: createFactoryContent(content["manual-content-factory"]),
   span: [2, 2],
-  place: [5, 13],
+  place: [5, 11],
   classes: ["manual-third"]
 });
 
@@ -262,7 +276,7 @@ addBlock({
   title: content["manual-menu"].title,
   content: createCodeContent(content["manual-menu"]),
   span: [6, 3],
-  place: [1, 16],
+  place: [1, 14],
   anchor: "menu",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -271,7 +285,7 @@ addBlock({
   id: "manual-menu-both",
   content: createLessonContent(content["manual-menu-both"]),
   span: [3, 2],
-  place: [1, 19],
+  place: [1, 17],
   menu: { minimize: true, close: true },
   classes: ["manual-half"]
 });
@@ -280,7 +294,7 @@ addBlock({
   id: "manual-menu-minimize",
   content: createLessonContent(content["manual-menu-minimize"]),
   span: [3, 2],
-  place: [4, 19],
+  place: [4, 17],
   menu: { minimize: true, close: false },
   classes: ["manual-half"]
 });
@@ -289,7 +303,7 @@ addBlock({
   id: "manual-menu-close",
   content: createLessonContent(content["manual-menu-close"]),
   span: [3, 2],
-  place: [1, 21],
+  place: [1, 19],
   menu: { minimize: false, close: true },
   classes: ["manual-half"]
 });
@@ -298,7 +312,7 @@ addBlock({
   id: "manual-menu-none",
   content: createLessonContent(content["manual-menu-none"]),
   span: [3, 2],
-  place: [4, 21],
+  place: [4, 19],
   menu: { minimize: false, close: false },
   classes: ["manual-half"]
 });
@@ -307,7 +321,7 @@ addBlock({
   id: "manual-menu-title",
   content: createLessonContent(content["manual-menu-title"]),
   span: [6, 2],
-  place: [1, 23],
+  place: [1, 21],
   classes: ["manual-full"]
 });
 
@@ -316,7 +330,7 @@ addBlock({
   title: content["manual-layout"].title,
   content: createCodeContent(content["manual-layout"]),
   span: [6, 3],
-  place: [1, 26],
+  place: [1, 24],
   anchor: "layout",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -325,7 +339,7 @@ addBlock({
   id: "manual-layout-wide",
   content: createLessonContent(content["manual-layout-wide"]),
   span: [4, 2],
-  place: [1, 29],
+  place: [1, 27],
   classes: ["manual-two-thirds"]
 });
 
@@ -333,7 +347,7 @@ addBlock({
   id: "manual-layout-small",
   content: createLessonContent(content["manual-layout-small"]),
   span: [2, 2],
-  place: [5, 29],
+  place: [5, 27],
   classes: ["manual-third"]
 });
 
@@ -342,7 +356,7 @@ addBlock({
   title: content["manual-compact"].title,
   content: createCodeContent(content["manual-compact"]),
   span: [6, 3],
-  place: [1, 32],
+  place: [1, 30],
   anchor: "compact",
   classes: ["manual-code-block", "manual-chapter-start"]
 });
@@ -352,7 +366,7 @@ addBlock({
   title: content["manual-appearance"].title,
   content: createCodeContent(content["manual-appearance"]),
   span: [6, 3],
-  place: [1, 36],
+  place: [1, 34],
   variant: "regular",
   anchor: "appearance",
   classes: ["manual-code-block", "manual-chapter-start"]
@@ -362,7 +376,7 @@ addBlock({
   id: "manual-appearance-regular",
   content: createLessonContent(content["manual-appearance-regular"]),
   span: [3, 2],
-  place: [1, 39],
+  place: [1, 37],
   variant: "regular",
   classes: ["manual-half"]
 });
@@ -371,7 +385,7 @@ addBlock({
   id: "manual-appearance-inverse",
   content: createLessonContent(content["manual-appearance-inverse"]),
   span: [3, 2],
-  place: [4, 39],
+  place: [4, 37],
   variant: "inverse",
   classes: ["manual-half"]
 });
@@ -381,7 +395,7 @@ addBlock({
   title: content["manual-colors"].title,
   content: createCodeContent(content["manual-colors"]),
   span: [6, 3],
-  place: [1, 42],
+  place: [1, 40],
   variant: "regular",
   anchor: "colors",
   classes: ["manual-code-block", "manual-chapter-start"]
@@ -391,7 +405,7 @@ const colorCyanBlock = addBlock({
   id: "manual-color-cyan",
   content: createLessonContent(content["manual-color-cyan"]),
   span: [2, 2],
-  place: [1, 45],
+  place: [1, 43],
   variant: "regular",
   classes: ["manual-third"]
 });
@@ -401,7 +415,7 @@ const colorMagentaBlock = addBlock({
   id: "manual-color-magenta",
   content: createLessonContent(content["manual-color-magenta"]),
   span: [2, 2],
-  place: [3, 45],
+  place: [3, 43],
   variant: "regular",
   classes: ["manual-third"]
 });
@@ -411,7 +425,7 @@ const colorYellowBlock = addBlock({
   id: "manual-color-yellow",
   content: createLessonContent(content["manual-color-yellow"]),
   span: [2, 2],
-  place: [5, 45],
+  place: [5, 43],
   variant: "regular",
   classes: ["manual-third"]
 });
@@ -422,7 +436,7 @@ addBlock({
   title: content["manual-random"].title,
   content: createCodeContent(content["manual-random"]),
   span: [6, 3],
-  place: [1, 48],
+  place: [1, 46],
   variant: "regular",
   anchor: "chance",
   classes: ["manual-code-block", "manual-chapter-start"]
@@ -438,7 +452,7 @@ addBlock({
   title: content["manual-random-color-0"].title,
   content: createChanceContent(content["manual-random-color-0"]),
   span: [1, 1],
-  place: [1, 51],
+  place: [1, 49],
   classes: ["manual-sixth"]
 });
 
@@ -448,7 +462,7 @@ addBlock({
   title: content["manual-random-color-50"].title,
   content: createChanceContent(content["manual-random-color-50"]),
   span: [1, 1],
-  place: [2, 51],
+  place: [2, 49],
   classes: ["manual-sixth"]
 });
 
@@ -458,7 +472,7 @@ addBlock({
   title: content["manual-random-color-100"].title,
   content: createChanceContent(content["manual-random-color-100"]),
   span: [1, 1],
-  place: [3, 51],
+  place: [3, 49],
   classes: ["manual-sixth"]
 });
 
@@ -469,7 +483,7 @@ addBlock({
   title: content["manual-random-inverse-0"].title,
   content: createChanceContent(content["manual-random-inverse-0"]),
   span: [1, 1],
-  place: [4, 51],
+  place: [4, 49],
   classes: ["manual-sixth"]
 });
 
@@ -479,7 +493,7 @@ addBlock({
   title: content["manual-random-inverse-50"].title,
   content: createChanceContent(content["manual-random-inverse-50"]),
   span: [1, 1],
-  place: [5, 51],
+  place: [5, 49],
   classes: ["manual-sixth"]
 });
 
@@ -489,7 +503,7 @@ addBlock({
   title: content["manual-random-inverse-100"].title,
   content: createChanceContent(content["manual-random-inverse-100"]),
   span: [1, 1],
-  place: [6, 51],
+  place: [6, 49],
   classes: ["manual-sixth"]
 });
 
@@ -498,7 +512,7 @@ addBlock({
   title: content["manual-random-combined"].title,
   content: createCodeContent(content["manual-random-combined"]),
   span: [6, 2],
-  place: [1, 52],
+  place: [1, 50],
   variant: "regular",
   classes: ["manual-code-block"]
 });
@@ -513,7 +527,7 @@ for (const [index, column] of [1, 2, 3, 4].entries()) {
     title: content[id].title,
     content: createChanceContent(content[id]),
     span: [1, 1],
-    place: [column, 54],
+    place: [column, 52],
     classes: ["manual-sixth"]
   });
 }
@@ -523,7 +537,7 @@ addBlock({
   title: content["manual-next"].title,
   content: createNextContent(content["manual-next"]),
   span: [6, 2],
-  place: [1, 56],
+  place: [1, 54],
   variant: "regular",
   anchor: "next",
   classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"]
