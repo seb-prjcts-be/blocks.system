@@ -1,5 +1,6 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.33";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.34";
+import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.0";
 
 const board = document.querySelector("#manual-board");
 const manualVariationSamples = [0.05, 0.1, 0.6, 0.05, 0.8, 0.6, 0.05, 0.4, 0.8, 0.6];
@@ -16,7 +17,6 @@ const blocks = createBlocksSystem({
 
 const manualIds = [
   "manual-eli10",
-  "manual-eli10-steps",
   "manual-start",
   "manual-finish",
   "manual-content-html",
@@ -99,20 +99,13 @@ function createLessonContent({ eyebrow, statement, body, code }) {
   return root;
 }
 
-function createEli10Content({ body }) {
+function createEli10SchemaContent() {
   const root = document.createElement("article");
   root.className = "manual-eli10";
-  root.append(createTextElement("p", `ELI10: ${body}`));
-  return root;
-}
-
-function createEli10StepsContent({ steps }) {
-  if (!Array.isArray(steps) || steps.length !== 3) throw new TypeError("ELI10 content needs three visible steps.");
-  const root = document.createElement("article");
-  root.className = "manual-eli10-steps";
-  const list = document.createElement("ol");
-  for (const step of steps) list.append(createTextElement("li", step));
-  root.append(list);
+  const host = document.createElement("div");
+  host.id = "eli10-schema";
+  host.className = "eli10-schema";
+  root.append(host);
   return root;
 }
 
@@ -211,21 +204,14 @@ function addBlock({ id, title, content: blockContent, span, place, variant, menu
 const eli10Block = addBlock({
   id: "manual-eli10",
   title: content["manual-eli10"].title,
-  content: createEli10Content(content["manual-eli10"]),
-  span: [4, 2],
+  content: createEli10SchemaContent(),
+  span: [6, 2],
   place: [1, 1],
   anchor: "eli10",
-  classes: ["manual-two-thirds", "manual-eli10-block"]
+  classes: ["manual-full", "manual-eli10-block"]
 });
 
-addBlock({
-  id: "manual-eli10-steps",
-  title: content["manual-eli10-steps"].title,
-  content: createEli10StepsContent(content["manual-eli10-steps"]),
-  span: [2, 2],
-  place: [5, 1],
-  classes: ["manual-third", "manual-eli10-steps-block"]
-});
+mountEli10Schema(eli10Block.element.querySelector("#eli10-schema"));
 
 addBlock({
   id: "manual-start",
