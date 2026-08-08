@@ -1129,6 +1129,16 @@ export function createBlocksSystem(options = {}) {
         };
 
         markReleased(releasedLayout);
+        for (let row = releasedLayout.row; row < releasedLayout.row + releasedLayout.rows; row += 1) {
+            const rowStillOccupied = Array.from(objectLayouts.values()).some((layout) =>
+                layout.column !== null &&
+                layout.row !== null &&
+                layout.row <= row &&
+                layout.row + layout.rows > row);
+            if (rowStillOccupied) continue;
+            // A row made completely empty by this removal can accept any later block width.
+            for (let column = 1; column <= columns; column += 1) releasedCells.add(cellKey(column, row));
+        }
         const movedIds = [];
         const orderedLayouts = directObjectElements()
             .map((element, index) => {

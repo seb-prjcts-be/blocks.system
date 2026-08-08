@@ -251,6 +251,24 @@ assert.equal(
   "closing a placed block must pull a later block into its released grid cell"
 );
 
+const closingRowCollapse = createBlocksSystem({ snap: true, variant: "regular" });
+const closingRowCollapseField = new TestElement();
+const closingRowChanges = [];
+closingRowCollapseField.addEventListener("blocks:change", function (event) {
+  closingRowChanges.push(event.detail);
+});
+closingRowCollapse.attach(closingRowCollapseField).setGrid(3, 6);
+closingRowCollapse.add("top", { id: "close-row-top" }).span(3, 1).place(1, 1);
+const closingPartialRow = closingRowCollapse.add("gap", { id: "close-row-gap" }).span(2, 1).place(1, 2);
+const closingWideLower = closingRowCollapse.add("lower", { id: "close-row-lower" }).span(3, 1).place(1, 4);
+closingPartialRow.remove();
+assert.equal(
+  closingWideLower.element.style.getPropertyValue("--block-row"),
+  "2",
+  "closing the only block on a row must let a wider later block jump into that now-empty row"
+);
+assert.deepEqual(closingRowChanges[0].ids, ["close-row-gap", "close-row-lower"], "row collapse must report the wider block that moved upward");
+
 const intentionalSpace = createBlocksSystem({ snap: true, variant: "regular" });
 const intentionalSpaceField = new TestElement();
 intentionalSpace.attach(intentionalSpaceField).setGrid(1, 6);
