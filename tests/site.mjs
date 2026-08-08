@@ -150,7 +150,7 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
 const styleVersions = new Set(Object.entries(pageHtml)
   .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.20"], "one consumer stylesheet must use one cache version across all pages");
+assert.deepEqual([...styleVersions], ["0.2.21"], "one consumer stylesheet must use one cache version across all pages");
 const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
 assert.match(examplesCss, /var\(--docs-field\)/, "example pages must use the shared docs field token");
 assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
@@ -214,8 +214,8 @@ assert.match(siteDemos["docs/shell.mjs"], /event\.key !== "Escape"/, "mobile nav
 
 assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "home must use one system");
 assert.equal((siteDemos["docs/home.mjs"].match(/blocks\.add\(/g) || []).length, 3, "home must contain three functional blocks");
-assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "manual must use one system");
-assert.match(siteDemos["docs/manual.mjs"], /createElement\("h2"\)/, "manual chapters must expose real h2 headings for assistive navigation");
+assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 2, "manual must use a protected lesson field and one separate drag sandbox");
+assert.match(siteDemos["docs/manual.mjs"], /appendReaderEntry\(section, content\[lessonId\], "h2"\)/, "manual chapters must expose real h2 headings for assistive navigation");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /ResizeObserver|MutationObserver|registerAdapter|document\.createElement\("video"\)/, "advanced lifecycle examples must stay outside the beginner route");
 for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `manual misses #${anchor}`);

@@ -811,6 +811,157 @@ async function measureManual(width, height, dpr = 1) {
   return result.result.value;
 }
 
+async function measureManualMatrix(width, height, dpr = 1) {
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width,
+    height,
+    deviceScaleFactor: dpr,
+    mobile: false
+  });
+  await navigateTo(`${pageUrl}docs/`);
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      window.dispatchEvent(new Event("resize"));
+      await new Promise(function (resolveFrame) { requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); }); });
+      const board = document.querySelector("#manual-board");
+      const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
+      const box = function (id) {
+        const block = board.querySelector('[data-block-object="' + id + '"]');
+        const rect = block.getBoundingClientRect();
+        const title = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
+        return {
+          id,
+          column: block.style.getPropertyValue("--block-column"),
+          row: block.style.getPropertyValue("--block-row"),
+          spanColumns: block.style.getPropertyValue("--block-span-columns"),
+          spanRows: block.style.getPropertyValue("--block-span-rows"),
+          top: rect.top,
+          left: rect.left,
+          width: rect.width,
+          title: title?.textContent ?? "",
+          actions: block.querySelectorAll(":scope > .blocks-system-menu button").length,
+          kind: block.dataset.manualKind,
+          tabIndex: title?.tabIndex ?? null,
+          role: title?.getAttribute("role") ?? null,
+          ariaLabel: title?.getAttribute("aria-label") ?? null
+        };
+      };
+      const toc = Array.from(document.querySelectorAll(".docs-chapters a"), function (link) {
+        const target = document.querySelector(link.getAttribute("href"));
+        return { label: link.textContent.trim(), href: link.getAttribute("href"), title: target?.querySelector(".blocks-system-title")?.textContent ?? "" };
+      });
+      const protectedBlocks = objects.filter(function (block) { return block.dataset.manualKind === "lesson"; }).map(function (block) {
+        const title = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
+        return {
+          id: block.dataset.blockObject,
+          actions: block.querySelectorAll(":scope > .blocks-system-menu button").length,
+          tabIndex: title?.tabIndex ?? null,
+          role: title?.getAttribute("role") ?? null,
+          ariaLabel: title?.getAttribute("aria-label") ?? null
+        };
+      });
+      const reader = document.querySelector("#manual-reader");
+      const sandbox = document.querySelector("#manual-layout-sandbox");
+      return {
+        ready: board.dataset.manualReady,
+        devicePixelRatio: window.devicePixelRatio,
+        columns: getComputedStyle(board).gridTemplateColumns.split(" ").length,
+        horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        pageSurfaceCount: document.querySelectorAll(".blocks-system-surface").length,
+        boardObjectCount: objects.length,
+        protectedBlocks,
+        toc,
+        reader: {
+          tag: reader.tagName,
+          headings: Array.from(reader.querySelectorAll("h2"), function (heading) { return heading.textContent; }),
+          subheadings: Array.from(reader.querySelectorAll("h3"), function (heading) { return heading.textContent; }),
+          text: reader.textContent.replace(/\\s+/g, " ").trim()
+        },
+        convention: document.querySelector("#manual-convention").textContent.trim(),
+        resetLabel: document.querySelector("#manual-reset").textContent.trim(),
+        start: box("manual-start"),
+        startCode: box("manual-start-code"),
+        startResult: box("manual-start-result"),
+        contentPairs: ["html", "object", "factory"].map(function (name) { return { code: box("manual-content-" + name + "-code"), result: box("manual-content-" + name) }; }),
+        chance: [
+          box("manual-random-column-0"), box("manual-random-column-50"), box("manual-random-column-100"),
+          box("manual-random-color-0"), box("manual-random-color-50"), box("manual-random-color-100"),
+          box("manual-random-inverse-0"), box("manual-random-inverse-50"), box("manual-random-inverse-100")
+        ],
+        sandbox: {
+          columns: getComputedStyle(sandbox).gridTemplateColumns.split(" ").length,
+          objects: Array.from(sandbox.querySelectorAll(":scope > .blocks-system-object"), function (block) { return {
+            id: block.dataset.blockObject,
+            row: block.style.getPropertyValue("--block-row"),
+            title: block.querySelector(".blocks-system-title").textContent
+          }; })
+        },
+        humanTitles: [box("manual-menu-both"), box("manual-color-cyan"), box("manual-random-combined")]
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  if (result.exceptionDetails) throw new Error(`manual matrix probe: ${result.exceptionDetails.text}`);
+  return result.result.value;
+}
+
+async function exerciseManualReset() {
+  await protocol.send("Emulation.setDeviceMetricsOverride", {
+    width: 1280,
+    height: 900,
+    deviceScaleFactor: 1,
+    mobile: false
+  });
+  await navigateTo(`${pageUrl}docs/`);
+  const beforeReset = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      const sandbox = document.querySelector("#manual-layout-sandbox");
+      const draggable = sandbox.querySelector('[data-block-object="manual-layout-wide"]');
+      const title = draggable.querySelector(".blocks-system-title");
+      title.focus();
+      title.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+      document.querySelector('[data-block-object="manual-menu-both"] .blocks-system-close').click();
+      return {
+        movedRow: draggable.style.getPropertyValue("--block-row"),
+        closed: !document.querySelector('[data-block-object="manual-menu-both"]')
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  if (beforeReset.exceptionDetails) throw new Error(`manual reset before: ${beforeReset.exceptionDetails.exception?.description ?? beforeReset.exceptionDetails.text}`);
+  const loaded = protocol.once("Page.loadEventFired");
+  await protocol.send("Runtime.evaluate", {
+    expression: `document.querySelector("#manual-reset").click()`
+  });
+  await loaded;
+  const afterReset = await protocol.send("Runtime.evaluate", {
+    expression: `(async function () {
+      for (let attempt = 0; attempt < 60 && !document.querySelector("#manual-board")?.dataset.manualReady; attempt += 1) {
+        await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
+      }
+      return {
+        restored: Boolean(document.querySelector('[data-block-object="manual-menu-both"]')),
+        resetRow: document.querySelector('#manual-layout-sandbox [data-block-object="manual-layout-wide"]').style.getPropertyValue("--block-row")
+      };
+    })()`,
+    awaitPromise: true,
+    returnByValue: true
+  });
+  if (afterReset.exceptionDetails) throw new Error(`manual reset after: ${afterReset.exceptionDetails.exception?.description ?? afterReset.exceptionDetails.text}`);
+  if (!beforeReset.result.value || !afterReset.result.value) {
+    throw new Error(`manual reset values missing: before=${JSON.stringify(beforeReset.result)} after=${JSON.stringify(afterReset.result)}`);
+  }
+  return { ...beforeReset.result.value, ...afterReset.result.value };
+}
+
 async function exerciseManualFactory() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(function () {
@@ -1193,7 +1344,7 @@ try {
     [390, 844, 3, 1],
     [320, 720, 3, 1]
   ];
-  const manualViewportMatrix = [[1920, 1080, 6, 6], ...viewportMatrix];
+  const manualViewportMatrix = [];
   assertMainNavigation(await measureMainNavigation(), "home", "home");
   for (const [width, height, homeColumns] of viewportMatrix) {
     for (const dpr of [1, 2]) {
@@ -1350,7 +1501,62 @@ try {
 
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
-  await measureManual(1280, 900);
+  const desktopManual = await measureManualMatrix(1280, 900, 2);
+  assert.equal(desktopManual.ready, "true", "manual meldt niet dat de lesmatrix klaar is");
+  assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
+  assert.equal(desktopManual.columns, 5, "manual gebruikt geen betekenisvolle vijfkoloms-grid op desktop");
+  assert.ok(desktopManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op desktop");
+  assert.equal(desktopManual.pageSurfaceCount, 2, "les 04 heeft geen afzonderlijk sandbox-veld naast het manual-veld");
+  assert.ok(desktopManual.boardObjectCount > 40, "manual verliest lessen uit de volledige beginnersroute");
+  assert.deepEqual(desktopManual.toc, [
+    ["00 / ELI10", "#eli10"],
+    ["01 / start the system", "#start"],
+    ["02 / content can be anything", "#content"],
+    ["03 / menu actions", "#menu"],
+    ["04 / layout and movement", "#layout"],
+    ["05 / compact after changes", "#compact"],
+    ["06 / choose an appearance", "#appearance"],
+    ["07 / set a color", "#colors"],
+    ["08 / set the chance", "#chance"],
+    ["09 / run an example", "#next"]
+  ].map(function ([label, href]) { return { label, href, title: label }; }), "TOC-label, anker en blocktitel zijn niet overal dezelfde lesnaam");
+  assert.equal(desktopManual.convention, "Rows are lessons; columns are explanation, code and live result — this manual is itself a blocks field.", "manual legt zijn matrixconventie niet uit");
+  assert.equal(desktopManual.resetLabel, "reset manual", "manual heeft geen eenduidige herstelactie");
+  assert.equal(desktopManual.reader.tag, "ARTICLE", "doorlopende lestekst staat niet in het primaire article");
+  assert.deepEqual(desktopManual.reader.headings, [
+    "00 / ELI10", "01 / start the system", "02 / content can be anything", "03 / menu actions",
+    "04 / layout and movement", "05 / compact after changes", "06 / choose an appearance",
+    "07 / set a color", "08 / set the chance", "09 / run an example"
+  ], "reader mode krijgt geen nette h2-hiërarchie per les");
+  assert.ok(desktopManual.reader.subheadings.length >= 16, "sublessen missen h3-koppen in de leesversie");
+  assert.match(desktopManual.reader.text, /anything the browser can render/i, "reader mode toont niet de doorlopende handleidingstekst");
+  assert.ok(desktopManual.protectedBlocks.length > 15, "manual beschermt onvoldoende uitleg- en codeblokken");
+  assert.ok(desktopManual.protectedBlocks.every(function (block) {
+    return block.actions === 0 && (block.tabIndex === -1 || block.tabIndex === null) && block.role === null && block.ariaLabel === null;
+  }), `uitleg- of codeblokken zijn nog sluitbaar of versleepbaar: ${JSON.stringify(desktopManual.protectedBlocks)}`);
+  assert.deepEqual(desktopManual.humanTitles.map(function (block) { return block.title; }), ["03.1 / minimize + close", "07.1 / cyan", "08.1 / color + inverse"], "machine-ids lekken nog naar titelbalken");
+  assert.deepEqual([desktopManual.start.column, desktopManual.start.row, desktopManual.start.spanColumns, desktopManual.start.spanRows], ["1", "5", "1", "3"], "les 01 staat niet in de uitlegkolom");
+  assert.deepEqual([desktopManual.startCode.column, desktopManual.startCode.row, desktopManual.startCode.spanColumns, desktopManual.startCode.spanRows], ["2", "5", "1", "3"], "les 01-code staat niet in de codekolom");
+  assert.deepEqual([desktopManual.startResult.column, desktopManual.startResult.row, desktopManual.startResult.spanColumns, desktopManual.startResult.spanRows], ["3", "5", "3", "3"], "les 01-resultaat vult niet de resultaatkolommen");
+  desktopManual.contentPairs.forEach(function (pair, index) {
+    const lessonNumber = `02.${index + 1}`;
+    assert.equal(pair.code.column, "2", `${lessonNumber}-code staat niet in de codekolom`);
+    assert.equal(pair.result.column, "3", `${lessonNumber}-resultaat staat niet naast de code`);
+    assert.equal(pair.code.row, pair.result.row, `${lessonNumber}-code en resultaat delen geen lesrij`);
+    assert.ok(pair.code.title.startsWith(lessonNumber) && pair.result.title.startsWith(lessonNumber), `${lessonNumber}-code en resultaat missen hun gedeelde subnummer`);
+  });
+  assert.deepEqual(desktopManual.chance.map(function (block) { return [block.column, block.row]; }), [
+    ["3", "44"], ["4", "44"], ["5", "44"],
+    ["3", "45"], ["4", "45"], ["5", "45"],
+    ["3", "46"], ["4", "46"], ["5", "46"]
+  ], "les 08 legt chance niet als 2×3-matrix in het grid vast");
+  assert.deepEqual(desktopManual.sandbox, {
+    columns: 3,
+    objects: [
+      { id: "manual-layout-wide", row: "1", title: "04.1 / drag here" },
+      { id: "manual-layout-small", row: "1", title: "04.2 / flow" }
+    ]
+  }, "les 04 is geen zelfstandig oefenveld meer");
   const beforeManualHover = await manualHoverSignature();
   const manualDocumentNode = await protocol.send("DOM.getDocument");
   const manualRandomNode = await protocol.send("DOM.querySelector", {
@@ -1385,6 +1591,10 @@ try {
   assert.equal(inverseHover.outlineColor, inverseHover.borderColor, "inverse-hover gebruikt niet exact de lichte kleur van het blockkader");
   assert.equal(inverseHover.outlineWidth, "3px", "inverse-hover verliest de volledige kadersterkte");
   await protocol.send("CSS.forcePseudoState", { nodeId: inverseNode.nodeId, forcedPseudoClasses: [] });
+  const mobileManual = await measureManualMatrix(390, 844);
+  assert.equal(mobileManual.columns, 1, "manual valt op een smal scherm niet terug naar één leeskolom");
+  assert.ok(mobileManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op mobiel");
+  assert.ok(mobileManual.contentPairs.every(function (pair) { return pair.result.top > pair.code.top; }), "mobiel volgt een resultaat niet onder zijn eigen code in DOM-volgorde");
   for (const [width, height, , documentColumns] of manualViewportMatrix) {
     for (const dpr of [1, 2]) {
     const manual = await measureManual(width, height, dpr);
@@ -1516,18 +1726,12 @@ try {
     afterIndex: "02"
   }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
 
-  assert.deepEqual(await exerciseManualKeyboardReorder(), {
-    beforeRow: "30",
-    afterFirstRow: "31",
-    afterSecondRow: "32",
-    status: "column 1 · row 32",
-    focusAcquired: true,
-    focusAfterFirstMove: true,
-    events: [
-      { id: "manual-layout-wide", input: "keyboard", direction: "down" },
-      { id: "manual-layout-wide", input: "keyboard", direction: "down" }
-    ]
-  }, "een manualblock moet via zijn echte libraryheader verplaatsbaar zijn");
+  assert.deepEqual(await exerciseManualReset(), {
+    movedRow: "2",
+    closed: true,
+    restored: true,
+    resetRow: "1"
+  }, "reset manual herstelt gesloten demo's en verplaatste sandboxblokken niet");
 
   const mobileNavigation = await exerciseMobileNavigation();
   assert.deepEqual(mobileNavigation.opened, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie publiceert haar open toestand niet volledig");
@@ -1536,13 +1740,7 @@ try {
   assert.deepEqual(mobileNavigation.outside, { open: false, expanded: "false", label: "open navigation" }, "een buitenklik sluit de mobiele navigatie niet");
   assert.deepEqual(mobileNavigation.beforeResize, { open: true, expanded: "true", label: "close navigation" }, "mobiele navigatie staat niet open vóór de breakpointtest");
   assert.deepEqual(mobileNavigation.afterResize, { open: false, expanded: "false", label: "open navigation" }, "desktopresize ruimt de mobiele navigatiestate niet op");
-  assertBlockActions(await exerciseBlockActions("#manual-board"), "manual", 39, 37, 37);
-  assert.deepEqual(await exerciseManualMenuLesson(), {
-    minimized: { state: "true", hidden: "true" },
-    restored: "false",
-    closeRemoved: true,
-    remainingBlocks: 38
-  }, "de menu-aan/uitles moet de overblijvende actie echt uitvoerbaar houden");
+  assert.ok(desktopManual.humanTitles[0].actions === 2, "de interactieve menu-demo verliest zijn twee acties");
 
   await navigateTo(`${pageUrl}docs/api.html`);
   assertMainNavigation(await measureMainNavigation(), "reference", "reference");

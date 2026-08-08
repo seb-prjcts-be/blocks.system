@@ -22,7 +22,8 @@
   },
   "manual": {
     "manual-eli10": {
-      "title": "00 / ELI10"
+      "title": "00 / ELI10",
+      "contract": "api.html#exports"
     },
     "manual-start": {
       "title": "01 / start the system",
@@ -45,12 +46,17 @@
         "blocks.attach(\"#blocks-field\");",
         "blocks.setGrid(6, 4);",
         "</script>"
-      ]
+      ],
+      "contract": "api.html#system-methods"
+    },
+    "manual-start-result": {
+      "title": "01 / result"
     },
     "manual-finish": {
       "title": "02 / content can be anything",
       "intro": "A block can hold anything the browser can render. Choose one of three input forms: trusted HTML, an element object or a factory. Paste one focused example after setGrid() and before </script>.",
-      "examples": ["text", "image", "SVG", "canvas", "form", "audio", "video", "custom UI"]
+      "examples": ["text", "image", "SVG", "canvas", "form", "audio", "video", "custom UI"],
+      "contract": "api.html#add-options"
     },
     "manual-content-html-code": {
       "title": "02.1 / trusted HTML",
@@ -65,7 +71,7 @@
       ]
     },
     "manual-content-html": {
-      "title": "result / trusted HTML",
+      "title": "02.1 / result",
       "eyebrow": "01 / statement",
       "statement": "Structure makes movement visible.",
       "footer": "type · interval · contrast"
@@ -85,7 +91,7 @@
       ]
     },
     "manual-content-object": {
-      "title": "result / element object",
+      "title": "02.2 / result",
       "caption": "02 / direction",
       "alt": "Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail."
     },
@@ -106,7 +112,7 @@
       ]
     },
     "manual-content-factory": {
-      "title": "result / factory",
+      "title": "02.3 / result",
       "eyebrow": "03 / live",
       "states": ["structure", "contrast", "rhythm", "space"],
       "action": "next state"
@@ -124,34 +130,35 @@
         "block.minimized = true;  // minimize",
         "block.minimized = false; // restore",
         "block.remove();           // close"
-      ]
+      ],
+      "contract": "api.html#block-methods"
     },
     "manual-menu-both": {
-      "title": "menu / both on",
+      "title": "03.1 / minimize + close",
       "eyebrow": "menu options",
       "statement": "Both on.",
       "body": "minimize: true · close: true"
     },
     "manual-menu-minimize": {
-      "title": "menu / minimize",
+      "title": "03.2 / minimize",
       "eyebrow": "menu options",
       "statement": "Minimize only.",
       "body": "minimize: true · close: false"
     },
     "manual-menu-close": {
-      "title": "menu / close",
+      "title": "03.3 / close",
       "eyebrow": "menu options",
       "statement": "Close only.",
       "body": "minimize: false · close: true"
     },
     "manual-menu-none": {
-      "title": "menu / both off",
+      "title": "03.4 / neither",
       "eyebrow": "menu options",
       "statement": "Both off.",
       "body": "minimize: false · close: false"
     },
     "manual-menu-title": {
-      "title": "title / optional",
+      "title": "03.5 / title",
       "eyebrow": "block identity",
       "statement": "A title is not an id.",
       "body": "id identifies the block. Add title only when you want visible text in its menu bar; without it, the id stays available to the controls but is not shown."
@@ -164,17 +171,18 @@
         "blocks.draggable = true;",
         "block.span(4, 2);",
         "block.place(1, 1);"
-      ]
+      ],
+      "contract": "api.html#block-methods"
     },
     "manual-layout-wide": {
-      "title": "drag here",
+      "title": "04.1 / drag here",
       "eyebrow": "try it / pointer or keyboard",
       "statement": "Move this block.",
       "body": "Grab the dotted titlebar, or focus it and press an arrow key.",
       "statusLabel": "current position"
     },
     "manual-layout-small": {
-      "title": "flow / 2 × 2",
+      "title": "04.2 / flow",
       "eyebrow": "automatic position",
       "statement": "Back to flow.",
       "body": "Releases the fixed position, not the size.",
@@ -192,7 +200,11 @@
         "",
         "first.remove();",
         "blocks.compact();"
-      ]
+      ],
+      "contract": "api.html#system-methods"
+    },
+    "manual-compact-result": {
+      "title": "05 / result"
     },
     "manual-appearance": {
       "title": "06 / choose an appearance",
@@ -200,16 +212,17 @@
       "code": [
         "blocks.add(content, { variant: \"regular\" });",
         "blocks.add(content, { variant: \"inverse\" });"
-      ]
+      ],
+      "contract": "api.html#add-options"
     },
     "manual-appearance-regular": {
-      "title": "appearance / regular",
+      "title": "06.1 / regular",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "variant: \"regular\""
     },
     "manual-appearance-inverse": {
-      "title": "appearance / inverse",
+      "title": "06.2 / inverse",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "variant: \"inverse\""
@@ -225,22 +238,23 @@
         "});",
         "",
         "colorBlock.color = \"cyan\";"
-      ]
+      ],
+      "contract": "api.html#block-controller"
     },
     "manual-color-cyan": {
-      "title": "color / cyan",
+      "title": "07.1 / cyan",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "Only color changes."
     },
     "manual-color-magenta": {
-      "title": "color / magenta",
+      "title": "07.2 / magenta",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "Only color changes."
     },
     "manual-color-yellow": {
-      "title": "color / yellow",
+      "title": "07.3 / yellow",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "Only color changes."
@@ -254,34 +268,50 @@
         "",
         "blocks.colorVariation = 0;     // 0, .5 or 1",
         "blocks.inversionVariation = 0; // 0, .5 or 1"
-      ]
+      ],
+      "contract": "api.html#system-state"
+    },
+    "manual-random-column-0": {
+      "title": "0"
+    },
+    "manual-random-column-50": {
+      "title": "0.5"
+    },
+    "manual-random-column-100": {
+      "title": "1"
+    },
+    "manual-random-row-color": {
+      "title": "colorVariation"
+    },
+    "manual-random-row-inverse": {
+      "title": "inversionVariation"
     },
     "manual-random-color-0": {
-      "title": "color chance / 0",
+      "title": "08.1 / colorVariation / 0",
       "statement": "your content"
     },
     "manual-random-color-50": {
-      "title": "color chance / 0.5",
+      "title": "08.2 / colorVariation / 0.5",
       "statement": "your content"
     },
     "manual-random-color-100": {
-      "title": "color chance / 1",
+      "title": "08.3 / colorVariation / 1",
       "statement": "your content"
     },
     "manual-random-inverse-0": {
-      "title": "inverse chance / 0",
+      "title": "08.4 / inversionVariation / 0",
       "statement": "your content"
     },
     "manual-random-inverse-50": {
-      "title": "inverse chance / 0.5",
+      "title": "08.5 / inversionVariation / 0.5",
       "statement": "your content"
     },
     "manual-random-inverse-100": {
-      "title": "inverse chance / 1",
+      "title": "08.6 / inversionVariation / 1",
       "statement": "your content"
     },
     "manual-random-combined": {
-      "title": "color + inverse / 0.5 + 0.5",
+      "title": "08.1 / color + inverse",
       "intro": "Combine both chances only after reading them separately. In this fixed four-call demonstration, two cells use color, one is regular and one is inverse. Real calls remain random.",
       "code": [
         "blocks.colorVariation = 0.5;",
@@ -291,19 +321,19 @@
       ]
     },
     "manual-random-mix-1": {
-      "title": "combined / 01",
+      "title": "08.1 / result 01",
       "statement": "your content"
     },
     "manual-random-mix-2": {
-      "title": "combined / 02",
+      "title": "08.1 / result 02",
       "statement": "your content"
     },
     "manual-random-mix-3": {
-      "title": "combined / 03",
+      "title": "08.1 / result 03",
       "statement": "your content"
     },
     "manual-random-mix-4": {
-      "title": "combined / 04",
+      "title": "08.1 / result 04",
       "statement": "your content"
     },
     "manual-next": {
@@ -314,7 +344,8 @@
         { "label": "basic grid →", "href": "../examples/basic-grid/" },
         { "label": "mixed content →", "href": "../examples/mixed-content/" },
         { "label": "custom adapter →", "href": "../examples/custom-adapter/" }
-      ]
+      ],
+      "contract": "api.html#exports"
     }
   },
   "reference": {
