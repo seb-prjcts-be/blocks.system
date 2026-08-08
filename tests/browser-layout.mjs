@@ -1456,8 +1456,8 @@ try {
       const reference = await measureReference(width, height, dpr);
       assert.equal(reference.blockCount, 10, `reference mist opzoekhoofdstukken op ${width}px @${dpr}x`);
       assert.deepEqual(reference.ids, [
-        "reference-exports", "reference-options", "reference-state", "reference-methods", "reference-block",
-        "reference-add-options", "reference-adapters", "reference-event", "reference-hooks", "reference-errors"
+        "reference-exports", "reference-options", "reference-state", "reference-methods", "reference-add-options",
+        "reference-block", "reference-adapters", "reference-event", "reference-hooks", "reference-errors"
       ], `reference bewaart zijn volledige opzoekvolgorde niet op ${width}px @${dpr}x`);
       assert.equal(reference.columnCount, documentColumns, `reference gebruikt ${reference.columnCount} in plaats van ${documentColumns} kolommen op ${width}px @${dpr}x`);
       assert.equal(reference.devicePixelRatio, dpr, `reference test niet werkelijk op DPR ${dpr}`);

@@ -450,18 +450,19 @@ assert.ok(docsContent.manual["manual-start"].intro.includes("released v0.2.0 bui
 assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${mainCdnBase}/blocks.system.css">`), "the manual must load the tagged stylesheet from jsDelivr");
 assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${mainCdnBase}/blocks.system.mjs";`), "the manual must import the tagged ESM module from jsDelivr");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner-facing manual copy must say object instead of node");
-assert.deepEqual(Object.keys(docsContent.reference), [
+const referenceOrder = [
   "reference-exports",
   "reference-options",
   "reference-state",
   "reference-methods",
-  "reference-block",
   "reference-add-options",
+  "reference-block",
   "reference-adapters",
   "reference-event",
   "reference-hooks",
   "reference-errors"
-], "the reference content must own the complete lookup sequence in reading order");
+];
+assert.deepEqual(Object.keys(docsContent.reference), referenceOrder, "the reference content must own the complete lookup sequence in reading order");
 const docsContentKeys = new Set();
 JSON.stringify(docsContent, function (key, value) {
   if (key) docsContentKeys.add(key);
@@ -480,7 +481,7 @@ for (const [sectionName, section] of Object.entries({ home: docsContent.home, ma
 for (const [moduleName, sectionName] of [["home", "home"], ["manual", "manual"], ["reference", "reference"]]) {
   assert.ok(siteDemos[`docs/${moduleName}.mjs`].includes(`loadDocsContent("${sectionName}"`), `${moduleName} must load its canonical JSON section`);
 }
-assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.29", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
+assert.match(siteDemos["docs/shell.mjs"], /fetch\(new URL\("\.\/content\.json\?v=0\.3\.30", import\.meta\.url\)\)/, "the docs shell must load the cache-busted canonical JSON file once");
 assert.match(siteDemos["docs/shell.mjs"], /Missing \$\{sectionName\} content[\s\S]*Unused \$\{sectionName\} content/, "the docs loader must reject missing and unused block content");
 assert.doesNotMatch(siteDemos["docs/home.mjs"], /dependency-free esm|open manual/, "the home composition must not duplicate extracted copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /content is content|media keeps its lifecycle|build the next block/, "the manual composition must not duplicate extracted copy");
@@ -490,7 +491,18 @@ assert.equal((siteDemos["docs/reference.mjs"].match(/const blocks = createBlocks
 assert.match(siteDemos["docs/reference.mjs"], /draggable:\s*false/, "the lookup reference must configure its canonical reading order at creation");
 assert.match(siteDemos["docs/reference.mjs"], /menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the reference must expose both block actions");
 assert.match(siteDemos["docs/reference.mjs"], /quantizeSurface\(board\);/, "the reference must use the shared whole-pixel geometry");
-for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
+const referenceAnchors = ["exports", "options", "system-state", "system-methods", "add-options", "block-controller", "adapters", "reorder-event", "css-hooks", "errors"];
+assert.deepEqual(
+  Array.from(siteDemos["docs/reference.mjs"].matchAll(/\{ id: "([^"]+)", anchor:/g), (match) => match[1]),
+  referenceOrder,
+  "the reference composition must use the canonical reading order"
+);
+assert.deepEqual(
+  Array.from(apiHtml.matchAll(/<li><a href="#([^"]+)">/g), (match) => match[1]),
+  referenceAnchors,
+  "the reference index must use the canonical reading order"
+);
+for (const anchor of referenceAnchors) {
   assert.ok(siteDemos["docs/reference.mjs"].includes(`anchor: "${anchor}"`), `the reference misses #${anchor}`);
 }
 for (const apiName of ["createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "compact()", "columns", "rows", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation", "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)", "flow()", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)", "unmount(target)", "address(id)", "blocks:reorder", "blocks:change"]) {

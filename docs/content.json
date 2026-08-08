@@ -385,8 +385,22 @@
         { "id": "api-address", "cells": ["address(id)", "string", "Build a catalog URL ending in ?block=id."] }
       ]
     },
+    "reference-add-options": {
+      "title": "05 / add and menu options",
+      "intro": "id identifies a block. title is only optional visible text in its menu bar.",
+      "headers": ["option", "type", "purpose"],
+      "rows": [
+        { "cells": ["id", "string", "Stable id; generated when omitted."] },
+        { "cells": ["title", "string", "Optional visible menu text. When omitted, no id is shown; id remains the accessible fallback for menu actions."] },
+        { "cells": ["menu", "boolean | object", "Enable, disable or configure a menu for this block."] },
+        { "cells": ["variant", "string", "Override the system appearance for this block."] },
+        { "cells": ["minimized", "boolean", "Initial minimized state."] },
+        { "cells": ["menu.close", "boolean", "Show a remove button."] },
+        { "cells": ["menu.minimize", "boolean", "Show a minimize and restore button."] }
+      ]
+    },
     "reference-block": {
-      "title": "05 / block controller",
+      "title": "06 / block controller",
       "intro": "add() returns one controller for one block.",
       "headers": ["member", "type or return", "purpose"],
       "rows": [
@@ -401,20 +415,6 @@
         { "id": "api-place", "cells": ["place(column, row)", "block", "Set one-based grid coordinates."] },
         { "id": "api-flow", "cells": ["flow()", "block", "Return to CSS automatic order."] },
         { "cells": ["remove()", "true", "Remove the block and release its layout."] }
-      ]
-    },
-    "reference-add-options": {
-      "title": "06 / add and menu options",
-      "intro": "id identifies a block. title is only optional visible text in its menu bar.",
-      "headers": ["option", "type", "purpose"],
-      "rows": [
-        { "cells": ["id", "string", "Stable id; generated when omitted."] },
-        { "cells": ["title", "string", "Optional visible menu text. When omitted, no id is shown; id remains the accessible fallback for menu actions."] },
-        { "cells": ["menu", "boolean | object", "Enable, disable or configure a menu for this block."] },
-        { "cells": ["variant", "string", "Override the system appearance for this block."] },
-        { "cells": ["minimized", "boolean", "Initial minimized state."] },
-        { "cells": ["menu.close", "boolean", "Show a remove button."] },
-        { "cells": ["menu.minimize", "boolean", "Show a minimize and restore button."] }
       ]
     },
     "reference-adapters": {

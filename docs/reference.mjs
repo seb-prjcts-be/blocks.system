@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.35";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.36";
 
 const board = document.querySelector("#reference-board");
 const blocks = createBlocksSystem({
@@ -16,8 +16,8 @@ const referenceBlocks = [
   { id: "reference-options", anchor: "options", span: [6, 4], place: [1, 4] },
   { id: "reference-state", anchor: "system-state", span: [6, 4], place: [1, 9] },
   { id: "reference-methods", anchor: "system-methods", span: [6, 5], place: [1, 14] },
-  { id: "reference-block", anchor: "block-controller", span: [6, 5], place: [1, 20] },
-  { id: "reference-add-options", anchor: "add-options", span: [6, 3], place: [1, 26] },
+  { id: "reference-add-options", anchor: "add-options", span: [6, 3], place: [1, 20] },
+  { id: "reference-block", anchor: "block-controller", span: [6, 5], place: [1, 24] },
   { id: "reference-adapters", anchor: "adapters", span: [6, 5], place: [1, 30] },
   { id: "reference-event", anchor: "reorder-event", span: [6, 4], place: [1, 36] },
   { id: "reference-hooks", anchor: "css-hooks", span: [6, 4], place: [1, 41] },
