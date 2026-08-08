@@ -142,6 +142,10 @@ Use `blocks.compact()` only when you explicitly want gap filling. It keeps each
 placed block in its column and preserves the vertical order of blocks whose
 columns overlap; it does not shrink the configured grid. `block.minimized`
 remains collapse-in-place.
+Removing a placed block releases its former grid area. If that leaves a row
+entirely unoccupied, a later block that fits may move into that row; deliberately
+empty composition space remains untouched. Use `compact()` when you explicitly
+want to close other remaining vertical gaps.
 The field emits `blocks:change` for `compact`, `minimize`, `restore` and
 `remove`.
 Trackpad and wheel input over ordinary block content continues scrolling the
@@ -154,8 +158,8 @@ for arguments and return values.
 
 ## Verified status
 
-As checked on 2026-08-07, the entire documented public surface is implemented
-in this `main` working tree: block creation and lifecycle, menus, grid layout,
+As checked on 2026-08-08, the current `main` working tree implements the
+documented public surface: block creation and lifecycle, menus, grid layout,
 snap/keyboard movement, `compact()`, variants and random colour,
 adapters, events, TypeScript declarations, the homepage, manual, reference and
 three runnable examples.
@@ -167,8 +171,9 @@ The following checks passed locally:
 - `npm run test:presentation`: presentation and public-page structure checks.
 - Apache/XAMPP: `/`, `/docs/` and `/examples/` each returned HTTP 200.
 
-This describes the released `v0.2.0` source, available through its immutable
-GitHub release tag.
+`v0.2.0` is the latest immutable public release, available through its GitHub
+release tag. `main` may contain later, unreleased work; do not use it as an
+immutable distribution reference.
 
 ## Develop
 

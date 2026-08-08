@@ -1,16 +1,4 @@
-# Draggedrag — donoronderzoek en librarycontract
-
-Status: lokaal uitgevoerd op 3 augustus 2026.
-
-## Onderzocht voorbeeld
-
-Het gedrag is vergeleken met:
-
-- `C:\server\htdocs\buiilding_blocks_elements\elements\micrographic-grid.html`
-- `C:\server\htdocs\buiilding_blocks_elements\elements\micrographic-grid.js`
-
-Die bestanden waren al lokaal gewijzigd en zijn voor dit werk uitsluitend
-gelezen en in de browser bediend.
+# Draggedrag en librarycontract
 
 ## Waarom de neerwaartse herschikking natuurlijk voelt
 

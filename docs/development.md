@@ -1,7 +1,5 @@
 # blocks.system development system
 
-Status: canonieke structuur uitgevoerd op 3 augustus 2026.
-
 ## Topologie
 
 - `blocks.system.mjs` is de canonieke dependency-free ESM-bron.
@@ -16,13 +14,15 @@ Status: canonieke structuur uitgevoerd op 3 augustus 2026.
 - `index.html` is de voordeur met één echt blocks-systeem.
 - `docs/index.html` is de levende manual op de canonieke route `/docs/`.
 - `docs/api.html` is de volledige, niet-versleepbare reference.
-- `docs/content.json` bezit alle zichtbare inhoud van de 35 levende docblocks:
-  3 op home, 22 in de manual en 10 in de reference. Titels, uitleg, termen,
+- `docs/content.json` bezit de redactionele inhoud van de 52 levende docblocks:
+  3 op home, 39 in de manual en 10 in de reference. Titels, uitleg, termen,
   toegankelijke labels, links en codevoorbeelden staan daar. De JSON spiegelt
   block-ID's alleen als koppelsleutel; de canonieke ID-lijst, volgorde, layout,
   DOM-opbouw, gedrag en lifecycle blijven bij de betreffende docscompositie.
-  Navigatie, paginametadata, toolbars en footers blijven in semantische HTML.
-  De library leest dit bestand niet.
+  Zelfgetekende visuals (de ELI10-canvasstappen), media-assetpaden en berekende
+  interactiestatus blijven bewust compositie- of gedragscode. Navigatie,
+  paginametadata, toolbars en footers blijven in semantische HTML. De library
+  leest dit bestand niet.
 - `examples/<naam>/` is zelfstandig, uitvoerbaar en kopieerbaar.
 
 `docs/shell.mjs` bezit uitsluitend gedeelde docsfuncties: navigatie, één
@@ -126,10 +126,9 @@ die jsDelivr voor ESM en CSS kan leveren.
 5. maak pas een versie-tag wanneer de publieke API klaar is om via jsDelivr te
    pinnen.
 
-De eerste vaste distributie is GitHub-release `v0.1.0`; de actuele
-contrastcorrectie staat in `v0.1.1`; `v0.2.0` bevat de huidige publieke API en
-manual. Zelfstandige publieke voorbeelden gebruiken
-altijd de onveranderlijke actuele tag, niet `main`:
+`v0.2.0` is de huidige onveranderlijke publieke release. Zelfstandige publieke
+voorbeelden gebruiken altijd die tag, niet `main`; de branch kan latere,
+onuitgebrachte wijzigingen bevatten:
 
 - ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.mjs`
 - CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.css`

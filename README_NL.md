@@ -145,7 +145,11 @@ Zet `blocks.draggable = false` om de layout te vergrendelen.
 Gebruik `blocks.compact()` alleen wanneer je expliciet gaten wil vullen. De
 methode houdt ieder geplaatst block in zijn kolom en bewaart de verticale
 volgorde van blocks met overlappende kolommen; het ingestelde raster verkleint
-niet stilzwijgend. `block.minimized` blijft inklappen op dezelfde plaats. Het veld vuurt
+niet stilzwijgend. `block.minimized` blijft inklappen op dezelfde plaats.
+Bij `remove()` komt de vroegere rasterruimte van het geplaatste block vrij. Als
+daardoor een rij volledig onbewoond wordt, mag een later passend block naar die
+rij opschuiven; bewust lege compositieruimte blijft leeg. Gebruik `compact()`
+wanneer je andere resterende verticale gaten expliciet wil sluiten. Het veld vuurt
 `blocks:change` voor `compact`, `minimize`, `restore` en `remove`.
 Trackpad- en wheelscroll boven gewone blockinhoud blijft de pagina scrollen;
 alleen echt overlopende binneninhoud scrollt eerst lokaal.
@@ -157,8 +161,8 @@ voor argumenten en returnwaarden.
 
 ## Gecontroleerde status
 
-Op 2026-08-07 is de volledige gedocumenteerde publieke werking in deze
-`main`-werkmap afgewerkt: blocks aanmaken en beheren, menu's, gridlayout,
+Op 2026-08-08 bevat de huidige `main`-werkmap de gedocumenteerde publieke
+werking: blocks aanmaken en beheren, menu's, gridlayout,
 snap- en toetsenbordbeweging, `compact()`, varianten en toevalskleur,
 adapters, events, TypeScript-declaraties, home, manual, reference en drie
 uitvoerbare voorbeelden.
@@ -170,8 +174,9 @@ Lokaal geslaagd:
 - `npm run test:presentation`: presentatie- en publieke paginastructuurchecks.
 - Apache/XAMPP: `/`, `/docs/` en `/examples/` geven elk HTTP 200.
 
-Dit beschrijft de uitgebrachte bron `v0.2.0`, beschikbaar via de onveranderlijke
-GitHub-release-tag.
+`v0.2.0` is de recentste onveranderlijke publieke release, beschikbaar via de
+GitHub-release-tag. `main` kan later, nog niet uitgebracht werk bevatten; gebruik
+het niet als onveranderlijke distributieverwijzing.
 
 ## Ontwikkelen
 
