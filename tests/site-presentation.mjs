@@ -67,6 +67,7 @@ const packageData = JSON.parse(await readFile(resolve(root, "package.json"), "ut
 const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0";
 const declarations = await readFile(resolve(root, "blocks.system.d.ts"), "utf8");
 const siteCss = await readFile(resolve(root, "docs", "style.css"), "utf8");
+const eli10Schema = await readFile(resolve(root, "docs", "eli10-schema.mjs"), "utf8");
 const libraryCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
 const librarySource = await readFile(resolve(root, "blocks.system.mjs"), "utf8");
 const mediaPoster = await readFile(resolve(root, "docs", "references", "media-contract-poster.svg"), "utf8");
@@ -261,10 +262,10 @@ assert.match(manualHtml, /class="docs-chapters"[\s\S]*#eli10[\s\S]*#start[\s\S]*
 assert.doesNotMatch(manualHtml + siteCss, /manual-hero-image/, "the photograph belongs to the homepage block composition, not the manual masthead");
 assert.doesNotMatch(manualHtml, /manual-toolbar|manual-status|lock layout|reset/, "the beginner manual must not present layout tooling before the lesson");
 assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "the experimental manual must use one shared blocks system");
-assert.match(siteDemos["docs/manual.mjs"], /id:\s*"manual-eli10"[\s\S]*?span:\s*\[6,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\]/, "ELI10 must use one full-width visual block, leave row 3 open and start part 1 on row 4");
+assert.match(siteDemos["docs/manual.mjs"], /id:\s*"manual-eli10"[\s\S]*?span:\s*\[3,\s*2\][\s\S]*?place:\s*\[1,\s*1\][\s\S]*?classes:\s*\["manual-half",\s*"manual-eli10-block"\][\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\]/, "ELI10 must use the left three columns, leave visual space at right and start part 1 on row 4");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /manual-eli10-steps/, "ELI10 must not repeat the same explanation in a second text block");
 assert.match(siteDemos["docs/manual.mjs"], /blocks\.setGrid\(6,\s*55\)[\s\S]*?id:\s*"manual-start"[\s\S]*?place:\s*\[1,\s*4\][\s\S]*?id:\s*"manual-finish"[\s\S]*?place:\s*\[1,\s*8\][\s\S]*?id:\s*"manual-content-html"[\s\S]*?place:\s*\[1,\s*11\][\s\S]*?id:\s*"manual-content-object"[\s\S]*?place:\s*\[3,\s*11\][\s\S]*?id:\s*"manual-content-factory"[\s\S]*?place:\s*\[5,\s*11\]/, "manual 02 must follow one open grid row and sit above the three content examples");
-assert.match(manualHtml, /p5-1\.11\.13\.min\.js[\s\S]*shell\.mjs\?v=0\.1\.34[\s\S]*manual\.mjs\?v=0\.1\.48/, "the manual must load its pinned local p5 runtime before the visual schema module");
+assert.match(manualHtml, /p5-1\.11\.13\.min\.js[\s\S]*shell\.mjs\?v=0\.1\.34[\s\S]*manual\.mjs\?v=0\.1\.49/, "the manual must load its pinned local p5 runtime before the visual schema module");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /eli10Block\.color\s*=/, "the first manual block must keep the standard regular black shell");
 for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `the canonical manual misses #${anchor}`);
@@ -275,6 +276,8 @@ for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
 assert.match(siteDemos["docs/manual.mjs"], /function createTextElement[\s\S]*element\.textContent\s*=\s*text/, "dynamic manual text must still use textContent without turning the content card into an explanation");
 assert.match(siteDemos["docs/manual.mjs"], /function createEli10SchemaContent\(\)[\s\S]*id\s*=\s*"eli10-schema"/, "ELI10 must mount one dedicated visual host instead of explanatory duplicate copy");
 assert.match(siteDemos["docs/manual.mjs"], /mountEli10Schema\(eli10Block\.element\.querySelector\("#eli10-schema"\)\)/, "the visual ELI10 host must mount after its block exists");
+assert.match(siteDemos["docs/manual.mjs"], /eli10-schema\.mjs\?v=0\.1\.1/, "the changed ELI10 module must use a new cache version");
+assert.match(eli10Schema, /const block = blocks\.add\(\\n\s*"<p>Hello\.<\/p>"\\n\)/, "ELI10 must show that blocks.add creates and returns the individual block");
 assert.match(siteDemos["docs/manual.mjs"], /variant:\s*"regular"[\s\S]*snap:\s*true[\s\S]*menu:\s*\{\s*minimize:\s*true,\s*close:\s*true\s*\}/, "the manual must expose both block actions while staying monochrome");
 for (const [minimize, close] of [[true, true], [true, false], [false, true], [false, false]]) {
   assert.match(siteDemos["docs/manual.mjs"], new RegExp(`menu:\\s*\\{\\s*minimize:\\s*${minimize},\\s*close:\\s*${close}\\s*\\}`), `the manual must render menu actions with minimize ${minimize} and close ${close}`);

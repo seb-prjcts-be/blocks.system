@@ -1,6 +1,6 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
 import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.34";
-import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.0";
+import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.1";
 
 const board = document.querySelector("#manual-board");
 const manualVariationSamples = [0.05, 0.1, 0.6, 0.05, 0.8, 0.6, 0.05, 0.4, 0.8, 0.6];
@@ -205,10 +205,10 @@ const eli10Block = addBlock({
   id: "manual-eli10",
   title: content["manual-eli10"].title,
   content: createEli10SchemaContent(),
-  span: [6, 2],
+  span: [3, 2],
   place: [1, 1],
   anchor: "eli10",
-  classes: ["manual-full", "manual-eli10-block"]
+  classes: ["manual-half", "manual-eli10-block"]
 });
 
 mountEli10Schema(eli10Block.element.querySelector("#eli10-schema"));

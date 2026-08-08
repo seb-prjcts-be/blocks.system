@@ -1291,7 +1291,8 @@ try {
       const firstContentTop = Math.min(...manual.contentOptions.map(function (option) { return option.blockTop; }));
       assert.ok(Math.abs(manual.finishBlockTop - manual.startBlockBottom - openRowInterval) <= 0.5, `manual laat boven 02 niet exact één open rasterrij op ${width}px @${dpr}x`);
       assert.ok(Math.abs(firstContentTop - manual.finishBlockBottom - manual.rowGap) <= 0.5, `de drie voorbeelden sluiten niet direct onder 02 aan op ${width}px @${dpr}x`);
-      assert.ok(Math.abs(manual.eli10.blockWidth - manual.boardWidth) <= 2, `de ELI10-visual vult niet exact de boardbreedte op ${width}px`);
+      const expectedEli10Width = manual.trackWidth * 3 + manual.columnGap * 2;
+      assert.ok(Math.abs(manual.eli10.blockWidth - expectedEli10Width) <= 2, `de ELI10-visual gebruikt niet exact de linker drie kolommen op ${width}px`);
       assert.ok(manual.chapterGaps.every(function (item) { return item.marginTop === 0; }), `manual gebruikt nog marge binnen een desktop-gridcel op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);
       assert.ok(manual.chapterGaps.every(function (item) { return Math.abs(item.gap - openRowInterval) <= 0.5; }), `manual gebruikt niet exact één open desktop-gridrij op ${width}px: ${openRowInterval}px versus ${JSON.stringify(manual.chapterGaps)}`);
       assert.equal(new Set([...manual.randomMiniGrids.color, ...manual.randomMiniGrids.inverse].map((item) => item.top)).size, 1, `de twee afzonderlijke random-mini-grids delen geen rij op ${width}px`);

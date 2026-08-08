@@ -40,7 +40,7 @@ export function mountEli10Schema(host) {
     const STEPS = [
       { title: "1 / container", code: '<div id="blocks-field"></div>' },
       { title: "2 / blocks", code: 'blocks.attach("#blocks-field")' },
-      { title: "3 / block", code: 'blocks.add("<p>Hello.</p>")' }
+      { title: "3 / block", code: 'const block = blocks.add(\n  "<p>Hello.</p>"\n)' }
     ];
 
     let scaleFactor = 1;
@@ -120,7 +120,7 @@ export function mountEli10Schema(host) {
 
       p.noStroke();
       p.fill(isActive ? INK : MUTED);
-      p.textSize(12);
+      p.textSize(11);
       p.textAlign(p.LEFT, p.TOP);
       p.text(step.code, fieldX, FIELD_Y + FIELD_H + 20);
     }
