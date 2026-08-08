@@ -545,6 +545,7 @@ footer a { color: var(--ink); }
   grid-template-columns: minmax(180px, 0.7fr) minmax(0, 1.3fr);
   align-items: stretch;
   gap: clamp(18px, 3vw, 56px);
+  padding: 0;
 }
 
 .manual-explanation {
