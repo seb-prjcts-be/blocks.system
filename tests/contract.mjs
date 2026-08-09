@@ -81,6 +81,12 @@ assert.equal(
   "https://elders.test/pagina.html?block=extern-detail",
   "a block that names its own page must be addressed on that page"
 );
+local.register({ id: "met-component", adapter: "html", url: "https://elders.test/pagina.html?component=kaart" });
+assert.equal(
+  local.address("met-component"),
+  "https://elders.test/pagina.html?component=kaart&block=met-component",
+  "a consumer-owned block url must keep its own query parameters"
+);
 const headless = createBlocksSystem();
 headless.register({ id: "los", adapter: "html", url: "https://example.test/detail.html", markup: "<p>los</p>" });
 assert.equal(
@@ -190,6 +196,7 @@ assert.deepEqual(describedDefinition, {
   markup: "<p>Het dagverloop.</p>",
   url: "https://example.test/praktische-info.html"
 }, "a live add() block must describe itself as a registerable html definition");
+assert.equal("url" in describedBlock.describe({ url: "" }), false, "an empty describe url must behave as an absent url");
 const hub = createBlocksSystem({
   catalogUrl: "https://example.test/kaart.html",
   blocks: JSON.parse(JSON.stringify([describedDefinition]))

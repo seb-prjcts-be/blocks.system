@@ -372,8 +372,10 @@ function createBlockCatalog(options = {}) {
         } else {
             if (!base) throw new Error("Voor address() is een catalogUrl nodig.");
             url = new URL(base);
+            // Alleen op het catalogus-/paginapad is component een eigen
+            // routeringsparameter; een consumer-eigen blok-url blijft intact.
+            url.searchParams.delete("component");
         }
-        url.searchParams.delete("component");
         url.searchParams.set("block", id);
         return url.href;
     }
@@ -1337,14 +1339,16 @@ export function createBlocksSystem(options = {}) {
                 label: String(titleNode?.textContent || addOptions.title || id),
                 markup: String(contentNode.innerHTML ?? "")
             };
-            let url = describeOptions.url ?? null;
+            let url = describeOptions.url === undefined || describeOptions.url === null
+                ? null
+                : String(describeOptions.url) || null;
             if (url === null && typeof window !== "undefined") {
                 const pageUrl = new URL(window.location.href);
                 pageUrl.searchParams.delete("component");
                 pageUrl.searchParams.delete("block");
                 url = pageUrl.href;
             }
-            if (url !== null) definition.url = String(url);
+            if (url !== null) definition.url = url;
             return definition;
         }
 

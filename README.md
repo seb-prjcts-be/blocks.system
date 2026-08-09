@@ -95,7 +95,9 @@ carry the `url` of the page it lives on; `address(id)` then deep-links to that
 page instead of the shared `catalogUrl`. A live `add()` block serializes into
 such a definition with `block.describe({ url })`, so another page can register
 it (for example via `createBlocksSystem({ blocks })`) and show the real content
-instead of a paraphrase.
+instead of a paraphrase. Register only definitions from sources you trust:
+a definition's `markup` is injected as HTML wherever it mounts, so never
+register stored or user-supplied definitions unchecked.
 
 ```js
 blocks.registerAdapter("block-note", {

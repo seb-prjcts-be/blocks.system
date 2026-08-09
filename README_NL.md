@@ -99,7 +99,10 @@ naar die pagina in plaats van naar de gedeelde `catalogUrl`. Een levend
 `add()`-block serialiseert zichzelf naar zo'n definitie met
 `block.describe({ url })`, zodat een andere pagina het kan registreren
 (bijvoorbeeld via `createBlocksSystem({ blocks })`) en de echte inhoud toont in
-plaats van een parafrase.
+plaats van een parafrase. Registreer alleen definities uit bronnen die je
+vertrouwt: de `markup` van een definitie wordt overal als HTML geïnjecteerd,
+dus registreer nooit ongecontroleerd opgeslagen of door gebruikers aangeleverde
+definities.
 
 ```js
 blocks.registerAdapter("block-melding", {
