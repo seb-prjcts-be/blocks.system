@@ -49,7 +49,7 @@ const adapterRegistration = local.registerAdapter("html", {
   },
   unmount() { adapterUnmounts += 1; },
   snippet({ block }) { return block.markup; }
-});
+}, { replace: true });
 const blockRegistration = local.register({
   id: "plain-html",
   label: "plain html",
@@ -61,13 +61,38 @@ const blockRegistration = local.register({
 assert.equal(adapterRegistration, local, "registerAdapter must remain chainable on the public system");
 assert.equal(blockRegistration, local, "register must remain chainable on the public system");
 assert.equal(local.get("plain-html").markup, "<p>test</p>", "free block data must be preserved");
-assert.deepEqual(local.listAdapters(), ["html"], "custom adapters must be registerable");
+assert.deepEqual(local.listAdapters(), ["html"], "a consumer adapter must be able to replace the built-in html adapter");
 assert.equal(local.list({ medium: "html" }).length, 1, "content type must be filterable");
 assert.equal(local.address("plain-html"), "https://example.test/catalog.html?block=plain-html", "addresses use the block parameter");
 assert.equal(local.snippet("plain-html"), "<p>test</p>", "snippet requests must stay inside the registered catalog");
 const isolated = createBlocksSystem();
 assert.equal(isolated.get("plain-html"), null, "each system must own an isolated catalog");
-assert.deepEqual(isolated.listAdapters(), [], "adapters must not leak between systems");
+assert.deepEqual(isolated.listAdapters(), ["html"], "each system must ship only the built-in html adapter; consumer adapters must not leak between systems");
+
+local.register({ id: "hub-detail", adapter: "html", url: "praktische-info.html" });
+assert.equal(
+  local.address("hub-detail"),
+  "https://example.test/praktische-info.html?block=hub-detail",
+  "a relative block url must resolve against the catalog base"
+);
+local.register({ id: "extern-detail", adapter: "html", url: "https://elders.test/pagina.html" });
+assert.equal(
+  local.address("extern-detail"),
+  "https://elders.test/pagina.html?block=extern-detail",
+  "a block that names its own page must be addressed on that page"
+);
+const headless = createBlocksSystem();
+headless.register({ id: "los", adapter: "html", url: "https://example.test/detail.html", markup: "<p>los</p>" });
+assert.equal(
+  headless.address("los"),
+  "https://example.test/detail.html?block=los",
+  "an absolute block url must not require a catalogUrl or a window"
+);
+assert.equal(headless.snippet("los"), "<p>los</p>", "a markup definition must snippet on the built-in html adapter");
+headless.register({ id: "zwevend", adapter: "html", url: "detail.html" });
+assert.throws(function () { headless.address("zwevend"); }, /catalogUrl/, "a relative block url without any base must fail with the catalogUrl error");
+headless.register({ id: "zonder-markup", adapter: "html" });
+assert.throws(function () { headless.snippet("zonder-markup"); }, /markup-string/, "the built-in html adapter must reject definitions without markup");
 assert.throws(function () { local.setGrid(0, 2); }, /positieve gehele/, "invalid grids must fail early");
 
 class TestStyle {
@@ -152,6 +177,37 @@ globalThis.document = {
   createElement() { return new TestElement(); },
   querySelector() { return null; }
 };
+
+const transcluded = createBlocksSystem({ variant: "regular" });
+const transcludedField = new TestElement();
+transcluded.attach(transcludedField);
+const describedBlock = transcluded.add("<p>Het dagverloop.</p>", { id: "dagverloop", title: "DAGVERLOOP" });
+const describedDefinition = describedBlock.describe({ url: "https://example.test/praktische-info.html" });
+assert.deepEqual(describedDefinition, {
+  id: "dagverloop",
+  adapter: "html",
+  label: "DAGVERLOOP",
+  markup: "<p>Het dagverloop.</p>",
+  url: "https://example.test/praktische-info.html"
+}, "a live add() block must describe itself as a registerable html definition");
+const hub = createBlocksSystem({
+  catalogUrl: "https://example.test/kaart.html",
+  blocks: JSON.parse(JSON.stringify([describedDefinition]))
+});
+assert.equal(
+  hub.snippet("dagverloop"),
+  "<p>Het dagverloop.</p>",
+  "a described block must snippet on another page without a consumer adapter"
+);
+assert.equal(
+  hub.address("dagverloop"),
+  "https://example.test/praktische-info.html?block=dagverloop",
+  "a described block must deep-link to the page it lives on"
+);
+const hubHost = new TestElement();
+const hubNode = await hub.mount("dagverloop", hubHost);
+assert.equal(hubNode.innerHTML, "<p>Het dagverloop.</p>", "the built-in html adapter must mount markup into a host");
+assert.equal(hubHost.getAttribute("data-block-mounted"), "dagverloop", "the host must record the mounted block");
 
 const configured = createBlocksSystem({
   snap: true,

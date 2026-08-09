@@ -23,7 +23,7 @@
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>member or option</th><th>returns or initial value</th><th>purpose</th></tr></thead><tbody><tr id="api-create"><td data-label="member or option">createBlocksSystem(options?)</td><td data-label="returns or initial value">BlocksSystem</td><td data-label="purpose">Create an independent blocks system.</td></tr>
 <tr id="api-system"><td data-label="member or option">system</td><td data-label="returns or initial value">BlocksSystem</td><td data-label="purpose">The shared module instance.</td></tr>
 <tr id="api-window"><td data-label="member or option">window.blocks.system</td><td data-label="returns or initial value">BlocksSystem</td><td data-label="purpose">The same shared instance exposed in a browser.</td></tr>
-<tr><td data-label="member or option">catalogUrl</td><td data-label="returns or initial value">null</td><td data-label="purpose">Base URL used by address().</td></tr>
+<tr><td data-label="member or option">catalogUrl</td><td data-label="returns or initial value">null</td><td data-label="purpose">Base URL used by address() when a block has no url of its own.</td></tr>
 <tr><td data-label="member or option">random</td><td data-label="returns or initial value">Math.random</td><td data-label="purpose">Source used when variant is random.</td></tr>
 <tr><td data-label="member or option">snap</td><td data-label="returns or initial value">false</td><td data-label="purpose">Snap blocks to the configured grid.</td></tr>
 <tr><td data-label="member or option">draggable</td><td data-label="returns or initial value">true</td><td data-label="purpose">Allow pointer and keyboard reordering.</td></tr>
@@ -59,7 +59,7 @@
 <tr id="api-set-grid"><td data-label="method">setGrid(columns, rows)</td><td data-label="returns">blocks</td><td data-label="purpose">Set positive whole grid dimensions.</td></tr>
 <tr id="api-compact"><td data-label="method">compact()</td><td data-label="returns">blocks</td><td data-label="purpose">Move fixed grid blocks upward to fill vertical gaps.</td></tr>
 <tr id="api-add"><td data-label="method">add(content, options?)</td><td data-label="returns">block</td><td data-label="purpose">Add trusted HTML, an element object or a content factory. Never pass untrusted text as HTML; create an element and set textContent.</td></tr>
-<tr id="api-address"><td data-label="method">address(id)</td><td data-label="returns">string</td><td data-label="purpose">Build a catalog URL ending in ?block=id.</td></tr></tbody></table></div>
+<tr id="api-address"><td data-label="method">address(id)</td><td data-label="returns">string</td><td data-label="purpose">Build a deep link ending in ?block=id from the block url, or from the catalogUrl when the definition has none.</td></tr></tbody></table></div>
 </section>
 
 <section id="errors" class="reference-fallback-entry" data-reference-column="blocks" data-reference-aspect="reactions-failures">
@@ -98,6 +98,7 @@
 <tr id="api-span"><td data-label="method">span(columns, rows)</td><td data-label="returns">block</td><td data-label="purpose">Set the size in whole grid units.</td></tr>
 <tr id="api-place"><td data-label="method">place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based grid coordinates.</td></tr>
 <tr id="api-flow"><td data-label="method">flow()</td><td data-label="returns">block</td><td data-label="purpose">Return to CSS automatic order.</td></tr>
+<tr><td data-label="method">describe(options?)</td><td data-label="returns">definition</td><td data-label="purpose">Serialize this live block into a registerable definition for the built-in html adapter; options.url names the page it lives on.</td></tr>
 <tr><td data-label="method">remove()</td><td data-label="returns">true</td><td data-label="purpose">Remove the block and release its layout.</td></tr></tbody></table></div>
 </section>
 
@@ -117,7 +118,9 @@
 };</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>method</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-register"><td data-label="method">register(definition, options?)</td><td data-label="returns">blocks</td><td data-label="purpose">Register a reusable block definition.</td></tr>
 <tr id="api-register-adapter"><td data-label="method">registerAdapter(id, adapter, options?)</td><td data-label="returns">blocks</td><td data-label="purpose">Register a lifecycle adapter.</td></tr>
-<tr><td data-label="method">listAdapters()</td><td data-label="returns">string[]</td><td data-label="purpose">List registered adapter ids.</td></tr>
+<tr><td data-label="method">definition.url</td><td data-label="returns">string</td><td data-label="purpose">Page the block lives on; address() prefers it over the catalogUrl.</td></tr>
+<tr><td data-label="method">adapter &quot;html&quot;</td><td data-label="returns">built-in</td><td data-label="purpose">Mounts and snippets trusted definition.markup — the same trust boundary as add(content). Replace it with registerAdapter(&quot;html&quot;, adapter, { replace: true }).</td></tr>
+<tr><td data-label="method">listAdapters()</td><td data-label="returns">string[]</td><td data-label="purpose">List registered adapter ids, starting with the built-in html adapter.</td></tr>
 <tr><td data-label="method">list(filters?)</td><td data-label="returns">definition[]</td><td data-label="purpose">Filter definitions by query, adapter, medium or category.</td></tr>
 <tr><td data-label="method">get(id)</td><td data-label="returns">definition | null</td><td data-label="purpose">Read one registered definition.</td></tr></tbody></table></div>
 </section>
@@ -156,7 +159,7 @@ field.addEventListener(&quot;blocks:change&quot;, (event) =&gt; {
 <tr><td data-label="hook">.blocks-system-content</td><td data-label="purpose">Content host.</td></tr>
 <tr><td data-label="hook">.blocks-system-drop-preview</td><td data-label="purpose">Pointer landing preview.</td></tr>
 <tr><td data-label="hook">[data-block-object]</td><td data-label="purpose">Stable block id.</td></tr>
-<tr><td data-label="hook">[data-block-variant]</td><td data-label="purpose">Resolved appearance.</td></tr>
+<tr><td data-label="hook">[data-block-variant]</td><td data-label="purpose">Resolved appearance. Custom variant names pass validation and land here for consumer styling — for example a light footnote weight.</td></tr>
 <tr><td data-label="hook">[data-block-color]</td><td data-label="purpose">Color selected from the user's array.</td></tr>
 <tr><td data-label="hook">[data-block-minimized]</td><td data-label="purpose">Minimized state.</td></tr>
 <tr><td data-label="hook">[data-draggable]</td><td data-label="purpose">Surface drag state.</td></tr></tbody></table></div>

@@ -21,6 +21,12 @@ const block: BlockController = blocks
   .place(1, 1)
   .menu("typed", { close: true });
 
+blocks.register({ id: "typed-detail", adapter: "html", url: "detail.html", markup: "<p>typed</p>" });
+const typedAddress: string = blocks.address("typed-detail");
+const typedSnippet: string = blocks.snippet("typed-detail");
+const described = block.describe({ url: "https://example.test/detail.html" });
+const describedUrl: string | undefined = described.url;
+
 const columns: number = blocks.columns;
 const rows: number = blocks.rows;
 const minified: BlocksSystem = createMinBlocksSystem({ variant: "regular" });
@@ -39,4 +45,4 @@ document.body.addEventListener("blocks:change", (event) => {
 // @ts-expect-error Grid dimensions are readable state, not writable settings.
 blocks.columns = 9;
 
-void [block, columns, rows, minified, shared];
+void [block, columns, rows, minified, shared, typedAddress, typedSnippet, describedUrl];

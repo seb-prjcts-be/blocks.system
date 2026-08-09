@@ -248,6 +248,27 @@ function createBlockCatalog(options = {}) {
     const mounts = new WeakMap();
     const catalogUrl = options.catalogUrl ? new URL(options.catalogUrl) : null;
 
+    function requireMarkup(block) {
+        if (typeof block.markup !== "string") {
+            throw new TypeError(`De html-adapter verwacht een markup-string op ${block.id}.`);
+        }
+        return block.markup;
+    }
+
+    // Ingebouwde adapter voor kant-en-klare markup. markup is vertrouwde HTML
+    // van de consument — dezelfde grens als add(content).
+    adapters.set("html", Object.freeze({
+        mount({ block, host }) {
+            const node = document.createElement("div");
+            node.innerHTML = requireMarkup(block);
+            host.appendChild(node);
+            return node;
+        },
+        snippet({ block }) {
+            return requireMarkup(block);
+        }
+    }));
+
     function register(definition, registerOptions = {}) {
         const block = normalizeBlock(definition);
         if (definitions.has(block.id) && !registerOptions.replace) {
@@ -336,10 +357,22 @@ function createBlockCatalog(options = {}) {
     }
 
     function address(id) {
-        if (!get(id)) throw new RangeError(`Onbekend blok: ${id}`);
+        const block = get(id);
+        if (!block) throw new RangeError(`Onbekend blok: ${id}`);
         const fallbackUrl = typeof window !== "undefined" ? window.location.href : null;
-        if (!catalogUrl && !fallbackUrl) throw new Error("Voor address() is een catalogUrl nodig.");
-        const url = new URL(catalogUrl || fallbackUrl);
+        const base = catalogUrl || fallbackUrl;
+        let url;
+        if (block.url) {
+            try {
+                url = new URL(block.url, base || undefined);
+            } catch {
+                if (!base) throw new Error("Voor address() is een catalogUrl nodig.");
+                throw new TypeError(`Ongeldige blok-url voor ${id}: ${block.url}`);
+            }
+        } else {
+            if (!base) throw new Error("Voor address() is een catalogUrl nodig.");
+            url = new URL(base);
+        }
         url.searchParams.delete("component");
         url.searchParams.set("block", id);
         return url.href;
@@ -1296,6 +1329,25 @@ export function createBlocksSystem(options = {}) {
             if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
         }
 
+        function describe(describeOptions = {}) {
+            assertActive();
+            const definition = {
+                id,
+                adapter: "html",
+                label: String(titleNode?.textContent || addOptions.title || id),
+                markup: String(contentNode.innerHTML ?? "")
+            };
+            let url = describeOptions.url ?? null;
+            if (url === null && typeof window !== "undefined") {
+                const pageUrl = new URL(window.location.href);
+                pageUrl.searchParams.delete("component");
+                pageUrl.searchParams.delete("block");
+                url = pageUrl.href;
+            }
+            if (url !== null) definition.url = String(url);
+            return definition;
+        }
+
         function setMinimized(value) {
             assertActive();
             const nextValue = Boolean(value);
@@ -1424,6 +1476,7 @@ export function createBlocksSystem(options = {}) {
             span,
             place,
             flow,
+            describe,
             remove
         };
         Object.defineProperty(controller, "color", {

@@ -357,7 +357,7 @@
         { "id": "api-create", "cells": ["createBlocksSystem(options?)", "BlocksSystem", "Create an independent blocks system."] },
         { "id": "api-system", "cells": ["system", "BlocksSystem", "The shared module instance."] },
         { "id": "api-window", "cells": ["window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] },
-        { "cells": ["catalogUrl", "null", "Base URL used by address()."] },
+        { "cells": ["catalogUrl", "null", "Base URL used by address() when a block has no url of its own."] },
         { "cells": ["random", "Math.random", "Source used when variant is random."] },
         { "cells": ["snap", "false", "Snap blocks to the configured grid."] },
         { "cells": ["draggable", "true", "Allow pointer and keyboard reordering."] },
@@ -397,7 +397,7 @@
         { "id": "api-set-grid", "cells": ["setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
         { "id": "api-compact", "cells": ["compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] },
         { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, an element object or a content factory. Never pass untrusted text as HTML; create an element and set textContent."] },
-        { "id": "api-address", "cells": ["address(id)", "string", "Build a catalog URL ending in ?block=id."] }
+        { "id": "api-address", "cells": ["address(id)", "string", "Build a deep link ending in ?block=id from the block url, or from the catalogUrl when the definition has none."] }
       ]
     },
     "reference-system-errors": {
@@ -441,6 +441,7 @@
         { "id": "api-span", "cells": ["span(columns, rows)", "block", "Set the size in whole grid units."] },
         { "id": "api-place", "cells": ["place(column, row)", "block", "Set one-based grid coordinates."] },
         { "id": "api-flow", "cells": ["flow()", "block", "Return to CSS automatic order."] },
+        { "cells": ["describe(options?)", "definition", "Serialize this live block into a registerable definition for the built-in html adapter; options.url names the page it lives on."] },
         { "cells": ["remove()", "true", "Remove the block and release its layout."] }
       ]
     },
@@ -464,7 +465,9 @@
       "rows": [
         { "id": "api-register", "cells": ["register(definition, options?)", "blocks", "Register a reusable block definition."] },
         { "id": "api-register-adapter", "cells": ["registerAdapter(id, adapter, options?)", "blocks", "Register a lifecycle adapter."] },
-        { "cells": ["listAdapters()", "string[]", "List registered adapter ids."] },
+        { "cells": ["definition.url", "string", "Page the block lives on; address() prefers it over the catalogUrl."] },
+        { "cells": ["adapter \"html\"", "built-in", "Mounts and snippets trusted definition.markup — the same trust boundary as add(content). Replace it with registerAdapter(\"html\", adapter, { replace: true })."] },
+        { "cells": ["listAdapters()", "string[]", "List registered adapter ids, starting with the built-in html adapter."] },
         { "cells": ["list(filters?)", "definition[]", "Filter definitions by query, adapter, medium or category."] },
         { "cells": ["get(id)", "definition | null", "Read one registered definition."] }
       ]
@@ -510,7 +513,7 @@
         { "cells": [".blocks-system-content", "Content host."] },
         { "cells": [".blocks-system-drop-preview", "Pointer landing preview."] },
         { "cells": ["[data-block-object]", "Stable block id."] },
-        { "cells": ["[data-block-variant]", "Resolved appearance."] },
+        { "cells": ["[data-block-variant]", "Resolved appearance. Custom variant names pass validation and land here for consumer styling — for example a light footnote weight."] },
         { "cells": ["[data-block-color]", "Color selected from the user's array."] },
         { "cells": ["[data-block-minimized]", "Minimized state."] },
         { "cells": ["[data-draggable]", "Surface drag state."] }

@@ -92,6 +92,15 @@ Gebruik alleen een adapter wanneer inhoud een mountcyclus, cleanup of
 herbruikbare definitie nodig heeft. De kern krijgt nooit rendererspecifieke
 kennis.
 
+Een ingebouwde `html`-adapter mount en snippet definities met vertrouwde
+`markup` — dezelfde vertrouwensgrens als `add(content)`. Een definitie mag ook
+de `url` dragen van de pagina waar het block woont; `address(id)` linkt dan
+naar die pagina in plaats van naar de gedeelde `catalogUrl`. Een levend
+`add()`-block serialiseert zichzelf naar zo'n definitie met
+`block.describe({ url })`, zodat een andere pagina het kan registreren
+(bijvoorbeeld via `createBlocksSystem({ blocks })`) en de echte inhoud toont in
+plaats van een parafrase.
+
 ```js
 blocks.registerAdapter("block-melding", {
   mount({ host, settings }) {
@@ -118,7 +127,7 @@ blocks.register({
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- Eén block: `menu`, `minimized`, `span`, `place`, `flow`, `variant`, `color`, `remove`.
+- Eén block: `menu`, `minimized`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
 overschrijfbaar via `createBlocksSystem({ labels: { move, minimize, restore,

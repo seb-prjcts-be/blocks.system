@@ -89,6 +89,14 @@ the library does not style them as named colours.
 Use an adapter only when content needs a mount lifecycle, cleanup or a reusable
 definition. The core never learns renderer-specific behaviour.
 
+A built-in `html` adapter mounts and snippets definitions that carry trusted
+`markup` — the same trust boundary as `add(content)`. A definition may also
+carry the `url` of the page it lives on; `address(id)` then deep-links to that
+page instead of the shared `catalogUrl`. A live `add()` block serializes into
+such a definition with `block.describe({ url })`, so another page can register
+it (for example via `createBlocksSystem({ blocks })`) and show the real content
+instead of a paraphrase.
+
 ```js
 blocks.registerAdapter("block-note", {
   mount({ host, settings }) {
@@ -115,7 +123,7 @@ blocks.register({
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- One block: `menu`, `minimized`, `span`, `place`, `flow`, `variant`, `color`, `remove`.
+- One block: `menu`, `minimized`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
 
 Accessible menu labels follow the document language (`nl` or English) and can
 be overridden with `createBlocksSystem({ labels: { move, minimize, restore,

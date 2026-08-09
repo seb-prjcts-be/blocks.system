@@ -16,6 +16,10 @@ export interface BlocksLabels {
 export interface BlockDefinition {
   id: string;
   adapter: string;
+  /** Page the block lives on; address() prefers it over the system catalogUrl. Relative urls resolve against catalogUrl or the current page. */
+  url?: string;
+  /** Trusted HTML for the built-in "html" adapter — the same trust boundary as add(content). */
+  markup?: string;
   label?: string;
   medium?: string;
   category?: string;
@@ -77,7 +81,14 @@ export interface BlockController {
   span(columns: number, rows: number): BlockController;
   place(column: number, row: number): BlockController;
   flow(): BlockController;
+  /** Serialize this live block into a registerable definition for the built-in "html" adapter. */
+  describe(options?: BlockDescribeOptions): BlockDefinition;
   remove(): true;
+}
+
+export interface BlockDescribeOptions {
+  /** Page the definition should address; defaults to the current page without its block parameter. */
+  url?: string | URL;
 }
 
 export interface BlocksReorderPosition {
