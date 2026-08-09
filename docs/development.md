@@ -135,3 +135,12 @@ onuitgebrachte wijzigingen bevatten:
 
 De publiceerde manual en reference documenteren `v0.2.0` en pinnen hun snippets
 op diezelfde tag.
+
+De eerstvolgende release moet minstens `v0.3.0` heten. Main bevat sinds BLK-27
+een bewuste catalogus-contractbreuk: `listAdapters()` geeft op een vers systeem
+`["html"]` in plaats van `[]`, en `registerAdapter("html", …)` vereist voortaan
+`{ replace: true }`. Vermeld in de releasenotes ook dat `definition.url` van
+vrij metadataveld naar betekenisdragend adresveld voor `address()` is gegaan.
+Het versienummer in `package.json` bumpt pas mee op het releasemoment zelf: de
+release-driftcontracttest eist dat package-versie en docs-pins in lockstep
+bewegen.
