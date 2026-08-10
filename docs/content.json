@@ -340,7 +340,7 @@
         { "cells": ["random", "Math.random", "Source used when variant is random."] },
         { "cells": ["snap", "false", "Snap blocks to the configured grid."] },
         { "cells": ["draggable", "true", "Allow pointer and keyboard reordering."] },
-        { "cells": ["font", "null", "Optional font family and stylesheet URL."] },
+        { "cells": ["font", "null", "Optional font family and stylesheet URL through family and href."] },
         { "cells": ["labels", "document language", "Override accessible move, restore, minimize and close labels."] },
         { "cells": ["variant", "random", "Appearance used for new blocks."] },
         { "cells": ["colorArray", "[]", "User-owned CSS colors; defaults to empty."] },
