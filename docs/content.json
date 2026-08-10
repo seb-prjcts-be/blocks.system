@@ -49,9 +49,6 @@
       ],
       "contract": "api.html#system-methods"
     },
-    "manual-start-result": {
-      "title": "01 / result"
-    },
     "manual-finish": {
       "title": "02 / content can be anything",
       "intro": "A block can hold anything the browser can render. Choose one of three input forms: trusted HTML, an element object or a factory. Paste one focused example after setGrid() and before </script>.",
@@ -203,9 +200,6 @@
       ],
       "contract": "api.html#system-methods"
     },
-    "manual-compact-result": {
-      "title": "05 / result"
-    },
     "manual-appearance": {
       "title": "06 / choose an appearance",
       "intro": "Choose one fixed monochrome variant. Regular uses dark ink on paper; inverse exchanges figure and ground. Color and chance come later.",
@@ -270,21 +264,6 @@
         "blocks.inversionVariation = 0; // 0, .5 or 1"
       ],
       "contract": "api.html#system-state"
-    },
-    "manual-random-column-0": {
-      "title": "0"
-    },
-    "manual-random-column-50": {
-      "title": "0.5"
-    },
-    "manual-random-column-100": {
-      "title": "1"
-    },
-    "manual-random-row-color": {
-      "title": "colorVariation"
-    },
-    "manual-random-row-inverse": {
-      "title": "inversionVariation"
     },
     "manual-random-color-0": {
       "title": "08.1 / colorVariation / 0",

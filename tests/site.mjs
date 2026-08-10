@@ -69,7 +69,7 @@ const siteDemoFiles = [
   "examples/custom-adapter/demo.mjs"
 ];
 const siteDemos = Object.fromEntries(await Promise.all(siteDemoFiles.map(async (file) => [file, await read(file)])));
-const referenceMatrixSource = await read("docs/reference-matrix.mjs");
+const referenceSectionsSource = await read("docs/reference-sections.mjs");
 const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileTypes: true }))
   .filter((entry) => entry.isDirectory())
   .map((entry) => entry.name)
@@ -150,7 +150,7 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
 const styleVersions = new Set(Object.entries(pageHtml)
   .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.21"], "one consumer stylesheet must use one cache version across all pages");
+assert.deepEqual([...styleVersions], ["0.2.22"], "one consumer stylesheet must use one cache version across all pages");
 const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
 assert.match(examplesCss, /var\(--docs-field\)/, "example pages must use the shared docs field token");
 assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
@@ -191,7 +191,7 @@ assert.deepEqual(Object.keys(docsContent), ["schema", "home", "manual", "referen
 const sectionModules = { home: "docs/home.mjs", manual: "docs/manual.mjs", reference: "docs/reference.mjs" };
 for (const [sectionName, moduleName] of Object.entries(sectionModules)) {
   const section = docsContent[sectionName];
-  const source = sectionName === "reference" ? `${siteDemos[moduleName]}\n${referenceMatrixSource}` : siteDemos[moduleName];
+  const source = sectionName === "reference" ? siteDemos[moduleName] + "\n" + referenceSectionsSource : siteDemos[moduleName];
   assert.match(siteDemos[moduleName], new RegExp(`loadDocsContent\\("${sectionName}"`), `${moduleName} must load canonical ${sectionName} content`);
   for (const [id, block] of Object.entries(section)) {
     assert.equal(typeof block.title, "string", `${sectionName}.${id} needs a visible title`);
@@ -214,17 +214,17 @@ assert.match(siteDemos["docs/shell.mjs"], /event\.key !== "Escape"/, "mobile nav
 
 assert.equal((siteDemos["docs/home.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "home must use one system");
 assert.equal((siteDemos["docs/home.mjs"].match(/blocks\.add\(/g) || []).length, 3, "home must contain three functional blocks");
-assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 2, "manual must use a protected lesson field and one separate drag sandbox");
-assert.match(siteDemos["docs/manual.mjs"], /appendReaderEntry\(section, content\[lessonId\], "h2"\)/, "manual chapters must expose real h2 headings for assistive navigation");
+assert.equal((siteDemos["docs/manual.mjs"].match(/createBlocksSystem\(/g) || []).length, 1, "manual must use one direct lesson field");
+assert.match(siteDemos["docs/manual.mjs"], /manual-chapter-heading/, "manual chapters must expose real h2 headings for assistive navigation");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /ResizeObserver|MutationObserver|registerAdapter|document\.createElement\("video"\)/, "advanced lifecycle examples must stay outside the beginner route");
 for (const anchor of ["eli10", "start", "content", "menu", "layout", "compact", "appearance", "colors", "chance", "next"]) {
-  assert.ok(siteDemos["docs/manual.mjs"].includes(`anchor: "${anchor}"`), `manual misses #${anchor}`);
+  assert.ok(siteDemos["docs/manual.mjs"].includes('"' + anchor + '"'), "manual misses #" + anchor);
 }
 const manualCopy = JSON.stringify(docsContent.manual).toLowerCase();
 assert.doesNotMatch(manualCopy, /same object/, "manual copy must speak about the reader's content, not its own test fixture");
 assert.ok((manualCopy.match(/\byour\b/g) || []).length >= 15, "manual copy must repeatedly address the reader where appearance varies");
 for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
-  assert.ok(referenceMatrixSource.includes(`"${anchor}"`), `reference matrix misses #${anchor}`);
+  assert.ok(referenceSectionsSource.includes('"' + anchor + '"'), "reference sections miss #" + anchor);
 }
 
 const serializedReference = JSON.stringify(docsContent.reference);

@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { REFERENCE_BLOCKS } from "../docs/reference-matrix.mjs";
+import { REFERENCE_SECTIONS } from "../docs/reference-sections.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const contentPath = resolve(root, "docs", "content.json");
@@ -42,7 +42,7 @@ function renderEntry(entry, definition) {
 }
 
 export function renderReferenceFallback(content) {
-  const entries = REFERENCE_BLOCKS.map((definition) => {
+  const entries = REFERENCE_SECTIONS.map((definition) => {
     const entry = content.reference?.[definition.id];
     if (!entry) throw new Error(`Missing reference fallback content: ${definition.id}.`);
     return renderEntry(entry, definition);
@@ -56,15 +56,15 @@ export function renderReferenceFallback(content) {
   <title>linear reference · blocks.system</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../blocks.system.css?v=0.1.13">
-  <link rel="stylesheet" href="style.css?v=0.2.21">
+  <link rel="stylesheet" href="style.css?v=0.2.22">
 </head>
 <body class="docs-page reference-page reference-fallback-page">
   <main class="reference-fallback-main">
     <header class="reference-fallback-head">
       <p>blocks.system / reference / no JavaScript</p>
       <h1>linear reference.</h1>
-      <p>Columns are objects and rows are aspects in the enhanced page. This fallback keeps that same column-by-column reading order.</p>
-      <p><a href="api.html">open the matrix reference</a></p>
+      <p>The enhanced page presents the same contracts as one direct reading sequence.</p>
+      <p><a href="api.html">open the interactive reference</a></p>
     </header>
 ${entries}
   </main>

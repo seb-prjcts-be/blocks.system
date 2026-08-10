@@ -1501,7 +1501,52 @@ try {
 
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
-  const desktopManual = await measureManualMatrix(1280, 900, 2);
+  const desktopManual = await measureManual(1280, 900, 2);
+  if (desktopManual.blockCount === 39) {
+    assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
+    assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
+    assert.ok(desktopManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op desktop");
+    assert.deepEqual(desktopManual.outsideBoard, [], "manual plaatst inhoud buiten zijn board");
+    assert.deepEqual(desktopManual.clippedContent, [], "manual knipt inhoud af");
+    assert.deepEqual(desktopManual.textOverlaps, [], "manual laat tekst overlappen");
+    assert.equal(desktopManual.pageSurfaceCount, 1, "manual mag geen tweede sandbox-surface bevatten");
+    assert.equal(desktopManual.nestedSurfaces, 0, "manual mag geen geneste grids bevatten");
+    assert.equal(desktopManual.draggable, "true", "manual moet de echte library-interactie behouden");
+    assert.ok(desktopManual.codeBlockWidths.every((item) => Math.abs(item.width - desktopManual.boardWidth) <= 2), "manual-code moet de volledige rustige leesbreedte gebruiken");
+    assert.deepEqual(await exerciseManualFactory(), {
+      beforeState: "structure",
+      beforeIndex: "01",
+      afterState: "contrast",
+      afterIndex: "02"
+    }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
+    assert.deepEqual(await exerciseManualKeyboardReorder(), {
+      beforeRow: "30",
+      afterFirstRow: "31",
+      afterSecondRow: "32",
+      status: "column 1 · row 32",
+      focusAcquired: true,
+      focusAfterFirstMove: true,
+      events: [
+        { id: "manual-layout-wide", input: "keyboard", direction: "down" },
+        { id: "manual-layout-wide", input: "keyboard", direction: "down" }
+      ]
+    }, "de lineaire manual moet zijn enige echte oefenblock toetsbaar verplaatsen");
+    await navigateTo(pageUrl + "docs/api.html");
+    const linearReferenceResult = await protocol.send("Runtime.evaluate", {
+      expression: "(async () => { for (let attempt = 0; attempt < 60 && !document.querySelector('#reference-board')?.dataset.referenceReady; attempt += 1) await new Promise((done) => requestAnimationFrame(done)); const board = document.querySelector('#reference-board'); const blocks = Array.from(board.querySelectorAll(':scope > .blocks-system-object')); const rect = board.getBoundingClientRect(); return { ready: board.dataset.referenceReady, ids: blocks.map((block) => block.dataset.blockObject), columns: getComputedStyle(board).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, outside: blocks.filter((block) => { const box = block.getBoundingClientRect(); return box.left < rect.left - .5 || box.right > rect.right + .5; }).map((block) => block.dataset.blockObject), surfaces: board.querySelectorAll('.blocks-system-surface').length, draggable: board.dataset.draggable, quantized: board.dataset.quantized, tableOverflow: Array.from(board.querySelectorAll('.reference-table-wrap')).map((node) => getComputedStyle(node).overflow) }; })()",
+      awaitPromise: true,
+      returnByValue: true
+    });
+    const linearReference = linearReferenceResult.result.value;
+    assert.equal(linearReference.ready, "true", "reference meldt niet dat haar inhoud klaar is");
+    assert.equal(linearReference.columns, 6, "reference herstelt de zes-koloms documentgrid niet");
+    assert.equal(linearReference.overflow <= 0.5, true, "reference krijgt horizontale overflow");
+    assert.deepEqual(linearReference.outside, [], "reference plaatst contracten buiten het board");
+    assert.equal(linearReference.surfaces, 0, "reference mag geen geneste grids bevatten");
+    assert.equal(linearReference.draggable, "false", "reference moet zijn leesvolgorde vergrendelen");
+    assert.equal(linearReference.quantized, "true", "reference moet hele rastertracks gebruiken");
+    assert.ok(linearReference.tableOverflow.every((value) => value === "auto"), "reference tabellen moeten lokaal kunnen scrollen");
+  } else {
   assert.equal(desktopManual.ready, "true", "manual meldt niet dat de lesmatrix klaar is");
   assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
   assert.equal(desktopManual.columns, 5, "manual gebruikt geen betekenisvolle vijfkoloms-grid op desktop");
@@ -1864,6 +1909,8 @@ try {
       { id: "reorder-event", title: "D4 / field + DOM / reactions + boundaries" }
     ]
   }, "reference houdt zonder JavaScript geen normale, volledige leesroute over");
+
+  }
 
   for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
     for (const [width, height] of [[1280, 900], [390, 844]]) {
