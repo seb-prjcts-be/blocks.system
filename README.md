@@ -163,8 +163,9 @@ page; only genuinely overflowing inner content scrolls locally first.
 The measured mechanics and boundaries are recorded in
 [`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
-See the [complete API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
-for arguments and return values.
+See the [current `main` API reference (unreleased)](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
+for arguments and return values. Stable installation snippets remain pinned to
+the immutable `v0.2.0` tag until the next release.
 
 ## Verified status
 

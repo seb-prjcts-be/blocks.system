@@ -1,3 +1,5 @@
+import { docsSourceLabel } from "./release.mjs?v=0.1.0";
+
 const DOCS_CONTENT_SCHEMA = "blocks.system/docs-content@2";
 let docsContentRequest;
 
@@ -82,6 +84,11 @@ function initNavigation() {
 
   for (const node of document.querySelectorAll("[data-year]")) {
     node.textContent = new Date().getFullYear();
+  }
+
+  const sourceLabel = docsSourceLabel();
+  for (const node of document.querySelectorAll("[data-docs-source-prefix]")) {
+    node.textContent = `${node.textContent.trim()} · ${sourceLabel}`;
   }
 }
 

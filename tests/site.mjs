@@ -3,6 +3,7 @@ import { access, readFile, readdir } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderReferenceFallback } from "../tools/render-reference-fallback.mjs";
+import { DOCS_RELEASE } from "../docs/release.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, "..");
@@ -78,6 +79,19 @@ const standaloneExamples = Object.fromEntries(await Promise.all(exampleDirectori
   example,
   await read(`examples/${example}/index.html`)
 ])));
+
+assert.deepEqual(DOCS_RELEASE, {
+  sourceRef: "main",
+  releaseStatus: "unreleased",
+  packageVersion: "0.2.0",
+  stableRef: "v0.2.0",
+  nextRelease: "v0.3.0",
+  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0"
+}, "docs release metadata must distinguish current main from the immutable release");
+assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
+for (const [page, html] of [["manual", manualHtml], ["reference", apiHtml], ["examples", exampleIndexHtml]]) {
+  assert.match(html, /data-docs-source-prefix/, `${page} must visibly identify its current source line`);
+}
 
 const documentedApi = [
   "createBlocksSystem", "blockDefaults", "attach", "setGrid", "compact", "columns", "rows",
@@ -242,16 +256,11 @@ assert.match(serializedReference, /Do not call element\.remove\(\); use remove\(
 assert.match(serializedReference, /snap true[\s\S]*place\(\)[\s\S]*span\(\)[\s\S]*compact\(\)[\s\S]*visual grid layout/i, "reference must explain snap-dependent layout");
 assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textContent/i, "reference must warn about trusted string HTML");
 
-const mainCdnBase = "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0";
+const mainCdnBase = DOCS_RELEASE.stableCdnBase;
 const manualStartContent = JSON.stringify(docsContent.manual["manual-start"]);
-const manualPinsRelease = new RegExp(`blocks\\.system@v${packageData.version}\\b`).test(manualStartContent);
-const documentsMainOnlyApi = /\bcompact\b/.test(JSON.stringify({
-  manual: docsContent.manual,
-  reference: docsContent.reference
-}));
-const referencePinsRelease = apiHtml.includes(`reference · v${packageData.version}`);
-assert.ok(manualPinsRelease && documentsMainOnlyApi, "the tagged manual must document the APIs included in its release");
-assert.ok(referencePinsRelease, "the reference must expose its released source ref");
+assert.ok(manualStartContent.includes(mainCdnBase), "manual installation snippets must use the immutable stable ref");
+assert.match(siteDemos["docs/shell.mjs"], /docsSourceLabel\(\)/, "the shared shell must render canonical source metadata");
+assert.doesNotMatch(apiHtml, /v0\.2\.0 · released/, "the current main reference must not claim to be the stable release");
 assert.deepEqual(packageData.exports["."], {
   types: "./blocks.system.d.ts",
   default: "./blocks.system.mjs"
@@ -261,7 +270,7 @@ assert.deepEqual(packageData.exports["./min"], {
   default: "./blocks.system.min.mjs"
 }, "the minified package export must resolve the same declarations");
 assert.equal(packageData.exports["./style"], "./blocks.system.css", "the stylesheet package export must remain stable");
-assert.ok(docsContent.manual["manual-start"].intro.includes("released v0.2.0 build"), "manual must label its immutable source ref");
+assert.ok(docsContent.manual["manual-start"].intro.includes(`released ${DOCS_RELEASE.stableRef} build`), "manual must label its immutable source ref");
 assert.ok(docsContent.manual["manual-start"].code.includes(`<link rel="stylesheet" href="${mainCdnBase}/blocks.system.css">`), "manual must load the tagged stylesheet");
 assert.ok(docsContent.manual["manual-start"].code.includes(`import { createBlocksSystem } from "${mainCdnBase}/blocks.system.mjs";`), "manual must load the tagged module");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner copy must say object instead of node");

@@ -126,15 +126,18 @@ die jsDelivr voor ESM en CSS kan leveren.
 5. maak pas een versie-tag wanneer de publieke API klaar is om via jsDelivr te
    pinnen.
 
-`v0.2.0` is de huidige onveranderlijke publieke release. Zelfstandige publieke
-voorbeelden gebruiken altijd die tag, niet `main`; de branch kan latere,
-onuitgebrachte wijzigingen bevatten:
+`v0.2.0` is de huidige onveranderlijke publieke release. De Pages-manual,
+reference en voorbeelden draaien rechtstreeks op `main` en labelen dat daarom
+zichtbaar als `main · unreleased`. Alleen installatiesnippets gebruiken de
+stabiele tag. `docs/release.mjs` is de canonieke bron voor die scheiding:
+`sourceRef`, `releaseStatus`, `packageVersion`, `stableRef` en `nextRelease`.
 
 - ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.mjs`
 - CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.css`
 
-De publiceerde manual en reference documenteren `v0.2.0` en pinnen hun snippets
-op diezelfde tag.
+De reference documenteert het huidige `main`-contract. De manual gebruikt
+datzelfde contract voor de levende demonstraties, maar toont voor installatie
+de stabiele `v0.2.0`-snippets hierboven.
 
 De eerstvolgende release moet minstens `v0.3.0` heten. Main bevat sinds BLK-27
 een bewuste catalogus-contractbreuk: `listAdapters()` geeft op een vers systeem
