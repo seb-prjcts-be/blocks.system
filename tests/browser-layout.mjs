@@ -645,6 +645,7 @@ async function measureManual(width, height, dpr = 1) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         const lesson = block.querySelector(":scope > .blocks-system-content > .manual-chance-cell");
         return {
+          label: lesson.querySelector("small").textContent,
           statement: lesson.querySelector("strong").textContent
         };
       });
@@ -688,6 +689,20 @@ async function measureManual(width, height, dpr = 1) {
         return overlaps;
       });
       const firstHandle = objects[0].querySelector(":scope > .blocks-system-menu > .blocks-system-title");
+      const protectedBlocks = objects.filter(function (block) {
+        return block.dataset.manualKind === "lesson";
+      }).map(function (block) {
+        const title = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
+        return {
+          id: block.dataset.blockObject,
+          actions: block.querySelectorAll(":scope > .blocks-system-menu button").length,
+          tabIndex: title?.tabIndex ?? null,
+          role: title?.getAttribute("role") ?? null,
+          ariaLabel: title?.getAttribute("aria-label") ?? null
+        };
+      });
+      const reader = document.querySelector("#manual-reader");
+      const sandbox = document.querySelector("#manual-layout-sandbox");
       return {
         blockCount: objects.length,
         ids: objects.map(function (block) { return block.dataset.blockObject; }),
@@ -733,6 +748,24 @@ async function measureManual(width, height, dpr = 1) {
           shortcuts: firstHandle.getAttribute("aria-keyshortcuts")
         },
         menuActionCount: board.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
+        protectedBlocks,
+        reader: {
+          tag: reader.tagName,
+          headings: Array.from(reader.querySelectorAll("h2"), function (heading) { return heading.textContent; }),
+          subheadings: Array.from(reader.querySelectorAll("h3"), function (heading) { return heading.textContent; }),
+          text: reader.textContent.replace(/\\s+/g, " ").trim()
+        },
+        resetLabel: document.querySelector("#manual-reset").textContent.trim(),
+        sandbox: {
+          columns: getComputedStyle(sandbox).gridTemplateColumns.split(" ").length,
+          objects: Array.from(sandbox.querySelectorAll(":scope > .blocks-system-object"), function (block) {
+            return {
+              id: block.dataset.blockObject,
+              row: block.style.getPropertyValue("--block-row"),
+              title: block.querySelector(".blocks-system-title").textContent
+            };
+          })
+        },
         devicePixelRatio: window.devicePixelRatio,
         codeOverflow: getComputedStyle(code).overflowX,
         scrollbarWidth: rootStyle.scrollbarWidth,
@@ -1056,11 +1089,12 @@ async function exerciseManualKeyboardReorder() {
         await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
       }
       const board = document.querySelector("#manual-board");
+      const sandbox = document.querySelector("#manual-layout-sandbox");
       const block = board.querySelector('[data-block-object="manual-layout-wide"]');
       const handle = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
       const beforeRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
       const reorderDetails = [];
-      board.addEventListener("blocks:reorder", function (event) { reorderDetails.push(event.detail); });
+      sandbox.addEventListener("blocks:reorder", function (event) { reorderDetails.push(event.detail); });
       handle.focus();
       const focusAcquired = document.activeElement === handle;
       handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }));
@@ -1502,17 +1536,36 @@ try {
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const desktopManual = await measureManual(1280, 900, 2);
-  if (desktopManual.blockCount === 39) {
+  if (desktopManual.blockCount === 38) {
     assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
     assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
     assert.ok(desktopManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op desktop");
     assert.deepEqual(desktopManual.outsideBoard, [], "manual plaatst inhoud buiten zijn board");
     assert.deepEqual(desktopManual.clippedContent, [], "manual knipt inhoud af");
     assert.deepEqual(desktopManual.textOverlaps, [], "manual laat tekst overlappen");
-    assert.equal(desktopManual.pageSurfaceCount, 1, "manual mag geen tweede sandbox-surface bevatten");
-    assert.equal(desktopManual.nestedSurfaces, 0, "manual mag geen geneste grids bevatten");
+    assert.equal(desktopManual.pageSurfaceCount, 2, "les 04 moet één afzonderlijk sandbox-veld naast het manual-veld hebben");
+    assert.equal(desktopManual.nestedSurfaces, 1, "manual moet exact één genest oefenveld bevatten");
     assert.equal(desktopManual.draggable, "true", "manual moet de echte library-interactie behouden");
     assert.ok(desktopManual.codeBlockWidths.every((item) => Math.abs(item.width - desktopManual.boardWidth) <= 2), "manual-code moet de volledige rustige leesbreedte gebruiken");
+    assert.equal(desktopManual.resetLabel, "reset manual", "manual mist zijn herstelactie");
+    assert.equal(desktopManual.reader.tag, "ARTICLE", "de doorlopende leesroute moet een article zijn");
+    assert.equal(desktopManual.reader.headings.length, 10, "de doorlopende leesroute moet alle tien lessen bevatten");
+    assert.ok(desktopManual.reader.subheadings.length >= 16, "de doorlopende leesroute mist sublessen");
+    assert.match(desktopManual.reader.text, /anything the browser can render/i, "de doorlopende leesroute mist de kernuitleg");
+    assert.ok(desktopManual.protectedBlocks.length >= 15, "manual beschermt onvoldoende uitleg- en codeblokken");
+    assert.ok(desktopManual.protectedBlocks.every(function (block) {
+      return block.actions === 0 && block.tabIndex === -1 && block.role === null && block.ariaLabel === null;
+    }), `uitleg- of codeblokken zijn nog sluitbaar of versleepbaar: ${JSON.stringify(desktopManual.protectedBlocks)}`);
+    assert.deepEqual(desktopManual.sandbox, {
+      columns: 3,
+      objects: [
+        { id: "manual-layout-wide", row: "1", title: "04.1 / drag here" },
+        { id: "manual-layout-small", row: "1", title: "04.2 / flow" }
+      ]
+    }, "les 04 is geen zelfstandig oefenveld meer");
+    assert.ok(desktopManual.randomExamples.every(function (example) {
+      return example.label.trim() !== "" && example.statement === "your content";
+    }), "de kansvoorbeelden missen hun zichtbare labels");
     assert.deepEqual(await exerciseManualFactory(), {
       beforeState: "structure",
       beforeIndex: "01",
@@ -1520,17 +1573,41 @@ try {
       afterIndex: "02"
     }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
     assert.deepEqual(await exerciseManualKeyboardReorder(), {
-      beforeRow: "30",
-      afterFirstRow: "31",
-      afterSecondRow: "32",
-      status: "column 1 · row 32",
+      beforeRow: "1",
+      afterFirstRow: "2",
+      afterSecondRow: "3",
+      status: "column 1 · row 3",
       focusAcquired: true,
       focusAfterFirstMove: true,
       events: [
         { id: "manual-layout-wide", input: "keyboard", direction: "down" },
         { id: "manual-layout-wide", input: "keyboard", direction: "down" }
       ]
-    }, "de lineaire manual moet zijn enige echte oefenblock toetsbaar verplaatsen");
+    }, "de lineaire manual moet zijn geïsoleerde oefenblock toetsbaar verplaatsen");
+    assert.deepEqual(await exerciseManualMenuLesson(), {
+      minimized: { state: "true", hidden: "true" },
+      restored: "false",
+      closeRemoved: true,
+      remainingBlocks: 37
+    }, "interactieve menuvoorbeelden moeten bedienbaar blijven naast de beschermde uitleg");
+    assert.deepEqual(await exerciseManualReset(), {
+      movedRow: "2",
+      closed: true,
+      restored: true,
+      resetRow: "1"
+    }, "reset manual moet gesloten demo's en verplaatste sandboxblokken herstellen");
+    const mobileManual = await measureManual(390, 844, 1);
+    assert.equal(mobileManual.columnCount, 1, "manual moet op mobiel één rustige leeskolom behouden");
+    assert.ok(mobileManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op mobiel");
+    assert.deepEqual(mobileManual.outsideBoard, [], "manual plaatst blocks buiten het mobiele board");
+    assert.equal(mobileManual.pageSurfaceCount, 2, "het afzonderlijke oefenveld moet ook op mobiel blijven bestaan");
+    assert.equal(mobileManual.sandbox.columns, 3, "het oefenveld moet zijn eigen drie oefenkolommen behouden");
+    await protocol.send("Emulation.setDeviceMetricsOverride", {
+      width: 1280,
+      height: 900,
+      deviceScaleFactor: 1,
+      mobile: false
+    });
     await navigateTo(pageUrl + "docs/api.html");
     const linearReferenceResult = await protocol.send("Runtime.evaluate", {
       expression: "(async () => { for (let attempt = 0; attempt < 60 && !document.querySelector('#reference-board')?.dataset.referenceReady; attempt += 1) await new Promise((done) => requestAnimationFrame(done)); const board = document.querySelector('#reference-board'); const blocks = Array.from(board.querySelectorAll(':scope > .blocks-system-object')); const rect = board.getBoundingClientRect(); return { ready: board.dataset.referenceReady, ids: blocks.map((block) => block.dataset.blockObject), columns: getComputedStyle(board).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, outside: blocks.filter((block) => { const box = block.getBoundingClientRect(); return box.left < rect.left - .5 || box.right > rect.right + .5; }).map((block) => block.dataset.blockObject), surfaces: board.querySelectorAll('.blocks-system-surface').length, draggable: board.dataset.draggable, quantized: board.dataset.quantized, tableOverflow: Array.from(board.querySelectorAll('.reference-table-wrap')).map((node) => getComputedStyle(node).overflow) }; })()",

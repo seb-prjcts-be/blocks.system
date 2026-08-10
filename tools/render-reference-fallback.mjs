@@ -56,7 +56,7 @@ export function renderReferenceFallback(content) {
   <title>linear reference · blocks.system</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../blocks.system.css?v=0.1.13">
-  <link rel="stylesheet" href="style.css?v=0.2.22">
+  <link rel="stylesheet" href="style.css?v=0.2.23">
 </head>
 <body class="docs-page reference-page reference-fallback-page">
   <main class="reference-fallback-main">

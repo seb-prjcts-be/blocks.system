@@ -329,7 +329,7 @@
   },
   "reference": {
     "reference-system-create": {
-      "title": "A1 / blocks / create + options",
+      "title": "create a system + options",
       "intro": "Import a factory for an independent system, or use the shared system export. All creation options are optional; their initial values follow.",
       "headers": ["member or option", "returns or initial value", "purpose"],
       "rows": [
@@ -351,7 +351,7 @@
       ]
     },
     "reference-system-state": {
-      "title": "A2 / blocks / state + properties",
+      "title": "system state + properties",
       "headers": ["member", "type", "notes"],
       "rows": [
         { "cells": ["columns", "readonly number", "Current number of grid columns; starts at 1 and changes through setGrid()."] },
@@ -369,7 +369,7 @@
       ]
     },
     "reference-system-methods": {
-      "title": "A3 / blocks / methods",
+      "title": "system methods",
       "headers": ["method", "returns", "purpose"],
       "rows": [
         { "id": "api-attach", "cells": ["attach(target)", "blocks", "Attach to a selector or Element."] },
@@ -380,13 +380,13 @@
       ]
     },
     "reference-system-errors": {
-      "title": "A4 / blocks / failures",
+      "title": "failures + boundaries",
       "eyebrow": "fail early",
       "statement": "Invalid input throws.",
       "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from."
     },
     "reference-block-options": {
-      "title": "B1 / block / create + options",
+      "title": "create a block + options",
       "intro": "id identifies a block. title is only optional visible text in its menu bar.",
       "headers": ["option", "type", "purpose"],
       "rows": [
@@ -400,7 +400,7 @@
       ]
     },
     "reference-block-properties": {
-      "title": "B2 / block / properties",
+      "title": "block properties",
       "intro": "add() returns one controller for one block.",
       "headers": ["member", "type", "purpose"],
       "rows": [
@@ -413,7 +413,7 @@
       ]
     },
     "reference-block-methods": {
-      "title": "B3 / block / methods",
+      "title": "block methods",
       "headers": ["method", "returns", "purpose"],
       "rows": [
         { "id": "api-menu", "cells": ["menu(name, options?)", "block", "Add or update the title bar."] },
@@ -425,7 +425,7 @@
       ]
     },
     "reference-definition-create": {
-      "title": "C1 / definition + adapter / create + options",
+      "title": "definitions + adapters",
       "intro": "Definitions describe reusable content. Register definitions and their lifecycle adapters on the shared system.",
       "code": [
         "const definition = {",
@@ -452,7 +452,7 @@
       ]
     },
     "reference-adapter-methods": {
-      "title": "C3 / definition + adapter / methods",
+      "title": "adapter lifecycle methods",
       "intro": "Adapters own mount and cleanup lifecycle; the system methods below use those lifecycle hooks for registered definitions.",
       "headers": ["member", "returns or required", "purpose"],
       "rows": [
@@ -468,7 +468,7 @@
       ]
     },
     "reference-field-signals": {
-      "title": "D4 / field + DOM / reactions + boundaries",
+      "title": "field events + DOM hooks",
       "intro": "The field dispatches blocks:reorder after pointer or keyboard reordering and blocks:change after explicit state changes.",
       "code": [
         "field.addEventListener(\"blocks:reorder\", (event) => {",

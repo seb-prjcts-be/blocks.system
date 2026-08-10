@@ -7,7 +7,7 @@
   <title>linear reference · blocks.system</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../blocks.system.css?v=0.1.13">
-  <link rel="stylesheet" href="style.css?v=0.2.22">
+  <link rel="stylesheet" href="style.css?v=0.2.23">
 </head>
 <body class="docs-page reference-page reference-fallback-page">
   <main class="reference-fallback-main">
@@ -18,7 +18,7 @@
       <p><a href="api.html">open the interactive reference</a></p>
     </header>
 <section id="exports" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>A1 / blocks / create + options</h2><span id="options" class="reference-anchor-alias" aria-hidden="true"></span>
+  <h2>create a system + options</h2><span id="options" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">Import a factory for an independent system, or use the shared system export. All creation options are optional; their initial values follow.</p>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>member or option</th><th>returns or initial value</th><th>purpose</th></tr></thead><tbody><tr id="api-create"><td data-label="member or option">createBlocksSystem(options?)</td><td data-label="returns or initial value">BlocksSystem</td><td data-label="purpose">Create an independent blocks system.</td></tr>
 <tr id="api-system"><td data-label="member or option">system</td><td data-label="returns or initial value">BlocksSystem</td><td data-label="purpose">The shared module instance.</td></tr>
@@ -38,7 +38,7 @@
 </section>
 
 <section id="system-state" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>A2 / blocks / state + properties</h2>
+  <h2>system state + properties</h2>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>member</th><th>type</th><th>notes</th></tr></thead><tbody><tr><td data-label="member">columns</td><td data-label="type">readonly number</td><td data-label="notes">Current number of grid columns; starts at 1 and changes through setGrid().</td></tr>
 <tr><td data-label="member">rows</td><td data-label="type">readonly number</td><td data-label="notes">Current number of grid rows; starts at 1 and may also grow after dragging.</td></tr>
 <tr><td data-label="member">snap</td><td data-label="type">boolean</td><td data-label="notes">Readable and writable. Set snap true before relying on place(), span() or compact() for visual grid layout; snap false keeps blocks in flow layout.</td></tr>
@@ -54,7 +54,7 @@
 </section>
 
 <section id="system-methods" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>A3 / blocks / methods</h2>
+  <h2>system methods</h2>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>method</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-attach"><td data-label="method">attach(target)</td><td data-label="returns">blocks</td><td data-label="purpose">Attach to a selector or Element.</td></tr>
 <tr id="api-set-grid"><td data-label="method">setGrid(columns, rows)</td><td data-label="returns">blocks</td><td data-label="purpose">Set positive whole grid dimensions.</td></tr>
 <tr id="api-compact"><td data-label="method">compact()</td><td data-label="returns">blocks</td><td data-label="purpose">Move fixed grid blocks upward to fill vertical gaps.</td></tr>
@@ -63,14 +63,14 @@
 </section>
 
 <section id="errors" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>A4 / blocks / failures</h2>
+  <h2>failures + boundaries</h2>
   <small>fail early</small>
   <strong>Invalid input throws.</strong>
   <p class="reference-details">Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from.</p>
 </section>
 
 <section id="add-options" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>B1 / block / create + options</h2>
+  <h2>create a block + options</h2>
   <p class="reference-intro">id identifies a block. title is only optional visible text in its menu bar.</p>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>option</th><th>type</th><th>purpose</th></tr></thead><tbody><tr><td data-label="option">id</td><td data-label="type">string</td><td data-label="purpose">Stable id; generated when omitted.</td></tr>
 <tr><td data-label="option">title</td><td data-label="type">string</td><td data-label="purpose">Optional visible menu text. When omitted, no id is shown; id remains the accessible fallback for menu actions.</td></tr>
@@ -82,7 +82,7 @@
 </section>
 
 <section id="block-controller" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>B2 / block / properties</h2>
+  <h2>block properties</h2>
   <p class="reference-intro">add() returns one controller for one block.</p>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>member</th><th>type</th><th>purpose</th></tr></thead><tbody><tr><td data-label="member">id</td><td data-label="type">readonly string</td><td data-label="purpose">Stable lowercase kebab-case id.</td></tr>
 <tr><td data-label="member">element</td><td data-label="type">readonly HTMLElement</td><td data-label="purpose">The outer block element. Do not call element.remove(); use remove() so the system releases its layout.</td></tr>
@@ -93,7 +93,7 @@
 </section>
 
 <section id="block-methods" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>B3 / block / methods</h2>
+  <h2>block methods</h2>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>method</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-menu"><td data-label="method">menu(name, options?)</td><td data-label="returns">block</td><td data-label="purpose">Add or update the title bar.</td></tr>
 <tr id="api-span"><td data-label="method">span(columns, rows)</td><td data-label="returns">block</td><td data-label="purpose">Set the size in whole grid units.</td></tr>
 <tr id="api-place"><td data-label="method">place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based grid coordinates.</td></tr>
@@ -103,7 +103,7 @@
 </section>
 
 <section id="adapters" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>C1 / definition + adapter / create + options</h2>
+  <h2>definitions + adapters</h2>
   <p class="reference-intro">Definitions describe reusable content. Register definitions and their lifecycle adapters on the shared system.</p>
   <pre class="reference-code"><code>const definition = {
   id: &quot;block-note&quot;,
@@ -126,7 +126,7 @@
 </section>
 
 <section id="adapter-methods" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>C3 / definition + adapter / methods</h2>
+  <h2>adapter lifecycle methods</h2>
   <p class="reference-intro">Adapters own mount and cleanup lifecycle; the system methods below use those lifecycle hooks for registered definitions.</p>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>member</th><th>returns or required</th><th>purpose</th></tr></thead><tbody><tr id="api-mount"><td data-label="member">mount(id, target, overrides?)</td><td data-label="returns or required">Promise&lt;Element&gt;</td><td data-label="purpose">Mount a registered definition through its adapter.</td></tr>
 <tr id="api-unmount"><td data-label="member">unmount(target)</td><td data-label="returns or required">boolean</td><td data-label="purpose">Run optional cleanup and remove mounted content.</td></tr>
@@ -140,7 +140,7 @@
 </section>
 
 <section id="reorder-event" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
-  <h2>D4 / field + DOM / reactions + boundaries</h2><span id="css-hooks" class="reference-anchor-alias" aria-hidden="true"></span>
+  <h2>field events + DOM hooks</h2><span id="css-hooks" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">The field dispatches blocks:reorder after pointer or keyboard reordering and blocks:change after explicit state changes.</p>
   <pre class="reference-code"><code>field.addEventListener(&quot;blocks:reorder&quot;, (event) =&gt; {
   const {
