@@ -28,4 +28,7 @@ naar `blocks.system.d.ts` resolven.
 
 `npm run test:docs-contract` inventariseert module-, system- en block-API uit de
 echte runtime en `blocks.system.d.ts`, controleert de relevante reference-secties
-en laadt de onveranderlijke tag achter de stabiele installatiesnippets.
+en laadt de onveranderlijke tag achter de stabiele installatiesnippets. Alleen
+vóór het maken van een lokale releasetag mag de releasecommit zichzelf testen
+met `BLOCKS_RELEASE_CANDIDATE=vX.Y.Z`; zodra de tag bestaat, werkt die bypass
+bewust niet meer.

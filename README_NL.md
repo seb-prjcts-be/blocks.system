@@ -168,13 +168,13 @@ alleen echt overlopende binneninhoud scrollt eerst lokaal.
 De gemeten werking en grenzen staan duurzaam in
 [`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
-Bekijk de [huidige `main`-API-reference (nog niet uitgebracht)](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
-voor argumenten en returnwaarden. Stabiele installatiesnippets blijven tot de
-volgende release vastgepind op de onveranderlijke tag `v0.2.0`.
+Bekijk de [v0.3.0-API-reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
+voor argumenten en returnwaarden. Installatiesnippets, runtime, types en
+reference gebruiken allemaal dezelfde onveranderlijke release.
 
 ## Gecontroleerde status
 
-Op 2026-08-08 bevat de huidige `main`-werkmap de gedocumenteerde publieke
+Op 2026-08-10 bevat release `v0.3.0` de gedocumenteerde publieke
 werking: blocks aanmaken en beheren, menu's, gridlayout,
 snap- en toetsenbordbeweging, `compact()`, varianten en toevalskleur,
 adapters, events, TypeScript-declaraties, home, manual, reference en drie
@@ -187,9 +187,10 @@ Lokaal geslaagd:
 - `npm run test:presentation`: presentatie- en publieke paginastructuurchecks.
 - Apache/XAMPP: `/`, `/docs/` en `/examples/` geven elk HTTP 200.
 
-`v0.2.0` is de recentste onveranderlijke publieke release, beschikbaar via de
-GitHub-release-tag. `main` kan later, nog niet uitgebracht werk bevatten; gebruik
-het niet als onveranderlijke distributieverwijzing.
+`v0.3.0` is de recentste onveranderlijke publieke release. Breaking changes en
+migratienotities staan in [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md).
+Toekomstig werk op `main` moet opnieuw als niet uitgebracht worden aangeduid
+voordat het van deze tag afwijkt.
 
 ## Ontwikkelen
 

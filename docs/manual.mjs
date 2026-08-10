@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.43";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.44";
 import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.1";
 
 const board = document.querySelector("#manual-board");

@@ -49,6 +49,7 @@ for (const [page, html] of Object.entries(pageHtml)) {
 const readme = await read("README.md");
 const readmeNl = await read("README_NL.md");
 const packageData = JSON.parse(await read("package.json"));
+const packageLockData = JSON.parse(await read("package-lock.json"));
 const docsContent = JSON.parse(await read("docs/content.json"));
 assert.equal(pageHtml["docs/reference-fallback.html"], renderReferenceFallback(docsContent), "the no-JavaScript reference must be generated from the canonical JSON content");
 const declarations = await read("blocks.system.d.ts");
@@ -60,6 +61,7 @@ const manualHtml = pageHtml["docs/index.html"];
 const apiHtml = pageHtml["docs/api.html"];
 const exampleIndexHtml = pageHtml["examples/index.html"];
 const developmentGuide = await read("docs/development.md");
+const releaseNotes = await read("docs/releases/v0.3.0.md");
 const siteDemoFiles = [
   "docs/home.mjs",
   "docs/manual.mjs",
@@ -81,14 +83,19 @@ const standaloneExamples = Object.fromEntries(await Promise.all(exampleDirectori
 ])));
 
 assert.deepEqual(DOCS_RELEASE, {
-  sourceRef: "main",
-  releaseStatus: "unreleased",
-  packageVersion: "0.2.0",
-  stableRef: "v0.2.0",
-  nextRelease: "v0.3.0",
-  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0"
-}, "docs release metadata must distinguish current main from the immutable release");
+  sourceRef: "v0.3.0",
+  releaseStatus: "released",
+  packageVersion: "0.3.0",
+  stableRef: "v0.3.0",
+  nextRelease: null,
+  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0"
+}, "docs release metadata must identify the complete v0.3.0 release line");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
+assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
+assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
+for (const contractChange of ["margin", "listAdapters()", "replace: true", "definition.url", "describe({ url })", "fully occupied grid row"]) {
+  assert.ok(releaseNotes.includes(contractChange), `v0.3.0 release notes miss ${contractChange}`);
+}
 for (const [page, html] of [["manual", manualHtml], ["reference", apiHtml], ["examples", exampleIndexHtml]]) {
   assert.match(html, /data-docs-source-prefix/, `${page} must visibly identify its current source line`);
 }

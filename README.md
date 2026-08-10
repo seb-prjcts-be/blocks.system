@@ -163,13 +163,13 @@ page; only genuinely overflowing inner content scrolls locally first.
 The measured mechanics and boundaries are recorded in
 [`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
-See the [current `main` API reference (unreleased)](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
-for arguments and return values. Stable installation snippets remain pinned to
-the immutable `v0.2.0` tag until the next release.
+See the [v0.3.0 API reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
+for arguments and return values. The installation snippets, runtime, types and
+reference all use the same immutable release.
 
 ## Verified status
 
-As checked on 2026-08-08, the current `main` working tree implements the
+As checked on 2026-08-10, release `v0.3.0` implements the
 documented public surface: block creation and lifecycle, menus, grid layout,
 snap/keyboard movement, `compact()`, variants and random colour,
 adapters, events, TypeScript declarations, the homepage, manual, reference and
@@ -182,9 +182,10 @@ The following checks passed locally:
 - `npm run test:presentation`: presentation and public-page structure checks.
 - Apache/XAMPP: `/`, `/docs/` and `/examples/` each returned HTTP 200.
 
-`v0.2.0` is the latest immutable public release, available through its GitHub
-release tag. `main` may contain later, unreleased work; do not use it as an
-immutable distribution reference.
+`v0.3.0` is the latest immutable public release. Its breaking changes and
+migration notes are recorded in [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md).
+Future `main` work must identify itself as unreleased before it diverges from
+this tag.
 
 ## Develop
 

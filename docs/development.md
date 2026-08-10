@@ -112,8 +112,8 @@ Open daarna `http://localhost/blocks.system/`, `/docs/` en
 
 ## Publicatie
 
-Werk volgens de lokale `AGENTS.md`: projectwerk gebeurt hier op `main`, commit
-alleen op verzoek en push nooit zonder expliciete toestemming. Voor publicatie:
+Werk volgens de lokale `AGENTS.md`: projectwerk gebeurt op een werkbranch,
+commit alleen op verzoek en push nooit zonder expliciete toestemming. Voor publicatie:
 
 `package.json` heeft `private`: true: dit project is geen npm-package en mag
 niet via npm publiceren. De publieke distributieroute is een GitHub-release-tag
@@ -126,24 +126,19 @@ die jsDelivr voor ESM en CSS kan leveren.
 5. maak pas een versie-tag wanneer de publieke API klaar is om via jsDelivr te
    pinnen.
 
-`v0.2.0` is de huidige onveranderlijke publieke release. De Pages-manual,
-reference en voorbeelden draaien rechtstreeks op `main` en labelen dat daarom
-zichtbaar als `main · unreleased`. Alleen installatiesnippets gebruiken de
-stabiele tag. `docs/release.mjs` is de canonieke bron voor die scheiding:
-`sourceRef`, `releaseStatus`, `packageVersion`, `stableRef` en `nextRelease`.
+`v0.3.0` is de huidige onveranderlijke publieke release. Op de releasecommit
+gebruiken library, types, Pages-manual, reference, voorbeelden en
+installatiesnippets exact datzelfde contract. `docs/release.mjs` is de canonieke
+bron voor `sourceRef`, `releaseStatus`, `packageVersion`, `stableRef` en
+`nextRelease`.
 
-- ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.mjs`
-- CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.2.0/blocks.system.css`
+- ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.mjs`
+- CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.css`
 
-De reference documenteert het huidige `main`-contract. De manual gebruikt
-datzelfde contract voor de levende demonstraties, maar toont voor installatie
-de stabiele `v0.2.0`-snippets hierboven.
+Breaking changes en migratiestappen staan in
+[`releases/v0.3.0.md`](releases/v0.3.0.md). Zodra toekomstig `main` van de tag
+afwijkt, moet `sourceRef` opnieuw `main` en `releaseStatus` opnieuw `unreleased`
+worden; `stableRef` blijft dan `v0.3.0`.
 
-De eerstvolgende release moet minstens `v0.3.0` heten. Main bevat sinds BLK-27
-een bewuste catalogus-contractbreuk: `listAdapters()` geeft op een vers systeem
-`["html"]` in plaats van `[]`, en `registerAdapter("html", …)` vereist voortaan
-`{ replace: true }`. Vermeld in de releasenotes ook dat `definition.url` van
-vrij metadataveld naar betekenisdragend adresveld voor `address()` is gegaan.
-Het versienummer in `package.json` bumpt pas mee op het releasemoment zelf: de
-release-driftcontracttest eist dat package-versie en docs-pins in lockstep
-bewegen.
+De release-driftcontracttest eist dat package-versie, zichtbare bronstatus,
+docs-pins, runtime, typings en reference in lockstep bewegen.

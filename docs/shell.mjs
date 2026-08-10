@@ -1,11 +1,11 @@
-import { docsSourceLabel } from "./release.mjs?v=0.1.0";
+import { docsSourceLabel } from "./release.mjs?v=0.1.1";
 
 const DOCS_CONTENT_SCHEMA = "blocks.system/docs-content@2";
 let docsContentRequest;
 
 async function readDocsContent() {
   if (!docsContentRequest) {
-    docsContentRequest = fetch(new URL("./content.json?v=0.3.35", import.meta.url)).then(async (response) => {
+    docsContentRequest = fetch(new URL("./content.json?v=0.3.36", import.meta.url)).then(async (response) => {
       if (!response.ok) throw new Error(`Could not load docs content (${response.status}).`);
       const content = await response.json();
       if (content.schema !== DOCS_CONTENT_SCHEMA) {

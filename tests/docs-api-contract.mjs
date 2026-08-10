@@ -105,11 +105,27 @@ for (const [interfaceName, sectionIds] of Object.entries(referenceSectionsByInte
 }
 
 const stableTag = DOCS_RELEASE.stableRef;
-await execFile("git", ["rev-parse", "--verify", `refs/tags/${stableTag}^{commit}`], { cwd: root });
-const [{ stdout: stableSource }, { stdout: stableCss }] = await Promise.all([
-  execFile("git", ["show", `${stableTag}:blocks.system.mjs`], { cwd: root, maxBuffer: 1024 * 1024 }),
-  execFile("git", ["show", `${stableTag}:blocks.system.css`], { cwd: root, maxBuffer: 1024 * 1024 })
-]);
+const candidateMode = process.env.BLOCKS_RELEASE_CANDIDATE === stableTag;
+let stableSource;
+let stableCss;
+if (candidateMode) {
+  assert.equal(stableTag, `v${DOCS_RELEASE.packageVersion}`, "release candidate ref must equal the package version");
+  assert.equal(DOCS_RELEASE.sourceRef, stableTag, "release candidate docs must identify their intended tag");
+  await assert.rejects(
+    execFile("git", ["rev-parse", "--verify", `refs/tags/${stableTag}^{commit}`], { cwd: root }),
+    "candidate mode is only valid before the local tag exists"
+  );
+  [stableSource, stableCss] = await Promise.all([
+    readFile(resolve(root, "blocks.system.mjs"), "utf8"),
+    readFile(resolve(root, "blocks.system.css"), "utf8")
+  ]);
+} else {
+  await execFile("git", ["rev-parse", "--verify", `refs/tags/${stableTag}^{commit}`], { cwd: root });
+  [{ stdout: stableSource }, { stdout: stableCss }] = await Promise.all([
+    execFile("git", ["show", `${stableTag}:blocks.system.mjs`], { cwd: root, maxBuffer: 1024 * 1024 }),
+    execFile("git", ["show", `${stableTag}:blocks.system.css`], { cwd: root, maxBuffer: 1024 * 1024 })
+  ]);
+}
 const stableModuleUrl = `data:text/javascript;base64,${Buffer.from(stableSource).toString("base64")}`;
 const stableModule = await import(stableModuleUrl);
 assert.deepEqual(Object.keys(stableModule).sort(), ["createBlocksSystem", "system"], "stable tag must expose the documented module entrypoints");
