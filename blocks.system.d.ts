@@ -64,6 +64,12 @@ export interface AddBlockOptions {
 export interface BlockMenuOptions {
   close?: boolean;
   minimize?: boolean;
+  copy?: boolean | BlockCopyOptions;
+}
+
+export interface BlockCopyOptions {
+  format?: "markup" | "definition" | "code" | "url";
+  url?: string | URL;
 }
 
 export interface BlockDefaults {
@@ -83,6 +89,8 @@ export interface BlockController {
   flow(): BlockController;
   /** Serialize this live block into a registerable definition for the built-in "html" adapter. */
   describe(options?: BlockDescribeOptions): BlockDefinition;
+  /** Copy this block's markup, definition, code or URL to the clipboard. */
+  copy(options?: BlockCopyOptions): Promise<string>;
   remove(): true;
 }
 
@@ -166,6 +174,8 @@ export interface BlocksSystem {
   setGrid(columns: number, rows: number): BlocksSystem;
   compact(): BlocksSystem;
   add(content: BlockContent, options?: AddBlockOptions): BlockController;
+  remove(id: string): true;
+  copy(id: string, options?: BlockCopyOptions): Promise<string>;
   mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
   unmount(target: string | Element): boolean;
   remount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;

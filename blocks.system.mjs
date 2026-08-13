@@ -10,20 +10,29 @@ const EMPTY_COLOR_ARRAY = Object.freeze([]);
 const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
-const DEFAULT_MENU_OPTIONS = Object.freeze({ close: false, minimize: true });
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
         move: "move with the arrow keys",
         restore: "restore",
         minimize: "minimize",
-        close: "close"
+        close: "close",
+        copy: "copy",
+        copied: "copied!"
     }),
     nl: Object.freeze({
         move: "verplaatsen met de pijltjestoetsen",
         restore: "herstellen",
         minimize: "minimaliseren",
-        close: "sluiten"
+        close: "sluiten",
+        copy: "kopiëren",
+        copied: "gekopieerd!"
     })
+});
+
+const DEFAULT_MENU_OPTIONS = Object.freeze({
+    close: false,
+    minimize: true,
+    copy: false
 });
 
 function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.blockDefaults.menu") {
@@ -32,11 +41,12 @@ function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.b
     const fallback = inherited || DEFAULT_MENU_OPTIONS;
     if (value === true) return fallback;
     if (!value || typeof value !== "object") {
-        throw new TypeError(`${path} verwacht true, false of een object met close en minimize.`);
+        throw new TypeError(`${path} verwacht true, false of een object met close, minimize en copy.`);
     }
     return Object.freeze({
         close: value.close === undefined ? fallback.close : Boolean(value.close),
-        minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize)
+        minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize),
+        copy: value.copy === undefined ? fallback.copy : (typeof value.copy === "object" ? value.copy : Boolean(value.copy))
     });
 }
 
@@ -1306,9 +1316,30 @@ export function createBlocksSystem(options = {}) {
         surface.appendChild(shell);
 
         let menuNode = null;
+function copyTextToClipboard(text) {
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        return navigator.clipboard.writeText(text).catch(() => copyTextFallback(text));
+    }
+    copyTextFallback(text);
+    return Promise.resolve();
+}
+
+function copyTextFallback(text) {
+    if (typeof document === "undefined" || !document.body) return;
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.select();
+    try { document.execCommand("copy"); } catch {}
+    textarea.remove();
+}
+
         let titleNode = null;
         let actionsNode = null;
         let minimizeNode = null;
+        let copyNode = null;
         let closeNode = null;
         let colorValue = "";
         let spanColumns = 1;
@@ -1413,6 +1444,25 @@ export function createBlocksSystem(options = {}) {
             return definition;
         }
 
+        async function copy(copyOptions = {}) {
+            assertActive();
+            const format = String(copyOptions.format || "markup");
+            let textToCopy = "";
+            if (format === "definition") {
+                textToCopy = JSON.stringify(describe(copyOptions), null, 2);
+            } else if (format === "code") {
+                const def = describe(copyOptions);
+                textToCopy = `blocks.add(${JSON.stringify(def.markup)}, { id: ${JSON.stringify(def.id)} });`;
+            } else if (format === "url") {
+                const def = describe(copyOptions);
+                textToCopy = def.url || (typeof window !== "undefined" ? window.location.href : "");
+            } else {
+                textToCopy = String(contentNode.innerHTML ?? "");
+            }
+            await copyTextToClipboard(textToCopy);
+            return textToCopy;
+        }
+
         function setMinimized(value) {
             assertActive();
             const nextValue = Boolean(value);
@@ -1491,11 +1541,11 @@ export function createBlocksSystem(options = {}) {
             return block;
         }
 
-        function menu(name, close = false) {
+        function menu(name, closeOptions = false) {
             assertActive();
-            const menuOptions = close && typeof close === "object"
-                ? { close: Boolean(close.close), minimize: close.minimize !== false }
-                : { close: Boolean(close), minimize: true };
+            const menuOptions = closeOptions && typeof closeOptions === "object"
+                ? { close: Boolean(closeOptions.close), minimize: closeOptions.minimize !== false, copy: Boolean(closeOptions.copy) }
+                : { close: Boolean(closeOptions), minimize: true, copy: false };
             if (!menuNode) {
                 menuNode = document.createElement("header");
                 menuNode.className = "blocks-system-menu";
@@ -1517,6 +1567,24 @@ export function createBlocksSystem(options = {}) {
             } else if (!menuOptions.minimize && minimizeNode) {
                 minimizeNode.remove();
                 minimizeNode = null;
+            }
+            if (menuOptions.copy && !copyNode) {
+                copyNode = document.createElement("button");
+                copyNode.type = "button";
+                copyNode.className = "blocks-system-copy";
+                copyNode.textContent = labels.copy || "copy";
+                copyNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${labels.copy || "copy"}`);
+                copyNode.addEventListener("click", async () => {
+                    await copy(typeof menuOptions.copy === "object" ? menuOptions.copy : {});
+                    copyNode.textContent = labels.copied || "copied!";
+                    setTimeout(() => {
+                        if (copyNode) copyNode.textContent = labels.copy || "copy";
+                    }, 2000);
+                });
+                actionsNode.appendChild(copyNode);
+            } else if (!menuOptions.copy && copyNode) {
+                copyNode.remove();
+                copyNode = null;
             }
             if (menuOptions.close && !closeNode) {
                 closeNode = document.createElement("button");
@@ -1543,6 +1611,7 @@ export function createBlocksSystem(options = {}) {
             place,
             flow,
             describe,
+            copy,
             remove
         };
         Object.defineProperty(controller, "color", {
@@ -1602,6 +1671,16 @@ export function createBlocksSystem(options = {}) {
         setGrid,
         compact,
         add,
+        remove: (id) => {
+            const b = objects.get(String(id));
+            if (!b) throw new Error(`Block niet gevonden: ${id}`);
+            return b.remove();
+        },
+        copy: (id, options) => {
+            const b = objects.get(String(id));
+            if (!b) throw new Error(`Block niet gevonden: ${id}`);
+            return b.copy(options);
+        },
         mount,
         unmount,
         remount,

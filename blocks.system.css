@@ -179,9 +179,9 @@
 }
 
 .blocks-system-minimize,
-.blocks-system-close {
+.blocks-system-close,
+.blocks-system-copy {
     align-self: center;
-    width: 16px;
     height: 16px;
     min-width: 16px;
     border: 1px solid currentColor;
@@ -189,14 +189,22 @@
     background: transparent;
     color: inherit;
     font: inherit;
+    font-size: 10px;
     line-height: 1;
     opacity: 0.75;
-    padding: 0;
+    padding: 0 3px;
     cursor: pointer;
 }
 
+.blocks-system-minimize,
+.blocks-system-close {
+    width: 16px;
+    padding: 0;
+}
+
 .blocks-system-minimize:hover,
-.blocks-system-close:hover {
+.blocks-system-close:hover,
+.blocks-system-copy:hover {
     opacity: 1;
 }
 

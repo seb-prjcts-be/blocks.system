@@ -29,7 +29,9 @@ assert.deepEqual(singleton.labels, {
   move: "move with the arrow keys",
   restore: "restore",
   minimize: "minimize",
-  close: "close"
+  close: "close",
+  copy: "copy",
+  copied: "copied!"
 }, "the environment-neutral singleton must expose English UI labels");
 
 const minUrl = pathToFileURL(minPath);
@@ -538,8 +540,19 @@ assert.equal(object.flow(), object, "flow must remain chainable");
 assert.equal(object.element.style.getPropertyValue("--block-column"), "", "flow must clear the fixed column");
 assert.equal(object.element.style.getPropertyValue("--block-row"), "", "flow must clear the fixed row");
 object.place(2, 2);
-object.menu("span", true);
-assert.equal(object.element.children[0].children[1].children.length, 2, "a menu must expose minimize and optional close controls together");
+object.menu("span", { minimize: true, close: true, copy: true });
+assert.equal(object.element.children[0].children[1].children.length, 3, "a menu with copy enabled must expose minimize, copy, and close controls");
+assert.equal(typeof object.copy, "function", "block controller must expose copy()");
+assert.equal(typeof local.copy, "function", "blocks system must expose copy(id)");
+const copiedMarkup = await object.copy({ format: "markup" });
+assert.equal(typeof copiedMarkup, "string", "copying markup must return a string");
+const copiedDef = await object.copy({ format: "definition" });
+assert.match(copiedDef, /"id"/, "copying definition must return JSON");
+const copiedCode = await object.copy({ format: "code" });
+assert.match(copiedCode, /blocks\.add\(/, "copying code must return JS instantiation string");
+assert.equal(await local.copy(object.id, { format: "markup" }), copiedMarkup, "local.copy(id) must delegate to the target block");
+object.menu("span", { minimize: true, close: true });
+assert.equal(object.element.children[0].children[1].children.length, 2, "disabling copy must remove the copy button");
 assert.equal(object.element.children[0].children[0].tabIndex, 0, "a draggable title handle must be keyboard-focusable");
 assert.equal(object.element.children[0].children[0].getAttribute("role"), "button", "a draggable title handle must expose its interaction role");
 assert.match(object.element.children[0].children[0].getAttribute("aria-label"), /arrow keys/, "a draggable title handle must explain its keyboard control in the configured language");

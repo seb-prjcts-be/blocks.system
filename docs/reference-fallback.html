@@ -63,6 +63,8 @@
 <tr id="api-set-grid"><td data-label="method">setGrid(columns, rows)</td><td data-label="returns">blocks</td><td data-label="purpose">Set positive whole grid dimensions.</td></tr>
 <tr id="api-compact"><td data-label="method">compact()</td><td data-label="returns">blocks</td><td data-label="purpose">Move fixed grid blocks upward to fill vertical gaps.</td></tr>
 <tr id="api-add"><td data-label="method">add(content, options?)</td><td data-label="returns">block</td><td data-label="purpose">Add trusted HTML, an element object or a content factory. Never pass untrusted text as HTML; create an element and set textContent.</td></tr>
+<tr id="api-remove"><td data-label="method">remove(id)</td><td data-label="returns">true</td><td data-label="purpose">Remove a block by id and release its layout.</td></tr>
+<tr id="api-copy"><td data-label="method">copy(id, options?)</td><td data-label="returns">Promise&lt;string&gt;</td><td data-label="purpose">Copy a block's markup, definition, code or URL to the clipboard.</td></tr>
 <tr id="api-address"><td data-label="method">address(id)</td><td data-label="returns">string</td><td data-label="purpose">Build a deep link ending in ?block=id from the block url, or from the catalogUrl when the definition has none.</td></tr></tbody></table></div>
 </section>
 
@@ -82,7 +84,8 @@
 <tr><td data-label="option">variant</td><td data-label="type">string</td><td data-label="purpose">Override the system appearance for this block.</td></tr>
 <tr><td data-label="option">minimized</td><td data-label="type">boolean</td><td data-label="purpose">Initial minimized state.</td></tr>
 <tr><td data-label="option">menu.close</td><td data-label="type">boolean</td><td data-label="purpose">Show a remove button.</td></tr>
-<tr><td data-label="option">menu.minimize</td><td data-label="type">boolean</td><td data-label="purpose">Show a minimize and restore button.</td></tr></tbody></table></div>
+<tr><td data-label="option">menu.minimize</td><td data-label="type">boolean</td><td data-label="purpose">Show a minimize and restore button.</td></tr>
+<tr><td data-label="option">menu.copy</td><td data-label="type">boolean | object</td><td data-label="purpose">Show a copy button in the menu bar.</td></tr></tbody></table></div>
 </section>
 
 <section id="block-controller" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
@@ -103,7 +106,8 @@
 <tr id="api-place"><td data-label="method">place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based grid coordinates.</td></tr>
 <tr id="api-flow"><td data-label="method">flow()</td><td data-label="returns">block</td><td data-label="purpose">Return to CSS automatic order.</td></tr>
 <tr><td data-label="method">describe(options?)</td><td data-label="returns">definition</td><td data-label="purpose">Serialize this live block into a registerable definition for the built-in html adapter; options.url names the page it lives on.</td></tr>
-<tr><td data-label="method">remove()</td><td data-label="returns">true</td><td data-label="purpose">Remove the block and release its layout.</td></tr></tbody></table></div>
+<tr id="api-block-copy"><td data-label="method">copy(options?)</td><td data-label="returns">Promise&lt;string&gt;</td><td data-label="purpose">Copy markup, definition, code or URL to the clipboard.</td></tr>
+<tr id="api-remove-method"><td data-label="method">remove()</td><td data-label="returns">true</td><td data-label="purpose">Remove the block and release its layout.</td></tr></tbody></table></div>
 </section>
 
 <section id="adapters" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">

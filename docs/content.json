@@ -380,6 +380,8 @@
         { "id": "api-set-grid", "cells": ["setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
         { "id": "api-compact", "cells": ["compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] },
         { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, an element object or a content factory. Never pass untrusted text as HTML; create an element and set textContent."] },
+        { "id": "api-remove", "cells": ["remove(id)", "true", "Remove a block by id and release its layout."] },
+        { "id": "api-copy", "cells": ["copy(id, options?)", "Promise<string>", "Copy a block's markup, definition, code or URL to the clipboard."] },
         { "id": "api-address", "cells": ["address(id)", "string", "Build a deep link ending in ?block=id from the block url, or from the catalogUrl when the definition has none."] }
       ]
     },
@@ -400,7 +402,8 @@
         { "cells": ["variant", "string", "Override the system appearance for this block."] },
         { "cells": ["minimized", "boolean", "Initial minimized state."] },
         { "cells": ["menu.close", "boolean", "Show a remove button."] },
-        { "cells": ["menu.minimize", "boolean", "Show a minimize and restore button."] }
+        { "cells": ["menu.minimize", "boolean", "Show a minimize and restore button."] },
+        { "cells": ["menu.copy", "boolean | object", "Show a copy button in the menu bar."] }
       ]
     },
     "reference-block-properties": {
@@ -425,7 +428,8 @@
         { "id": "api-place", "cells": ["place(column, row)", "block", "Set one-based grid coordinates."] },
         { "id": "api-flow", "cells": ["flow()", "block", "Return to CSS automatic order."] },
         { "cells": ["describe(options?)", "definition", "Serialize this live block into a registerable definition for the built-in html adapter; options.url names the page it lives on."] },
-        { "cells": ["remove()", "true", "Remove the block and release its layout."] }
+        { "id": "api-block-copy", "cells": ["copy(options?)", "Promise<string>", "Copy markup, definition, code or URL to the clipboard."] },
+        { "id": "api-remove-method", "cells": ["remove()", "true", "Remove the block and release its layout."] }
       ]
     },
     "reference-definition-create": {
