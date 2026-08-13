@@ -18,7 +18,7 @@ assert.match(manual, /function lockLessonBlock[\s\S]*dataset\.manualKind = prote
 assert.match(manual, /function chance\([\s\S]*small/, "chance examples must retain visible labels");
 assert.doesNotMatch(manual, /manual-matrix/, "manual must not restore the five-column lesson matrix");
 
-assert.match(reference, /blocks\.setGrid\(6, 47\)/, "reference must use the wide, linear lookup field");
+assert.match(reference, /blocks\.setGrid\(6, 53\)/, "reference must use the wide, linear lookup field");
 assert.doesNotMatch(reference, /reference-matrix|REFERENCE_COLUMNS|setFocusedColumn|reference-axis/, "reference must not compress contracts into a colour matrix");
 assert.match(apiHtml, /class="reference-index"/, "reference must expose a direct linear lookup index");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");

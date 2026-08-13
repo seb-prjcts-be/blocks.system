@@ -47,7 +47,7 @@ assert.match(manual, /manual-random-color-0[\s\S]*manual-random-inverse-100/, "m
 
 assert.match(apiHtml, /class="reference-index"/, "reference needs a direct lookup index");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");
-assert.match(reference, /blocks\.setGrid\(6, 47\)/, "reference must use the wide linear field");
+assert.match(reference, /blocks\.setGrid\(6, 53\)/, "reference must use the wide linear field");
 assert.equal((reference.match(/createBlocksSystem\(/g) || []).length, 1, "reference must use one shared lookup field");
 assert.doesNotMatch(reference + sections, /reference-matrix|REFERENCE_COLUMNS|reference-axis|setFocusedColumn/, "reference must not compress contracts into a matrix");
 for (const id of Object.keys(content.reference)) {
