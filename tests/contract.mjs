@@ -12,7 +12,7 @@ const source = await readFile(sourcePath, "utf8");
 const minified = await readFile(minPath, "utf8");
 
 assert.doesNotMatch(source, /vanilla\.waves|p5\.waves|VanillaWaves|WavesLoader|P5WindowSketches|\bWEL\b/, "the core must not know a local runtime");
-assert.ok(["attach", "setGrid", "compact", "add", "register", "registerAdapter", "mount", "unmount"]
+assert.ok(["attach", "detach", "destroy", "on", "off", "setGrid", "compact", "add", "register", "registerAdapter", "mount", "unmount"]
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
 assert.equal(singleton.snap, false, "snap must be disabled by default");
 assert.equal(singleton.columns, 1, "grid columns must be readable from the default system");
@@ -348,6 +348,34 @@ compactSecond.minimized = false;
 compactThird.remove();
 assert.throws(function () { compactThird.remove(); }, /verwijderd/, "removed blocks must not publish duplicate remove events");
 assert.deepEqual(compactChanges.map((change) => change.type), ["minimize", "restore", "remove"], "state changes must publish one stable change event");
+
+const listenerSystem = createBlocksSystem();
+const listenerField = new TestElement();
+let onEventReceived = null;
+const handler = (evt) => { onEventReceived = evt.detail; };
+
+assert.equal(listenerSystem.on("change", handler), listenerSystem, "on() must be chainable");
+listenerSystem.attach(listenerField);
+listenerField.dispatchEvent(new CustomEvent("blocks:change", { detail: { type: "compact", id: null, ids: ["test"] } }));
+assert.deepEqual(onEventReceived, { type: "compact", id: null, ids: ["test"] }, "on() must receive events on the attached field");
+
+assert.equal(listenerSystem.off("change", handler), listenerSystem, "off() must be chainable");
+onEventReceived = null;
+listenerField.dispatchEvent(new CustomEvent("blocks:change", { detail: { type: "compact", id: null, ids: ["test2"] } }));
+assert.equal(onEventReceived, null, "off() must unbind the listener");
+
+assert.equal(listenerSystem.detach(), listenerSystem, "detach() must be chainable");
+assert.equal(listenerSystem.field, null, "detach() must clear the attached field");
+assert.equal(listenerField.attributes.has("data-blocks-system"), false, "detach() must remove system data attributes");
+
+const destroySystem = createBlocksSystem();
+const destroyField = new TestElement();
+destroySystem.attach(destroyField);
+destroySystem.add("test block", { id: "destroy-block" });
+assert.equal(destroyField.children.length, 1, "add() appends a block to field");
+assert.equal(destroySystem.destroy(), destroySystem, "destroy() must be chainable");
+assert.equal(destroySystem.field, null, "destroy() must detach field");
+assert.equal(destroyField.children.length, 0, "destroy() must remove blocks from DOM");
 assert.deepEqual(compactChanges.map((change) => change.id), ["compact-second", "compact-second", "compact-third"], "state change events must identify their block");
 
 assert.deepEqual(createBlocksSystem({ colorArray: [] }).colorArray, [], "an empty user color array must be valid while color variation is disabled");

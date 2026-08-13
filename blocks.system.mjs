@@ -1020,22 +1020,81 @@ export function createBlocksSystem(options = {}) {
 
     const drag = createDragController();
 
+    const listenerRegistry = new Set();
+
+    function normalizeEventType(type) {
+        const raw = String(type || "").trim();
+        if (raw === "change" || raw === "reorder") return `blocks:${raw}`;
+        return raw;
+    }
+
+    function on(type, listener, options) {
+        const eventName = normalizeEventType(type);
+        if (!eventName || (typeof listener !== "function" && (!listener || typeof listener.handleEvent !== "function"))) {
+            throw new TypeError("on() verwacht een niet-lege event-naam en een listener-functie.");
+        }
+        const record = { type: eventName, listener, options };
+        listenerRegistry.add(record);
+        if (surface) surface.addEventListener(eventName, listener, options);
+        return api;
+    }
+
+    function off(type, listener, options) {
+        const eventName = normalizeEventType(type);
+        for (const record of Array.from(listenerRegistry)) {
+            if (record.type === eventName && record.listener === listener) {
+                listenerRegistry.delete(record);
+                if (surface) surface.removeEventListener(record.type, record.listener, record.options);
+            }
+        }
+        return api;
+    }
+
+    function detach() {
+        if (!surface) return api;
+        drag.stop();
+        drag.unbind(surface);
+        for (const record of listenerRegistry) {
+            surface.removeEventListener(record.type, record.listener, record.options);
+        }
+        surface.classList.remove("blocks-system-surface");
+        surface.removeAttribute("data-blocks-system");
+        surface.removeAttribute("data-snap");
+        surface.removeAttribute("data-draggable");
+        surface.style.removeProperty("--blocks-columns");
+        surface.style.removeProperty("--blocks-rows");
+        surface.style.removeProperty("--blocks-font-family");
+        surface = null;
+        return api;
+    }
+
+    function destroy() {
+        const activeBlocks = Array.from(objects.values());
+        for (const block of activeBlocks) {
+            try {
+                block.remove();
+            } catch {
+                // negeer al verwijderde blokken
+            }
+        }
+        detach();
+        return api;
+    }
+
     function attach(target) {
         const nextSurface = resolveHost(target);
         if (surface && surface !== nextSurface && objects.size > 0) {
             throw new Error("Verwijder de bestaande blokken voordat blocks.system aan een ander veld wordt gekoppeld.");
         }
         if (surface && surface !== nextSurface) {
-            drag.stop();
-            drag.unbind(surface);
-            surface.classList.remove("blocks-system-surface");
-            surface.removeAttribute("data-blocks-system");
-            surface.removeAttribute("data-snap");
-            surface.removeAttribute("data-draggable");
-            surface.style.removeProperty("--blocks-columns");
-            surface.style.removeProperty("--blocks-rows");
+            detach();
         }
-        if (surface !== nextSurface) drag.bind(nextSurface);
+        if (surface !== nextSurface) {
+            drag.bind(nextSurface);
+            for (const record of listenerRegistry) {
+                nextSurface.addEventListener(record.type, record.listener, record.options);
+            }
+        }
         surface = nextSurface;
         applySurfaceState();
         return api;
@@ -1533,6 +1592,10 @@ export function createBlocksSystem(options = {}) {
         list,
         get,
         attach,
+        detach,
+        destroy,
+        on,
+        off,
         setGrid,
         compact,
         add,

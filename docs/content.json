@@ -373,6 +373,10 @@
       "headers": ["method", "returns", "purpose"],
       "rows": [
         { "id": "api-attach", "cells": ["attach(target)", "blocks", "Attach to a selector or Element."] },
+        { "id": "api-detach", "cells": ["detach()", "blocks", "Detach from current surface and unbind surface listeners."] },
+        { "id": "api-destroy", "cells": ["destroy()", "blocks", "Remove all active blocks and detach from the surface."] },
+        { "id": "api-on", "cells": ["on(type, listener, options?)", "blocks", "Subscribe to field events (change, reorder or custom)."] },
+        { "id": "api-off", "cells": ["off(type, listener, options?)", "blocks", "Unsubscribe from field events."] },
         { "id": "api-set-grid", "cells": ["setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
         { "id": "api-compact", "cells": ["compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] },
         { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, an element object or a content factory. Never pass untrusted text as HTML; create an element and set textContent."] },
