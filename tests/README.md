@@ -5,7 +5,7 @@ standaard `npm test`-gate:
 
 - lokale routes en assets bestaan;
 - package, declarations, README's en reference noemen dezelfde API;
-- docscontent heeft de juiste eigenaarsgrens, bevat alle 52 levende docblocks
+- docscontent heeft de juiste eigenaarsgrens, bevat alle 70 levende docblocks
   en wordt volledig geladen;
 - navigatie, aliases, voorbeelden en toegankelijkheidscontracten blijven heel;
 - librarycode en library-CSS nemen geen projectspecifieke compositie over.

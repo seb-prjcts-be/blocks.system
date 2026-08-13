@@ -522,7 +522,7 @@ footer a { color: var(--ink); }
   width: 100%;
   height: 100%;
   min-height: 0;
-  padding: clamp(16px, 2vw, 28px);
+  padding: 0;
 }
 
 .eli10-schema {
@@ -537,9 +537,11 @@ footer a { color: var(--ink); }
 
 .eli10-schema canvas {
   display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
   max-width: 100%;
-  aspect-ratio: 18 / 5;
-  height: auto;
+  max-height: 100%;
 }
 
 .manual-lesson {
@@ -583,38 +585,19 @@ footer a { color: var(--ink); }
   line-height: 1.5;
 }
 
-.manual-content-overview {
+.manual-content-statement {
   display: grid;
-  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.2fr);
-  align-items: end;
-  gap: clamp(20px, 4vw, 64px);
+  align-items: center;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
-  padding: clamp(16px, 2vw, 28px);
+  padding: clamp(14px, 1.6vw, 24px);
 }
 
-.manual-content-overview-copy {
-  max-width: 44ch;
-  margin: 0;
-  font-size: clamp(0.9rem, 1.15vw, 1.08rem);
-  line-height: 1.5;
-}
-
-.manual-content-spectrum {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0 14px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.manual-content-spectrum li {
-  padding: 7px 0 5px;
-  border-top: 1px solid currentColor;
-  font: 500 11px/1.2 "Consolas", "Courier New", monospace;
-  text-transform: uppercase;
+.manual-content-statement strong {
+  max-width: 18ch;
+  font: 600 clamp(2.4rem, 6vw, 6.4rem)/0.88 "Instrument Sans", sans-serif;
+  letter-spacing: -0.065em;
 }
 
 .manual-content-code {
@@ -657,35 +640,6 @@ footer a { color: var(--ink); }
   margin: 0;
   font-size: 0.78rem;
   line-height: 1.45;
-}
-
-.manual-drag-demo .blocks-system-title {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.manual-drag-demo .blocks-system-title::after {
-  content: "";
-  flex: 1 1 48px;
-  border-top: 1px dashed currentColor;
-}
-
-.manual-drag-status {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  max-width: none !important;
-  padding-top: 7px;
-  border-top: 1px dashed currentColor;
-  font: 400 11px/1.25 "Consolas", "Courier New", monospace !important;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.manual-drag-status output {
-  font: inherit;
-  white-space: nowrap;
 }
 
 .manual-content-demo {
@@ -867,39 +821,6 @@ footer a { color: var(--ink); }
   margin: 0 auto;
 }
 
-.manual-layout-sandbox-result {
-  box-sizing: border-box;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  padding: 8px;
-}
-
-.manual-layout-sandbox.blocks-system-surface {
-  --blocks-columns: 3;
-  --blocks-content-padding: 0;
-  height: 100%;
-  min-height: 0;
-  border: 1px solid currentColor;
-  background: var(--docs-field);
-  background-image:
-    linear-gradient(to right, transparent calc(100% - 1px), rgb(17 17 17 / 25%) 0),
-    linear-gradient(to bottom, transparent calc(100% - 1px), rgb(17 17 17 / 25%) 0);
-  background-size:
-    calc((100% + var(--blocks-gap)) / 3) 100%,
-    100% calc((100% + var(--blocks-gap)) / 4);
-}
-
-.manual-layout-sandbox.blocks-system-surface[data-snap="true"] {
-  grid-template-rows: repeat(4, minmax(0, 1fr));
-}
-
-.manual-layout-sandbox > .blocks-system-object { min-height: 0; }
-.manual-layout-sandbox .manual-lesson { padding: 10px; gap: 7px; }
-.manual-layout-sandbox .manual-result strong { font-size: clamp(1rem, 1.5vw, 1.6rem); }
-.manual-layout-sandbox .manual-result p { font-size: 0.7rem; }
-.manual-layout-sandbox .manual-card-code { font-size: 10px; }
-
 .manual-board > .manual-demo-block > .blocks-system-content,
 .manual-board > .manual-explanation-block > .blocks-system-content,
 .manual-board > .manual-code-block > .blocks-system-content {
@@ -929,28 +850,36 @@ footer a { color: var(--ink); }
   line-height: 1.5;
 }
 
+.manual-cdn-step .manual-explanation-card {
+  align-content: center;
+  gap: 8px;
+}
+
+.manual-cdn-step .manual-explanation-card > p {
+  max-width: none;
+  white-space: nowrap;
+}
+
+.manual-cdn-code {
+  min-width: 0;
+  margin: 0;
+  overflow-x: auto;
+  font: 400 11px/1.35 "Consolas", "Courier New", monospace;
+  white-space: pre;
+}
+
+@media (max-width: 900px) {
+  .manual-cdn-step .manual-explanation-card > p { white-space: normal; }
+}
+
 .manual-code-card { padding: 0; }
 .manual-code-card .manual-code { height: 100%; }
-
-.manual-contract {
-  margin: auto 0 0;
-  padding-top: 9px;
-  border-top: 1px solid currentColor;
-  font: 500 10px/1.2 "Consolas", "Courier New", monospace !important;
-  letter-spacing: 0.045em;
-  text-transform: uppercase;
-}
-
-.manual-contract a {
-  color: inherit;
-  text-underline-offset: 3px;
-}
 
 .manual-eli10 {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: clamp(14px, 1.8vw, 26px);
+  gap: 0;
+  padding: 0;
 }
 
 .manual-eli10 .eli10-schema {
@@ -1023,13 +952,11 @@ footer a { color: var(--ink); }
   .manual-board > .blocks-system-object { min-height: 0; }
   .manual-board > .manual-code-block { min-height: 320px; }
   .manual-board > .manual-demo-block { min-height: 220px; }
-  .manual-board > .manual-layout-result-block { min-height: 390px; }
 }
 
 @media (max-width: 560px) {
   .manual-page #navbar { align-items: flex-start; gap: 8px; padding-inline: 14px; }
   .manual-masthead h1 { font-size: clamp(3.2rem, 17vw, 5.2rem); }
-  .manual-content-spectrum { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .manual-content-html-demo,
   .manual-content-factory-demo { gap: 5px; padding: 10px 12px; }
   .manual-content-html-demo strong { font-size: clamp(1.7rem, 9vw, 2.3rem); line-height: 0.86; }

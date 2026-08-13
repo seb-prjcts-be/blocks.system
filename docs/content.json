@@ -1,5 +1,5 @@
 {
-  "schema": "blocks.system/docs-content@2",
+  "schema": "blocks.system/docs-content@3",
   "home": {
     "home-title": {
       "title": "blocks.system",
@@ -25,9 +25,45 @@
       "title": "00 / ELI10",
       "contract": "api.html#exports"
     },
-    "manual-start": {
-      "title": "01 / start the system",
-      "intro": "Load the released v0.3.0 build, then attach the system before adding content. setGrid(6, 4) creates six columns and four rows.",
+    "manual-start-a": {
+      "title": "01 / set up the CDN",
+      "body": "Start by loading the latest release. The CDN brings the library's stylesheet and JavaScript module into your page.",
+      "code": [
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.css",
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.mjs"
+      ],
+      "contract": "api.html#system-methods",
+      "layout": {
+        "place": [1, 4],
+        "span": [6, 1]
+      }
+    },
+    "manual-start-div": {
+      "title": "div",
+      "body": "Add an empty div to your HTML. This is the field where the blocks will appear.",
+      "layout": {
+        "place": [1, 5],
+        "span": [2, 1]
+      }
+    },
+    "manual-start-blocks": {
+      "title": "blocks",
+      "body": "Create the system and attach it to that div. From then on, blocks controls the field.",
+      "layout": {
+        "place": [1, 6],
+        "span": [2, 1]
+      }
+    },
+    "manual-start-grid": {
+      "title": "grid",
+      "body": "Set the field to a 4 × 4 grid before adding content. That gives you four columns and four rows.",
+      "layout": {
+        "place": [1, 7],
+        "span": [2, 1]
+      }
+    },
+    "manual-start-b": {
+      "title": "setup code",
       "code": [
         "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.css\">",
         "<div id=\"blocks-field\"></div>",
@@ -44,38 +80,76 @@
         "});",
         "",
         "blocks.attach(\"#blocks-field\");",
-        "blocks.setGrid(6, 4);",
+        "blocks.setGrid(4, 4);",
+        "",
+        "const block = blocks.add(\"Hello.\");",
+        "block.span(4, 2);",
+        "block.place(1, 1);",
         "</script>"
       ],
-      "contract": "api.html#system-methods"
+      "layout": {
+        "place": [3, 5],
+        "span": [4, 4]
+      }
     },
     "manual-finish": {
       "title": "02 / content can be anything",
-      "intro": "A block can hold anything the browser can render. Choose one of three input forms: trusted HTML, an element object or a factory. Paste one focused example after setGrid() and before </script>.",
-      "examples": ["text", "image", "SVG", "canvas", "form", "audio", "video", "custom UI"],
-      "contract": "api.html#add-options"
+      "statement": "A block can hold anything the browser can render.",
+      "contract": "api.html#add-options",
+      "layout": {
+        "place": [1, 10],
+        "span": [6, 2]
+      }
+    },
+    "manual-content-html-intro": {
+      "title": "HTML",
+      "intro": "Pass an HTML string to use markup as the block's content.",
+      "layout": {
+        "place": [1, 12],
+        "span": [1, 2]
+      }
     },
     "manual-content-html-code": {
-      "title": "02.1 / trusted HTML",
-      "intro": "Use a string only for markup you trust. The string becomes the block's HTML.",
+      "title": "code",
       "code": [
-        "const trustedHtml = \"<strong>Hello.</strong>\";",
+        "const html = `",
+        "  <article>",
+        "    <small>01 / statement</small>",
+        "    <strong>Structure makes movement visible.</strong>",
+        "    <span>type · interval · contrast</span>",
+        "  </article>",
+        "`;",
         "",
-        "blocks.add(trustedHtml, {",
+        "blocks.add(html, {",
         "  id: \"block-html\",",
-        "  title: \"trusted HTML\"",
+        "  title: \"HTML\"",
         "});"
-      ]
+      ],
+      "layout": {
+        "place": [2, 12],
+        "span": [2, 2]
+      }
     },
     "manual-content-html": {
-      "title": "02.1 / result",
+      "title": "result",
       "eyebrow": "01 / statement",
       "statement": "Structure makes movement visible.",
-      "footer": "type · interval · contrast"
+      "footer": "type · interval · contrast",
+      "layout": {
+        "place": [4, 12],
+        "span": [3, 2]
+      }
+    },
+    "manual-content-object-intro": {
+      "title": "element object",
+      "intro": "Use a browser element for text, images, SVG, canvas, forms or media. For untrusted text, set textContent.",
+      "layout": {
+        "place": [1, 14],
+        "span": [1, 2]
+      }
     },
     "manual-content-object-code": {
-      "title": "02.2 / element object",
-      "intro": "Use a browser element for text, images, SVG, canvas, forms or media. For untrusted text, set textContent.",
+      "title": "code",
       "code": [
         "const image = document.createElement(\"img\");",
         "image.src = \"./image.jpg\";",
@@ -85,16 +159,31 @@
         "  id: \"block-image\",",
         "  title: \"image\"",
         "});"
-      ]
+      ],
+      "layout": {
+        "place": [2, 14],
+        "span": [2, 2]
+      }
     },
     "manual-content-object": {
-      "title": "02.2 / result",
+      "title": "result",
       "caption": "02 / direction",
-      "alt": "Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail."
+      "alt": "Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail.",
+      "layout": {
+        "place": [4, 14],
+        "span": [3, 2]
+      }
+    },
+    "manual-content-factory-intro": {
+      "title": "factory",
+      "intro": "Use a function when every added block needs a fresh element and its own interaction.",
+      "layout": {
+        "place": [1, 16],
+        "span": [1, 2]
+      }
     },
     "manual-content-factory-code": {
-      "title": "02.3 / factory",
-      "intro": "Use a function when every added block needs a fresh element and its own interaction.",
+      "title": "code",
       "code": [
         "const factory = () => {",
         "  const button = document.createElement(\"button\");",
@@ -106,17 +195,33 @@
         "  id: \"block-button\",",
         "  title: \"interactive\"",
         "});"
-      ]
+      ],
+      "layout": {
+        "place": [2, 16],
+        "span": [2, 2]
+      }
     },
     "manual-content-factory": {
-      "title": "02.3 / result",
+      "title": "result",
       "eyebrow": "03 / live",
       "states": ["structure", "contrast", "rhythm", "space"],
-      "action": "next state"
+      "action": "next state",
+      "layout": {
+        "place": [4, 16],
+        "span": [3, 2]
+      }
     },
     "manual-menu": {
       "title": "03 / menu actions",
       "intro": "The titlebar can show minimize, close, both or neither. The four blocks below are the complete on/off set. A controller can also minimize, restore or remove its own block. Close removes this example; reload the page to restore the full manual.",
+      "contract": "api.html#block-methods",
+      "layout": {
+        "place": [1, 19],
+        "span": [2, 2]
+      }
+    },
+    "manual-menu-code": {
+      "title": "menu code",
       "code": [
         "const block = blocks.add(content, {",
         "  menu: { minimize: true, close: true },",
@@ -128,66 +233,117 @@
         "block.minimized = false; // restore",
         "block.remove();           // close"
       ],
-      "contract": "api.html#block-methods"
+      "layout": {
+        "place": [3, 19],
+        "span": [4, 2]
+      }
     },
     "manual-menu-both": {
-      "title": "03.1 / minimize + close",
+      "title": "minimize + close",
       "eyebrow": "menu options",
       "statement": "Both on.",
       "body": "minimize: true · close: true"
     },
     "manual-menu-minimize": {
-      "title": "03.2 / minimize",
+      "title": "minimize",
       "eyebrow": "menu options",
       "statement": "Minimize only.",
       "body": "minimize: true · close: false"
     },
     "manual-menu-close": {
-      "title": "03.3 / close",
+      "title": "close",
       "eyebrow": "menu options",
       "statement": "Close only.",
       "body": "minimize: false · close: true"
     },
     "manual-menu-none": {
-      "title": "03.4 / neither",
+      "title": "neither",
       "eyebrow": "menu options",
       "statement": "Both off.",
       "body": "minimize: false · close: false"
     },
-    "manual-menu-title": {
-      "title": "03.5 / title",
-      "eyebrow": "block identity",
-      "statement": "A title is not an id.",
-      "body": "id identifies the block. Add title only when you want visible text in its menu bar; without it, the id stays available to the controls but is not shown."
-    },
     "manual-layout": {
-      "title": "04 / layout and movement",
-      "intro": "Set size first, then position. Columns come before rows and coordinates start at 1. Use the practice block below: drag its titlebar, or focus drag here and use the arrow keys. Watch the cell readout change.",
+      "title": "block size and position",
+      "intro": "Set size first, then position. Columns come before rows and coordinates start at 1.",
+      "contract": "api.html#block-methods",
+      "layout": {
+        "place": [1, 8],
+        "span": [2, 1]
+      }
+    },
+    "manual-drag": {
+      "title": "04 / dragging",
+      "intro": "Turn dragging on to move blocks by their titlebars. Snap keeps each move on the grid.",
+      "contract": "api.html#system-state",
+      "layout": {
+        "place": [1, 26],
+        "span": [2, 1]
+      }
+    },
+    "manual-drag-code": {
+      "title": "dragging code",
       "code": [
-        "blocks.snap = true;",
         "blocks.draggable = true;",
-        "block.span(4, 2);",
-        "block.place(1, 1);"
+        "blocks.snap = true;"
       ],
-      "contract": "api.html#block-methods"
+      "layout": {
+        "place": [3, 26],
+        "span": [4, 1]
+      }
     },
-    "manual-layout-wide": {
-      "title": "04.1 / drag here",
-      "eyebrow": "try it / pointer or keyboard",
-      "statement": "Move this block.",
-      "body": "Grab the dotted titlebar, or focus it and press an arrow key.",
-      "statusLabel": "current position"
+    "manual-drag-fixed-1": {
+      "title": "block",
+      "layout": {
+        "place": [1, 27],
+        "span": [1, 1]
+      }
     },
-    "manual-layout-small": {
-      "title": "04.2 / flow",
-      "eyebrow": "automatic position",
-      "statement": "Back to flow.",
-      "body": "Releases the fixed position, not the size.",
-      "code": "block.flow();"
+    "manual-drag-fixed-2": {
+      "title": "block",
+      "layout": {
+        "place": [2, 27],
+        "span": [1, 1]
+      }
+    },
+    "manual-drag-fixed-3": {
+      "title": "block",
+      "layout": {
+        "place": [3, 27],
+        "span": [1, 1]
+      }
+    },
+    "manual-drag-fixed-4": {
+      "title": "block",
+      "layout": {
+        "place": [4, 27],
+        "span": [1, 1]
+      }
+    },
+    "manual-drag-fixed-5": {
+      "title": "block",
+      "layout": {
+        "place": [6, 27],
+        "span": [1, 1]
+      }
+    },
+    "manual-drag-result": {
+      "title": "block",
+      "layout": {
+        "place": [5, 28],
+        "span": [1, 1]
+      }
     },
     "manual-compact": {
       "title": "05 / compact after changes",
       "intro": "Use compact() after removing or moving fixed blocks when you want the placed grid to close vertical gaps. It moves fixed blocks upward inside their columns; it does not resize the grid.",
+      "contract": "api.html#system-methods",
+      "layout": {
+        "place": [1, 30],
+        "span": [2, 2]
+      }
+    },
+    "manual-compact-code": {
+      "title": "compact code",
       "code": [
         "const first = blocks.add(content, { title: \"first\" });",
         "const second = blocks.add(content, { title: \"second\" });",
@@ -198,25 +354,39 @@
         "first.remove();",
         "blocks.compact();"
       ],
-      "contract": "api.html#system-methods"
+      "layout": {
+        "place": [3, 30],
+        "span": [4, 2]
+      }
     },
     "manual-appearance": {
       "title": "06 / choose an appearance",
       "intro": "Choose one fixed monochrome variant. Regular uses dark ink on paper; inverse exchanges figure and ground. Color and chance come later.",
+      "contract": "api.html#add-options",
+      "layout": {
+        "place": [1, 33],
+        "span": [2, 1]
+      }
+    },
+    "manual-appearance-code": {
+      "title": "appearance code",
       "code": [
         "blocks.add(content, { variant: \"regular\" });",
         "blocks.add(content, { variant: \"inverse\" });"
       ],
-      "contract": "api.html#add-options"
+      "layout": {
+        "place": [3, 33],
+        "span": [4, 1]
+      }
     },
     "manual-appearance-regular": {
-      "title": "06.1 / regular",
+      "title": "regular",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "variant: \"regular\""
     },
     "manual-appearance-inverse": {
-      "title": "06.2 / inverse",
+      "title": "inverse",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "variant: \"inverse\""
@@ -224,31 +394,44 @@
     "manual-colors": {
       "title": "07 / set a color",
       "intro": "Set one block color directly. Any valid CSS color can define its border, titlebar and hover frame; the content surface stays neutral.",
+      "contract": "api.html#block-controller",
+      "layout": {
+        "place": [1, 37],
+        "span": [2, 2]
+      }
+    },
+    "manual-colors-code": {
+      "title": "color code",
       "code": [
-        "const colorBlock = blocks.add(content, {",
-        "  id: \"color-cyan\",",
-        "  title: \"cyan\",",
-        "  variant: \"regular\"",
-        "});",
+        "const colors = [\"cyan\", \"magenta\", \"yellow\"];",
         "",
-        "colorBlock.color = \"cyan\";"
+        "for (const color of colors) {",
+        "  const block = blocks.add(content, {",
+        "    title: color,",
+        "    variant: \"regular\"",
+        "  });",
+        "  block.color = color;",
+        "}"
       ],
-      "contract": "api.html#block-controller"
+      "layout": {
+        "place": [3, 37],
+        "span": [4, 2]
+      }
     },
     "manual-color-cyan": {
-      "title": "07.1 / cyan",
+      "title": "cyan",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "Only color changes."
     },
     "manual-color-magenta": {
-      "title": "07.2 / magenta",
+      "title": "magenta",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "Only color changes."
     },
     "manual-color-yellow": {
-      "title": "07.3 / yellow",
+      "title": "yellow",
       "eyebrow": "your content",
       "statement": "your content",
       "body": "Only color changes."
@@ -256,6 +439,14 @@
     "manual-random": {
       "title": "08 / set the chance",
       "intro": "Chance affects only future blocks added with the random variant. The three left cells change the color share; the three right cells change the inverse share of the monochrome remainder. Values run from 0 to 1.",
+      "contract": "api.html#system-state",
+      "layout": {
+        "place": [1, 42],
+        "span": [2, 2]
+      }
+    },
+    "manual-random-code": {
+      "title": "chance code",
       "code": [
         "blocks.variant = \"random\";",
         "blocks.colorArray = [\"cyan\", \"magenta\", \"yellow\"];",
@@ -263,56 +454,70 @@
         "blocks.colorVariation = 0;     // 0, .5 or 1",
         "blocks.inversionVariation = 0; // 0, .5 or 1"
       ],
-      "contract": "api.html#system-state"
+      "layout": {
+        "place": [3, 42],
+        "span": [4, 2]
+      }
     },
     "manual-random-color-0": {
-      "title": "08.1 / colorVariation / 0",
+      "title": "colorVariation / 0",
       "statement": "your content"
     },
     "manual-random-color-50": {
-      "title": "08.2 / colorVariation / 0.5",
+      "title": "colorVariation / 0.5",
       "statement": "your content"
     },
     "manual-random-color-100": {
-      "title": "08.3 / colorVariation / 1",
+      "title": "colorVariation / 1",
       "statement": "your content"
     },
     "manual-random-inverse-0": {
-      "title": "08.4 / inversionVariation / 0",
+      "title": "inversionVariation / 0",
       "statement": "your content"
     },
     "manual-random-inverse-50": {
-      "title": "08.5 / inversionVariation / 0.5",
+      "title": "inversionVariation / 0.5",
       "statement": "your content"
     },
     "manual-random-inverse-100": {
-      "title": "08.6 / inversionVariation / 1",
+      "title": "inversionVariation / 1",
       "statement": "your content"
     },
     "manual-random-combined": {
-      "title": "08.1 / color + inverse",
+      "title": "color + inverse",
       "intro": "Combine both chances only after reading them separately. In this fixed four-call demonstration, two cells use color, one is regular and one is inverse. Real calls remain random.",
+      "layout": {
+        "place": [1, 45],
+        "span": [2, 2]
+      }
+    },
+    "manual-random-combined-code": {
+      "title": "combined code",
       "code": [
         "blocks.colorVariation = 0.5;",
         "blocks.inversionVariation = 0.5;",
         "",
         "blocks.add(content); // repeat for each new block"
-      ]
+      ],
+      "layout": {
+        "place": [3, 45],
+        "span": [4, 2]
+      }
     },
     "manual-random-mix-1": {
-      "title": "08.1 / result 01",
+      "title": "result 01",
       "statement": "your content"
     },
     "manual-random-mix-2": {
-      "title": "08.1 / result 02",
+      "title": "result 02",
       "statement": "your content"
     },
     "manual-random-mix-3": {
-      "title": "08.1 / result 03",
+      "title": "result 03",
       "statement": "your content"
     },
     "manual-random-mix-4": {
-      "title": "08.1 / result 04",
+      "title": "result 04",
       "statement": "your content"
     },
     "manual-next": {

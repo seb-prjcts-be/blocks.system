@@ -18,12 +18,12 @@ export function mountEli10Schema(host) {
     const H = 250;
 
     const PAD_X = 30;
-    const ARROW_W = 44;
-    const PANEL_W = (W - PAD_X * 2 - ARROW_W * 2) / 3;
+    const ARROW_W = 36;
+    const PANEL_W = (W - PAD_X * 2 - ARROW_W * 3) / 4;
 
     const FIELD_W = PANEL_W * 0.86;
-    const FIELD_H = 118;
-    const FIELD_Y = 74;
+    const FIELD_H = 148;
+    const FIELD_Y = 72;
     const FIELD_INSET = 10;
 
     const COLS = 3;
@@ -38,20 +38,23 @@ export function mountEli10Schema(host) {
     const FIELD = "#d9d8d2";
 
     const STEPS = [
-      { title: "1 / container", code: '<div id="blocks-field"></div>' },
-      { title: "2 / blocks", code: 'blocks.attach("#blocks-field")' },
-      { title: "3 / block", code: 'const block = blocks.add(\n  "<p>Hello.</p>"\n)' }
+      { title: "1 / container" },
+      { title: "2 / blocks" },
+      { title: "3 / grid" },
+      { title: "4 / block" }
     ];
 
     let scaleFactor = 1;
+    let offsetX = 0;
+    let offsetY = 0;
     let resizeFrame = 0;
     let hostObserver = null;
 
     p.setup = () => {
-      const canvas = p.createCanvas(W, H);
+      const canvas = p.createCanvas(1, 1);
       canvas.parent(host);
       canvas.elt.setAttribute("role", "img");
-      canvas.elt.setAttribute("aria-label", "A container div, the blocks system attached to it, and one block inside it.");
+      canvas.elt.setAttribute("aria-label", "A container div, the blocks system attached to it, a grid set inside it, and one block inside the grid.");
       p.pixelDensity(Math.min(2, p.displayDensity()));
       p.textFont("Consolas");
       fitToHost();
@@ -72,13 +75,16 @@ export function mountEli10Schema(host) {
     function fitToHost() {
       const hostWidth = host.clientWidth || W;
       const hostHeight = host.clientHeight || H;
-      scaleFactor = Math.min(1, hostWidth / W, hostHeight / H);
-      p.resizeCanvas(W * scaleFactor, H * scaleFactor);
+      scaleFactor = Math.min(hostWidth / W, hostHeight / H);
+      offsetX = (hostWidth - W * scaleFactor) / 2;
+      offsetY = (hostHeight - H * scaleFactor) / 2;
+      p.resizeCanvas(hostWidth, hostHeight);
     }
 
     p.draw = () => {
       p.background(PAPER);
       p.push();
+      p.translate(offsetX, offsetY);
       p.scale(scaleFactor);
 
       const elapsed = p.millis() % (STEP_MS * STEPS.length);
@@ -101,9 +107,9 @@ export function mountEli10Schema(host) {
 
       p.noStroke();
       p.fill(isActive ? INK : MUTED);
-      p.textSize(12);
+      p.textSize(18);
       p.textAlign(p.LEFT, p.BASELINE);
-      p.text(step.title.toUpperCase(), fieldX, FIELD_Y - 18);
+      p.text(step.title.toUpperCase(), fieldX, FIELD_Y - 20);
 
       if (index === 0) {
         drawDashedField(fieldX, FIELD_Y, isActive, grow);
@@ -113,16 +119,10 @@ export function mountEli10Schema(host) {
         p.fill(FIELD);
         p.rect(fieldX, FIELD_Y, FIELD_W, FIELD_H);
         p.pop();
-        drawGrid(fieldX, FIELD_Y, index === 1 ? grow : 1);
+        if (index >= 2) drawGrid(fieldX, FIELD_Y, index === 2 ? grow : 1);
       }
 
-      if (index === 2) drawBlock(fieldX, FIELD_Y, grow);
-
-      p.noStroke();
-      p.fill(isActive ? INK : MUTED);
-      p.textSize(11);
-      p.textAlign(p.LEFT, p.TOP);
-      p.text(step.code, fieldX, FIELD_Y + FIELD_H + 20);
+      if (index === 3) drawBlock(fieldX, FIELD_Y, grow);
     }
 
     function drawDashedField(x, y, isActive, grow) {

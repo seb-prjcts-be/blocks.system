@@ -11,9 +11,10 @@ const apiHtml = await read("docs/api.html");
 const css = await read("docs/style.css");
 const content = JSON.parse(await read("docs/content.json"));
 
-assert.match(manual, /blocks\.setGrid\(6, 58\)/, "manual must use the six-column editorial field, not a lesson matrix");
-assert.equal((manual.match(/createBlocksSystem\(/g) || []).length, 2, "manual must keep its readable field plus one isolated practice field");
-assert.match(manual, /manual-reader[\s\S]*manual-reset[\s\S]*manual-layout-sandbox/, "manual must restore its reading route, reset and isolated practice field");
+assert.match(manual, /blocks\.setGrid\(6, 50\)/, "manual must use the six-column editorial field, not a lesson matrix");
+assert.equal((manual.match(/createBlocksSystem\(/g) || []).length, 1, "manual must use one real library field");
+assert.match(manual, /manual-reader[\s\S]*manual-reset[\s\S]*manual-layout/, "manual must retain its reading route, reset and size-position lesson");
+assert.doesNotMatch(manual, /manual-layout-sandbox|sandboxBlocks|dragSpecimen/, "manual must not embed a second mini-app for lesson 04");
 assert.match(manual, /function lockLessonBlock[\s\S]*dataset\.manualKind = protectedBlock \? "lesson"/, "manual must protect explanation and code blocks");
 assert.match(manual, /function chance\([\s\S]*small/, "chance examples must retain visible labels");
 assert.doesNotMatch(manual, /manual-matrix/, "manual must not restore the five-column lesson matrix");
@@ -23,13 +24,14 @@ assert.doesNotMatch(reference, /reference-matrix|REFERENCE_COLUMNS|setFocusedCol
 assert.match(apiHtml, /class="reference-index"/, "reference must expose a direct linear lookup index");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");
 assert.doesNotMatch(css, /\.manual-matrix|\.reference-map|\.reference-axis|\.reference-focus/, "retired matrix styling must not remain active documentation code");
-assert.match(css, /\.manual-reader[\s\S]*\.manual-layout-sandbox/, "functional reading and practice-field styles must remain available");
+assert.match(css, /\.manual-reader/, "functional reading styles must remain available");
+assert.doesNotMatch(css, /manual-layout-sandbox|manual-drag-status/, "retired lesson-04 sandbox styling must be removed");
 
 for (const entry of Object.values(content.reference)) {
   assert.doesNotMatch(entry.title, /^[A-D]\d\s*\//, `reference title must be human-readable: ${entry.title}`);
 }
 
 const count = Object.values(content).slice(1).reduce((total, section) => total + Object.keys(section).length, 0);
-assert.equal(count, 52, "documentation content must contain only live visible blocks");
+assert.equal(count, 70, "documentation content must contain only live visible blocks");
 
 console.log("blocks.system docs layout — linear recovery contract passed");

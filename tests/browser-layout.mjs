@@ -113,6 +113,9 @@ async function measureHome(width, height, dpr = 1) {
     awaitPromise: true,
     returnByValue: true
   });
+  if (result.exceptionDetails) {
+    throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text);
+  }
   return result.result.value;
 }
 
@@ -574,6 +577,7 @@ async function measureManual(width, height, dpr = 1) {
       const rootStyle = getComputedStyle(document.documentElement);
       const eli10Block = board.querySelector('[data-block-object="manual-eli10"]');
       const eli10 = eli10Block.querySelector(".manual-eli10");
+      const eli10Content = eli10Block.querySelector(":scope > .blocks-system-content");
       const eli10BlockRect = eli10Block.getBoundingClientRect();
       const eli10Canvas = eli10.querySelector("canvas");
       const eli10CanvasRect = eli10Canvas.getBoundingClientRect();
@@ -586,31 +590,77 @@ async function measureManual(width, height, dpr = 1) {
         };
       });
       const contentPairs = ["html", "object", "factory"].map(function (name) {
+        const introBlock = board.querySelector('[data-block-object="manual-content-' + name + '-intro"]');
         const codeBlock = board.querySelector('[data-block-object="manual-content-' + name + '-code"]');
         const resultBlock = board.querySelector('[data-block-object="manual-content-' + name + '"]');
+        const introRect = introBlock.getBoundingClientRect();
         const codeRect = codeBlock.getBoundingClientRect();
         const resultRect = resultBlock.getBoundingClientRect();
         return {
           name,
+          introTop: introRect.top,
           codeTop: codeRect.top,
           resultTop: resultRect.top,
+          introWidth: introRect.width,
           codeWidth: codeRect.width,
           resultWidth: resultRect.width,
+          introColumn: introBlock.style.getPropertyValue("--block-column"),
+          introSpan: introBlock.style.getPropertyValue("--block-span-columns"),
+          codeColumn: codeBlock.style.getPropertyValue("--block-column"),
+          codeSpan: codeBlock.style.getPropertyValue("--block-span-columns"),
+          resultColumn: resultBlock.style.getPropertyValue("--block-column"),
+          resultSpan: resultBlock.style.getPropertyValue("--block-span-columns"),
           codeTitle: codeBlock.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent,
           resultTitle: resultBlock.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent
         };
       });
-      const startBlockRect = board.querySelector('[data-block-object="manual-start"]').getBoundingClientRect();
+      const startABlock = board.querySelector('[data-block-object="manual-start-a"]');
+      const startBBlock = board.querySelector('[data-block-object="manual-start-b"]');
+      const startDivBlock = board.querySelector('[data-block-object="manual-start-div"]');
+      const cdnBody = startABlock.querySelector(".manual-explanation-card > p");
+      const cdnCode = startABlock.querySelector(".manual-cdn-code");
+      const startSteps = ["manual-start-div", "manual-start-blocks", "manual-start-grid", "manual-layout"].map(function (id) {
+        const block = board.querySelector('[data-block-object="' + id + '"]');
+        return {
+          id,
+          title: block.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent,
+          column: block.style.getPropertyValue("--block-column"),
+          row: block.style.getPropertyValue("--block-row"),
+          spanColumns: block.style.getPropertyValue("--block-span-columns"),
+          spanRows: block.style.getPropertyValue("--block-span-rows")
+        };
+      });
+      const startABlockRect = startABlock.getBoundingClientRect();
+      const startBBlockRect = startBBlock.getBoundingClientRect();
+      const startDivBlockRect = startDivBlock.getBoundingClientRect();
       const finishBlockRect = board.querySelector('[data-block-object="manual-finish"]').getBoundingClientRect();
-      const contentOverview = board.querySelector(".manual-content-overview");
-      const dragDemo = board.querySelector('[data-block-object="manual-layout-wide"]');
-      const dragHandle = dragDemo.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
+      const contentStatement = board.querySelector(".manual-content-statement");
+      const menuLessonBlock = board.querySelector('[data-block-object="manual-menu"]');
+      const menuCodeBlock = board.querySelector('[data-block-object="manual-menu-code"]');
+      const layoutLessonBlock = board.querySelector('[data-block-object="manual-layout"]');
+      const dragLessonBlock = board.querySelector('[data-block-object="manual-drag"]');
+      const dragCodeBlock = board.querySelector('[data-block-object="manual-drag-code"]');
+      const dragResultBlock = board.querySelector('[data-block-object="manual-drag-result"]');
+      const compactLessonBlock = board.querySelector('[data-block-object="manual-compact"]');
+      const compactCodeBlock = board.querySelector('[data-block-object="manual-compact-code"]');
+      const appearanceLessonBlock = board.querySelector('[data-block-object="manual-appearance"]');
+      const appearanceCodeBlock = board.querySelector('[data-block-object="manual-appearance-code"]');
+      const colorsLessonBlock = board.querySelector('[data-block-object="manual-colors"]');
+      const colorsCodeBlock = board.querySelector('[data-block-object="manual-colors-code"]');
+      const randomLessonBlock = board.querySelector('[data-block-object="manual-random"]');
+      const randomCodeBlock = board.querySelector('[data-block-object="manual-random-code"]');
+      const combinedLessonBlock = board.querySelector('[data-block-object="manual-random-combined"]');
+      const combinedCodeBlock = board.querySelector('[data-block-object="manual-random-combined-code"]');
+      const dragPatternBlocks = [
+        "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3",
+        "manual-drag-result", "manual-drag-fixed-4", "manual-drag-fixed-5"
+      ].map(function (id) { return board.querySelector('[data-block-object="' + id + '"]'); });
       const trustedDemo = board.querySelector(".manual-content-html-demo");
       const imageDemo = board.querySelector(".manual-content-image-demo");
       const image = imageDemo.querySelector("img");
       const factoryDemo = board.querySelector(".manual-content-factory-demo");
       const factoryButton = factoryDemo.querySelector("button");
-      const chapterIds = ["start", "content", "menu", "layout", "appearance", "colors", "chance", "next"];
+      const chapterIds = ["content", "menu", "dragging", "appearance", "colors", "chance", "next"];
       const chapterGaps = chapterIds.map(function (id) {
         const block = document.getElementById(id);
         const previous = block.previousElementSibling;
@@ -702,7 +752,6 @@ async function measureManual(width, height, dpr = 1) {
         };
       });
       const reader = document.querySelector("#manual-reader");
-      const sandbox = document.querySelector("#manual-layout-sandbox");
       return {
         blockCount: objects.length,
         ids: objects.map(function (block) { return block.dataset.blockObject; }),
@@ -732,7 +781,7 @@ async function measureManual(width, height, dpr = 1) {
           return rect.left < boardRect.left - 0.5 || rect.right > boardRect.right + 0.5;
         }).map(function (block) { return block.dataset.blockObject; }),
         clippedContent: objects.filter(function (block) {
-          if (block.dataset.blockObject === "manual-start") return false;
+          if (["manual-start-b", "manual-eli10"].includes(block.dataset.blockObject)) return false;
           const content = block.querySelector(":scope > .blocks-system-content");
           const child = content.firstElementChild;
           return child && (child.scrollWidth > content.clientWidth + 1 || child.scrollHeight > content.clientHeight + 1);
@@ -756,15 +805,106 @@ async function measureManual(width, height, dpr = 1) {
           text: reader.textContent.replace(/\\s+/g, " ").trim()
         },
         resetLabel: document.querySelector("#manual-reset").textContent.trim(),
-        sandbox: {
-          columns: getComputedStyle(sandbox).gridTemplateColumns.split(" ").length,
-          objects: Array.from(sandbox.querySelectorAll(":scope > .blocks-system-object"), function (block) {
-            return {
-              id: block.dataset.blockObject,
-              row: block.style.getPropertyValue("--block-row"),
-              title: block.querySelector(".blocks-system-title").textContent
-            };
-          })
+        dragLessonPair: {
+          explanation: {
+            column: dragLessonBlock.style.getPropertyValue("--block-column"),
+            row: dragLessonBlock.style.getPropertyValue("--block-row"),
+            spanColumns: dragLessonBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: dragLessonBlock.style.getPropertyValue("--block-span-rows")
+          },
+          code: {
+            column: dragCodeBlock.style.getPropertyValue("--block-column"),
+            row: dragCodeBlock.style.getPropertyValue("--block-row"),
+            spanColumns: dragCodeBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: dragCodeBlock.style.getPropertyValue("--block-span-rows")
+          }
+        },
+        dragResult: {
+          column: dragResultBlock.style.getPropertyValue("--block-column"),
+          row: dragResultBlock.style.getPropertyValue("--block-row"),
+          spanColumns: dragResultBlock.style.getPropertyValue("--block-span-columns"),
+          spanRows: dragResultBlock.style.getPropertyValue("--block-span-rows"),
+          title: dragResultBlock.querySelector(".blocks-system-title").textContent,
+          statement: dragResultBlock.querySelector(".manual-result strong")?.textContent ?? null
+        },
+        dragPattern: dragPatternBlocks.map(function (block) {
+          return {
+            id: block.dataset.blockObject,
+            column: block.style.getPropertyValue("--block-column"),
+            row: block.style.getPropertyValue("--block-row"),
+            spanColumns: block.style.getPropertyValue("--block-span-columns"),
+            spanRows: block.style.getPropertyValue("--block-span-rows")
+          };
+        }),
+        compactLessonPair: {
+          explanation: {
+            column: compactLessonBlock.style.getPropertyValue("--block-column"),
+            row: compactLessonBlock.style.getPropertyValue("--block-row"),
+            spanColumns: compactLessonBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: compactLessonBlock.style.getPropertyValue("--block-span-rows")
+          },
+          code: {
+            column: compactCodeBlock.style.getPropertyValue("--block-column"),
+            row: compactCodeBlock.style.getPropertyValue("--block-row"),
+            spanColumns: compactCodeBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: compactCodeBlock.style.getPropertyValue("--block-span-rows")
+          }
+        },
+        appearanceLessonPair: {
+          explanation: {
+            column: appearanceLessonBlock.style.getPropertyValue("--block-column"),
+            row: appearanceLessonBlock.style.getPropertyValue("--block-row"),
+            spanColumns: appearanceLessonBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: appearanceLessonBlock.style.getPropertyValue("--block-span-rows")
+          },
+          code: {
+            column: appearanceCodeBlock.style.getPropertyValue("--block-column"),
+            row: appearanceCodeBlock.style.getPropertyValue("--block-row"),
+            spanColumns: appearanceCodeBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: appearanceCodeBlock.style.getPropertyValue("--block-span-rows")
+          }
+        },
+        colorsLessonPair: {
+          explanation: {
+            column: colorsLessonBlock.style.getPropertyValue("--block-column"),
+            row: colorsLessonBlock.style.getPropertyValue("--block-row"),
+            spanColumns: colorsLessonBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: colorsLessonBlock.style.getPropertyValue("--block-span-rows")
+          },
+          code: {
+            column: colorsCodeBlock.style.getPropertyValue("--block-column"),
+            row: colorsCodeBlock.style.getPropertyValue("--block-row"),
+            spanColumns: colorsCodeBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: colorsCodeBlock.style.getPropertyValue("--block-span-rows")
+          }
+        },
+        randomLessonPair: {
+          explanation: {
+            column: randomLessonBlock.style.getPropertyValue("--block-column"),
+            row: randomLessonBlock.style.getPropertyValue("--block-row"),
+            spanColumns: randomLessonBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: randomLessonBlock.style.getPropertyValue("--block-span-rows")
+          },
+          code: {
+            column: randomCodeBlock.style.getPropertyValue("--block-column"),
+            row: randomCodeBlock.style.getPropertyValue("--block-row"),
+            spanColumns: randomCodeBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: randomCodeBlock.style.getPropertyValue("--block-span-rows")
+          }
+        },
+        combinedLessonPair: {
+          explanation: {
+            column: combinedLessonBlock.style.getPropertyValue("--block-column"),
+            row: combinedLessonBlock.style.getPropertyValue("--block-row"),
+            spanColumns: combinedLessonBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: combinedLessonBlock.style.getPropertyValue("--block-span-rows")
+          },
+          code: {
+            column: combinedCodeBlock.style.getPropertyValue("--block-column"),
+            row: combinedCodeBlock.style.getPropertyValue("--block-row"),
+            spanColumns: combinedCodeBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: combinedCodeBlock.style.getPropertyValue("--block-span-rows")
+          }
         },
         devicePixelRatio: window.devicePixelRatio,
         codeOverflow: getComputedStyle(code).overflowX,
@@ -785,6 +925,10 @@ async function measureManual(width, height, dpr = 1) {
           menuBackground: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-menu")).backgroundColor,
           menuColor: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-menu")).color,
           contentBackground: getComputedStyle(eli10Block.querySelector(":scope > .blocks-system-content")).backgroundColor,
+          contentPadding: getComputedStyle(eli10Content).padding,
+          contentWidth: eli10Content.clientWidth,
+          contentHeight: eli10Content.clientHeight,
+          visualPadding: getComputedStyle(eli10).padding,
           title: eli10Block.querySelector(".blocks-system-title").textContent,
           visual: {
             role: eli10Canvas.getAttribute("role"),
@@ -797,19 +941,55 @@ async function measureManual(width, height, dpr = 1) {
             hostHeight: eli10.clientHeight
           }
         },
-        startBlockBottom: startBlockRect.bottom,
+        startBlockBottom: Math.max(startABlockRect.bottom, startBBlockRect.bottom),
+        startPair: {
+          cdn: {
+            bodyWhiteSpace: getComputedStyle(cdnBody).whiteSpace,
+            bodyFits: cdnBody.scrollWidth <= cdnBody.clientWidth + 1,
+            urls: cdnCode.textContent.split("\\n")
+          },
+          steps: startSteps,
+          a: {
+            column: startABlock.style.getPropertyValue("--block-column"),
+            row: startABlock.style.getPropertyValue("--block-row"),
+            spanColumns: startABlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: startABlock.style.getPropertyValue("--block-span-rows")
+          },
+          b: {
+            column: startBBlock.style.getPropertyValue("--block-column"),
+            row: startBBlock.style.getPropertyValue("--block-row"),
+            spanColumns: startBBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: startBBlock.style.getPropertyValue("--block-span-rows")
+          },
+          horizontalGap: startBBlockRect.left - startDivBlockRect.right,
+          verticalGapAfterEli10: startABlockRect.top - eli10BlockRect.bottom
+        },
         finishBlockTop: finishBlockRect.top,
         finishBlockBottom: finishBlockRect.bottom,
         contentOptions,
         contentPairs,
         contentOverview: {
-          intro: contentOverview.querySelector("p").textContent,
-          examples: Array.from(contentOverview.querySelectorAll("li"), function (item) { return item.textContent; })
+          intro: contentStatement.querySelector("strong").textContent
         },
-        dragLesson: {
-          title: dragHandle.textContent,
-          guideLine: getComputedStyle(dragHandle, "::after").borderTopStyle,
-          status: dragDemo.querySelector(".manual-drag-status output").textContent
+        menuLessonPair: {
+          explanation: {
+            column: menuLessonBlock.style.getPropertyValue("--block-column"),
+            row: menuLessonBlock.style.getPropertyValue("--block-row"),
+            spanColumns: menuLessonBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: menuLessonBlock.style.getPropertyValue("--block-span-rows")
+          },
+          code: {
+            column: menuCodeBlock.style.getPropertyValue("--block-column"),
+            row: menuCodeBlock.style.getPropertyValue("--block-row"),
+            spanColumns: menuCodeBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: menuCodeBlock.style.getPropertyValue("--block-span-rows")
+          }
+        },
+        layoutLesson: {
+          column: layoutLessonBlock.style.getPropertyValue("--block-column"),
+          row: layoutLessonBlock.style.getPropertyValue("--block-row"),
+          spanColumns: layoutLessonBlock.style.getPropertyValue("--block-span-columns"),
+          spanRows: layoutLessonBlock.style.getPropertyValue("--block-span-rows")
         },
         contentExamples: {
           trusted: {
@@ -841,6 +1021,9 @@ async function measureManual(width, height, dpr = 1) {
     awaitPromise: true,
     returnByValue: true
   });
+  if (result.exceptionDetails) {
+    throw new Error(result.exceptionDetails.exception?.description || result.exceptionDetails.text);
+  }
   return result.result.value;
 }
 
@@ -1089,29 +1272,26 @@ async function exerciseManualKeyboardReorder() {
         await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
       }
       const board = document.querySelector("#manual-board");
-      const sandbox = document.querySelector("#manual-layout-sandbox");
-      const block = board.querySelector('[data-block-object="manual-layout-wide"]');
+      const block = board.querySelector('[data-block-object="manual-drag-result"]');
       const handle = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
+      const beforeColumn = getComputedStyle(block).getPropertyValue("--block-column").trim();
       const beforeRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
       const reorderDetails = [];
-      sandbox.addEventListener("blocks:reorder", function (event) { reorderDetails.push(event.detail); });
+      board.addEventListener("blocks:reorder", function (event) { reorderDetails.push(event.detail); });
       handle.focus();
       const focusAcquired = document.activeElement === handle;
-      handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }));
+      handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true, cancelable: true }));
       await new Promise(function (resolveFrame) {
         requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
       });
       const focusAfterFirstMove = document.activeElement === handle;
+      const afterFirstColumn = getComputedStyle(block).getPropertyValue("--block-column").trim();
       const afterFirstRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
-      document.activeElement.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true, cancelable: true }));
-      await new Promise(function (resolveFrame) {
-        requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
-      });
       return {
+        beforeColumn,
         beforeRow,
+        afterFirstColumn,
         afterFirstRow,
-        afterSecondRow: getComputedStyle(block).getPropertyValue("--block-row").trim(),
-        status: block.querySelector(".manual-drag-status output").textContent,
         focusAcquired,
         focusAfterFirstMove,
         events: reorderDetails.map(function (detail) {
@@ -1536,16 +1716,48 @@ try {
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const desktopManual = await measureManual(1280, 900, 2);
-  if (desktopManual.blockCount === 38) {
+  if (desktopManual.blockCount === 57) {
     assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
     assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
     assert.ok(desktopManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op desktop");
     assert.deepEqual(desktopManual.outsideBoard, [], "manual plaatst inhoud buiten zijn board");
     assert.deepEqual(desktopManual.clippedContent, [], "manual knipt inhoud af");
     assert.deepEqual(desktopManual.textOverlaps, [], "manual laat tekst overlappen");
-    assert.equal(desktopManual.pageSurfaceCount, 2, "les 04 moet één afzonderlijk sandbox-veld naast het manual-veld hebben");
-    assert.equal(desktopManual.nestedSurfaces, 1, "manual moet exact één genest oefenveld bevatten");
+    assert.equal(desktopManual.pageSurfaceCount, 1, "manual moet één echt library-veld gebruiken");
+    assert.equal(desktopManual.nestedSurfaces, 0, "manual mag geen geneste mini-app bevatten");
     assert.equal(desktopManual.draggable, "true", "manual moet de echte library-interactie behouden");
+    assert.equal(desktopManual.eli10.contentPadding, "0px", "ELI10 gebruikt nog library-binnenruimte rond de animatie");
+    assert.equal(desktopManual.eli10.visualPadding, "0px", "ELI10 voegt zelf nog binnenruimte rond de animatie toe");
+    assert.ok(Math.abs(desktopManual.eli10.visual.width - desktopManual.eli10.visual.hostWidth) <= 1, "ELI10 vult de beschikbare breedte niet");
+    assert.ok(Math.abs(desktopManual.eli10.visual.height - desktopManual.eli10.visual.hostHeight) <= 1, "ELI10 vult de beschikbare hoogte niet");
+    assert.ok(desktopManual.eli10.visual.hostWidth <= desktopManual.eli10.contentWidth + 1, "ELI10-host groeit buiten het inhoudsvlak");
+    assert.ok(desktopManual.eli10.visual.hostHeight <= desktopManual.eli10.contentHeight + 1, "ELI10-host groeit verticaal buiten het inhoudsvlak");
+    assert.deepEqual(desktopManual.startPair.a, { column: "1", row: "4", spanColumns: "6", spanRows: "1" }, "de CDN-stap gebruikt niet de volledige breedte boven setup");
+    assert.deepEqual(desktopManual.startPair.cdn, {
+      bodyWhiteSpace: "nowrap",
+      bodyFits: true,
+      urls: [
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.css",
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.mjs"
+      ]
+    }, "de CDN-uitleg staat niet op één regel met beide echte release-URL's");
+    assert.deepEqual(desktopManual.startPair.steps, [
+      { id: "manual-start-div", title: "div", column: "1", row: "5", spanColumns: "2", spanRows: "1" },
+      { id: "manual-start-blocks", title: "blocks", column: "1", row: "6", spanColumns: "2", spanRows: "1" },
+      { id: "manual-start-grid", title: "grid", column: "1", row: "7", spanColumns: "2", spanRows: "1" },
+      { id: "manual-layout", title: "block size and position", column: "1", row: "8", spanColumns: "2", spanRows: "1" }
+    ], "manual setup volgt niet de vier ELI10-stappen");
+    assert.deepEqual(desktopManual.startPair.b, { column: "3", row: "5", spanColumns: "4", spanRows: "4" }, "setup code staat niet naast de vier visuele stappen");
+    assert.equal(desktopManual.columnGap, 6, "manual erft niet de standaardafstand van 6px uit de library");
+    assert.equal(desktopManual.startPair.horizontalGap, desktopManual.columnGap, "setupstappen en setupcode gebruiken niet de standaard library-tussenruimte");
+    assert.equal(desktopManual.startPair.verticalGapAfterEli10, desktopManual.rowHeight + 2 * desktopManual.rowGap, "manual 01 laat niet exact één rasterrij open na ELI10");
+    assert.deepEqual(desktopManual.menuLessonPair, {
+      explanation: { column: "1", row: "19", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "19", spanColumns: "4", spanRows: "2" }
+    }, "manual 03 is niet opgesplitst in uitleg 2×2 en code 4×2");
+    assert.deepEqual(desktopManual.layoutLesson, {
+      column: "1", row: "8", spanColumns: "2", spanRows: "1"
+    }, "size and position staat niet als één rij hoge subles onder setup");
     assert.ok(desktopManual.codeBlockWidths.every((item) => Math.abs(item.width - desktopManual.boardWidth) <= 2), "manual-code moet de volledige rustige leesbreedte gebruiken");
     assert.equal(desktopManual.resetLabel, "reset manual", "manual mist zijn herstelactie");
     assert.equal(desktopManual.reader.tag, "ARTICLE", "de doorlopende leesroute moet een article zijn");
@@ -1556,13 +1768,46 @@ try {
     assert.ok(desktopManual.protectedBlocks.every(function (block) {
       return block.actions === 0 && block.tabIndex === -1 && block.role === null && block.ariaLabel === null;
     }), `uitleg- of codeblokken zijn nog sluitbaar of versleepbaar: ${JSON.stringify(desktopManual.protectedBlocks)}`);
-    assert.deepEqual(desktopManual.sandbox, {
-      columns: 3,
-      objects: [
-        { id: "manual-layout-wide", row: "1", title: "04.1 / drag here" },
-        { id: "manual-layout-small", row: "1", title: "04.2 / flow" }
-      ]
-    }, "les 04 is geen zelfstandig oefenveld meer");
+    assert.deepEqual(desktopManual.dragLessonPair, {
+      explanation: { column: "1", row: "26", spanColumns: "2", spanRows: "1" },
+      code: { column: "3", row: "26", spanColumns: "4", spanRows: "1" }
+    }, "manual 04 is niet als afzonderlijke dragging-les opgebouwd");
+    assert.deepEqual(desktopManual.dragResult, {
+      column: "5",
+      row: "28",
+      spanColumns: "1",
+      spanRows: "1",
+      title: "block",
+      statement: null
+    }, "manual 04 start niet compact en duidelijk in de verkeerde kolom");
+    assert.deepEqual(desktopManual.dragPattern, [
+      { id: "manual-drag-fixed-1", column: "1", row: "27", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-fixed-2", column: "2", row: "27", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-fixed-3", column: "3", row: "27", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-result", column: "5", row: "28", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-fixed-4", column: "4", row: "27", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-fixed-5", column: "6", row: "27", spanColumns: "1", spanRows: "1" }
+    ], "manual 04 tekent niet de bedoelde 111101 / 000010-puzzel");
+    assert.deepEqual(desktopManual.compactLessonPair, {
+      explanation: { column: "1", row: "30", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "30", spanColumns: "4", spanRows: "2" }
+    }, "manual 05 is niet opgesplitst in uitleg 2×2 en code 4×2");
+    assert.deepEqual(desktopManual.appearanceLessonPair, {
+      explanation: { column: "1", row: "33", spanColumns: "2", spanRows: "1" },
+      code: { column: "3", row: "33", spanColumns: "4", spanRows: "1" }
+    }, "manual 06 is niet compact opgesplitst in uitleg 2×1 en code 4×1");
+    assert.deepEqual(desktopManual.colorsLessonPair, {
+      explanation: { column: "1", row: "37", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "37", spanColumns: "4", spanRows: "2" }
+    }, "manual 07 is niet opgesplitst in uitleg 2×2 en code 4×2");
+    assert.deepEqual(desktopManual.randomLessonPair, {
+      explanation: { column: "1", row: "42", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "42", spanColumns: "4", spanRows: "2" }
+    }, "manual 08 is niet opgesplitst in uitleg 2×2 en code 4×2");
+    assert.deepEqual(desktopManual.combinedLessonPair, {
+      explanation: { column: "1", row: "45", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "45", spanColumns: "4", spanRows: "2" }
+    }, "manual color + inverse is niet opgesplitst in uitleg 2×2 en code 4×2");
     assert.ok(desktopManual.randomExamples.every(function (example) {
       return example.label.trim() !== "" && example.statement === "your content";
     }), "de kansvoorbeelden missen hun zichtbare labels");
@@ -1573,35 +1818,29 @@ try {
       afterIndex: "02"
     }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
     assert.deepEqual(await exerciseManualKeyboardReorder(), {
-      beforeRow: "1",
-      afterFirstRow: "2",
-      afterSecondRow: "3",
-      status: "column 1 · row 3",
+      beforeColumn: "5",
+      beforeRow: "28",
+      afterFirstColumn: "5",
+      afterFirstRow: "27",
       focusAcquired: true,
       focusAfterFirstMove: true,
       events: [
-        { id: "manual-layout-wide", input: "keyboard", direction: "down" },
-        { id: "manual-layout-wide", input: "keyboard", direction: "down" }
+        { id: "manual-drag-result", input: "keyboard", direction: "up" }
       ]
-    }, "de lineaire manual moet zijn geïsoleerde oefenblock toetsbaar verplaatsen");
+    }, "het eenvoudige dragging-voorbeeld moet werkelijk verplaatsbaar zijn");
     assert.deepEqual(await exerciseManualMenuLesson(), {
       minimized: { state: "true", hidden: "true" },
       restored: "false",
       closeRemoved: true,
-      remainingBlocks: 37
+      remainingBlocks: 56
     }, "interactieve menuvoorbeelden moeten bedienbaar blijven naast de beschermde uitleg");
-    assert.deepEqual(await exerciseManualReset(), {
-      movedRow: "2",
-      closed: true,
-      restored: true,
-      resetRow: "1"
-    }, "reset manual moet gesloten demo's en verplaatste sandboxblokken herstellen");
+    await navigateTo(`${pageUrl}docs/`);
     const mobileManual = await measureManual(390, 844, 1);
     assert.equal(mobileManual.columnCount, 1, "manual moet op mobiel één rustige leeskolom behouden");
     assert.ok(mobileManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op mobiel");
     assert.deepEqual(mobileManual.outsideBoard, [], "manual plaatst blocks buiten het mobiele board");
-    assert.equal(mobileManual.pageSurfaceCount, 2, "het afzonderlijke oefenveld moet ook op mobiel blijven bestaan");
-    assert.equal(mobileManual.sandbox.columns, 3, "het oefenveld moet zijn eigen drie oefenkolommen behouden");
+    assert.equal(mobileManual.pageSurfaceCount, 1, "manual moet ook op mobiel één library-veld gebruiken");
+    assert.equal(mobileManual.nestedSurfaces, 0, "manual mag ook op mobiel geen geneste mini-app bevatten");
     await protocol.send("Emulation.setDeviceMetricsOverride", {
       width: 1280,
       height: 900,
@@ -1636,7 +1875,7 @@ try {
     ["01 / start the system", "#start"],
     ["02 / content can be anything", "#content"],
     ["03 / menu actions", "#menu"],
-    ["04 / layout and movement", "#layout"],
+    ["04 / dragging", "#dragging"],
     ["05 / compact after changes", "#compact"],
     ["06 / choose an appearance", "#appearance"],
     ["07 / set a color", "#colors"],
@@ -1648,7 +1887,7 @@ try {
   assert.equal(desktopManual.reader.tag, "ARTICLE", "doorlopende lestekst staat niet in het primaire article");
   assert.deepEqual(desktopManual.reader.headings, [
     "00 / ELI10", "01 / start the system", "02 / content can be anything", "03 / menu actions",
-    "04 / layout and movement", "05 / compact after changes", "06 / choose an appearance",
+    "04 / dragging", "05 / compact after changes", "06 / choose an appearance",
     "07 / set a color", "08 / set the chance", "09 / run an example"
   ], "reader mode krijgt geen nette h2-hiërarchie per les");
   assert.ok(desktopManual.reader.subheadings.length >= 16, "sublessen missen h3-koppen in de leesversie");
@@ -1773,14 +2012,12 @@ try {
     assert.equal(manual.eli10.title, "00 / ELI10", `manual begint niet met ELI10 op ${width}px`);
     assert.equal(manual.mastheadTitle, "Container. Blocks. Block.", `manual mist zijn nieuwe hoofdtitel op ${width}px`);
     assert.equal(manual.eli10.visual.role, "img", `ELI10 publiceert zijn canvas niet als toegankelijke visual op ${width}px`);
-    assert.match(manual.eli10.visual.label, /container div[\s\S]*blocks system[\s\S]*block inside/i, `ELI10 beschrijft container, systeem en block niet in zijn visual op ${width}px`);
+    assert.match(manual.eli10.visual.label, /container div[\s\S]*blocks system[\s\S]*grid[\s\S]*block inside/i, `ELI10 beschrijft container, systeem, grid en block niet in zijn visual op ${width}px`);
     assert.ok(manual.eli10.visual.width > 0 && manual.eli10.visual.height > 0, `ELI10 rendert geen zichtbaar schema op ${width}px`);
-    assert.ok(Math.abs(manual.eli10.visual.width / manual.eli10.visual.height - 3.6) <= 0.05, `ELI10 bewaart zijn leesbare brede schemaformaat niet op ${width}px`);
-    assert.ok(manual.eli10.visual.width <= manual.eli10.visual.hostWidth + 1, `ELI10 loopt buiten zijn host op ${width}px`);
-    assert.ok(manual.eli10.visual.height <= manual.eli10.visual.hostHeight + 1, `ELI10 loopt verticaal buiten zijn host op ${width}px`);
+    assert.ok(Math.abs(manual.eli10.visual.width - manual.eli10.visual.hostWidth) <= 1, `ELI10 vult zijn hostbreedte niet op ${width}px`);
+    assert.ok(Math.abs(manual.eli10.visual.height - manual.eli10.visual.hostHeight) <= 1, `ELI10 vult zijn hosthoogte niet op ${width}px`);
     assert.ok(manual.finishBlockTop > manual.startBlockBottom, `manual 02 staat niet onder 01 op ${width}px @${dpr}x`);
     assert.ok(manual.contentOptions.every(function (option) { return option.blockTop > manual.finishBlockBottom; }), `manual 02 staat niet boven alle drie contentvoorbeelden op ${width}px @${dpr}x`);
-    assert.deepEqual(manual.contentOverview.examples, ["text", "image", "SVG", "canvas", "form", "audio", "video", "custom UI"], `manual maakt de brede contentrange niet concreet op ${width}px`);
     assert.match(manual.contentOverview.intro, /anything the browser can render/i, `manual legt de gemeenschappelijke contentregel niet uit op ${width}px`);
     assert.equal(manual.dragLesson.title, "drag here", `de oefenheader benoemt het sleepgebied niet op ${width}px`);
     assert.equal(manual.dragLesson.guideLine, "dashed", `de oefenheader mist zijn gestippelde draglijn op ${width}px`);
@@ -1797,8 +2034,8 @@ try {
       const firstContentTop = Math.min(...manual.contentOptions.map(function (option) { return option.blockTop; }));
       assert.ok(Math.abs(manual.finishBlockTop - manual.startBlockBottom - openRowInterval) <= 0.5, `manual laat boven 02 niet exact één open rasterrij op ${width}px @${dpr}x`);
       assert.ok(Math.abs(firstContentTop - manual.finishBlockBottom - manual.rowGap) <= 0.5, `de drie voorbeelden sluiten niet direct onder 02 aan op ${width}px @${dpr}x`);
-      assert.ok(manual.contentPairs.every(function (pair) { return Math.abs(pair.codeTop - pair.resultTop) <= 0.5; }), `elk contentcodeblok staat niet naast zijn resultaat op ${width}px`);
-      assert.ok(manual.contentPairs.every(function (pair) { return Math.abs(pair.codeWidth - pair.resultWidth) <= 0.5; }), `elk contentcodeblok en resultaat krijgen geen gelijke breedte op ${width}px`);
+      assert.ok(manual.contentPairs.every(function (pair) { return Math.abs(pair.introTop - pair.codeTop) <= 0.5 && Math.abs(pair.codeTop - pair.resultTop) <= 0.5; }), `uitleg, code en resultaat delen niet dezelfde rij op ${width}px`);
+      assert.ok(manual.contentPairs.every(function (pair) { return pair.introColumn === "1" && pair.introSpan === "1" && pair.codeColumn === "2" && pair.codeSpan === "2" && pair.resultColumn === "4" && pair.resultSpan === "3"; }), `uitleg, code en resultaat gebruiken niet 1×2 + 2×2 + 3×2 op ${width}px`);
       const expectedEli10Width = manual.trackWidth * 3 + manual.columnGap * 2;
       assert.ok(Math.abs(manual.eli10.blockWidth - expectedEli10Width) <= 2, `de ELI10-visual gebruikt niet exact de linker drie kolommen op ${width}px`);
       assert.ok(manual.chapterGaps.every(function (item) { return item.marginTop === 0; }), `manual gebruikt nog marge binnen een desktop-gridcel op ${width}px: ${JSON.stringify(manual.chapterGaps)}`);

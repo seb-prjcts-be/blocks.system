@@ -1,6 +1,6 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.44";
-import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.1";
+import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.79";
+import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.5";
 
 const board = document.querySelector("#manual-board");
 const reader = document.querySelector("#manual-reader");
@@ -16,24 +16,27 @@ const blocks = createBlocksSystem({
 });
 
 const manualIds = [
-  "manual-eli10", "manual-start", "manual-finish",
-  "manual-content-html-code", "manual-content-html",
-  "manual-content-object-code", "manual-content-object",
-  "manual-content-factory-code", "manual-content-factory",
-  "manual-menu", "manual-menu-both", "manual-menu-minimize",
-  "manual-menu-close", "manual-menu-none", "manual-menu-title",
-  "manual-layout", "manual-layout-wide", "manual-layout-small",
-  "manual-compact", "manual-appearance", "manual-appearance-regular",
-  "manual-appearance-inverse", "manual-colors", "manual-color-cyan",
-  "manual-color-magenta", "manual-color-yellow", "manual-random",
+  "manual-eli10", "manual-start-a", "manual-start-div", "manual-start-blocks", "manual-start-grid", "manual-start-b", "manual-finish",
+  "manual-content-html-intro", "manual-content-html-code", "manual-content-html",
+  "manual-content-object-intro", "manual-content-object-code", "manual-content-object",
+  "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory",
+  "manual-menu", "manual-menu-code", "manual-menu-both", "manual-menu-minimize",
+  "manual-menu-close", "manual-menu-none",
+  "manual-layout",
+  "manual-drag", "manual-drag-code",
+  "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5",
+  "manual-drag-result",
+  "manual-compact", "manual-compact-code", "manual-appearance", "manual-appearance-code", "manual-appearance-regular",
+  "manual-appearance-inverse", "manual-colors", "manual-colors-code", "manual-color-cyan",
+  "manual-color-magenta", "manual-color-yellow", "manual-random", "manual-random-code",
   "manual-random-color-0", "manual-random-color-50", "manual-random-color-100",
   "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100",
-  "manual-random-combined", "manual-random-mix-1", "manual-random-mix-2",
+  "manual-random-combined", "manual-random-combined-code", "manual-random-mix-1", "manual-random-mix-2",
   "manual-random-mix-3", "manual-random-mix-4", "manual-next"
 ];
 const content = await loadDocsContent("manual", manualIds);
 blocks.attach(board);
-blocks.setGrid(6, 58);
+blocks.setGrid(6, 50);
 quantizeSurface(board);
 
 function text(name, value, className = "") {
@@ -43,22 +46,11 @@ function text(name, value, className = "") {
   return element;
 }
 
-function contract(entry) {
-  if (!entry.contract) return null;
-  const line = text("p", "", "manual-contract");
-  const link = text("a", "exact contract →");
-  link.href = entry.contract;
-  line.append(link);
-  return line;
-}
-
 function codeCard(entry) {
   const root = document.createElement("div");
   root.className = "manual-lesson manual-lesson-code";
   const explanation = document.createElement("div");
   if (entry.intro) explanation.append(text("p", entry.intro, "manual-explanation"));
-  const link = contract(entry);
-  if (link) explanation.append(link);
   const pre = document.createElement("pre");
   pre.className = "manual-code";
   pre.append(text("code", Array.isArray(entry.code) ? entry.code.join("\n") : entry.code));
@@ -66,16 +58,40 @@ function codeCard(entry) {
   return root;
 }
 
-function overview(entry) {
+function setupStep(entry) {
   const root = document.createElement("div");
-  root.className = "manual-content-overview";
-  root.append(text("p", entry.intro, "manual-content-overview-copy"));
-  const list = document.createElement("ul");
-  list.className = "manual-content-spectrum";
-  for (const item of entry.examples) list.append(text("li", item));
-  root.append(list);
-  const link = contract(entry);
-  if (link) root.append(link);
+  root.className = "manual-explanation-card";
+  root.append(text("p", entry.body));
+  if (entry.code) {
+    const pre = document.createElement("pre");
+    pre.className = "manual-cdn-code";
+    pre.append(text("code", entry.code.join("\n")));
+    root.append(pre);
+  }
+  return root;
+}
+
+function introCard(entry) {
+  const root = document.createElement("div");
+  root.className = "manual-explanation-card";
+  root.append(text("p", entry.intro));
+  return root;
+}
+
+function codeOnlyCard(entry) {
+  const root = document.createElement("div");
+  root.className = "manual-code-card";
+  const pre = document.createElement("pre");
+  pre.className = "manual-code";
+  pre.append(text("code", Array.isArray(entry.code) ? entry.code.join("\n") : entry.code));
+  root.append(pre);
+  return root;
+}
+
+function overviewText(entry) {
+  const root = document.createElement("article");
+  root.className = "manual-content-statement";
+  root.append(text("strong", entry.statement));
   return root;
 }
 
@@ -94,21 +110,6 @@ function specimen({ eyebrow, statement, body, code }) {
   return root;
 }
 
-function dragSpecimen(entry) {
-  const root = specimen(entry);
-  root.classList.add("manual-drag-lesson");
-  const status = text("p", "", "manual-drag-status");
-  const output = document.createElement("output");
-  output.setAttribute("aria-live", "polite");
-  status.append(text("span", entry.statusLabel), output);
-  root.append(status);
-  return root;
-}
-
-function updateDrag(block, position) {
-  block.querySelector(".manual-drag-status output").textContent = "column " + position.column + " · row " + position.row;
-}
-
 function eli10(entry) {
   const root = document.createElement("article");
   root.className = "manual-eli10";
@@ -116,12 +117,10 @@ function eli10(entry) {
   host.id = "eli10-schema";
   host.className = "eli10-schema";
   root.append(host);
-  const link = contract(entry);
-  if (link) root.append(link);
   return root;
 }
 
-function trustedHtml({ eyebrow, statement, footer }) {
+function htmlResult({ eyebrow, statement, footer }) {
   const root = document.createElement("article");
   root.className = "manual-content-demo manual-content-html-demo";
   root.append(text("small", eyebrow), text("strong", statement), text("span", footer));
@@ -180,8 +179,6 @@ function next(entry) {
     links.append(link);
   }
   root.append(links);
-  const exact = contract(entry);
-  if (exact) root.append(exact);
   return root;
 }
 
@@ -192,17 +189,6 @@ function chance(entry) {
     text("small", entry.title.replace(/^\d+(?:\.\d+)?\s*\/\s*/, "")),
     text("strong", entry.statement)
   );
-  return root;
-}
-
-function layoutSandbox() {
-  const root = document.createElement("div");
-  root.className = "manual-layout-sandbox-result";
-  const host = document.createElement("div");
-  host.id = "manual-layout-sandbox";
-  host.className = "manual-layout-sandbox";
-  host.setAttribute("aria-label", "lesson 04 drag sandbox");
-  root.append(host);
   return root;
 }
 
@@ -241,7 +227,7 @@ function add({ id, title, blockContent, span, place, variant = "regular", menu, 
 }
 
 function appendReaderEntry(root, entry, headingName) {
-  root.append(text(headingName, entry.title));
+  if (entry.title) root.append(text(headingName, entry.title));
   if (entry.intro) root.append(text("p", entry.intro));
   if (entry.statement) root.append(text("p", entry.statement));
   if (entry.body) root.append(text("p", entry.body));
@@ -262,21 +248,19 @@ function appendReaderEntry(root, entry, headingName) {
     }
     root.append(list);
   }
-  const exact = contract(entry);
-  if (exact) root.append(exact);
 }
 
 function createReaderArticle() {
   const lessons = [
     ["manual-eli10", []],
-    ["manual-start", []],
-    ["manual-finish", ["manual-content-html-code", "manual-content-html", "manual-content-object-code", "manual-content-object", "manual-content-factory-code", "manual-content-factory"]],
-    ["manual-menu", ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none", "manual-menu-title"]],
-    ["manual-layout", ["manual-layout-wide", "manual-layout-small"]],
-    ["manual-compact", []],
-    ["manual-appearance", ["manual-appearance-regular", "manual-appearance-inverse"]],
-    ["manual-colors", ["manual-color-cyan", "manual-color-magenta", "manual-color-yellow"]],
-    ["manual-random", ["manual-random-color-0", "manual-random-color-50", "manual-random-color-100", "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100", "manual-random-combined"]],
+    ["manual-start-a", ["manual-start-div", "manual-start-blocks", "manual-start-grid", "manual-start-b", "manual-layout"]],
+    ["manual-finish", ["manual-content-html-intro", "manual-content-html-code", "manual-content-html", "manual-content-object-intro", "manual-content-object-code", "manual-content-object", "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory"]],
+    ["manual-menu", ["manual-menu-code", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"]],
+    ["manual-drag", ["manual-drag-code", "manual-drag-result"]],
+    ["manual-compact", ["manual-compact-code"]],
+    ["manual-appearance", ["manual-appearance-code", "manual-appearance-regular", "manual-appearance-inverse"]],
+    ["manual-colors", ["manual-colors-code", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow"]],
+    ["manual-random", ["manual-random-code", "manual-random-color-0", "manual-random-color-50", "manual-random-color-100", "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100", "manual-random-combined", "manual-random-combined-code"]],
     ["manual-next", []]
   ];
   const fragment = document.createDocumentFragment();
@@ -302,98 +286,87 @@ const eli10Block = add({
   protectedBlock: true,
   classes: ["manual-half", "manual-eli10-block"]
 });
+eli10Block.element.style.setProperty("--blocks-content-padding", "0px");
 mountEli10Schema(eli10Block.element.querySelector("#eli10-schema"));
 
+for (const id of ["manual-start-a", "manual-start-div", "manual-start-blocks", "manual-start-grid"]) {
+  add({
+    id,
+    title: content[id].title,
+    blockContent: setupStep(content[id]),
+    span: content[id].layout.span,
+    place: content[id].layout.place,
+    anchor: id === "manual-start-a" ? "start" : "",
+    protectedBlock: true,
+    classes: id === "manual-start-a" ? ["manual-chapter-start", "manual-cdn-step"] : []
+  });
+}
 add({
-  id: "manual-start",
-  title: content["manual-start"].title,
-  blockContent: codeCard(content["manual-start"]),
-  span: [6, 3],
-  place: [1, 4],
-  anchor: "start",
-  protectedBlock: true,
-  classes: ["manual-code-block", "manual-chapter-start"]
+  id: "manual-start-b",
+  title: content["manual-start-b"].title,
+  blockContent: codeOnlyCard(content["manual-start-b"]),
+  span: content["manual-start-b"].layout.span,
+  place: content["manual-start-b"].layout.place,
+  protectedBlock: true
 });
 add({
   id: "manual-finish",
   title: content["manual-finish"].title,
-  blockContent: overview(content["manual-finish"]),
-  span: [6, 2],
-  place: [1, 8],
+  blockContent: overviewText(content["manual-finish"]),
+  span: content["manual-finish"].layout.span,
+  place: content["manual-finish"].layout.place,
   anchor: "content",
   protectedBlock: true,
-  classes: ["manual-full", "manual-content-overview-block", "manual-chapter-start"]
+  classes: ["manual-chapter-start"]
 });
-
-for (const [name, row] of [["html", 10], ["object", 12], ["factory", 14]]) {
+for (const name of ["html", "object", "factory"]) {
+  const introId = "manual-content-" + name + "-intro";
   const codeId = "manual-content-" + name + "-code";
   const resultId = "manual-content-" + name;
-  const result = name === "html" ? trustedHtml(content[resultId]) : name === "object" ? imageObject(content[resultId]) : factory(content[resultId]);
-  add({ id: codeId, title: content[codeId].title, blockContent: codeCard(content[codeId]), span: [3, 2], place: [1, row], protectedBlock: true, classes: ["manual-half", "manual-content-code-block"] });
-  add({ id: resultId, title: content[resultId].title, blockContent: result, span: [3, 2], place: [4, row], classes: ["manual-half", "manual-content-result-block"] });
+  const result = name === "html" ? htmlResult(content[resultId]) : name === "object" ? imageObject(content[resultId]) : factory(content[resultId]);
+  add({ id: introId, title: content[introId].title, blockContent: introCard(content[introId]), span: content[introId].layout.span, place: content[introId].layout.place, protectedBlock: true });
+  add({ id: codeId, title: content[codeId].title, blockContent: codeOnlyCard(content[codeId]), span: content[codeId].layout.span, place: content[codeId].layout.place, protectedBlock: true, classes: ["manual-content-code-block"] });
+  add({ id: resultId, title: content[resultId].title, blockContent: result, span: content[resultId].layout.span, place: content[resultId].layout.place, classes: ["manual-content-result-block"] });
 }
 
-add({ id: "manual-menu", title: content["manual-menu"].title, blockContent: codeCard(content["manual-menu"]), span: [6, 3], place: [1, 17], anchor: "menu", protectedBlock: true, classes: ["manual-code-block", "manual-chapter-start"] });
+add({ id: "manual-menu", title: content["manual-menu"].title, blockContent: introCard(content["manual-menu"]), span: content["manual-menu"].layout.span, place: content["manual-menu"].layout.place, anchor: "menu", protectedBlock: true, classes: ["manual-chapter-start"] });
+add({ id: "manual-menu-code", title: content["manual-menu-code"].title, blockContent: codeOnlyCard(content["manual-menu-code"]), span: content["manual-menu-code"].layout.span, place: content["manual-menu-code"].layout.place, protectedBlock: true });
 for (const [id, column, row, menu] of [
-  ["manual-menu-both", 1, 20, { minimize: true, close: true }],
-  ["manual-menu-minimize", 4, 20, { minimize: true, close: false }],
-  ["manual-menu-close", 1, 22, { minimize: false, close: true }],
-  ["manual-menu-none", 4, 22, { minimize: false, close: false }]
+  ["manual-menu-both", 1, 21, { minimize: true, close: true }],
+  ["manual-menu-minimize", 4, 21, { minimize: true, close: false }],
+  ["manual-menu-close", 1, 23, { minimize: false, close: true }],
+  ["manual-menu-none", 4, 23, { minimize: false, close: false }]
 ]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, row], menu, classes: ["manual-half"] });
-add({ id: "manual-menu-title", title: content["manual-menu-title"].title, blockContent: specimen(content["manual-menu-title"]), span: [6, 2], place: [1, 24], classes: ["manual-full"] });
+add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: introCard(content["manual-layout"]), span: content["manual-layout"].layout.span, place: content["manual-layout"].layout.place, protectedBlock: true });
+add({ id: "manual-drag", title: content["manual-drag"].title, blockContent: introCard(content["manual-drag"]), span: content["manual-drag"].layout.span, place: content["manual-drag"].layout.place, anchor: "dragging", protectedBlock: true, classes: ["manual-chapter-start"] });
+add({ id: "manual-drag-code", title: content["manual-drag-code"].title, blockContent: codeOnlyCard(content["manual-drag-code"]), span: content["manual-drag-code"].layout.span, place: content["manual-drag-code"].layout.place, protectedBlock: true });
+for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5"]) {
+  const fixed = add({ id, title: content[id].title, blockContent: "", span: content[id].layout.span, place: content[id].layout.place, menu: { minimize: false, close: false } });
+  lockLessonBlock(fixed);
+}
+add({ id: "manual-drag-result", title: content["manual-drag-result"].title, blockContent: specimen(content["manual-drag-result"]), span: content["manual-drag-result"].layout.span, place: content["manual-drag-result"].layout.place });
 
-add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: codeCard(content["manual-layout"]), span: [6, 3], place: [1, 27], anchor: "layout", protectedBlock: true, classes: ["manual-code-block", "manual-chapter-start"] });
-const sandboxShell = add({
-  id: "manual-layout-practice",
-  title: content["manual-layout"].title,
-  blockContent: layoutSandbox(),
-  span: [6, 2],
-  place: [1, 30],
-  protectedBlock: true,
-  classes: ["manual-full", "manual-layout-result-block"]
-});
-const sandboxHost = sandboxShell.element.querySelector("#manual-layout-sandbox");
-const sandboxBlocks = createBlocksSystem({
-  variant: "regular",
-  snap: true,
-  labels: { move: "move" },
-  blockDefaults: { menu: { minimize: true, close: true } }
-});
-sandboxBlocks.attach(sandboxHost).setGrid(3, 4);
-quantizeSurface(sandboxHost, { maxWidth: 620 });
-const dragBlock = sandboxBlocks.add(dragSpecimen(content["manual-layout-wide"]), {
-  id: "manual-layout-wide",
-  title: content["manual-layout-wide"].title
-});
-dragBlock.span(2, 2).place(1, 1);
-updateDrag(dragBlock.element, { column: 1, row: 1 });
-const flowBlock = sandboxBlocks.add(specimen(content["manual-layout-small"]), {
-  id: "manual-layout-small",
-  title: content["manual-layout-small"].title
-});
-flowBlock.span(1, 2).place(3, 1);
-sandboxHost.addEventListener("blocks:reorder", (event) => {
-  if (event.detail.id === "manual-layout-wide" && event.detail.to) updateDrag(dragBlock.element, event.detail.to);
-});
-
-for (const [id, row, anchor] of [
-  ["manual-compact", 33, "compact"],
-  ["manual-appearance", 37, "appearance"],
-  ["manual-colors", 43, "colors"],
-  ["manual-random", 49, "chance"]
-]) add({ id, title: content[id].title, blockContent: codeCard(content[id]), span: [6, 3], place: [1, row], anchor, protectedBlock: true, classes: ["manual-code-block", "manual-chapter-start"] });
+for (const [id, codeId, anchor] of [
+  ["manual-compact", "manual-compact-code", "compact"],
+  ["manual-appearance", "manual-appearance-code", "appearance"],
+  ["manual-colors", "manual-colors-code", "colors"],
+  ["manual-random", "manual-random-code", "chance"]
+]) {
+  add({ id, title: content[id].title, blockContent: introCard(content[id]), span: content[id].layout.span, place: content[id].layout.place, anchor, protectedBlock: true, classes: ["manual-chapter-start"] });
+  add({ id: codeId, title: content[codeId].title, blockContent: codeOnlyCard(content[codeId]), span: content[codeId].layout.span, place: content[codeId].layout.place, protectedBlock: true });
+}
 
 for (const [id, column, variant] of [
   ["manual-appearance-regular", 1, "regular"],
   ["manual-appearance-inverse", 4, "inverse"]
-]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, 40], variant, classes: ["manual-half"] });
+]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, 34], variant, classes: ["manual-half"] });
 
 for (const [id, column, color] of [
   ["manual-color-cyan", 1, "cyan"],
   ["manual-color-magenta", 3, "magenta"],
   ["manual-color-yellow", 5, "yellow"]
 ]) {
-  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 2], place: [column, 46], classes: ["manual-third"] });
+  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 2], place: [column, 39], classes: ["manual-third"] });
   block.color = color;
 }
 
@@ -406,7 +379,7 @@ for (const [id, column, variation] of [
   ["manual-random-color-100", 3, 1]
 ]) {
   blocks.colorVariation = variation;
-  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 52], classes: ["manual-sixth"] });
+  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 44], classes: ["manual-sixth"] });
 }
 blocks.colorVariation = 0;
 for (const [id, column, variation] of [
@@ -415,15 +388,16 @@ for (const [id, column, variation] of [
   ["manual-random-inverse-100", 6, 1]
 ]) {
   blocks.inversionVariation = variation;
-  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 52], classes: ["manual-sixth"] });
+  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 44], classes: ["manual-sixth"] });
 }
-add({ id: "manual-random-combined", title: content["manual-random-combined"].title, blockContent: codeCard(content["manual-random-combined"]), span: [6, 2], place: [1, 53], protectedBlock: true, classes: ["manual-code-block"] });
+add({ id: "manual-random-combined", title: content["manual-random-combined"].title, blockContent: introCard(content["manual-random-combined"]), span: content["manual-random-combined"].layout.span, place: content["manual-random-combined"].layout.place, protectedBlock: true });
+add({ id: "manual-random-combined-code", title: content["manual-random-combined-code"].title, blockContent: codeOnlyCard(content["manual-random-combined-code"]), span: content["manual-random-combined-code"].layout.span, place: content["manual-random-combined-code"].layout.place, protectedBlock: true });
 blocks.colorVariation = 0.5;
 blocks.inversionVariation = 0.5;
 for (const [index, column] of [1, 2, 3, 4].entries()) {
   const id = "manual-random-mix-" + (index + 1);
-  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 55], classes: ["manual-sixth"] });
+  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 47], classes: ["manual-sixth"] });
 }
-add({ id: "manual-next", title: content["manual-next"].title, blockContent: next(content["manual-next"]), span: [6, 2], place: [1, 57], anchor: "next", protectedBlock: true, classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
+add({ id: "manual-next", title: content["manual-next"].title, blockContent: next(content["manual-next"]), span: [6, 2], place: [1, 49], anchor: "next", protectedBlock: true, classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
 
 board.dataset.manualReady = "true";
