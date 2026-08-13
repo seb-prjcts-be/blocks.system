@@ -33,7 +33,7 @@ const manualIds = [
 ];
 const content = await loadDocsContent("manual", manualIds);
 blocks.attach(board);
-blocks.setGrid(6, 28);
+blocks.setGrid(6, 58);
 quantizeSurface(board);
 
 function text(name, value, className = "") {
@@ -292,9 +292,6 @@ function createReaderArticle() {
 createReaderArticle();
 resetButton.addEventListener("click", () => window.location.reload());
 
-blocks.setGrid(6, 24);
-quantizeSurface(board);
-
 const eli10Block = add({
   id: "manual-eli10",
   title: content["manual-eli10"].title,
@@ -311,177 +308,56 @@ add({
   id: "manual-start",
   title: content["manual-start"].title,
   blockContent: codeCard(content["manual-start"]),
-  span: [3, 2],
-  place: [4, 1],
+  span: [6, 3],
+  place: [1, 4],
   anchor: "start",
   protectedBlock: true,
-  classes: ["manual-half", "manual-chapter-start"]
+  classes: ["manual-code-block", "manual-chapter-start"]
 });
-
 add({
   id: "manual-finish",
   title: content["manual-finish"].title,
   blockContent: overview(content["manual-finish"]),
-  span: [6, 1],
-  place: [1, 3],
+  span: [6, 2],
+  place: [1, 8],
   anchor: "content",
   protectedBlock: true,
   classes: ["manual-full", "manual-content-overview-block", "manual-chapter-start"]
 });
 
-// Live HTML Render block (created first so the live editor can update it)
-const htmlResultBlock = add({
-  id: "manual-content-html",
-  title: content["manual-content-html"].title,
-  blockContent: trustedHtml(content["manual-content-html"]),
-  span: [3, 2],
-  place: [4, 4],
-  classes: ["manual-half", "manual-content-result-block"]
-});
-
-function liveHtmlEditorSpecimen(entry, renderTargetBlock) {
-  const root = document.createElement("div");
-  root.className = "manual-live-editor-wrap";
-  const hint = text("small", "💡 Type real-time HTML below to update the block on the right:");
-  const textarea = document.createElement("textarea");
-  textarea.className = "manual-live-editor";
-  textarea.spellcheck = false;
-  textarea.value = "<strong>Movement visible.</strong>\n<p>Type custom HTML to live render!</p>";
-  
-  root.append(hint, textarea);
-  
-  function update() {
-    if (renderTargetBlock && renderTargetBlock.content) {
-      renderTargetBlock.content.innerHTML = textarea.value;
-    }
-  }
-  textarea.addEventListener("input", update);
-  setTimeout(update, 50);
-  return root;
-}
-
-add({
-  id: "manual-content-html-code",
-  title: content["manual-content-html-code"].title,
-  blockContent: liveHtmlEditorSpecimen(content["manual-content-html-code"], htmlResultBlock),
-  span: [3, 2],
-  place: [1, 4],
-  protectedBlock: true,
-  classes: ["manual-half", "manual-content-code-block"]
-});
-
-for (const [name, row, spanRows] of [["object", 6, 2], ["factory", 8, 1]]) {
+for (const [name, row] of [["html", 10], ["object", 12], ["factory", 14]]) {
   const codeId = "manual-content-" + name + "-code";
   const resultId = "manual-content-" + name;
-  const result = name === "object" ? imageObject(content[resultId]) : factory(content[resultId]);
-  add({ id: codeId, title: content[codeId].title, blockContent: codeCard(content[codeId]), span: [3, spanRows], place: [1, row], protectedBlock: true, classes: ["manual-half", "manual-content-code-block"] });
-  add({ id: resultId, title: content[resultId].title, blockContent: result, span: [3, spanRows], place: [4, row], classes: ["manual-half", "manual-content-result-block"] });
+  const result = name === "html" ? trustedHtml(content[resultId]) : name === "object" ? imageObject(content[resultId]) : factory(content[resultId]);
+  add({ id: codeId, title: content[codeId].title, blockContent: codeCard(content[codeId]), span: [3, 2], place: [1, row], protectedBlock: true, classes: ["manual-half", "manual-content-code-block"] });
+  add({ id: resultId, title: content[resultId].title, blockContent: result, span: [3, 2], place: [4, row], classes: ["manual-half", "manual-content-result-block"] });
 }
 
-// Live Menu Target Block
-const menuTargetBlock = add({
-  id: "manual-menu-both",
-  title: content["manual-menu-both"].title,
-  blockContent: specimen(content["manual-menu-both"]),
-  span: [3, 2],
-  place: [4, 10],
-  menu: { minimize: true, close: true, copy: true },
-  classes: ["manual-half"]
-});
-
-function liveMenuController(targetBlock) {
-  const root = document.createElement("div");
-  root.className = "manual-menu-controller-wrap";
-  
-  const hint = text("small", "⚙️ Control block header options live:");
-  
-  const titleGroup = document.createElement("label");
-  titleGroup.className = "manual-ctrl-row";
-  titleGroup.append(text("span", "Title: "));
-  const titleInput = document.createElement("input");
-  titleInput.type = "text";
-  titleInput.value = "Live Controlled Block";
-  titleInput.className = "manual-ctrl-input";
-  titleGroup.append(titleInput);
-
-  const optsGroup = document.createElement("div");
-  optsGroup.className = "manual-ctrl-checkboxes";
-  
-  const minCb = document.createElement("input");
-  minCb.type = "checkbox";
-  minCb.checked = true;
-  const minLabel = document.createElement("label");
-  minLabel.append(minCb, " minimize");
-
-  const closeCb = document.createElement("input");
-  closeCb.type = "checkbox";
-  closeCb.checked = true;
-  const closeLabel = document.createElement("label");
-  closeLabel.append(closeCb, " close");
-
-  const copyCb = document.createElement("input");
-  copyCb.type = "checkbox";
-  copyCb.checked = true;
-  const copyLabel = document.createElement("label");
-  copyLabel.append(copyCb, " copy button");
-
-  optsGroup.append(minLabel, closeLabel, copyLabel);
-
-  function apply() {
-    if (targetBlock) {
-      targetBlock.menu(titleInput.value, {
-        minimize: minCb.checked,
-        close: closeCb.checked,
-        copy: copyCb.checked
-      });
-    }
-  }
-
-  titleInput.addEventListener("input", apply);
-  minCb.addEventListener("change", apply);
-  closeCb.addEventListener("change", apply);
-  copyCb.addEventListener("change", apply);
-
-  root.append(hint, titleGroup, optsGroup);
-  setTimeout(apply, 50);
-  return root;
-}
-
-add({
-  id: "manual-menu",
-  title: content["manual-menu"].title,
-  blockContent: liveMenuController(menuTargetBlock),
-  span: [3, 2],
-  place: [1, 10],
-  anchor: "menu",
-  protectedBlock: true,
-  classes: ["manual-half", "manual-chapter-start"]
-});
-
+add({ id: "manual-menu", title: content["manual-menu"].title, blockContent: codeCard(content["manual-menu"]), span: [6, 3], place: [1, 17], anchor: "menu", protectedBlock: true, classes: ["manual-code-block", "manual-chapter-start"] });
 for (const [id, column, row, menu] of [
-  ["manual-menu-minimize", 1, 12, { minimize: true, close: false, copy: true }],
-  ["manual-menu-close", 4, 12, { minimize: false, close: true }],
-  ["manual-menu-none", 1, 13, { minimize: false, close: false }]
-]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 1], place: [column, row], menu, classes: ["manual-half"] });
+  ["manual-menu-both", 1, 20, { minimize: true, close: true }],
+  ["manual-menu-minimize", 4, 20, { minimize: true, close: false }],
+  ["manual-menu-close", 1, 22, { minimize: false, close: true }],
+  ["manual-menu-none", 4, 22, { minimize: false, close: false }]
+]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, row], menu, classes: ["manual-half"] });
+add({ id: "manual-menu-title", title: content["manual-menu-title"].title, blockContent: specimen(content["manual-menu-title"]), span: [6, 2], place: [1, 24], classes: ["manual-full"] });
 
-add({ id: "manual-menu-title", title: content["manual-menu-title"].title, blockContent: specimen(content["manual-menu-title"]), span: [6, 1], place: [1, 14], classes: ["manual-full"] });
-
-add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: codeCard(content["manual-layout"]), span: [2, 2], place: [1, 15], anchor: "layout", protectedBlock: true, classes: ["manual-third", "manual-chapter-start"] });
+add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: codeCard(content["manual-layout"]), span: [6, 3], place: [1, 27], anchor: "layout", protectedBlock: true, classes: ["manual-code-block", "manual-chapter-start"] });
 const sandboxShell = add({
   id: "manual-layout-practice",
   title: content["manual-layout"].title,
   blockContent: layoutSandbox(),
-  span: [4, 2],
-  place: [3, 15],
+  span: [6, 2],
+  place: [1, 30],
   protectedBlock: true,
-  classes: ["manual-two-thirds", "manual-layout-result-block"]
+  classes: ["manual-full", "manual-layout-result-block"]
 });
 const sandboxHost = sandboxShell.element.querySelector("#manual-layout-sandbox");
 const sandboxBlocks = createBlocksSystem({
   variant: "regular",
   snap: true,
   labels: { move: "move" },
-  blockDefaults: { menu: { minimize: true, close: true, copy: true } }
+  blockDefaults: { menu: { minimize: true, close: true } }
 });
 sandboxBlocks.attach(sandboxHost).setGrid(3, 4);
 quantizeSurface(sandboxHost, { maxWidth: 620 });
@@ -500,179 +376,54 @@ sandboxHost.addEventListener("blocks:reorder", (event) => {
   if (event.detail.id === "manual-layout-wide" && event.detail.to) updateDrag(dragBlock.element, event.detail.to);
 });
 
-add({ id: "manual-compact", title: content["manual-compact"].title, blockContent: codeCard(content["manual-compact"]), span: [3, 2], place: [1, 17], anchor: "compact", protectedBlock: true, classes: ["manual-half", "manual-chapter-start"] });
+for (const [id, row, anchor] of [
+  ["manual-compact", 33, "compact"],
+  ["manual-appearance", 37, "appearance"],
+  ["manual-colors", 43, "colors"],
+  ["manual-random", 49, "chance"]
+]) add({ id, title: content[id].title, blockContent: codeCard(content[id]), span: [6, 3], place: [1, row], anchor, protectedBlock: true, classes: ["manual-code-block", "manual-chapter-start"] });
 
-function compactDemoSpecimen() {
-  const root = document.createElement("div");
-  root.className = "manual-lesson manual-result manual-compact-demo-wrap";
-  const btn = text("button", "Remove Block 1 & Compact", "manual-compact-trigger-btn");
-  btn.type = "button";
-  const host = document.createElement("div");
-  host.className = "manual-compact-demo-host";
-  host.style.cssText = "display:grid;grid-template-columns:1fr;gap:6px;padding:6px;";
-  const b1 = document.createElement("div");
-  b1.className = "blocks-system-object";
-  b1.innerHTML = `<header class="blocks-system-menu"><span class="blocks-system-title">Block 1</span><span class="blocks-system-actions"><button type="button" class="blocks-system-close">×</button></span></header><div class="blocks-system-content"><p>Block 1 (Click button to remove)</p></div>`;
-  const b2 = document.createElement("div");
-  b2.className = "blocks-system-object";
-  b2.innerHTML = `<header class="blocks-system-menu"><span class="blocks-system-title">Block 2</span></header><div class="blocks-system-content"><p>Block 2 (Compacts Upward)</p></div>`;
-  host.append(b1, b2);
-  root.append(btn, host);
-  btn.addEventListener("click", () => {
-    b1.remove();
-  });
-  return root;
-}
-add({ id: "manual-compact-demo", title: "compact demo", blockContent: compactDemoSpecimen(), span: [3, 2], place: [4, 17], classes: ["manual-half"] });
-
-add({ id: "manual-appearance", title: content["manual-appearance"].title, blockContent: codeCard(content["manual-appearance"]), span: [6, 1], place: [1, 19], anchor: "appearance", protectedBlock: true, classes: ["manual-code-block", "manual-chapter-start"] });
 for (const [id, column, variant] of [
   ["manual-appearance-regular", 1, "regular"],
   ["manual-appearance-inverse", 4, "inverse"]
-]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 1], place: [column, 20], variant, classes: ["manual-half"] });
+]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, 40], variant, classes: ["manual-half"] });
 
-add({ id: "manual-colors", title: content["manual-colors"].title, blockContent: codeCard(content["manual-colors"]), span: [6, 1], place: [1, 21], anchor: "colors", protectedBlock: true, classes: ["manual-code-block", "manual-chapter-start"] });
 for (const [id, column, color] of [
   ["manual-color-cyan", 1, "cyan"],
   ["manual-color-magenta", 3, "magenta"],
   ["manual-color-yellow", 5, "yellow"]
 ]) {
-  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 1], place: [column, 22], classes: ["manual-third"] });
+  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 2], place: [column, 46], classes: ["manual-third"] });
   block.color = color;
 }
 
-// Les 08: Live Interactive Randomness Playground
-function randomPlaygroundControls() {
-  const root = document.createElement("div");
-  root.className = "manual-random-playground-controls";
-  const introP = text("p", content["manual-random"].intro || "", "manual-explanation");
-  
-  const colorGroup = document.createElement("label");
-  colorGroup.className = "manual-random-slider-group";
-  colorGroup.append(text("span", "colorVariation: "));
-  const colorValSpan = text("span", "0.50", "manual-slider-val");
-  const colorSlider = document.createElement("input");
-  colorSlider.type = "range";
-  colorSlider.min = "0";
-  colorSlider.max = "1";
-  colorSlider.step = "0.05";
-  colorSlider.value = "0.5";
-  colorGroup.append(colorSlider, colorValSpan);
-
-  const invGroup = document.createElement("label");
-  invGroup.className = "manual-random-slider-group";
-  invGroup.append(text("span", "inversionVariation: "));
-  const invValSpan = text("span", "0.50", "manual-slider-val");
-  const invSlider = document.createElement("input");
-  invSlider.type = "range";
-  invSlider.min = "0";
-  invSlider.max = "1";
-  invSlider.step = "0.05";
-  invSlider.value = "0.5";
-  invGroup.append(invSlider, invValSpan);
-
-  const readoutPre = document.createElement("pre");
-  readoutPre.className = "manual-code";
-  const readoutCode = text("code", `blocks.colorVariation = 0.50;\nblocks.inversionVariation = 0.50;`);
-  readoutPre.append(readoutCode);
-
-  root.append(introP, colorGroup, invGroup, readoutPre);
-  root._colorSlider = colorSlider;
-  root._invSlider = invSlider;
-  root._colorValSpan = colorValSpan;
-  root._invValSpan = invValSpan;
-  root._readoutCode = readoutCode;
-  return root;
+blocks.variant = "random";
+blocks.colorArray = ["cyan", "magenta", "yellow"];
+blocks.inversionVariation = 0;
+for (const [id, column, variation] of [
+  ["manual-random-color-0", 1, 0],
+  ["manual-random-color-50", 2, 0.5],
+  ["manual-random-color-100", 3, 1]
+]) {
+  blocks.colorVariation = variation;
+  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 52], classes: ["manual-sixth"] });
 }
-
-function randomPlaygroundSandbox(controls) {
-  const root = document.createElement("div");
-  root.className = "manual-random-sandbox-wrap";
-  const rerollBtn = text("button", "🎲 Re-roll Randomness", "manual-reroll-btn");
-  rerollBtn.type = "button";
-  const host = document.createElement("div");
-  host.className = "manual-random-sandbox-host";
-  host.style.cssText = "display:grid;grid-template-columns:repeat(3, 1fr);gap:6px;padding:6px;";
-  root.append(rerollBtn, host);
-
-  const colors = ["cyan", "magenta", "yellow"];
-  const items = [
-    { id: "manual-random-color-0", title: content["manual-random-color-0"].title },
-    { id: "manual-random-color-50", title: content["manual-random-color-50"].title },
-    { id: "manual-random-color-100", title: content["manual-random-color-100"].title },
-    { id: "manual-random-inverse-0", title: content["manual-random-inverse-0"].title },
-    { id: "manual-random-inverse-50", title: content["manual-random-inverse-50"].title },
-    { id: "manual-random-inverse-100", title: content["manual-random-inverse-100"].title }
-  ];
-
-  function reroll() {
-    const cVar = parseFloat(controls._colorSlider.value);
-    const iVar = parseFloat(controls._invSlider.value);
-    controls._colorValSpan.textContent = cVar.toFixed(2);
-    controls._invValSpan.textContent = iVar.toFixed(2);
-    controls._readoutCode.textContent = `blocks.colorVariation = ${cVar.toFixed(2)};\nblocks.inversionVariation = ${iVar.toFixed(2)};`;
-    
-    host.replaceChildren();
-    for (const item of items) {
-      const el = document.createElement("div");
-      el.className = "blocks-system-object";
-      const isColor = Math.random() < cVar;
-      if (isColor) {
-        const chosenColor = colors[Math.floor(Math.random() * colors.length)];
-        el.setAttribute("data-block-variant", "color");
-        el.setAttribute("data-block-color", chosenColor);
-        el.style.setProperty("--block-array-color", `var(--docs-${chosenColor}, ${chosenColor})`);
-      } else {
-        const isInverse = Math.random() < iVar;
-        el.setAttribute("data-block-variant", isInverse ? "inverse" : "regular");
-      }
-      el.append(chance(content[item.id] || { title: item.title, statement: "random" }));
-      host.append(el);
-    }
-  }
-
-  controls._colorSlider.addEventListener("input", reroll);
-  controls._invSlider.addEventListener("input", reroll);
-  rerollBtn.addEventListener("click", reroll);
-  setTimeout(reroll, 10);
-
-  return root;
+blocks.colorVariation = 0;
+for (const [id, column, variation] of [
+  ["manual-random-inverse-0", 4, 0],
+  ["manual-random-inverse-50", 5, 0.5],
+  ["manual-random-inverse-100", 6, 1]
+]) {
+  blocks.inversionVariation = variation;
+  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 52], classes: ["manual-sixth"] });
 }
-
-const controlsNode = randomPlaygroundControls();
-add({ id: "manual-random", title: content["manual-random"].title, blockContent: controlsNode, span: [2, 3], place: [1, 23], anchor: "chance", protectedBlock: true, classes: ["manual-third", "manual-chapter-start"] });
-
-const sandboxNode = randomPlaygroundSandbox(controlsNode);
-add({ id: "manual-random-sandbox", title: "randomness playground", blockContent: sandboxNode, span: [4, 3], place: [3, 23], protectedBlock: true, classes: ["manual-two-thirds"] });
-
-// Dummy hidden references to remaining content keys to ensure complete parity
-for (const id of ["manual-random-color-0", "manual-random-color-50", "manual-random-color-100", "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100", "manual-random-combined", "manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3", "manual-random-mix-4"]) {
-  if (content[id]) chance(content[id]);
+add({ id: "manual-random-combined", title: content["manual-random-combined"].title, blockContent: codeCard(content["manual-random-combined"]), span: [6, 2], place: [1, 53], protectedBlock: true, classes: ["manual-code-block"] });
+blocks.colorVariation = 0.5;
+blocks.inversionVariation = 0.5;
+for (const [index, column] of [1, 2, 3, 4].entries()) {
+  const id = "manual-random-mix-" + (index + 1);
+  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 55], classes: ["manual-sixth"] });
 }
-
-function liveEventStreamSpecimen() {
-  const root = document.createElement("div");
-  root.className = "manual-event-stream-wrap";
-  const logPre = document.createElement("pre");
-  logPre.className = "manual-code manual-event-log";
-  const logCode = text("code", "[system] Listening for live system events...\n");
-  logPre.append(logCode);
-  root.append(logPre);
-
-  function log(msg) {
-    const time = new Date().toLocaleTimeString();
-    logCode.textContent += `[${time}] ${msg}\n`;
-    logPre.scrollTop = logPre.scrollHeight;
-  }
-
-  board.addEventListener("blocks:change", (e) => log(`blocks:change → block ${e.detail?.id || 'grid'}`));
-  board.addEventListener("blocks:reorder", (e) => log(`blocks:reorder → block ${e.detail?.id} to col ${e.detail?.to?.column}, row ${e.detail?.to?.row}`));
-  board.addEventListener("blocks:minimized", (e) => log(`blocks:minimized → block ${e.detail?.id} minimized=${e.detail?.minimized}`));
-  board.addEventListener("blocks:copied", (e) => log(`blocks:copied → copied block ${e.detail?.id} (${e.detail?.format})`));
-
-  return root;
-}
-
-add({ id: "manual-next", title: content["manual-next"].title + " + Live Event Monitor", blockContent: liveEventStreamSpecimen(), span: [6, 2], place: [1, 26], anchor: "next", protectedBlock: true, classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
+add({ id: "manual-next", title: content["manual-next"].title, blockContent: next(content["manual-next"]), span: [6, 2], place: [1, 57], anchor: "next", protectedBlock: true, classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
 
 board.dataset.manualReady = "true";

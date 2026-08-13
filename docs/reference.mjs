@@ -80,20 +80,4 @@ for (const definition of REFERENCE_SECTIONS) {
   block.element.classList.add("reference-anchor", "reference-full");
 }
 
-const searchInput = document.querySelector("#reference-search");
-if (searchInput) {
-  searchInput.addEventListener("input", (event) => {
-    const query = String(event.target.value || "").trim().toLowerCase();
-    const blocksList = board.querySelectorAll(":scope > .blocks-system-object");
-    for (const blockEl of blocksList) {
-      if (!query) {
-        blockEl.style.display = "";
-        continue;
-      }
-      const textContent = blockEl.textContent.toLowerCase();
-      blockEl.style.display = textContent.includes(query) ? "" : "none";
-    }
-  });
-}
-
 board.dataset.referenceReady = "true";

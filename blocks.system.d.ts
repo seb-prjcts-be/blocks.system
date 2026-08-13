@@ -64,12 +64,6 @@ export interface AddBlockOptions {
 export interface BlockMenuOptions {
   close?: boolean;
   minimize?: boolean;
-  copy?: boolean | BlockCopyOptions;
-}
-
-export interface BlockCopyOptions {
-  format?: "markup" | "definition" | "code" | "url";
-  url?: string | URL;
 }
 
 export interface BlockDefaults {
@@ -89,8 +83,6 @@ export interface BlockController {
   flow(): BlockController;
   /** Serialize this live block into a registerable definition for the built-in "html" adapter. */
   describe(options?: BlockDescribeOptions): BlockDefinition;
-  /** Copy this block's markup, definition, code or URL to the clipboard. */
-  copy(options?: BlockCopyOptions): Promise<string>;
   remove(): true;
 }
 
@@ -161,21 +153,10 @@ export interface BlocksSystem {
   listAdapters(): string[];
   list(filters?: { query?: string; adapter?: string; medium?: string; category?: string }): Readonly<BlockDefinition>[];
   get(id: string): Readonly<BlockDefinition> | null;
-  /** Attach the system to a host element or CSS selector. */
   attach(target: string | Element): BlocksSystem;
-  /** Detach the system from its current surface and unbind all surface event listeners. */
-  detach(): BlocksSystem;
-  /** Remove all active blocks from DOM/layout and detach from the surface. */
-  destroy(): BlocksSystem;
-  /** Subscribe to system events ("change" | "reorder" or custom events) on the attached surface. */
-  on(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): BlocksSystem;
-  /** Unsubscribe from system events on the attached surface. */
-  off(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): BlocksSystem;
   setGrid(columns: number, rows: number): BlocksSystem;
   compact(): BlocksSystem;
   add(content: BlockContent, options?: AddBlockOptions): BlockController;
-  remove(id: string): true;
-  copy(id: string, options?: BlockCopyOptions): Promise<string>;
   mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
   unmount(target: string | Element): boolean;
   remount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;

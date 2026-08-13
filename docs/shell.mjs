@@ -90,57 +90,6 @@ function initNavigation() {
   for (const node of document.querySelectorAll("[data-docs-source-prefix]")) {
     node.textContent = `${node.textContent.trim()} · ${sourceLabel}`;
   }
-
-  initCodeCopyButtons();
-  initSyntaxHighlighting();
-}
-
-export function initCodeCopyButtons() {
-  const codeBlocks = document.querySelectorAll("pre");
-  for (const pre of codeBlocks) {
-    if (pre.querySelector(".code-copy-btn") || !pre.querySelector("code")) continue;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "code-copy-btn";
-    button.setAttribute("aria-label", "Copy code");
-    button.textContent = "copy";
-    button.addEventListener("click", async () => {
-      const code = pre.querySelector("code")?.textContent || "";
-      try {
-        await navigator.clipboard.writeText(code);
-        button.textContent = "copied!";
-        setTimeout(() => { button.textContent = "copy"; }, 2000);
-      } catch {
-        button.textContent = "copied!";
-        setTimeout(() => { button.textContent = "copy"; }, 2000);
-      }
-    });
-    pre.appendChild(button);
-  }
-}
-
-function escapeHtml(text) {
-  return String(text)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
-}
-
-export function initSyntaxHighlighting() {
-  const codeElements = document.querySelectorAll("pre code");
-  for (const codeEl of codeElements) {
-    if (codeEl.dataset.highlighted) continue;
-    codeEl.dataset.highlighted = "true";
-    const rawText = codeEl.textContent;
-    if (!rawText || rawText.length > 5000) continue;
-    const escaped = escapeHtml(rawText);
-    const tokenized = escaped
-      .replace(/(\/\/[^\n]*)/g, '<span class="tok-cm">$1</span>')
-      .replace(/(&quot;.*?&quot;|'.*?'|`.*?`)/g, '<span class="tok-str">$1</span>')
-      .replace(/\b(import|export|const|let|var|function|return|await|async|from|if|else|true|false|null|undefined)\b/g, '<span class="tok-kw">$1</span>')
-      .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
-    codeEl.innerHTML = tokenized;
-  }
 }
 
 export function quantizeSurface(surface, { maxWidth = 1440 } = {}) {

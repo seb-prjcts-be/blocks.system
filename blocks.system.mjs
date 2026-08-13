@@ -10,29 +10,20 @@ const EMPTY_COLOR_ARRAY = Object.freeze([]);
 const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
+const DEFAULT_MENU_OPTIONS = Object.freeze({ close: false, minimize: true });
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
         move: "move with the arrow keys",
         restore: "restore",
         minimize: "minimize",
-        close: "close",
-        copy: "copy",
-        copied: "copied!"
+        close: "close"
     }),
     nl: Object.freeze({
         move: "verplaatsen met de pijltjestoetsen",
         restore: "herstellen",
         minimize: "minimaliseren",
-        close: "sluiten",
-        copy: "kopiëren",
-        copied: "gekopieerd!"
+        close: "sluiten"
     })
-});
-
-const DEFAULT_MENU_OPTIONS = Object.freeze({
-    close: false,
-    minimize: true,
-    copy: false
 });
 
 function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.blockDefaults.menu") {
@@ -41,12 +32,11 @@ function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.b
     const fallback = inherited || DEFAULT_MENU_OPTIONS;
     if (value === true) return fallback;
     if (!value || typeof value !== "object") {
-        throw new TypeError(`${path} verwacht true, false of een object met close, minimize en copy.`);
+        throw new TypeError(`${path} verwacht true, false of een object met close en minimize.`);
     }
     return Object.freeze({
         close: value.close === undefined ? fallback.close : Boolean(value.close),
-        minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize),
-        copy: value.copy === undefined ? fallback.copy : (typeof value.copy === "object" ? value.copy : Boolean(value.copy))
+        minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize)
     });
 }
 
@@ -1030,81 +1020,22 @@ export function createBlocksSystem(options = {}) {
 
     const drag = createDragController();
 
-    const listenerRegistry = new Set();
-
-    function normalizeEventType(type) {
-        const raw = String(type || "").trim();
-        if (raw === "change" || raw === "reorder") return `blocks:${raw}`;
-        return raw;
-    }
-
-    function on(type, listener, options) {
-        const eventName = normalizeEventType(type);
-        if (!eventName || (typeof listener !== "function" && (!listener || typeof listener.handleEvent !== "function"))) {
-            throw new TypeError("on() verwacht een niet-lege event-naam en een listener-functie.");
-        }
-        const record = { type: eventName, listener, options };
-        listenerRegistry.add(record);
-        if (surface) surface.addEventListener(eventName, listener, options);
-        return api;
-    }
-
-    function off(type, listener, options) {
-        const eventName = normalizeEventType(type);
-        for (const record of Array.from(listenerRegistry)) {
-            if (record.type === eventName && record.listener === listener) {
-                listenerRegistry.delete(record);
-                if (surface) surface.removeEventListener(record.type, record.listener, record.options);
-            }
-        }
-        return api;
-    }
-
-    function detach() {
-        if (!surface) return api;
-        drag.stop();
-        drag.unbind(surface);
-        for (const record of listenerRegistry) {
-            surface.removeEventListener(record.type, record.listener, record.options);
-        }
-        surface.classList.remove("blocks-system-surface");
-        surface.removeAttribute("data-blocks-system");
-        surface.removeAttribute("data-snap");
-        surface.removeAttribute("data-draggable");
-        surface.style.removeProperty("--blocks-columns");
-        surface.style.removeProperty("--blocks-rows");
-        surface.style.removeProperty("--blocks-font-family");
-        surface = null;
-        return api;
-    }
-
-    function destroy() {
-        const activeBlocks = Array.from(objects.values());
-        for (const block of activeBlocks) {
-            try {
-                block.remove();
-            } catch {
-                // negeer al verwijderde blokken
-            }
-        }
-        detach();
-        return api;
-    }
-
     function attach(target) {
         const nextSurface = resolveHost(target);
         if (surface && surface !== nextSurface && objects.size > 0) {
             throw new Error("Verwijder de bestaande blokken voordat blocks.system aan een ander veld wordt gekoppeld.");
         }
         if (surface && surface !== nextSurface) {
-            detach();
+            drag.stop();
+            drag.unbind(surface);
+            surface.classList.remove("blocks-system-surface");
+            surface.removeAttribute("data-blocks-system");
+            surface.removeAttribute("data-snap");
+            surface.removeAttribute("data-draggable");
+            surface.style.removeProperty("--blocks-columns");
+            surface.style.removeProperty("--blocks-rows");
         }
-        if (surface !== nextSurface) {
-            drag.bind(nextSurface);
-            for (const record of listenerRegistry) {
-                nextSurface.addEventListener(record.type, record.listener, record.options);
-            }
-        }
+        if (surface !== nextSurface) drag.bind(nextSurface);
         surface = nextSurface;
         applySurfaceState();
         return api;
@@ -1316,30 +1247,9 @@ export function createBlocksSystem(options = {}) {
         surface.appendChild(shell);
 
         let menuNode = null;
-function copyTextToClipboard(text) {
-    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        return navigator.clipboard.writeText(text).catch(() => copyTextFallback(text));
-    }
-    copyTextFallback(text);
-    return Promise.resolve();
-}
-
-function copyTextFallback(text) {
-    if (typeof document === "undefined" || !document.body) return;
-    const textarea = document.createElement("textarea");
-    textarea.value = text;
-    textarea.style.position = "fixed";
-    textarea.style.opacity = "0";
-    document.body.appendChild(textarea);
-    textarea.select();
-    try { document.execCommand("copy"); } catch {}
-    textarea.remove();
-}
-
         let titleNode = null;
         let actionsNode = null;
         let minimizeNode = null;
-        let copyNode = null;
         let closeNode = null;
         let colorValue = "";
         let spanColumns = 1;
@@ -1379,11 +1289,9 @@ function copyTextFallback(text) {
             spanRows = layout.rows;
             placeColumn = layout.column;
             placeRow = layout.row;
-            const effectiveColumns = minimizedValue ? 1 : spanColumns;
-            const effectiveRows = minimizedValue ? 1 : spanRows;
-            objectLayouts.set(id, { columns: effectiveColumns, rows: effectiveRows, column: placeColumn, row: placeRow });
-            shell.style.setProperty("--block-span-columns", String(effectiveColumns));
-            shell.style.setProperty("--block-span-rows", String(effectiveRows));
+            objectLayouts.set(id, { ...layout });
+            shell.style.setProperty("--block-span-columns", String(spanColumns));
+            shell.style.setProperty("--block-span-rows", String(spanRows));
             if (placeColumn === null || placeRow === null) {
                 shell.style.removeProperty("--block-column");
                 shell.style.removeProperty("--block-row");
@@ -1444,31 +1352,11 @@ function copyTextFallback(text) {
             return definition;
         }
 
-        async function copy(copyOptions = {}) {
-            assertActive();
-            const format = String(copyOptions.format || "markup");
-            let textToCopy = "";
-            if (format === "definition") {
-                textToCopy = JSON.stringify(describe(copyOptions), null, 2);
-            } else if (format === "code") {
-                const def = describe(copyOptions);
-                textToCopy = `blocks.add(${JSON.stringify(def.markup)}, { id: ${JSON.stringify(def.id)} });`;
-            } else if (format === "url") {
-                const def = describe(copyOptions);
-                textToCopy = def.url || (typeof window !== "undefined" ? window.location.href : "");
-            } else {
-                textToCopy = String(contentNode.innerHTML ?? "");
-            }
-            await copyTextToClipboard(textToCopy);
-            return textToCopy;
-        }
-
         function setMinimized(value) {
             assertActive();
             const nextValue = Boolean(value);
             if (minimizedValue === nextValue) return;
             minimizedValue = nextValue;
-            applyLayout({ columns: spanColumns, rows: spanRows, column: placeColumn, row: placeRow });
             syncMinimizedState();
             emitChange({ type: minimizedValue ? "minimize" : "restore", id });
         }
@@ -1541,11 +1429,11 @@ function copyTextFallback(text) {
             return block;
         }
 
-        function menu(name, closeOptions = false) {
+        function menu(name, close = false) {
             assertActive();
-            const menuOptions = closeOptions && typeof closeOptions === "object"
-                ? { close: Boolean(closeOptions.close), minimize: closeOptions.minimize !== false, copy: Boolean(closeOptions.copy) }
-                : { close: Boolean(closeOptions), minimize: true, copy: false };
+            const menuOptions = close && typeof close === "object"
+                ? { close: Boolean(close.close), minimize: close.minimize !== false }
+                : { close: Boolean(close), minimize: true };
             if (!menuNode) {
                 menuNode = document.createElement("header");
                 menuNode.className = "blocks-system-menu";
@@ -1567,24 +1455,6 @@ function copyTextFallback(text) {
             } else if (!menuOptions.minimize && minimizeNode) {
                 minimizeNode.remove();
                 minimizeNode = null;
-            }
-            if (menuOptions.copy && !copyNode) {
-                copyNode = document.createElement("button");
-                copyNode.type = "button";
-                copyNode.className = "blocks-system-copy";
-                copyNode.textContent = labels.copy || "copy";
-                copyNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${labels.copy || "copy"}`);
-                copyNode.addEventListener("click", async () => {
-                    await copy(typeof menuOptions.copy === "object" ? menuOptions.copy : {});
-                    copyNode.textContent = labels.copied || "copied!";
-                    setTimeout(() => {
-                        if (copyNode) copyNode.textContent = labels.copy || "copy";
-                    }, 2000);
-                });
-                actionsNode.appendChild(copyNode);
-            } else if (!menuOptions.copy && copyNode) {
-                copyNode.remove();
-                copyNode = null;
             }
             if (menuOptions.close && !closeNode) {
                 closeNode = document.createElement("button");
@@ -1611,7 +1481,6 @@ function copyTextFallback(text) {
             place,
             flow,
             describe,
-            copy,
             remove
         };
         Object.defineProperty(controller, "color", {
@@ -1664,23 +1533,9 @@ function copyTextFallback(text) {
         list,
         get,
         attach,
-        detach,
-        destroy,
-        on,
-        off,
         setGrid,
         compact,
         add,
-        remove: (id) => {
-            const b = objects.get(String(id));
-            if (!b) throw new Error(`Block niet gevonden: ${id}`);
-            return b.remove();
-        },
-        copy: (id, options) => {
-            const b = objects.get(String(id));
-            if (!b) throw new Error(`Block niet gevonden: ${id}`);
-            return b.copy(options);
-        },
         mount,
         unmount,
         remount,

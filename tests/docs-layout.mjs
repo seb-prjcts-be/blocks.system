@@ -11,7 +11,7 @@ const apiHtml = await read("docs/api.html");
 const css = await read("docs/style.css");
 const content = JSON.parse(await read("docs/content.json"));
 
-assert.match(manual, /blocks\.setGrid\(6, 28\)/, "manual must use the compact 28-row grid field");
+assert.match(manual, /blocks\.setGrid\(6, 58\)/, "manual must use the six-column editorial field, not a lesson matrix");
 assert.equal((manual.match(/createBlocksSystem\(/g) || []).length, 2, "manual must keep its readable field plus one isolated practice field");
 assert.match(manual, /manual-reader[\s\S]*manual-reset[\s\S]*manual-layout-sandbox/, "manual must restore its reading route, reset and isolated practice field");
 assert.match(manual, /function lockLessonBlock[\s\S]*dataset\.manualKind = protectedBlock \? "lesson"/, "manual must protect explanation and code blocks");

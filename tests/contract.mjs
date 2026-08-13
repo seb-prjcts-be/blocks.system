@@ -12,7 +12,7 @@ const source = await readFile(sourcePath, "utf8");
 const minified = await readFile(minPath, "utf8");
 
 assert.doesNotMatch(source, /vanilla\.waves|p5\.waves|VanillaWaves|WavesLoader|P5WindowSketches|\bWEL\b/, "the core must not know a local runtime");
-assert.ok(["attach", "detach", "destroy", "on", "off", "setGrid", "compact", "add", "register", "registerAdapter", "mount", "unmount"]
+assert.ok(["attach", "setGrid", "compact", "add", "register", "registerAdapter", "mount", "unmount"]
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
 assert.equal(singleton.snap, false, "snap must be disabled by default");
 assert.equal(singleton.columns, 1, "grid columns must be readable from the default system");
@@ -29,9 +29,7 @@ assert.deepEqual(singleton.labels, {
   move: "move with the arrow keys",
   restore: "restore",
   minimize: "minimize",
-  close: "close",
-  copy: "copy",
-  copied: "copied!"
+  close: "close"
 }, "the environment-neutral singleton must expose English UI labels");
 
 const minUrl = pathToFileURL(minPath);
@@ -350,34 +348,6 @@ compactSecond.minimized = false;
 compactThird.remove();
 assert.throws(function () { compactThird.remove(); }, /verwijderd/, "removed blocks must not publish duplicate remove events");
 assert.deepEqual(compactChanges.map((change) => change.type), ["minimize", "restore", "remove"], "state changes must publish one stable change event");
-
-const listenerSystem = createBlocksSystem();
-const listenerField = new TestElement();
-let onEventReceived = null;
-const handler = (evt) => { onEventReceived = evt.detail; };
-
-assert.equal(listenerSystem.on("change", handler), listenerSystem, "on() must be chainable");
-listenerSystem.attach(listenerField);
-listenerField.dispatchEvent(new CustomEvent("blocks:change", { detail: { type: "compact", id: null, ids: ["test"] } }));
-assert.deepEqual(onEventReceived, { type: "compact", id: null, ids: ["test"] }, "on() must receive events on the attached field");
-
-assert.equal(listenerSystem.off("change", handler), listenerSystem, "off() must be chainable");
-onEventReceived = null;
-listenerField.dispatchEvent(new CustomEvent("blocks:change", { detail: { type: "compact", id: null, ids: ["test2"] } }));
-assert.equal(onEventReceived, null, "off() must unbind the listener");
-
-assert.equal(listenerSystem.detach(), listenerSystem, "detach() must be chainable");
-assert.equal(listenerSystem.field, null, "detach() must clear the attached field");
-assert.equal(listenerField.attributes.has("data-blocks-system"), false, "detach() must remove system data attributes");
-
-const destroySystem = createBlocksSystem();
-const destroyField = new TestElement();
-destroySystem.attach(destroyField);
-destroySystem.add("test block", { id: "destroy-block" });
-assert.equal(destroyField.children.length, 1, "add() appends a block to field");
-assert.equal(destroySystem.destroy(), destroySystem, "destroy() must be chainable");
-assert.equal(destroySystem.field, null, "destroy() must detach field");
-assert.equal(destroyField.children.length, 0, "destroy() must remove blocks from DOM");
 assert.deepEqual(compactChanges.map((change) => change.id), ["compact-second", "compact-second", "compact-third"], "state change events must identify their block");
 
 assert.deepEqual(createBlocksSystem({ colorArray: [] }).colorArray, [], "an empty user color array must be valid while color variation is disabled");
@@ -540,19 +510,8 @@ assert.equal(object.flow(), object, "flow must remain chainable");
 assert.equal(object.element.style.getPropertyValue("--block-column"), "", "flow must clear the fixed column");
 assert.equal(object.element.style.getPropertyValue("--block-row"), "", "flow must clear the fixed row");
 object.place(2, 2);
-object.menu("span", { minimize: true, close: true, copy: true });
-assert.equal(object.element.children[0].children[1].children.length, 3, "a menu with copy enabled must expose minimize, copy, and close controls");
-assert.equal(typeof object.copy, "function", "block controller must expose copy()");
-assert.equal(typeof local.copy, "function", "blocks system must expose copy(id)");
-const copiedMarkup = await object.copy({ format: "markup" });
-assert.equal(typeof copiedMarkup, "string", "copying markup must return a string");
-const copiedDef = await object.copy({ format: "definition" });
-assert.match(copiedDef, /"id"/, "copying definition must return JSON");
-const copiedCode = await object.copy({ format: "code" });
-assert.match(copiedCode, /blocks\.add\(/, "copying code must return JS instantiation string");
-assert.equal(await local.copy(object.id, { format: "markup" }), copiedMarkup, "local.copy(id) must delegate to the target block");
-object.menu("span", { minimize: true, close: true });
-assert.equal(object.element.children[0].children[1].children.length, 2, "disabling copy must remove the copy button");
+object.menu("span", true);
+assert.equal(object.element.children[0].children[1].children.length, 2, "a menu must expose minimize and optional close controls together");
 assert.equal(object.element.children[0].children[0].tabIndex, 0, "a draggable title handle must be keyboard-focusable");
 assert.equal(object.element.children[0].children[0].getAttribute("role"), "button", "a draggable title handle must expose its interaction role");
 assert.match(object.element.children[0].children[0].getAttribute("aria-label"), /arrow keys/, "a draggable title handle must explain its keyboard control in the configured language");
@@ -570,11 +529,10 @@ assert.equal(object.element.children[0].children[0].tabIndex, 0, "unlocking must
 object.minimized = true;
 assert.equal(object.element.getAttribute("data-block-minimized"), "true", "minimize state must be exposed to CSS");
 assert.equal(object.content.getAttribute("aria-hidden"), "true", "minimized content must leave the accessibility tree");
-assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "1", "minimizing reduces the effective grid footprint to a 1x1 micro-cell");
+assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2", "minimizing must preserve the configured span");
 object.minimized = false;
 assert.equal(object.element.getAttribute("data-block-minimized"), "false", "restoring must expose the normal state");
 assert.equal(object.content.getAttribute("aria-hidden"), "false", "restoring must reveal content accessibly");
-assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2", "restoring must restore the configured span");
 assert.throws(function () { object.span(0, 1); }, /positieve gehele/, "invalid spans must fail early");
 assert.throws(function () { object.span(5, 1); }, /past niet/, "a block cannot span beyond its grid");
 assert.throws(function () { object.place(0, 1); }, /positieve gehele/, "invalid positions must fail early");
