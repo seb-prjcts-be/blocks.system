@@ -121,6 +121,14 @@
 .blocks-system-object[data-block-minimized="true"] {
     align-self: start;
     min-height: 0;
+    border-style: dashed;
+    box-shadow: none;
+    opacity: 0.88;
+}
+
+.blocks-system-object[data-block-minimized="true"]:hover {
+    opacity: 1;
+    border-style: solid;
 }
 
 .blocks-system-object[data-block-minimized="true"] .blocks-system-content {

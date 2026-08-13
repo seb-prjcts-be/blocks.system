@@ -136,7 +136,7 @@ export function initSyntaxHighlighting() {
     const escaped = escapeHtml(rawText);
     const tokenized = escaped
       .replace(/(\/\/[^\n]*)/g, '<span class="tok-cm">$1</span>')
-      .replace(/(&quot;.*?&quot;|'.*?'|`.*?`/g), '<span class="tok-str">$1</span>')
+      .replace(/(&quot;.*?&quot;|'.*?'|`.*?`)/g, '<span class="tok-str">$1</span>')
       .replace(/\b(import|export|const|let|var|function|return|await|async|from|if|else|true|false|null|undefined)\b/g, '<span class="tok-kw">$1</span>')
       .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>');
     codeEl.innerHTML = tokenized;

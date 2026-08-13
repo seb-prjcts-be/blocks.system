@@ -557,10 +557,11 @@ assert.equal(object.element.children[0].children[0].tabIndex, 0, "unlocking must
 object.minimized = true;
 assert.equal(object.element.getAttribute("data-block-minimized"), "true", "minimize state must be exposed to CSS");
 assert.equal(object.content.getAttribute("aria-hidden"), "true", "minimized content must leave the accessibility tree");
-assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2", "minimizing must preserve the configured span");
+assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "1", "minimizing reduces the effective grid footprint to a 1x1 micro-cell");
 object.minimized = false;
 assert.equal(object.element.getAttribute("data-block-minimized"), "false", "restoring must expose the normal state");
 assert.equal(object.content.getAttribute("aria-hidden"), "false", "restoring must reveal content accessibly");
+assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2", "restoring must restore the configured span");
 assert.throws(function () { object.span(0, 1); }, /positieve gehele/, "invalid spans must fail early");
 assert.throws(function () { object.span(5, 1); }, /past niet/, "a block cannot span beyond its grid");
 assert.throws(function () { object.place(0, 1); }, /positieve gehele/, "invalid positions must fail early");

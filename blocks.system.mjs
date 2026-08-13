@@ -1348,9 +1348,11 @@ export function createBlocksSystem(options = {}) {
             spanRows = layout.rows;
             placeColumn = layout.column;
             placeRow = layout.row;
-            objectLayouts.set(id, { ...layout });
-            shell.style.setProperty("--block-span-columns", String(spanColumns));
-            shell.style.setProperty("--block-span-rows", String(spanRows));
+            const effectiveColumns = minimizedValue ? 1 : spanColumns;
+            const effectiveRows = minimizedValue ? 1 : spanRows;
+            objectLayouts.set(id, { columns: effectiveColumns, rows: effectiveRows, column: placeColumn, row: placeRow });
+            shell.style.setProperty("--block-span-columns", String(effectiveColumns));
+            shell.style.setProperty("--block-span-rows", String(effectiveRows));
             if (placeColumn === null || placeRow === null) {
                 shell.style.removeProperty("--block-column");
                 shell.style.removeProperty("--block-row");
@@ -1416,6 +1418,7 @@ export function createBlocksSystem(options = {}) {
             const nextValue = Boolean(value);
             if (minimizedValue === nextValue) return;
             minimizedValue = nextValue;
+            applyLayout({ columns: spanColumns, rows: spanRows, column: placeColumn, row: placeRow });
             syncMinimizedState();
             emitChange({ type: minimizedValue ? "minimize" : "restore", id });
         }
