@@ -1500,3 +1500,66 @@ pre:hover .code-copy-btn,
   border: 1px dashed var(--muted);
   position: relative;
 }
+
+/* Live HTML Editor & Menu Controller */
+.manual-live-editor-wrap,
+.manual-menu-controller-wrap,
+.manual-event-stream-wrap {
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+}
+.manual-live-editor {
+  flex: 1;
+  min-height: 90px;
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--ink);
+  background: var(--docs-paper);
+  color: var(--ink);
+  font: 400 0.85rem/1.4 "Consolas", "Courier New", monospace;
+  resize: none;
+}
+.manual-live-editor:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: -1px;
+}
+.manual-ctrl-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.manual-ctrl-input {
+  flex: 1;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--ink);
+  background: var(--docs-paper);
+  color: var(--ink);
+  font: 400 0.85rem/1.2 "Instrument Sans", sans-serif;
+}
+.manual-ctrl-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.manual-ctrl-checkboxes input[type="checkbox"] {
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+.manual-event-log {
+  flex: 1;
+  max-height: 120px;
+  overflow-y: auto;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  background: #111;
+  color: #00ff66;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--ink);
+}
