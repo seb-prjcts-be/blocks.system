@@ -1926,12 +1926,22 @@ try {
     });
     await navigateTo(pageUrl + "docs/api.html");
     const linearReferenceResult = await protocol.send("Runtime.evaluate", {
-      expression: "(async () => { for (let attempt = 0; attempt < 60 && !document.querySelector('#reference-board')?.dataset.referenceReady; attempt += 1) await new Promise((done) => requestAnimationFrame(done)); const board = document.querySelector('#reference-board'); const blocks = Array.from(board.querySelectorAll(':scope > .blocks-system-object')); const rect = board.getBoundingClientRect(); return { ready: board.dataset.referenceReady, ids: blocks.map((block) => block.dataset.blockObject), columns: getComputedStyle(board).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, outside: blocks.filter((block) => { const box = block.getBoundingClientRect(); return box.left < rect.left - .5 || box.right > rect.right + .5; }).map((block) => block.dataset.blockObject), surfaces: board.querySelectorAll('.blocks-system-surface').length, draggable: board.dataset.draggable, quantized: board.dataset.quantized, tableOverflow: Array.from(board.querySelectorAll('.reference-table-wrap')).map((node) => getComputedStyle(node).overflow), verticallyScrollableTables: Array.from(board.querySelectorAll('.reference-table-wrap')).filter((node) => node.scrollHeight > node.clientHeight + 1).map((node) => node.closest('.blocks-system-object').dataset.blockObject) }; })()",
+      expression: "(async () => { for (let attempt = 0; attempt < 60 && !document.querySelector('#reference-board')?.dataset.referenceReady; attempt += 1) await new Promise((done) => requestAnimationFrame(done)); const board = document.querySelector('#reference-board'); const blocks = Array.from(board.querySelectorAll(':scope > .blocks-system-object')); const rect = board.getBoundingClientRect(); const anchors = ['exports','options','container','system-methods','grid','system-state','blocks','add-options','block-layout','block-methods','content','titlebar-controls','dragging','reorder-event','appearance','colors','chance','block-controller','adapters','adapter-methods','field-dom','css-hooks','errors']; return { ready: board.dataset.referenceReady, ids: blocks.map((block) => block.dataset.blockObject), contractKinds: Array.from(board.querySelectorAll('.reference-table tbody td:first-child'), (cell) => cell.textContent.split(' · ')[0]), missingAnchors: anchors.filter((id) => !document.getElementById(id)), columns: getComputedStyle(board).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, outside: blocks.filter((block) => { const box = block.getBoundingClientRect(); return box.left < rect.left - .5 || box.right > rect.right + .5; }).map((block) => block.dataset.blockObject), surfaces: board.querySelectorAll('.blocks-system-surface').length, draggable: board.dataset.draggable, quantized: board.dataset.quantized, tableOverflow: Array.from(board.querySelectorAll('.reference-table-wrap')).map((node) => getComputedStyle(node).overflow), verticallyScrollableTables: Array.from(board.querySelectorAll('.reference-table-wrap')).filter((node) => node.scrollHeight > node.clientHeight + 1).map((node) => node.closest('.blocks-system-object').dataset.blockObject) }; })()",
       awaitPromise: true,
       returnByValue: true
     });
     const linearReference = linearReferenceResult.result.value;
     assert.equal(linearReference.ready, "true", "reference meldt niet dat haar inhoud klaar is");
+    assert.deepEqual(linearReference.ids, [
+      "reference-system-create", "reference-container", "reference-grid", "reference-block-create",
+      "reference-block-layout", "reference-content", "reference-titlebar", "reference-dragging",
+      "reference-appearance", "reference-color", "reference-chance", "reference-block-controller",
+      "reference-definition-create", "reference-adapter-methods", "reference-field-signals", "reference-system-errors"
+    ], "reference volgt niet dezelfde onderwijsroute als de manual");
+    assert.deepEqual(linearReference.missingAnchors, [], "reference verliest nieuwe of bestaande deep links");
+    for (const kind of ["property", "method", "event", "option"]) {
+      assert.ok(linearReference.contractKinds.includes(kind), `reference maakt ${kind} niet zichtbaar als contractsoort`);
+    }
     assert.equal(linearReference.columns, 6, "reference herstelt de zes-koloms documentgrid niet");
     assert.equal(linearReference.overflow <= 0.5, true, "reference krijgt horizontale overflow");
     assert.deepEqual(linearReference.outside, [], "reference plaatst contracten buiten het board");

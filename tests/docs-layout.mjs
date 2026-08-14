@@ -21,7 +21,7 @@ assert.match(chanceHelper, /padStart\(2, "0"\)/, "chance examples must retain th
 assert.doesNotMatch(chanceHelper, /small/, "chance examples must not restore redundant specimen labels");
 assert.doesNotMatch(manual, /manual-matrix/, "manual must not restore the five-column lesson matrix");
 
-assert.match(reference, /blocks\.setGrid\(6, 53\)/, "reference must use the wide, linear lookup field");
+assert.match(reference, /blocks\.setGrid\(6, 78\)/, "reference must use the wide thematic lookup field");
 assert.doesNotMatch(reference, /reference-matrix|REFERENCE_COLUMNS|setFocusedColumn|reference-axis/, "reference must not compress contracts into a colour matrix");
 assert.match(apiHtml, /class="reference-index"/, "reference must expose a direct linear lookup index");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");
@@ -33,7 +33,15 @@ for (const entry of Object.values(content.reference)) {
   assert.doesNotMatch(entry.title, /^[A-D]\d\s*\//, `reference title must be human-readable: ${entry.title}`);
 }
 
+const referenceOrder = [
+  "reference-system-create", "reference-container", "reference-grid", "reference-block-create",
+  "reference-block-layout", "reference-content", "reference-titlebar", "reference-dragging",
+  "reference-appearance", "reference-color", "reference-chance", "reference-block-controller",
+  "reference-definition-create", "reference-adapter-methods", "reference-field-signals", "reference-system-errors"
+];
+assert.deepEqual(Object.keys(content.reference), referenceOrder, "reference content must follow the same setup-to-block-to-appearance route as the manual");
+
 const count = Object.values(content).slice(1).reduce((total, section) => total + Object.keys(section).length, 0);
-assert.equal(count, 69, "documentation content must contain one adjustable chance lesson with twelve results");
+assert.equal(count, 75, "documentation content must contain the thematic reference and one adjustable chance lesson");
 
 console.log("blocks.system docs layout — linear recovery contract passed");

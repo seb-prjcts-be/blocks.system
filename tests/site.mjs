@@ -376,9 +376,22 @@ for (const anchor of ["eli10", "start", "content", "menu", "dragging", "appearan
 const manualCopy = JSON.stringify(docsContent.manual).toLowerCase();
 assert.doesNotMatch(manualCopy, /same object/, "manual copy must speak about the reader's content, not its own test fixture");
 assert.ok((manualCopy.match(/\byour\b/g) || []).length >= 10, "manual copy must address the reader without repeating generic filler inside chance specimens");
-for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
+for (const anchor of [
+  "exports", "options", "container", "system-methods", "grid", "system-state", "blocks", "add-options",
+  "block-layout", "block-methods", "content", "titlebar-controls", "dragging", "reorder-event",
+  "appearance", "colors", "chance", "block-controller", "adapters", "adapter-methods", "field-dom", "css-hooks", "errors"
+]) {
   assert.ok(referenceSectionsSource.includes('"' + anchor + '"'), "reference sections miss #" + anchor);
 }
+
+const referenceOrder = [
+  "reference-system-create", "reference-container", "reference-grid", "reference-block-create",
+  "reference-block-layout", "reference-content", "reference-titlebar", "reference-dragging",
+  "reference-appearance", "reference-color", "reference-chance", "reference-block-controller",
+  "reference-definition-create", "reference-adapter-methods", "reference-field-signals", "reference-system-errors"
+];
+assert.deepEqual(Object.keys(docsContent.reference), referenceOrder, "reference content must follow the manual's educational sequence");
+assert.ok(referenceOrder.every((id, index) => index === 0 || referenceSectionsSource.indexOf('"' + referenceOrder[index - 1] + '"') < referenceSectionsSource.indexOf('"' + id + '"')), "reference section topology must preserve the educational sequence");
 
 const serializedReference = JSON.stringify(docsContent.reference);
 for (const apiName of [
@@ -394,6 +407,20 @@ assert.match(serializedReference, /columns[\s\S]*readonly number[\s\S]*rows[\s\S
 assert.match(serializedReference, /Do not call element\.remove\(\); use remove\(\)/, "reference must prevent direct DOM removal that leaves a stale layout");
 assert.match(serializedReference, /snap true[\s\S]*place\(\)[\s\S]*span\(\)[\s\S]*compact\(\)[\s\S]*visual grid layout/i, "reference must explain snap-dependent layout");
 assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textContent/i, "reference must warn about trusted string HTML");
+
+const typedReferenceRows = Object.values(docsContent.reference).flatMap((entry) => entry.rows || []);
+for (const row of typedReferenceRows) {
+  assert.match(row.cells[0], /^(?:method|property|event|option|content|hook|filter|adapter|lifecycle|override) · /, `reference row must name its contract kind: ${row.cells[0]}`);
+}
+assert.match(docsContent.reference["reference-system-create"].code.join("\n"), /createBlocksSystem\(\{[\s\S]*catalogUrl[\s\S]*random[\s\S]*snap[\s\S]*draggable[\s\S]*font[\s\S]*labels[\s\S]*variant[\s\S]*colorArray[\s\S]*colorVariation[\s\S]*inversionVariation[\s\S]*blockDefaults[\s\S]*blocks/, "createBlocksSystem(options?) must show every supported option beside the call");
+assert.match(docsContent.reference["reference-block-create"].code.join("\n"), /blocks\.add\(content, \{[\s\S]*id[\s\S]*title[\s\S]*menu[\s\S]*variant[\s\S]*minimized/, "add(content, options?) must show every supported option beside the call");
+assert.match(docsContent.reference["reference-titlebar"].code.join("\n"), /block\.menu\("hello", \{[\s\S]*minimize[\s\S]*close/, "menu(name, options?) must show its complete options object");
+assert.match(docsContent.reference["reference-block-controller"].code.join("\n"), /block\.describe\(\{[\s\S]*url/, "describe(options?) must show its complete options object");
+const definitionContracts = JSON.stringify(docsContent.reference["reference-definition-create"]);
+for (const key of ["options.replace", "filters.query", "filters.adapter", "filters.medium", "filters.category"]) {
+  assert.ok(definitionContracts.includes(key), `reference must spell out ${key} beside its optional object`);
+}
+assert.match(JSON.stringify(docsContent.reference["reference-adapter-methods"]), /override · overrides[\s\S]*adapter-specific[\s\S]*definition\.defaults/i, "adapter overrides must state why their keys cannot be exhaustively listed");
 
 const mainCdnBase = DOCS_RELEASE.stableCdnBase;
 const manualStartContent = JSON.stringify([docsContent.manual["manual-start-a"], docsContent.manual["manual-start-b"]]);

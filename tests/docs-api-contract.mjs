@@ -85,16 +85,16 @@ const referenceSectionsByInterface = {
   MountedBlock: ["reference-adapter-methods"],
   BlockAdapter: ["reference-adapter-methods"],
   RegisterOptions: ["reference-definition-create"],
-  AddBlockOptions: ["reference-block-options"],
-  BlockMenuOptions: ["reference-block-options"],
-  BlockDefaults: ["reference-system-create"],
-  BlockController: ["reference-block-properties", "reference-block-methods"],
-  BlockDescribeOptions: ["reference-block-methods"],
-  BlocksReorderPosition: ["reference-field-signals"],
-  BlocksReorderDetail: ["reference-field-signals"],
+  AddBlockOptions: ["reference-block-create", "reference-titlebar", "reference-appearance"],
+  BlockMenuOptions: ["reference-titlebar"],
+  BlockDefaults: ["reference-titlebar"],
+  BlockController: ["reference-block-layout", "reference-content", "reference-titlebar", "reference-appearance", "reference-color", "reference-block-controller"],
+  BlockDescribeOptions: ["reference-block-controller"],
+  BlocksReorderPosition: ["reference-dragging"],
+  BlocksReorderDetail: ["reference-dragging"],
   BlocksChangeDetail: ["reference-field-signals"],
-  BlocksSystemOptions: ["reference-system-create"],
-  BlocksSystem: ["reference-system-state", "reference-system-methods", "reference-definition-create", "reference-adapter-methods"]
+  BlocksSystemOptions: ["reference-system-create", "reference-grid", "reference-titlebar", "reference-dragging", "reference-appearance", "reference-color", "reference-chance"],
+  BlocksSystem: ["reference-system-create", "reference-container", "reference-grid", "reference-block-create", "reference-dragging", "reference-appearance", "reference-color", "reference-chance", "reference-definition-create", "reference-adapter-methods", "reference-block-controller"]
 };
 
 for (const [interfaceName, sectionIds] of Object.entries(referenceSectionsByInterface)) {

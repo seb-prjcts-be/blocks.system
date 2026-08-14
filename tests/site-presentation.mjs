@@ -49,7 +49,7 @@ assert.match(manual, /manual-random-mix-12/, "manual must keep all twelve result
 
 assert.match(apiHtml, /class="reference-index"/, "reference needs a direct lookup index");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");
-assert.match(reference, /blocks\.setGrid\(6, 53\)/, "reference must use the wide linear field");
+assert.match(reference, /blocks\.setGrid\(6, 78\)/, "reference must use the wide thematic field");
 assert.equal((reference.match(/createBlocksSystem\(/g) || []).length, 1, "reference must use one shared lookup field");
 assert.doesNotMatch(reference + sections, /reference-matrix|REFERENCE_COLUMNS|reference-axis|setFocusedColumn/, "reference must not compress contracts into a matrix");
 for (const id of Object.keys(content.reference)) {
@@ -58,7 +58,11 @@ for (const id of Object.keys(content.reference)) {
 for (const entry of Object.values(content.reference)) {
   assert.doesNotMatch(entry.title, /^[A-D]\d\s*\//, "reference title must be human-readable: " + entry.title);
 }
-for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "adapter-methods", "reorder-event", "css-hooks", "errors"]) {
+for (const anchor of [
+  "exports", "options", "container", "system-methods", "grid", "system-state", "blocks", "add-options",
+  "block-layout", "block-methods", "content", "titlebar-controls", "dragging", "reorder-event",
+  "appearance", "colors", "chance", "block-controller", "adapters", "adapter-methods", "field-dom", "css-hooks", "errors"
+]) {
   assert.ok(sections.includes('"' + anchor + '"'), "reference section topology misses #" + anchor);
 }
 
@@ -72,7 +76,7 @@ assert.match(serializedReference, /definition\.url[\s\S]*address\(\) prefers it/
 assert.match(serializedReference, /adapter \\"html\\"[\s\S]*trusted definition\.markup/, "reference must retain the built-in html adapter contract");
 
 const count = Object.values(content).slice(1).reduce((total, section) => total + Object.keys(section).length, 0);
-assert.equal(count, 69, "content must keep one adjustable chance lesson with twelve results");
+assert.equal(count, 75, "content must keep the thematic reference and one adjustable chance lesson");
 assert.equal(await read("docs/reference-fallback.html"), renderReferenceFallback(content), "the no-JavaScript reference must be generated from the same content");
 assert.match(css, /\.manual-board\s*\{\s*--blocks-columns:\s*6;/, "manual desktop field must keep six columns");
 assert.match(css, /\.reference-board\s*\{\s*--blocks-columns:\s*6;/, "reference desktop field must keep six columns");

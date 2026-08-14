@@ -484,99 +484,200 @@
   },
   "reference": {
     "reference-system-create": {
-      "title": "create a system + options",
-      "intro": "Import a factory for an independent system, or use the shared system export. All creation options are optional; their initial values follow.",
-      "headers": ["member or option", "returns or initial value", "purpose"],
+      "title": "create the system",
+      "intro": "Import the factory and create one independent blocks system. The module also exports a shared system when one global instance is enough.",
+      "code": [
+        "import { createBlocksSystem } from \"./blocks.system.mjs\";",
+        "",
+        "const blocks = createBlocksSystem({",
+        "  catalogUrl: null,",
+        "  random: Math.random,",
+        "  snap: false,",
+        "  draggable: true,",
+        "  font: null,",
+        "  labels: {},",
+        "  variant: \"random\",",
+        "  colorArray: [],",
+        "  colorVariation: 0,",
+        "  inversionVariation: 1 / 3,",
+        "  blockDefaults: { menu: false },",
+        "  blocks: []",
+        "});"
+      ],
+      "headers": ["kind + contract", "returns / type / default", "purpose"],
       "rows": [
-        { "id": "api-create", "cells": ["createBlocksSystem(options?)", "BlocksSystem", "Create an independent blocks system."] },
-        { "id": "api-system", "cells": ["system", "BlocksSystem", "The shared module instance."] },
-        { "id": "api-window", "cells": ["window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] },
-        { "cells": ["catalogUrl", "null", "Base URL used by address() when a block has no url of its own."] },
-        { "cells": ["random", "Math.random", "Source used when variant is random."] },
-        { "cells": ["snap", "false", "Snap blocks to the configured grid."] },
-        { "cells": ["draggable", "true", "Allow pointer and keyboard reordering."] },
-        { "cells": ["font", "null", "Optional font family and stylesheet URL through family and href."] },
-        { "cells": ["labels", "document language", "Override accessible move, restore, minimize and close labels."] },
-        { "cells": ["variant", "random", "Appearance used for new blocks."] },
-        { "cells": ["colorArray", "[]", "User-owned CSS colors; defaults to empty."] },
-        { "cells": ["colorVariation", "0", "Share of random blocks that use colorArray."] },
-        { "cells": ["inversionVariation", "1 / 3", "Inverse share inside the remaining monochrome range."] },
-        { "cells": ["blockDefaults", "no menu", "Shared menu settings for new blocks."] },
-        { "cells": ["blocks", "[]", "Definitions registered during creation."] }
+        { "id": "api-create", "cells": ["method · createBlocksSystem(options?)", "BlocksSystem", "Create an independent blocks system; the complete options object is shown above."] },
+        { "id": "api-system", "cells": ["property · system", "BlocksSystem", "The shared module instance."] },
+        { "id": "api-window", "cells": ["property · window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] },
+        { "cells": ["option · catalogUrl", "string | URL | null · null", "Base URL used by address() when a block has no url of its own."] },
+        { "cells": ["option · font", "{ family, href? } | null · null", "Set a family and optional stylesheet URL; blocks.font remains writable."] },
+        { "cells": ["option · labels", "Partial<{ move, restore, minimize, close }>", "Override resolved accessible labels; blocks.labels is readonly."] },
+        { "cells": ["option · blocks", "BlockDefinition[] · []", "Register definitions during creation."] }
       ]
     },
-    "reference-system-state": {
-      "title": "system state + properties",
-      "headers": ["member", "type", "notes"],
+    "reference-container": {
+      "title": "attach a container",
+      "intro": "Attach the system to one existing element before adding content. A selector and an Element are both accepted.",
+      "code": [
+        "blocks.attach(\"#blocks-field\");"
+      ],
+      "headers": ["kind + contract", "returns / type", "purpose"],
       "rows": [
-        { "cells": ["columns", "readonly number", "Current number of grid columns; starts at 1 and changes through setGrid()."] },
-        { "cells": ["rows", "readonly number", "Current number of grid rows; starts at 1 and may also grow after dragging."] },
-        { "cells": ["snap", "boolean", "Readable and writable. Set snap true before relying on place(), span() or compact() for visual grid layout; snap false keeps blocks in flow layout."] },
-        { "cells": ["draggable", "boolean", "Readable and writable."] },
-        { "cells": ["font", "object | null", "Readable and writable."] },
-        { "cells": ["variant", "string", "Readable and writable; built-in variants are regular and inverse, plus random selection."] },
-        { "cells": ["variants", "readonly string[]", "The built-in list: regular and inverse."] },
-        { "cells": ["colorArray", "readonly string[]", "User-owned CSS colors for future random blocks."] },
-        { "cells": ["colorVariation", "number", "From 0 to 1; a positive value needs a non-empty colorArray."] },
-        { "cells": ["inversionVariation", "number", "From 0 to 1."] },
-        { "cells": ["labels", "readonly object", "Resolved accessible labels."] },
-        { "cells": ["field", "Element | null", "The currently attached field."] }
+        { "id": "api-attach", "cells": ["method · attach(target)", "blocks", "Attach to a selector or Element."] },
+        { "cells": ["property · field", "Element | null", "The currently attached field."] }
       ]
     },
-    "reference-system-methods": {
-      "title": "system methods",
-      "headers": ["method", "returns", "purpose"],
+    "reference-grid": {
+      "title": "set the grid",
+      "intro": "Define the field dimensions before placing blocks. Columns come first; all dimensions and positions use positive whole numbers.",
+      "code": [
+        "blocks.snap = true;",
+        "blocks.setGrid(4, 4);"
+      ],
+      "headers": ["kind + contract", "returns / type / default", "purpose"],
       "rows": [
-        { "id": "api-attach", "cells": ["attach(target)", "blocks", "Attach to a selector or Element."] },
-        { "id": "api-set-grid", "cells": ["setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
-        { "id": "api-compact", "cells": ["compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] },
-        { "id": "api-add", "cells": ["add(content, options?)", "block", "Add trusted HTML, an element object or a content factory. Never pass untrusted text as HTML; create an element and set textContent."] },
-        { "id": "api-address", "cells": ["address(id)", "string", "Build a deep link ending in ?block=id from the block url, or from the catalogUrl when the definition has none."] }
+        { "id": "api-set-grid", "cells": ["method · setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
+        { "cells": ["property · columns", "readonly number", "Current column count; starts at 1 and changes through setGrid()."] },
+        { "cells": ["property · rows", "readonly number", "Current row count; starts at 1 and may also grow after dragging."] },
+        { "cells": ["property · snap", "boolean · false", "Set snap true before relying on place(), span() or compact() for visual grid layout; false keeps blocks in flow layout."] },
+        { "id": "api-compact", "cells": ["method · compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] }
       ]
     },
-    "reference-system-errors": {
-      "title": "failures + boundaries",
-      "eyebrow": "fail early",
-      "statement": "Invalid input throws.",
-      "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from."
-    },
-    "reference-block-options": {
-      "title": "create a block + options",
-      "intro": "id identifies a block. title is only optional visible text in its menu bar.",
-      "headers": ["option", "type", "purpose"],
+    "reference-block-create": {
+      "title": "create a block",
+      "intro": "add() turns content into one block and returns its controller. id identifies the block; title is optional visible text in its titlebar.",
+      "code": [
+        "const block = blocks.add(content, {",
+        "  id: \"hello\",",
+        "  title: \"hello\",",
+        "  menu: { minimize: true, close: true },",
+        "  variant: \"regular\",",
+        "  minimized: false",
+        "});"
+      ],
+      "headers": ["kind + contract", "returns / type", "purpose"],
       "rows": [
-        { "cells": ["id", "string", "Stable id; generated when omitted."] },
-        { "cells": ["title", "string", "Optional visible menu text. When omitted, no id is shown; id remains the accessible fallback for menu actions."] },
-        { "cells": ["menu", "boolean | object", "Enable, disable or configure a menu for this block."] },
-        { "cells": ["variant", "string", "Override the system appearance for this block."] },
-        { "cells": ["minimized", "boolean", "Initial minimized state."] },
-        { "cells": ["menu.close", "boolean", "Show a remove button."] },
-        { "cells": ["menu.minimize", "boolean", "Show a minimize and restore button."] }
+        { "id": "api-add", "cells": ["method · add(content, options?)", "block", "Add content and return one BlockController; every option is shown above."] },
+        { "cells": ["option · id", "string", "Stable id; generated when omitted."] },
+        { "cells": ["option · title", "string", "Optional visible titlebar text. Without it, id remains only the accessible fallback for actions."] },
+        { "cells": ["option · menu", "boolean | { minimize?, close? }", "Configure titlebar controls for this block."] },
+        { "cells": ["option · variant", "string", "Override the system appearance for this block."] },
+        { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] }
       ]
     },
-    "reference-block-properties": {
-      "title": "block properties",
-      "intro": "add() returns one controller for one block.",
-      "headers": ["member", "type", "purpose"],
+    "reference-block-layout": {
+      "title": "size and position",
+      "intro": "Size the returned block, then place it. Coordinates start at 1 and columns come before rows.",
+      "code": [
+        "block.span(4, 2);",
+        "block.place(1, 1);"
+      ],
+      "headers": ["kind + contract", "returns", "purpose"],
       "rows": [
-        { "cells": ["id", "readonly string", "Stable lowercase kebab-case id."] },
-        { "cells": ["element", "readonly HTMLElement", "The outer block element. Do not call element.remove(); use remove() so the system releases its layout."] },
-        { "cells": ["content", "readonly HTMLDivElement", "The content host inside the block."] },
-        { "cells": ["color", "string", "Read or set its CSS color."] },
-        { "cells": ["variant", "string", "Read or set its resolved appearance."] },
-        { "cells": ["minimized", "boolean", "Read or set its minimized state."] }
+        { "id": "api-span", "cells": ["method · span(columns, rows)", "block", "Set the size in whole grid units."] },
+        { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based grid coordinates."] },
+        { "id": "api-flow", "cells": ["method · flow()", "block", "Return this block to CSS automatic order."] }
       ]
     },
-    "reference-block-methods": {
-      "title": "block methods",
-      "headers": ["method", "returns", "purpose"],
+    "reference-content": {
+      "title": "choose the content",
+      "intro": "A block accepts trusted HTML, a Node or a factory. Never pass untrusted text as HTML; create an element and assign textContent instead.",
+      "headers": ["kind + contract", "accepted value", "purpose"],
       "rows": [
-        { "id": "api-menu", "cells": ["menu(name, options?)", "block", "Add or update the title bar."] },
-        { "id": "api-span", "cells": ["span(columns, rows)", "block", "Set the size in whole grid units."] },
-        { "id": "api-place", "cells": ["place(column, row)", "block", "Set one-based grid coordinates."] },
-        { "id": "api-flow", "cells": ["flow()", "block", "Return to CSS automatic order."] },
-        { "cells": ["describe(options?)", "definition", "Serialize this live block into a registerable definition for the built-in html adapter; options.url names the page it lives on."] },
-        { "cells": ["remove()", "true", "Remove the block and release its layout."] }
+        { "cells": ["content · HTML", "string", "Trusted markup parsed by the browser."] },
+        { "cells": ["content · object", "Node", "An existing DOM node; use textContent here for untrusted text."] },
+        { "cells": ["content · factory", "() => string | Node", "Create fresh content when add() runs."] },
+        { "cells": ["property · block.content", "readonly HTMLDivElement", "The content host inside the returned block."] }
+      ]
+    },
+    "reference-titlebar": {
+      "title": "titlebar controls",
+      "intro": "Configure minimize and close when the system or block is created, or update one block later through its controller.",
+      "code": [
+        "block.menu(\"hello\", {",
+        "  minimize: true,",
+        "  close: true",
+        "});"
+      ],
+      "headers": ["kind + contract", "type or returns", "purpose"],
+      "rows": [
+        { "cells": ["option · blockDefaults.menu", "boolean | object", "Default titlebar controls for new blocks; the initial value is no menu."] },
+        { "cells": ["option · menu", "boolean | object", "Enable, disable or configure controls for one new block."] },
+        { "cells": ["option · menu.minimize", "boolean", "Show minimize and restore."] },
+        { "cells": ["option · menu.close", "boolean", "Show remove."] },
+        { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
+        { "cells": ["property · block.minimized", "boolean", "Read or change the current minimized state."] },
+        { "id": "api-menu", "cells": ["method · menu(name, options?)", "block", "Add or update the titlebar; options accepts minimize and close."] },
+        { "cells": ["method · remove()", "true", "Remove the block and release its layout."] }
+      ]
+    },
+    "reference-dragging": {
+      "title": "dragging and order",
+      "intro": "draggable enables pointer and keyboard movement. snap keeps moves on the configured grid; otherwise blocks move through flow order.",
+      "code": [
+        "field.addEventListener(\"blocks:reorder\", (event) => {",
+        "  const {",
+        "    id, input, mode, key,",
+        "    fromIndex, toIndex, from, to, direction",
+        "  } = event.detail;",
+        "});"
+      ],
+      "headers": ["kind + contract", "type or initial value", "purpose"],
+      "rows": [
+        { "cells": ["property · draggable", "boolean · true", "Allow pointer and keyboard reordering."] },
+        { "cells": ["property · snap", "boolean · false", "Use grid positions instead of flow order while moving."] },
+        { "cells": ["event · blocks:reorder", "CustomEvent", "Fires after a pointer or keyboard move."] }
+      ],
+      "details": "input is pointer or keyboard; mode is grid or flow; from and to are { column, row } or null. direction is up, right, down, left or still."
+    },
+    "reference-appearance": {
+      "title": "choose an appearance",
+      "intro": "Set a default appearance for future blocks or override it on one block. Built-in fixed variants are regular and inverse; random delegates to the chance settings.",
+      "headers": ["kind + contract", "type or initial value", "purpose"],
+      "rows": [
+        { "cells": ["option · variant", "string · random", "Appearance used for new blocks."] },
+        { "cells": ["property · blocks.variant", "string", "Read or change the default appearance."] },
+        { "cells": ["property · blocks.variants", "readonly string[]", "The built-in fixed list: regular and inverse."] },
+        { "cells": ["option · options.variant", "string", "Override the system appearance for one new block."] },
+        { "cells": ["property · block.variant", "string", "Read or change the resolved appearance of one block."] }
+      ]
+    },
+    "reference-color": {
+      "title": "set a color",
+      "intro": "Assign one CSS color directly to a block, or provide an array used by future random blocks.",
+      "headers": ["kind + contract", "type or initial value", "purpose"],
+      "rows": [
+        { "cells": ["option · colorArray", "readonly string[] · []", "User-owned CSS colors available to future random blocks."] },
+        { "cells": ["property · blocks.colorArray", "readonly string[]", "Read or replace the current color source."] },
+        { "cells": ["property · block.color", "string", "Read or set one block's CSS color."] }
+      ]
+    },
+    "reference-chance": {
+      "title": "set the chance",
+      "intro": "Chance only affects future blocks created with the random variant. Color is checked first; inversion applies to the remaining monochrome blocks.",
+      "headers": ["kind + contract", "type or initial value", "purpose"],
+      "rows": [
+        { "cells": ["option · random", "() => number · Math.random", "Random source used for appearance decisions."] },
+        { "cells": ["property · blocks.colorVariation", "number · 0", "Share from 0 to 1 that uses colorArray; a positive value needs colors."] },
+        { "cells": ["property · blocks.inversionVariation", "number · 1 / 3", "Inverse share from 0 to 1 inside the remaining monochrome range."] }
+      ]
+    },
+    "reference-block-controller": {
+      "title": "inspect and serialize a block",
+      "intro": "add() returns one controller. Use it instead of removing or rewriting the outer DOM element directly.",
+      "code": [
+        "const definition = block.describe({",
+        "  url: \"./notes.html\"",
+        "});"
+      ],
+      "headers": ["kind + contract", "type or returns", "purpose"],
+      "rows": [
+        { "cells": ["property · id", "readonly string", "Stable lowercase kebab-case id."] },
+        { "cells": ["property · element", "readonly HTMLElement", "The outer block element. Do not call element.remove(); use remove() so the system releases its layout."] },
+        { "cells": ["property · content", "readonly HTMLDivElement", "The content host inside the block."] },
+        { "cells": ["method · describe(options?)", "definition", "Serialize this live block for the built-in html adapter."] },
+        { "cells": ["option · options.url", "string | URL", "Name the page in the serialized definition."] },
+        { "id": "api-address", "cells": ["method · address(id)", "string", "Build ?block=id from definition.url or the system catalogUrl."] }
       ]
     },
     "reference-definition-create": {
@@ -586,6 +687,8 @@
         "const definition = {",
         "  id: \"block-note\",",
         "  adapter: \"note\",",
+        "  url: \"./notes.html\",",
+        "  markup: \"<p>hello</p>\",",
         "  label: \"note\",",
         "  medium: \"html\",",
         "  category: \"text\",",
@@ -593,65 +696,88 @@
         "  defaults: { text: \"hello\" },",
         "  attributes: [],",
         "  requires: []",
-        "};"
+        "};",
+        "",
+        "blocks.register(definition, { replace: false });",
+        "blocks.registerAdapter(\"note\", adapter, { replace: false });",
+        "",
+        "const notes = blocks.list({",
+        "  query: \"note\",",
+        "  adapter: \"note\",",
+        "  medium: \"html\",",
+        "  category: \"text\"",
+        "});"
       ],
-      "headers": ["method", "returns", "purpose"],
+      "headers": ["kind + contract", "returns or type", "purpose"],
       "rows": [
-        { "id": "api-register", "cells": ["register(definition, options?)", "blocks", "Register a reusable block definition."] },
-        { "id": "api-register-adapter", "cells": ["registerAdapter(id, adapter, options?)", "blocks", "Register a lifecycle adapter."] },
-        { "cells": ["definition.url", "string", "Page the block lives on; address() prefers it over the catalogUrl."] },
-        { "cells": ["adapter \"html\"", "built-in", "Mounts and snippets trusted definition.markup — the same trust boundary as add(content). Replace it with registerAdapter(\"html\", adapter, { replace: true })."] },
-        { "cells": ["listAdapters()", "string[]", "List registered adapter ids, starting with the built-in html adapter."] },
-        { "cells": ["list(filters?)", "definition[]", "Filter definitions by query, adapter, medium or category."] },
-        { "cells": ["get(id)", "definition | null", "Read one registered definition."] }
+        { "id": "api-register", "cells": ["method · register(definition, options?)", "blocks", "Register a reusable block definition."] },
+        { "id": "api-register-adapter", "cells": ["method · registerAdapter(id, adapter, options?)", "blocks", "Register a lifecycle adapter."] },
+        { "cells": ["option · options.replace", "boolean", "Replace an existing definition or adapter deliberately."] },
+        { "cells": ["property · definition.url", "string", "Page the block lives on; address() prefers it over the catalogUrl."] },
+        { "cells": ["property · definition.markup", "trusted HTML", "Content used by the built-in html adapter."] },
+        { "cells": ["adapter · adapter \"html\"", "built-in", "Mounts and snippets trusted definition.markup. Replace it with registerAdapter(\"html\", adapter, { replace: true })."] },
+        { "cells": ["method · listAdapters()", "string[]", "List registered adapter ids, starting with the built-in html adapter."] },
+        { "cells": ["method · list(filters?)", "definition[]", "Filter definitions with any combination of the four filters below."] },
+        { "cells": ["filter · filters.query", "string", "Match text in the definition id, label, description, medium or category."] },
+        { "cells": ["filter · filters.adapter", "string", "Keep definitions that use this adapter id."] },
+        { "cells": ["filter · filters.medium", "string", "Keep definitions with this medium."] },
+        { "cells": ["filter · filters.category", "string", "Keep definitions in this category."] },
+        { "cells": ["method · get(id)", "definition | null", "Read one registered definition."] }
       ]
     },
     "reference-adapter-methods": {
       "title": "adapter lifecycle methods",
       "intro": "Adapters own mount and cleanup lifecycle; the system methods below use those lifecycle hooks for registered definitions.",
-      "headers": ["member", "returns or required", "purpose"],
+      "code": [
+        "await blocks.mount(\"block-note\", target, { text: \"hello\" });",
+        "await blocks.remount(\"block-note\", target, { text: \"updated\" });",
+        "const source = blocks.snippet(\"block-note\", { text: \"hello\" });"
+      ],
+      "headers": ["kind + contract", "returns or required", "purpose"],
       "rows": [
-        { "id": "api-mount", "cells": ["mount(id, target, overrides?)", "Promise<Element>", "Mount a registered definition through its adapter."] },
-        { "id": "api-unmount", "cells": ["unmount(target)", "boolean", "Run optional cleanup and remove mounted content."] },
-        { "cells": ["remount(id, target, overrides?)", "Promise<Element>", "Unmount and mount again with new settings."] },
-        { "cells": ["snippet(id, overrides?)", "string", "Ask the adapter for a reusable snippet."] },
-        { "cells": ["mount(context)", "yes", "Return an Element or { node }, directly or through a Promise."] },
-        { "cells": ["ready(context)", "no", "Prepare before mount."] },
-        { "cells": ["unmount(mounted)", "no", "Release listeners or resources."] },
-        { "cells": ["snippet(context)", "no", "Return reusable source text."] },
-        { "cells": ["context", "—", "Contains block, host, settings and adapter."] }
+        { "id": "api-mount", "cells": ["method · mount(id, target, overrides?)", "Promise<Element>", "Mount a registered definition through its adapter."] },
+        { "id": "api-unmount", "cells": ["method · unmount(target)", "boolean", "Run optional cleanup and remove mounted content."] },
+        { "cells": ["method · remount(id, target, overrides?)", "Promise<Element>", "Unmount and mount again with new settings."] },
+        { "cells": ["method · snippet(id, overrides?)", "string", "Ask the adapter for a reusable snippet."] },
+        { "cells": ["override · overrides", "Record<string, unknown>", "Adapter-specific settings merged over definition.defaults; for the note adapter, { text: \"hello\" } is valid."] },
+        { "cells": ["lifecycle · mount(context)", "yes", "Return an Element or { node }, directly or through a Promise."] },
+        { "cells": ["lifecycle · ready(context)", "no", "Prepare before mount."] },
+        { "cells": ["lifecycle · unmount(mounted)", "no", "Release listeners or resources."] },
+        { "cells": ["lifecycle · snippet(context)", "no", "Return reusable source text."] },
+        { "cells": ["lifecycle · context", "—", "Contains block, host, settings and adapter."] },
+        { "cells": ["property · mounted.node", "Element", "The node returned by mount and tracked for cleanup."] }
       ]
     },
     "reference-field-signals": {
       "title": "field events + DOM hooks",
-      "intro": "The field dispatches blocks:reorder after pointer or keyboard reordering and blocks:change after explicit state changes.",
+      "intro": "The attached field exposes stable DOM hooks and dispatches blocks:change after explicit state changes. Reordering is documented with dragging above.",
       "code": [
-        "field.addEventListener(\"blocks:reorder\", (event) => {",
-        "  const {",
-        "    id, input, mode, key,",
-        "    fromIndex, toIndex, from, to, direction",
-        "  } = event.detail;",
-        "});",
-        "",
         "field.addEventListener(\"blocks:change\", (event) => {",
         "  const { type, id, ids } = event.detail;",
         "});"
       ],
-      "details": "For blocks:reorder, input is pointer or keyboard, mode is grid or flow, and positions are { column, row } or null. For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks.",
-      "headers": ["hook", "purpose"],
+      "details": "For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks.",
+      "headers": ["kind + hook", "purpose"],
       "rows": [
-        { "cells": [".blocks-system-surface", "The attached field and its layout tokens."] },
-        { "cells": [".blocks-system-object", "One outer block."] },
-        { "cells": [".blocks-system-menu", "Structural title bar and pointer drag area."] },
-        { "cells": [".blocks-system-title", "Keyboard drag handle with button semantics while dragging is enabled."] },
-        { "cells": [".blocks-system-content", "Content host."] },
-        { "cells": [".blocks-system-drop-preview", "Pointer landing preview."] },
-        { "cells": ["[data-block-object]", "Stable block id."] },
-        { "cells": ["[data-block-variant]", "Resolved appearance. Custom variant names pass validation and land here for consumer styling — for example a light footnote weight."] },
-        { "cells": ["[data-block-color]", "Color selected from the user's array."] },
-        { "cells": ["[data-block-minimized]", "Minimized state."] },
-        { "cells": ["[data-draggable]", "Surface drag state."] }
+        { "cells": ["event · blocks:change", "Fires after an explicit compact, minimize, restore or remove state change."] },
+        { "cells": ["hook · .blocks-system-surface", "The attached field and its layout tokens."] },
+        { "cells": ["hook · .blocks-system-object", "One outer block."] },
+        { "cells": ["hook · .blocks-system-menu", "Structural title bar and pointer drag area."] },
+        { "cells": ["hook · .blocks-system-title", "Keyboard drag handle with button semantics while dragging is enabled."] },
+        { "cells": ["hook · .blocks-system-content", "Content host."] },
+        { "cells": ["hook · .blocks-system-drop-preview", "Pointer landing preview."] },
+        { "cells": ["hook · [data-block-object]", "Stable block id."] },
+        { "cells": ["hook · [data-block-variant]", "Resolved appearance. Custom variant names pass validation and land here for consumer styling — for example a light footnote weight."] },
+        { "cells": ["hook · [data-block-color]", "Color selected from the user's array."] },
+        { "cells": ["hook · [data-block-minimized]", "Minimized state."] },
+        { "cells": ["hook · [data-draggable]", "Surface drag state."] }
       ]
+    },
+    "reference-system-errors": {
+      "title": "failures + boundaries",
+      "eyebrow": "fail early",
+      "statement": "Invalid input throws.",
+      "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from."
     }
   }
 }
