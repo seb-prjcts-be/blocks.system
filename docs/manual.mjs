@@ -377,14 +377,14 @@ const chanceCode = codeOnlyCard(content["manual-random-code"]);
 const chanceCodeElement = chanceCode.querySelector("code");
 add({ id: "manual-random", title: content["manual-random"].title, blockContent: introCard(content["manual-random"]), span: content["manual-random"].layout.span, place: content["manual-random"].layout.place, anchor: "chance", protectedBlock: true, classes: ["manual-chapter-start"] });
 add({ id: "manual-random-code", title: content["manual-random-code"].title, blockContent: chanceCode, span: content["manual-random-code"].layout.span, place: content["manual-random-code"].layout.place, protectedBlock: true });
-add({ id: "manual-random-action", title: content["manual-random-action"].title, blockContent: chanceControls.root, span: content["manual-random-action"].layout.span, place: content["manual-random-action"].layout.place, protectedBlock: true, classes: ["manual-random-action-block"] });
+add({ id: "manual-random-action", title: "", blockContent: chanceControls.root, span: content["manual-random-action"].layout.span, place: content["manual-random-action"].layout.place, protectedBlock: true, classes: ["manual-random-action-block"] });
 
 let chanceResults = [];
 
 function addChanceResult(id, column, row, index) {
   const block = add({
     id,
-    title: content[id].title,
+    title: "",
     blockContent: chance(index),
     span: [1, 1],
     place: [column, row],

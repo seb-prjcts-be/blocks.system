@@ -703,7 +703,8 @@ async function measureManual(width, height, dpr = 1) {
         const lesson = block.querySelector(":scope > .blocks-system-content > .manual-chance-cell");
         return {
           marker: lesson.querySelector("strong").textContent,
-          childCount: lesson.children.length
+          childCount: lesson.children.length,
+          title: block.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent
         };
       });
       function measureMiniGrid(ids) {
@@ -918,7 +919,8 @@ async function measureManual(width, height, dpr = 1) {
           column: randomActionBlock.style.getPropertyValue("--block-column"),
           row: randomActionBlock.style.getPropertyValue("--block-row"),
           spanColumns: randomActionBlock.style.getPropertyValue("--block-span-columns"),
-          spanRows: randomActionBlock.style.getPropertyValue("--block-span-rows")
+          spanRows: randomActionBlock.style.getPropertyValue("--block-span-rows"),
+          title: randomActionBlock.querySelector(":scope > .blocks-system-menu > .blocks-system-title").textContent
         },
         nextStatementLines: nextStatementRange.getClientRects().length,
         devicePixelRatio: window.devicePixelRatio,
@@ -1894,13 +1896,13 @@ try {
       code: { column: "3", row: "40", spanColumns: "3", spanRows: "2" }
     }, "manual 08 is niet opgesplitst in uitleg 2×2 en code 3×2");
     assert.deepEqual(desktopManual.randomAction, {
-      column: "6", row: "40", spanColumns: "1", spanRows: "2"
-    }, "manual 08 gebruikt de vrije zesde kolom niet voor de herhaalactie");
+      column: "6", row: "40", spanColumns: "1", spanRows: "2", title: ""
+    }, "manual 08 gebruikt de vrije zesde kolom niet voor de herhaalactie met lege titelbalk");
     assert.equal(desktopManual.nextStatementLines, 1, "manual 09 breekt 'now' onnodig naar een tweede desktopregel");
     assert.deepEqual(desktopManual.randomExamples, [
       "01", "02", "03", "04", "05", "06",
       "07", "08", "09", "10", "11", "12"
-    ].map(function (marker) { return { marker, childCount: 1 }; }), "de kansvoorbeelden zijn geen sobere genummerde specimens");
+    ].map(function (marker) { return { marker, childCount: 1, title: "" }; }), "de kansvoorbeelden moeten sobere genummerde specimens met lege titlebars zijn");
     assert.deepEqual(desktopManual.randomMiniGrids.combined.map(function (item) { return { column: item.column, row: item.row }; }), [
       { column: "1", row: "42" }, { column: "2", row: "42" }, { column: "3", row: "42" },
       { column: "4", row: "42" }, { column: "5", row: "42" }, { column: "6", row: "42" },

@@ -373,6 +373,8 @@ assert.doesNotMatch(siteDemos["docs/manual.mjs"], /const samples|sampleIndex|ran
 assert.match(siteDemos["docs/manual.mjs"], /manual-random-control[\s\S]*colorVariation[\s\S]*inversionVariation/, "manual 07 must render both parameters in one control block");
 assert.match(siteDemos["docs/manual.mjs"], /function randomizeChanceSettings[\s\S]*Math\.random[\s\S]*rerollChanceResults/, "manual 07 random action must choose and display new slider settings");
 assert.match(siteDemos["docs/manual.mjs"], /useSystemVariant[\s\S]*delete options\.variant/, "chance results must inherit the configured random system variant");
+assert.match(siteDemos["docs/manual.mjs"], /function addChanceResult[\s\S]*title: ""/, "all twelve chance results must keep an empty visible titlebar");
+assert.match(siteDemos["docs/manual.mjs"], /id: "manual-random-action", title: ""/, "manual 08 action block must keep an empty visible titlebar");
 assert.match(siteDemos["docs/manual.mjs"], /manual-random-trigger[\s\S]*rerollChanceResults/, "manual 07 must expose a button that reruns the chance code");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /🎲|Re-roll Randomness/, "manual 07 must not use decorative AI-style casino copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /manual-contract|exact contract →|function contract\(/, "manual must not render exact-contract separator rows");
