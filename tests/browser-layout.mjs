@@ -569,16 +569,16 @@ async function measureManual(width, height, dpr = 1) {
       }
       const wavesBlockForRender = document.querySelector('[data-block-object="manual-content-waves"]');
       const wavesPreForRender = wavesBlockForRender?.querySelector("pre");
+      const inlineScrollBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = "auto";
       for (let attempt = 0; attempt < 12 && wavesPreForRender && !wavesPreForRender.textContent; attempt += 1) {
-        wavesBlockForRender.scrollIntoView({ block: "center" });
+        wavesBlockForRender.scrollIntoView({ block: "center", behavior: "instant" });
         await new Promise(function (resolveDelay) { setTimeout(resolveDelay, 80); });
       }
       window.dispatchEvent(new Event("resize"));
       await new Promise(function (resolveFrame) {
         requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
       });
-      const inlineScrollBehavior = document.documentElement.style.scrollBehavior;
-      document.documentElement.style.scrollBehavior = "auto";
       window.scrollTo(0, 0);
       await new Promise(function (resolveFrame) {
         requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
@@ -971,6 +971,15 @@ async function measureManual(width, height, dpr = 1) {
         boardWidth: boardRect.width,
         boardTop: boardRect.top,
         mastheadTitle: mastheadTitle.textContent,
+        mastheadMetrics: {
+          top: mastheadRect.top,
+          bottom: mastheadRect.bottom,
+          height: mastheadRect.height,
+          titleHeight: mastheadTitle.getBoundingClientRect().height,
+          titleWidth: mastheadTitle.getBoundingClientRect().width,
+          titleFont: getComputedStyle(mastheadTitle).font,
+          titleLetterSpacing: getComputedStyle(mastheadTitle).letterSpacing
+        },
         introCount: document.querySelectorAll("#manual-convention").length,
         mastheadBorderBottomWidth: getComputedStyle(document.querySelector(".manual-masthead")).borderBottomWidth,
         mastheadGap: boardRect.top - mastheadRect.bottom,
@@ -1286,16 +1295,20 @@ async function exerciseManualVanillaWaves() {
       const host = document.querySelector(".manual-content-waves-demo");
       const block = host.closest(".blocks-system-object");
       const field = host.querySelector("pre");
+      document.documentElement.style.scrollBehavior = "auto";
       for (let attempt = 0; attempt < 12; attempt += 1) {
         const rect = block.getBoundingClientRect();
         if (rect.top < innerHeight && rect.bottom > 0) break;
-        block.scrollIntoView({ block: "center" });
+        block.scrollIntoView({ block: "center", behavior: "instant" });
         await new Promise(function (resolveDelay) { setTimeout(resolveDelay, 80); });
       }
       await new Promise(function (resolveDelay) { setTimeout(resolveDelay, 250); });
       const before = field.textContent;
-      await new Promise(function (resolveDelay) { setTimeout(resolveDelay, 250); });
-      const after = field.textContent;
+      let after = before;
+      for (let attempt = 0; attempt < 20 && after === before; attempt += 1) {
+        await new Promise(function (resolveDelay) { setTimeout(resolveDelay, 100); });
+        after = field.textContent;
+      }
       block.querySelector(".blocks-system-close").click();
       await new Promise(function (resolveFrame) { requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); }); });
       return {
@@ -2112,6 +2125,12 @@ try {
       closeRemoved: true,
       remainingBlocks: 62
     }, "interactieve menuvoorbeelden moeten bedienbaar blijven naast de beschermde uitleg");
+    await protocol.send("Emulation.setDeviceMetricsOverride", {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 1,
+      mobile: false
+    });
     await navigateTo(`${pageUrl}docs/`);
     const mobileManual = await measureManual(390, 844, 1);
     assert.equal(mobileManual.columnCount, 1, "manual moet op mobiel één rustige leeskolom behouden");
@@ -2183,11 +2202,11 @@ try {
     });
     await navigateTo(pageUrl + "docs/api.html");
     const mobileReferenceResult = await protocol.send("Runtime.evaluate", {
-      expression: "(async () => { for (let attempt = 0; attempt < 60 && !document.querySelector('#reference-board')?.dataset.referenceReady; attempt += 1) await new Promise((done) => requestAnimationFrame(done)); window.scrollTo(0, 0); return document.querySelector('#reference-board').getBoundingClientRect().top; })()",
+      expression: "(async () => { for (let attempt = 0; attempt < 60 && !document.querySelector('#reference-board')?.dataset.referenceReady; attempt += 1) await new Promise((done) => requestAnimationFrame(done)); await document.fonts.ready; window.scrollTo(0, 0); const board = document.querySelector('#reference-board'); const masthead = document.querySelector('.reference-masthead'); const title = masthead.querySelector('h1'); const mastheadRect = masthead.getBoundingClientRect(); const titleRect = title.getBoundingClientRect(); return { boardTop: board.getBoundingClientRect().top, masthead: { top: mastheadRect.top, bottom: mastheadRect.bottom, height: mastheadRect.height, titleHeight: titleRect.height, titleWidth: titleRect.width, titleFont: getComputedStyle(title).font, titleLetterSpacing: getComputedStyle(title).letterSpacing } }; })()",
       awaitPromise: true,
       returnByValue: true
     });
-    assert.ok(Math.abs(mobileReferenceResult.result.value - mobileManual.boardTop) <= 0.5, `manual en reference starten hun mobiele grid niet op dezelfde y-positie: ${mobileManual.boardTop} versus ${mobileReferenceResult.result.value}`);
+    assert.ok(Math.abs(mobileReferenceResult.result.value.boardTop - mobileManual.boardTop) <= 0.5, `manual en reference starten hun mobiele grid niet op dezelfde y-positie: ${mobileManual.boardTop} versus ${mobileReferenceResult.result.value.boardTop}; manual=${JSON.stringify(mobileManual.mastheadMetrics)}; reference=${JSON.stringify(mobileReferenceResult.result.value.masthead)}`);
   } else {
   assert.equal(desktopManual.ready, "true", "manual meldt niet dat de lesmatrix klaar is");
   assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
