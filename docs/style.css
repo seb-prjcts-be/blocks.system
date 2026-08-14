@@ -985,6 +985,7 @@ footer a { color: var(--ink); }
   text-transform: lowercase;
 }
 
+.manual-masthead h1,
 .reference-masthead h1 {
   display: grid;
 }

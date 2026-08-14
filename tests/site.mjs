@@ -177,7 +177,7 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
 const styleVersions = new Set(Object.entries(pageHtml)
   .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.44"], "one consumer stylesheet must use one cache version across all pages");
+assert.deepEqual([...styleVersions], ["0.2.45"], "one consumer stylesheet must use one cache version across all pages");
 const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
 assert.match(examplesCss, /var\(--system-field\)/, "example pages must use the shared system field token");
 assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
