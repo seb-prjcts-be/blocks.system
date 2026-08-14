@@ -600,6 +600,10 @@ footer a { color: var(--ink); }
   letter-spacing: -0.065em;
 }
 
+.manual-next-block .manual-content-statement strong {
+  max-width: none;
+}
+
 .manual-content-code {
   grid-template-rows: auto minmax(0, 1fr);
   padding: 0;
@@ -629,10 +633,6 @@ footer a { color: var(--ink); }
   font: 600 clamp(1.35rem, 2.7vw, 3.2rem)/0.9 "Instrument Sans", sans-serif;
   letter-spacing: -0.045em;
   text-transform: lowercase;
-}
-
-.manual-next-block .manual-result strong {
-  max-width: 28ch;
 }
 
 .manual-result p {
@@ -767,17 +767,19 @@ footer a { color: var(--ink); }
 
 .manual-chance-cell {
   display: grid;
-  align-items: end;
+  place-items: end start;
   box-sizing: border-box;
   width: 100%;
-  height: 100%;
+  height: auto;
+  align-self: stretch;
+  justify-self: stretch;
   padding: 12px 14px;
 }
 
 .manual-chance-cell strong {
-  font: 600 clamp(0.95rem, 1.35vw, 1.3rem)/0.95 "Instrument Sans", sans-serif;
-  letter-spacing: -0.035em;
-  text-transform: lowercase;
+  font: 600 clamp(2.2rem, 4.2vw, 4.4rem)/0.72 "Instrument Sans", sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.075em;
 }
 
 .manual-sixth .manual-lesson {
@@ -786,19 +788,6 @@ footer a { color: var(--ink); }
 }
 
 .manual-sixth .manual-result strong { font-size: clamp(1.1rem, 1.8vw, 1.8rem); }
-
-.manual-next-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-}
-
-.manual-next-links a {
-  color: inherit;
-  font: 500 11px/1.25 "Consolas", "Courier New", monospace;
-  text-transform: uppercase;
-  text-underline-offset: 3px;
-}
 
 .manual-foot {
   display: flex;
@@ -913,20 +902,64 @@ footer a { color: var(--ink); }
 .manual-compact-preview span:nth-child(4) { grid-column: span 3; background: var(--ink); }
 
 .manual-chance-cell {
-  align-content: space-between;
-  gap: 8px;
-  padding: 9px;
+  align-content: end;
+  gap: 0;
+  padding: 9px 9px 12px;
 }
 
-.manual-chance-cell small {
+.manual-random-controls {
+  display: grid;
+  grid-template-rows: auto auto minmax(42px, 1fr);
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+}
+
+.manual-random-field {
+  display: grid;
+  gap: 4px;
+}
+
+.manual-random-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
   font: 500 9px/1.15 "Consolas", "Courier New", monospace;
-  letter-spacing: 0.025em;
-  overflow-wrap: anywhere;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.manual-random-field input {
+  width: 100%;
+  margin: 0;
+  accent-color: var(--block-color);
+}
+
+.manual-random-trigger {
+  appearance: none;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--block-color);
+  background: var(--block-color);
+  color: var(--block-paper-color);
+  cursor: pointer;
+  text-align: left;
+  font: 600 clamp(0.95rem, 1.4vw, 1.35rem)/0.95 "Instrument Sans", "Segoe UI", sans-serif;
+  letter-spacing: -0.045em;
+}
+
+.manual-random-trigger:hover,
+.manual-random-trigger:focus-visible {
+  background: var(--block-paper-color);
+  color: var(--block-color);
+  outline: 3px solid var(--block-color);
+  outline-offset: -3px;
 }
 
 .manual-chance-result .blocks-system-menu { min-height: 24px; }
 .manual-chance-result .blocks-system-title { font-size: 9px; }
-.manual-chance-result .manual-chance-cell strong { font-size: clamp(0.82rem, 1.2vw, 1.1rem); }
 
 @media (max-width: 1100px) {
   .manual-board { --blocks-columns: 1 !important; }

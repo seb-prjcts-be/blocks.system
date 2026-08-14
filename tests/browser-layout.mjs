@@ -641,16 +641,16 @@ async function measureManual(width, height, dpr = 1) {
       const dragLessonBlock = board.querySelector('[data-block-object="manual-drag"]');
       const dragCodeBlock = board.querySelector('[data-block-object="manual-drag-code"]');
       const dragResultBlock = board.querySelector('[data-block-object="manual-drag-result"]');
-      const compactLessonBlock = board.querySelector('[data-block-object="manual-compact"]');
-      const compactCodeBlock = board.querySelector('[data-block-object="manual-compact-code"]');
       const appearanceLessonBlock = board.querySelector('[data-block-object="manual-appearance"]');
       const appearanceCodeBlock = board.querySelector('[data-block-object="manual-appearance-code"]');
       const colorsLessonBlock = board.querySelector('[data-block-object="manual-colors"]');
       const colorsCodeBlock = board.querySelector('[data-block-object="manual-colors-code"]');
       const randomLessonBlock = board.querySelector('[data-block-object="manual-random"]');
       const randomCodeBlock = board.querySelector('[data-block-object="manual-random-code"]');
-      const combinedLessonBlock = board.querySelector('[data-block-object="manual-random-combined"]');
-      const combinedCodeBlock = board.querySelector('[data-block-object="manual-random-combined-code"]');
+      const randomActionBlock = board.querySelector('[data-block-object="manual-random-action"]');
+      const nextStatement = board.querySelector('[data-block-object="manual-next"] .manual-content-statement strong');
+      const nextStatementRange = document.createRange();
+      nextStatementRange.selectNodeContents(nextStatement);
       const dragPatternBlocks = [
         "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3",
         "manual-drag-result", "manual-drag-fixed-4", "manual-drag-fixed-5"
@@ -673,7 +673,7 @@ async function measureManual(width, height, dpr = 1) {
       const codeBlockWidths = Array.from(board.querySelectorAll(":scope > .manual-code-block"), function (block) {
         return { id: block.dataset.blockObject, width: block.getBoundingClientRect().width };
       });
-      const colorBlockStyles = ["manual-color-cyan", "manual-color-magenta", "manual-color-yellow", "manual-random-color-50", "manual-random-color-100", "manual-random-mix-1", "manual-random-mix-2"].map(function (id) {
+      const colorBlockStyles = ["manual-color-cyan", "manual-color-magenta", "manual-color-yellow"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         const objectStyle = getComputedStyle(block);
         const menuStyle = getComputedStyle(block.querySelector(":scope > .blocks-system-menu"));
@@ -688,27 +688,33 @@ async function measureManual(width, height, dpr = 1) {
         };
       });
       const randomExamples = [
-        "manual-random-color-0", "manual-random-color-50", "manual-random-color-100",
-        "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100",
-        "manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3", "manual-random-mix-4"
+        "manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3",
+        "manual-random-mix-4", "manual-random-mix-5", "manual-random-mix-6",
+        "manual-random-mix-7", "manual-random-mix-8", "manual-random-mix-9",
+        "manual-random-mix-10", "manual-random-mix-11", "manual-random-mix-12"
       ].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         const lesson = block.querySelector(":scope > .blocks-system-content > .manual-chance-cell");
         return {
-          label: lesson.querySelector("small").textContent,
-          statement: lesson.querySelector("strong").textContent
+          marker: lesson.querySelector("strong").textContent,
+          childCount: lesson.children.length
         };
       });
       function measureMiniGrid(ids) {
         return ids.map(function (id) {
           const rect = board.querySelector('[data-block-object="' + id + '"]').getBoundingClientRect();
-          return { id, left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height };
+          const block = board.querySelector('[data-block-object="' + id + '"]');
+          return {
+            id, left: rect.left, right: rect.right, top: rect.top, width: rect.width, height: rect.height,
+            column: block.style.getPropertyValue("--block-column"),
+            row: block.style.getPropertyValue("--block-row")
+          };
         });
       }
       const randomMiniGrids = {
-        color: measureMiniGrid(["manual-random-color-0", "manual-random-color-50", "manual-random-color-100"]),
-        inverse: measureMiniGrid(["manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100"]),
-        combined: measureMiniGrid(["manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3", "manual-random-mix-4"])
+        color: [],
+        inverse: [],
+        combined: measureMiniGrid(Array.from({ length: 12 }, function (_, index) { return "manual-random-mix-" + (index + 1); }))
       };
       const menuExamples = ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
@@ -717,6 +723,16 @@ async function measureManual(width, height, dpr = 1) {
           actions: Array.from(block.querySelectorAll(":scope > .blocks-system-menu button"), function (button) {
             return button.classList.contains("blocks-system-minimize") ? "minimize" : "close";
           })
+        };
+      });
+      const menuExampleGeometry = ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"].map(function (id) {
+        const block = board.querySelector('[data-block-object="' + id + '"]');
+        return {
+          id,
+          column: block.style.getPropertyValue("--block-column"),
+          row: block.style.getPropertyValue("--block-row"),
+          spanColumns: block.style.getPropertyValue("--block-span-columns"),
+          spanRows: block.style.getPropertyValue("--block-span-rows")
         };
       });
       const textOverlaps = objects.flatMap(function (block) {
@@ -836,20 +852,6 @@ async function measureManual(width, height, dpr = 1) {
             spanRows: block.style.getPropertyValue("--block-span-rows")
           };
         }),
-        compactLessonPair: {
-          explanation: {
-            column: compactLessonBlock.style.getPropertyValue("--block-column"),
-            row: compactLessonBlock.style.getPropertyValue("--block-row"),
-            spanColumns: compactLessonBlock.style.getPropertyValue("--block-span-columns"),
-            spanRows: compactLessonBlock.style.getPropertyValue("--block-span-rows")
-          },
-          code: {
-            column: compactCodeBlock.style.getPropertyValue("--block-column"),
-            row: compactCodeBlock.style.getPropertyValue("--block-row"),
-            spanColumns: compactCodeBlock.style.getPropertyValue("--block-span-columns"),
-            spanRows: compactCodeBlock.style.getPropertyValue("--block-span-rows")
-          }
-        },
         appearanceLessonPair: {
           explanation: {
             column: appearanceLessonBlock.style.getPropertyValue("--block-column"),
@@ -892,20 +894,13 @@ async function measureManual(width, height, dpr = 1) {
             spanRows: randomCodeBlock.style.getPropertyValue("--block-span-rows")
           }
         },
-        combinedLessonPair: {
-          explanation: {
-            column: combinedLessonBlock.style.getPropertyValue("--block-column"),
-            row: combinedLessonBlock.style.getPropertyValue("--block-row"),
-            spanColumns: combinedLessonBlock.style.getPropertyValue("--block-span-columns"),
-            spanRows: combinedLessonBlock.style.getPropertyValue("--block-span-rows")
-          },
-          code: {
-            column: combinedCodeBlock.style.getPropertyValue("--block-column"),
-            row: combinedCodeBlock.style.getPropertyValue("--block-row"),
-            spanColumns: combinedCodeBlock.style.getPropertyValue("--block-span-columns"),
-            spanRows: combinedCodeBlock.style.getPropertyValue("--block-span-rows")
-          }
+        randomAction: {
+          column: randomActionBlock.style.getPropertyValue("--block-column"),
+          row: randomActionBlock.style.getPropertyValue("--block-row"),
+          spanColumns: randomActionBlock.style.getPropertyValue("--block-span-columns"),
+          spanRows: randomActionBlock.style.getPropertyValue("--block-span-rows")
         },
+        nextStatementLines: nextStatementRange.getClientRects().length,
         devicePixelRatio: window.devicePixelRatio,
         codeOverflow: getComputedStyle(code).overflowX,
         scrollbarWidth: rootStyle.scrollbarWidth,
@@ -1015,6 +1010,7 @@ async function measureManual(width, height, dpr = 1) {
         randomExamples,
         randomMiniGrids,
         menuExamples,
+        menuExampleGeometry,
         textOverlaps
       };
     })()`,
@@ -1188,6 +1184,62 @@ async function exerciseManualFactory() {
       const beforeIndex = index.textContent;
       button.click();
       return { beforeState, beforeIndex, afterState: factory.dataset.state, afterIndex: index.textContent };
+    })()`,
+    returnByValue: true
+  });
+  return result.result.value;
+}
+
+async function exerciseManualRandomness() {
+  const result = await protocol.send("Runtime.evaluate", {
+    expression: `(function () {
+      const ids = Array.from({ length: 12 }, function (_, index) { return "manual-random-mix-" + (index + 1); });
+      const blocks = function () { return ids.map(function (id) { return document.querySelector('[data-block-object="' + id + '"]'); }); };
+      const variants = function () { return blocks().map(function (block) { return block.dataset.blockVariant; }); };
+      const color = document.querySelector("#manual-colorVariation");
+      const inverse = document.querySelector("#manual-inversionVariation");
+      const code = document.querySelector('[data-block-object="manual-random-code"] code');
+      const button = document.querySelector(".manual-random-trigger");
+      const outputs = Array.from(document.querySelectorAll(".manual-random-field output"));
+      const initialNodes = blocks();
+      const initialValues = outputs.map(function (output) { return output.value; });
+
+      color.value = "1";
+      inverse.value = "0";
+      color.dispatchEvent(new Event("input", { bubbles: true }));
+      const colorNodes = blocks();
+      const colorCode = code.textContent;
+      const colorVariants = variants();
+
+      color.value = "0";
+      inverse.value = "1";
+      inverse.dispatchEvent(new Event("input", { bubbles: true }));
+      const inverseNodes = blocks();
+      const inverseCode = code.textContent;
+      const inverseVariants = variants();
+
+      const nativeRandom = Math.random;
+      const randomSettings = [0.2, 0.8];
+      Math.random = function () { return randomSettings.shift(); };
+      button.click();
+      Math.random = nativeRandom;
+      return {
+        label: button.textContent.trim(),
+        sliderLabels: Array.from(document.querySelectorAll(".manual-random-label > span"), function (label) { return label.textContent; }),
+        hasRunCounter: Boolean(document.querySelector(".manual-random-status")),
+        initialValues,
+        currentValues: outputs.map(function (output) { return output.value; }),
+        colorCode,
+        inverseCode,
+        randomCode: code.textContent,
+        colorVariants,
+        inverseVariants,
+        initialDetached: initialNodes.every(function (block) { return !block.isConnected; }),
+        colorDetached: colorNodes.every(function (block) { return !block.isConnected; }),
+        inverseDetached: inverseNodes.every(function (block) { return !block.isConnected; }),
+        count: ids.filter(function (id) { return document.querySelector('[data-block-object="' + id + '"]'); }).length,
+        markers: ids.map(function (id) { return document.querySelector('[data-block-object="' + id + '"] .manual-chance-cell strong').textContent; })
+      };
     })()`,
     returnByValue: true
   });
@@ -1716,7 +1768,7 @@ try {
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const desktopManual = await measureManual(1280, 900, 2);
-  if (desktopManual.blockCount === 57) {
+  if (desktopManual.blockCount === 56) {
     assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
     assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
     assert.ok(desktopManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op desktop");
@@ -1755,13 +1807,19 @@ try {
       explanation: { column: "1", row: "19", spanColumns: "2", spanRows: "2" },
       code: { column: "3", row: "19", spanColumns: "4", spanRows: "2" }
     }, "manual 03 is niet opgesplitst in uitleg 2×2 en code 4×2");
+    assert.deepEqual(desktopManual.menuExampleGeometry, [
+      { id: "manual-menu-both", column: "1", row: "21", spanColumns: "3", spanRows: "1" },
+      { id: "manual-menu-minimize", column: "4", row: "21", spanColumns: "3", spanRows: "1" },
+      { id: "manual-menu-close", column: "1", row: "22", spanColumns: "3", spanRows: "1" },
+      { id: "manual-menu-none", column: "4", row: "22", spanColumns: "3", spanRows: "1" }
+    ], "manual 03 gebruikt niet vier compacte 3×1-vensters in twee rijen");
     assert.deepEqual(desktopManual.layoutLesson, {
       column: "1", row: "8", spanColumns: "2", spanRows: "1"
     }, "size and position staat niet als één rij hoge subles onder setup");
     assert.ok(desktopManual.codeBlockWidths.every((item) => Math.abs(item.width - desktopManual.boardWidth) <= 2), "manual-code moet de volledige rustige leesbreedte gebruiken");
     assert.equal(desktopManual.resetLabel, "reset manual", "manual mist zijn herstelactie");
     assert.equal(desktopManual.reader.tag, "ARTICLE", "de doorlopende leesroute moet een article zijn");
-    assert.equal(desktopManual.reader.headings.length, 10, "de doorlopende leesroute moet alle tien lessen bevatten");
+    assert.equal(desktopManual.reader.headings.length, 9, "de doorlopende leesroute moet alle negen lessen bevatten");
     assert.ok(desktopManual.reader.subheadings.length >= 16, "de doorlopende leesroute mist sublessen");
     assert.match(desktopManual.reader.text, /anything the browser can render/i, "de doorlopende leesroute mist de kernuitleg");
     assert.ok(desktopManual.protectedBlocks.length >= 15, "manual beschermt onvoldoende uitleg- en codeblokken");
@@ -1769,59 +1827,78 @@ try {
       return block.actions === 0 && block.tabIndex === -1 && block.role === null && block.ariaLabel === null;
     }), `uitleg- of codeblokken zijn nog sluitbaar of versleepbaar: ${JSON.stringify(desktopManual.protectedBlocks)}`);
     assert.deepEqual(desktopManual.dragLessonPair, {
-      explanation: { column: "1", row: "26", spanColumns: "2", spanRows: "1" },
-      code: { column: "3", row: "26", spanColumns: "4", spanRows: "1" }
+      explanation: { column: "1", row: "24", spanColumns: "2", spanRows: "1" },
+      code: { column: "3", row: "24", spanColumns: "4", spanRows: "1" }
     }, "manual 04 is niet als afzonderlijke dragging-les opgebouwd");
     assert.deepEqual(desktopManual.dragResult, {
       column: "5",
-      row: "28",
+      row: "26",
       spanColumns: "1",
       spanRows: "1",
       title: "block",
       statement: null
     }, "manual 04 start niet compact en duidelijk in de verkeerde kolom");
     assert.deepEqual(desktopManual.dragPattern, [
-      { id: "manual-drag-fixed-1", column: "1", row: "27", spanColumns: "1", spanRows: "1" },
-      { id: "manual-drag-fixed-2", column: "2", row: "27", spanColumns: "1", spanRows: "1" },
-      { id: "manual-drag-fixed-3", column: "3", row: "27", spanColumns: "1", spanRows: "1" },
-      { id: "manual-drag-result", column: "5", row: "28", spanColumns: "1", spanRows: "1" },
-      { id: "manual-drag-fixed-4", column: "4", row: "27", spanColumns: "1", spanRows: "1" },
-      { id: "manual-drag-fixed-5", column: "6", row: "27", spanColumns: "1", spanRows: "1" }
+      { id: "manual-drag-fixed-1", column: "1", row: "25", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-fixed-2", column: "2", row: "25", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-fixed-3", column: "3", row: "25", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-result", column: "5", row: "26", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-fixed-4", column: "4", row: "25", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-fixed-5", column: "6", row: "25", spanColumns: "1", spanRows: "1" }
     ], "manual 04 tekent niet de bedoelde 111101 / 000010-puzzel");
-    assert.deepEqual(desktopManual.compactLessonPair, {
-      explanation: { column: "1", row: "30", spanColumns: "2", spanRows: "2" },
-      code: { column: "3", row: "30", spanColumns: "4", spanRows: "2" }
-    }, "manual 05 is niet opgesplitst in uitleg 2×2 en code 4×2");
     assert.deepEqual(desktopManual.appearanceLessonPair, {
-      explanation: { column: "1", row: "33", spanColumns: "2", spanRows: "1" },
-      code: { column: "3", row: "33", spanColumns: "4", spanRows: "1" }
-    }, "manual 06 is niet compact opgesplitst in uitleg 2×1 en code 4×1");
+      explanation: { column: "1", row: "28", spanColumns: "2", spanRows: "1" },
+      code: { column: "3", row: "28", spanColumns: "4", spanRows: "1" }
+    }, "manual 05 is niet compact opgesplitst in uitleg 2×1 en code 4×1");
     assert.deepEqual(desktopManual.colorsLessonPair, {
-      explanation: { column: "1", row: "37", spanColumns: "2", spanRows: "2" },
-      code: { column: "3", row: "37", spanColumns: "4", spanRows: "2" }
-    }, "manual 07 is niet opgesplitst in uitleg 2×2 en code 4×2");
+      explanation: { column: "1", row: "32", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "32", spanColumns: "4", spanRows: "2" }
+    }, "manual 06 is niet opgesplitst in uitleg 2×2 en code 4×2");
     assert.deepEqual(desktopManual.randomLessonPair, {
-      explanation: { column: "1", row: "42", spanColumns: "2", spanRows: "2" },
-      code: { column: "3", row: "42", spanColumns: "4", spanRows: "2" }
-    }, "manual 08 is niet opgesplitst in uitleg 2×2 en code 4×2");
-    assert.deepEqual(desktopManual.combinedLessonPair, {
-      explanation: { column: "1", row: "45", spanColumns: "2", spanRows: "2" },
-      code: { column: "3", row: "45", spanColumns: "4", spanRows: "2" }
-    }, "manual color + inverse is niet opgesplitst in uitleg 2×2 en code 4×2");
-    assert.ok(desktopManual.randomExamples.every(function (example) {
-      return example.label.trim() !== "" && example.statement === "your content";
-    }), "de kansvoorbeelden missen hun zichtbare labels");
+      explanation: { column: "1", row: "37", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "37", spanColumns: "3", spanRows: "2" }
+    }, "manual 07 is niet opgesplitst in uitleg 2×2 en code 3×2");
+    assert.deepEqual(desktopManual.randomAction, {
+      column: "6", row: "37", spanColumns: "1", spanRows: "2"
+    }, "manual 07 gebruikt de vrije zesde kolom niet voor de herhaalactie");
+    assert.equal(desktopManual.nextStatementLines, 1, "manual 08 breekt 'now' onnodig naar een tweede desktopregel");
+    assert.deepEqual(desktopManual.randomExamples, [
+      "01", "02", "03", "04", "05", "06",
+      "07", "08", "09", "10", "11", "12"
+    ].map(function (marker) { return { marker, childCount: 1 }; }), "de kansvoorbeelden zijn geen sobere genummerde specimens");
+    assert.deepEqual(desktopManual.randomMiniGrids.combined.map(function (item) { return { column: item.column, row: item.row }; }), [
+      { column: "1", row: "39" }, { column: "2", row: "39" }, { column: "3", row: "39" },
+      { column: "4", row: "39" }, { column: "5", row: "39" }, { column: "6", row: "39" },
+      { column: "1", row: "40" }, { column: "2", row: "40" }, { column: "3", row: "40" },
+      { column: "4", row: "40" }, { column: "5", row: "40" }, { column: "6", row: "40" }
+    ], "manual 07 vormt geen twee volledige rijen van zes resultaten");
     assert.deepEqual(await exerciseManualFactory(), {
       beforeState: "structure",
       beforeIndex: "01",
       afterState: "contrast",
       afterIndex: "02"
     }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
+    const randomness = await exerciseManualRandomness();
+    assert.equal(randomness.label, "random", "manual 07 benoemt de nieuwe trekking niet duidelijk");
+    assert.deepEqual(randomness.sliderLabels, ["colorVariation", "colorInverse"], "manual 07 toont niet de gevraagde exacte slidernamen");
+    assert.equal(randomness.hasRunCounter, false, "manual 07 toont nog een overbodige run-teller");
+    assert.deepEqual(randomness.initialValues, ["0.5", "0.5"], "manual 07 toont de twee beginwaarden niet");
+    assert.deepEqual(randomness.currentValues, ["0.2", "0.8"], "random zet de sliders niet op de nieuw getrokken waarden");
+    assert.match(randomness.colorCode, /blocks\.colorVariation = 1\.0;[\s\S]*blocks\.inversionVariation = 0\.0;/, "de zichtbare code volgt de color-instelling niet");
+    assert.match(randomness.inverseCode, /blocks\.colorVariation = 0\.0;[\s\S]*blocks\.inversionVariation = 1\.0;/, "de zichtbare code volgt de inverse-instelling niet");
+    assert.match(randomness.randomCode, /blocks\.colorVariation = 0\.2;[\s\S]*blocks\.inversionVariation = 0\.8;/, "de zichtbare code volgt de random sliderwaarden niet");
+    assert.deepEqual(randomness.colorVariants, Array(12).fill("color"), "colorVariation 1 maakt niet alle twaalf blocks gekleurd");
+    assert.deepEqual(randomness.inverseVariants, Array(12).fill("inverse"), "inversionVariation 1 maakt niet alle twaalf blocks inverse");
+    assert.equal(randomness.initialDetached, true, "een sliderwijziging laat oude kansblocks in de DOM staan");
+    assert.equal(randomness.colorDetached, true, "de tweede sliderwijziging laat de vorige kansblocks in de DOM staan");
+    assert.equal(randomness.inverseDetached, true, "random laat de vorige kansblocks in de DOM staan");
+    assert.equal(randomness.count, 12, "de twee kansrijen bevatten na herhalen niet twaalf blocks");
+    assert.deepEqual(randomness.markers, ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"], "de kansrijen verliezen hun sobere volgnummering");
     assert.deepEqual(await exerciseManualKeyboardReorder(), {
       beforeColumn: "5",
-      beforeRow: "28",
+      beforeRow: "26",
       afterFirstColumn: "5",
-      afterFirstRow: "27",
+      afterFirstRow: "25",
       focusAcquired: true,
       focusAfterFirstMove: true,
       events: [
@@ -1832,7 +1909,7 @@ try {
       minimized: { state: "true", hidden: "true" },
       restored: "false",
       closeRemoved: true,
-      remainingBlocks: 56
+      remainingBlocks: 55
     }, "interactieve menuvoorbeelden moeten bedienbaar blijven naast de beschermde uitleg");
     await navigateTo(`${pageUrl}docs/`);
     const mobileManual = await measureManual(390, 844, 1);
@@ -1874,21 +1951,20 @@ try {
     ["00 / ELI10", "#eli10"],
     ["01 / start the system", "#start"],
     ["02 / content can be anything", "#content"],
-    ["03 / menu actions", "#menu"],
+    ["03 / titlebar controls", "#menu"],
     ["04 / dragging", "#dragging"],
-    ["05 / compact after changes", "#compact"],
-    ["06 / choose an appearance", "#appearance"],
-    ["07 / set a color", "#colors"],
-    ["08 / set the chance", "#chance"],
-    ["09 / run an example", "#next"]
+    ["05 / choose an appearance", "#appearance"],
+    ["06 / set a color", "#colors"],
+    ["07 / set the chance", "#chance"],
+    ["08 / unblocked", "#next"]
   ].map(function ([label, href]) { return { label, href, title: label }; }), "TOC-label, anker en blocktitel zijn niet overal dezelfde lesnaam");
   assert.equal(desktopManual.convention, "Rows are lessons; columns are explanation, code and live result — this manual is itself a blocks field.", "manual legt zijn matrixconventie niet uit");
   assert.equal(desktopManual.resetLabel, "reset manual", "manual heeft geen eenduidige herstelactie");
   assert.equal(desktopManual.reader.tag, "ARTICLE", "doorlopende lestekst staat niet in het primaire article");
   assert.deepEqual(desktopManual.reader.headings, [
-    "00 / ELI10", "01 / start the system", "02 / content can be anything", "03 / menu actions",
-    "04 / dragging", "05 / compact after changes", "06 / choose an appearance",
-    "07 / set a color", "08 / set the chance", "09 / run an example"
+    "00 / ELI10", "01 / start the system", "02 / content can be anything", "03 / titlebar controls",
+    "04 / dragging", "05 / choose an appearance", "06 / set a color",
+    "07 / set the chance", "08 / unblocked"
   ], "reader mode krijgt geen nette h2-hiërarchie per les");
   assert.ok(desktopManual.reader.subheadings.length >= 16, "sublessen missen h3-koppen in de leesversie");
   assert.match(desktopManual.reader.text, /anything the browser can render/i, "reader mode toont niet de doorlopende handleidingstekst");
@@ -2043,7 +2119,7 @@ try {
       assert.equal(new Set([...manual.randomMiniGrids.color, ...manual.randomMiniGrids.inverse].map((item) => item.top)).size, 1, `de twee afzonderlijke random-mini-grids delen geen rij op ${width}px`);
       assert.ok(Math.abs(manual.randomMiniGrids.inverse[0].left - manual.randomMiniGrids.color[2].right - manual.columnGap) <= 0.5, `de color- en inverse-mini-grid sluiten niet als twee rasterhelften op elkaar aan op ${width}px`);
       assert.equal(new Set(manual.randomMiniGrids.combined.map((item) => item.top)).size, 1, `de gecombineerde randomproef vormt geen eigen rij op ${width}px`);
-      assert.ok(Math.abs(manual.randomMiniGrids.combined[0].left - manual.randomMiniGrids.color[0].left) <= 0.5 && Math.abs(manual.randomMiniGrids.combined[3].right - manual.randomMiniGrids.inverse[0].right) <= 0.5, `de gecombineerde vierdelige proef start niet aan de linker rasterlijn op ${width}px`);
+      assert.ok(Math.abs(manual.randomMiniGrids.combined[0].left - manual.randomMiniGrids.color[0].left) <= 0.5 && Math.abs(manual.randomMiniGrids.combined[5].right - manual.randomMiniGrids.inverse[2].right) <= 0.5, `de gecombineerde zesdelige proef vult niet de volledige rasterrij op ${width}px`);
       assert.ok([...manual.randomMiniGrids.color, ...manual.randomMiniGrids.inverse, ...manual.randomMiniGrids.combined].every(function (item) { return Math.abs(item.height - manual.rowHeight) <= 0.5; }), `de chance-resultaten zijn geen echte 1×1-gridcellen op ${width}px`);
     }
     const expectedShellColors = ["rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"];
@@ -2051,14 +2127,13 @@ try {
     assert.deepEqual(manual.colorBlockStyles.map((style) => style.menuBackground), expectedShellColors, `manual zet de gebruikerskleur niet op de blockheader op ${width}px`);
     assert.ok(manual.colorBlockStyles.every((style) => style.objectBackground === "rgb(239, 238, 232)" && style.contentBackground === "rgb(239, 238, 232)"), `manual laat gebruikerskleur in het inhoudsvlak lekken op ${width}px`);
     assert.ok(manual.colorBlockStyles.every((style) => style.menuColor === "rgb(0, 0, 0)" && style.contentColor === "rgb(20, 20, 15)"), `manual bewaart geen neutrale inkt in gekleurde blocks op ${width}px`);
-    assert.equal(new Set(manual.randomExamples.map((example) => JSON.stringify(example))).size, 1, `manual verandert de random-inhoud in plaats van het block op ${width}px`);
     assert.deepEqual(manual.menuExamples, [
       { id: "manual-menu-both", actions: ["minimize", "close"] },
       { id: "manual-menu-minimize", actions: ["minimize"] },
       { id: "manual-menu-close", actions: ["close"] },
       { id: "manual-menu-none", actions: [] }
     ], `manual toont de vier menu-aan/uitcombinaties niet letterlijk op ${width}px`);
-    assert.ok(Object.values(manual.randomExamples[0]).every((value) => typeof value === "string" && value.trim() !== ""), `manual toont geen volledig vast random-object op ${width}px`);
+    assert.ok(manual.randomExamples.every(function (example) { return /^\d{2}$/.test(example.marker) && example.childCount === 1; }), `manual gebruikt nog generieke kaartinhoud in de kanscellen op ${width}px`);
     assert.equal(manual.contentExamples.trusted.tag, "ARTICLE", `manual toont trusted HTML niet als echte inhoud op ${width}px`);
     assert.match(manual.contentExamples.trusted.text, /Structure makes movement visible\./, `manual mist de typografische HTML-inhoud op ${width}px`);
     assert.equal(manual.contentExamples.object.tag, "FIGURE", `manual toont de foto niet als echt object op ${width}px`);

@@ -212,8 +212,8 @@
       }
     },
     "manual-menu": {
-      "title": "03 / menu actions",
-      "intro": "The titlebar can show minimize, close, both or neither. The four blocks below are the complete on/off set. A controller can also minimize, restore or remove its own block. Close removes this example; reload the page to restore the full manual.",
+      "title": "03 / titlebar controls",
+      "intro": "The titlebar can show a minimize button, a close button, both or neither. These controls sit in the top-right corner. The API calls this configuration menu. A controller can also minimize, restore or remove its own block. Close removes this example; reload the page to restore the full manual.",
       "contract": "api.html#block-methods",
       "layout": {
         "place": [1, 19],
@@ -224,14 +224,13 @@
       "title": "menu code",
       "code": [
         "const block = blocks.add(content, {",
-        "  menu: { minimize: true, close: true },",
-        "  minimized: false",
+        "  title: \"minimize + close\",",
+        "  menu: { minimize: true, close: true }",
         "});",
         "",
-        "block.menu(\"hello\", { minimize: true, close: true });",
-        "block.minimized = true;  // minimize",
-        "block.minimized = false; // restore",
-        "block.remove();           // close"
+        "block.minimized = true;",
+        "block.minimized = false;",
+        "block.remove();"
       ],
       "layout": {
         "place": [3, 19],
@@ -240,26 +239,18 @@
     },
     "manual-menu-both": {
       "title": "minimize + close",
-      "eyebrow": "menu options",
-      "statement": "Both on.",
       "body": "minimize: true · close: true"
     },
     "manual-menu-minimize": {
       "title": "minimize",
-      "eyebrow": "menu options",
-      "statement": "Minimize only.",
       "body": "minimize: true · close: false"
     },
     "manual-menu-close": {
       "title": "close",
-      "eyebrow": "menu options",
-      "statement": "Close only.",
       "body": "minimize: false · close: true"
     },
     "manual-menu-none": {
       "title": "neither",
-      "eyebrow": "menu options",
-      "statement": "Both off.",
       "body": "minimize: false · close: false"
     },
     "manual-layout": {
@@ -276,7 +267,7 @@
       "intro": "Turn dragging on to move blocks by their titlebars. Snap keeps each move on the grid.",
       "contract": "api.html#system-state",
       "layout": {
-        "place": [1, 26],
+        "place": [1, 24],
         "span": [2, 1]
       }
     },
@@ -287,84 +278,58 @@
         "blocks.snap = true;"
       ],
       "layout": {
-        "place": [3, 26],
+        "place": [3, 24],
         "span": [4, 1]
       }
     },
     "manual-drag-fixed-1": {
       "title": "block",
       "layout": {
-        "place": [1, 27],
+        "place": [1, 25],
         "span": [1, 1]
       }
     },
     "manual-drag-fixed-2": {
       "title": "block",
       "layout": {
-        "place": [2, 27],
+        "place": [2, 25],
         "span": [1, 1]
       }
     },
     "manual-drag-fixed-3": {
       "title": "block",
       "layout": {
-        "place": [3, 27],
+        "place": [3, 25],
         "span": [1, 1]
       }
     },
     "manual-drag-fixed-4": {
       "title": "block",
       "layout": {
-        "place": [4, 27],
+        "place": [4, 25],
         "span": [1, 1]
       }
     },
     "manual-drag-fixed-5": {
       "title": "block",
       "layout": {
-        "place": [6, 27],
+        "place": [6, 25],
         "span": [1, 1]
       }
     },
     "manual-drag-result": {
       "title": "block",
       "layout": {
-        "place": [5, 28],
+        "place": [5, 26],
         "span": [1, 1]
       }
     },
-    "manual-compact": {
-      "title": "05 / compact after changes",
-      "intro": "Use compact() after removing or moving fixed blocks when you want the placed grid to close vertical gaps. It moves fixed blocks upward inside their columns; it does not resize the grid.",
-      "contract": "api.html#system-methods",
-      "layout": {
-        "place": [1, 30],
-        "span": [2, 2]
-      }
-    },
-    "manual-compact-code": {
-      "title": "compact code",
-      "code": [
-        "const first = blocks.add(content, { title: \"first\" });",
-        "const second = blocks.add(content, { title: \"second\" });",
-        "",
-        "first.place(1, 1);",
-        "second.place(1, 4);",
-        "",
-        "first.remove();",
-        "blocks.compact();"
-      ],
-      "layout": {
-        "place": [3, 30],
-        "span": [4, 2]
-      }
-    },
     "manual-appearance": {
-      "title": "06 / choose an appearance",
+      "title": "05 / choose an appearance",
       "intro": "Choose one fixed monochrome variant. Regular uses dark ink on paper; inverse exchanges figure and ground. Color and chance come later.",
       "contract": "api.html#add-options",
       "layout": {
-        "place": [1, 33],
+        "place": [1, 28],
         "span": [2, 1]
       }
     },
@@ -375,7 +340,7 @@
         "blocks.add(content, { variant: \"inverse\" });"
       ],
       "layout": {
-        "place": [3, 33],
+        "place": [3, 28],
         "span": [4, 1]
       }
     },
@@ -392,11 +357,11 @@
       "body": "variant: \"inverse\""
     },
     "manual-colors": {
-      "title": "07 / set a color",
+      "title": "06 / set a color",
       "intro": "Set one block color directly. Any valid CSS color can define its border, titlebar and hover frame; the content surface stays neutral.",
       "contract": "api.html#block-controller",
       "layout": {
-        "place": [1, 37],
+        "place": [1, 32],
         "span": [2, 2]
       }
     },
@@ -414,7 +379,7 @@
         "}"
       ],
       "layout": {
-        "place": [3, 37],
+        "place": [3, 32],
         "span": [4, 2]
       }
     },
@@ -437,11 +402,11 @@
       "body": "Only color changes."
     },
     "manual-random": {
-      "title": "08 / set the chance",
-      "intro": "Chance affects only future blocks added with the random variant. The three left cells change the color share; the three right cells change the inverse share of the monochrome remainder. Values run from 0 to 1.",
+      "title": "07 / set the chance",
+      "intro": "Set both chances between 0 and 1. colorVariation is checked first. inversionVariation applies only to blocks that remain monochrome. The twelve blocks below use the current values.",
       "contract": "api.html#system-state",
       "layout": {
-        "place": [1, 42],
+        "place": [1, 37],
         "span": [2, 2]
       }
     },
@@ -451,85 +416,70 @@
         "blocks.variant = \"random\";",
         "blocks.colorArray = [\"cyan\", \"magenta\", \"yellow\"];",
         "",
-        "blocks.colorVariation = 0;     // 0, .5 or 1",
-        "blocks.inversionVariation = 0; // 0, .5 or 1"
-      ],
-      "layout": {
-        "place": [3, 42],
-        "span": [4, 2]
-      }
-    },
-    "manual-random-color-0": {
-      "title": "colorVariation / 0",
-      "statement": "your content"
-    },
-    "manual-random-color-50": {
-      "title": "colorVariation / 0.5",
-      "statement": "your content"
-    },
-    "manual-random-color-100": {
-      "title": "colorVariation / 1",
-      "statement": "your content"
-    },
-    "manual-random-inverse-0": {
-      "title": "inversionVariation / 0",
-      "statement": "your content"
-    },
-    "manual-random-inverse-50": {
-      "title": "inversionVariation / 0.5",
-      "statement": "your content"
-    },
-    "manual-random-inverse-100": {
-      "title": "inversionVariation / 1",
-      "statement": "your content"
-    },
-    "manual-random-combined": {
-      "title": "color + inverse",
-      "intro": "Combine both chances only after reading them separately. In this fixed four-call demonstration, two cells use color, one is regular and one is inverse. Real calls remain random.",
-      "layout": {
-        "place": [1, 45],
-        "span": [2, 2]
-      }
-    },
-    "manual-random-combined-code": {
-      "title": "combined code",
-      "code": [
         "blocks.colorVariation = 0.5;",
         "blocks.inversionVariation = 0.5;",
         "",
-        "blocks.add(content); // repeat for each new block"
+        "for (let index = 0; index < 12; index += 1) {",
+        "  blocks.add(\"your content\");",
+        "}"
       ],
       "layout": {
-        "place": [3, 45],
-        "span": [4, 2]
+        "place": [3, 37],
+        "span": [3, 2]
+      }
+    },
+    "manual-random-action": {
+      "title": "settings",
+      "intro": "Move either slider to update the code and create twelve new blocks. Random chooses a new pair of slider values.",
+      "fields": [
+        { "name": "colorVariation", "label": "colorVariation", "min": 0, "max": 1, "step": 0.1, "value": 0.5 },
+        { "name": "inversionVariation", "label": "colorInverse", "min": 0, "max": 1, "step": 0.1, "value": 0.5 }
+      ],
+      "action": "random",
+      "layout": {
+        "place": [6, 37],
+        "span": [1, 2]
       }
     },
     "manual-random-mix-1": {
-      "title": "result 01",
-      "statement": "your content"
+      "title": "result 01"
     },
     "manual-random-mix-2": {
-      "title": "result 02",
-      "statement": "your content"
+      "title": "result 02"
     },
     "manual-random-mix-3": {
-      "title": "result 03",
-      "statement": "your content"
+      "title": "result 03"
     },
     "manual-random-mix-4": {
-      "title": "result 04",
-      "statement": "your content"
+      "title": "result 04"
+    },
+    "manual-random-mix-5": {
+      "title": "result 05"
+    },
+    "manual-random-mix-6": {
+      "title": "result 06"
+    },
+    "manual-random-mix-7": {
+      "title": "result 07"
+    },
+    "manual-random-mix-8": {
+      "title": "result 08"
+    },
+    "manual-random-mix-9": {
+      "title": "result 09"
+    },
+    "manual-random-mix-10": {
+      "title": "result 10"
+    },
+    "manual-random-mix-11": {
+      "title": "result 11"
+    },
+    "manual-random-mix-12": {
+      "title": "result 12"
     },
     "manual-next": {
-      "title": "09 / run an example",
-      "eyebrow": "next / practice",
-      "statement": "Edit one call. Reload.",
-      "items": [
-        { "label": "basic grid →", "href": "../examples/basic-grid/" },
-        { "label": "mixed content →", "href": "../examples/mixed-content/" },
-        { "label": "custom adapter →", "href": "../examples/custom-adapter/" }
-      ],
-      "contract": "api.html#exports"
+      "title": "08 / unblocked",
+      "statement": "So, the blocks are unblocked now."
     }
   },
   "reference": {

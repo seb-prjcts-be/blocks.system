@@ -172,7 +172,7 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
 const styleVersions = new Set(Object.entries(pageHtml)
   .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.30"], "one consumer stylesheet must use one cache version across all pages");
+assert.deepEqual([...styleVersions], ["0.2.36"], "one consumer stylesheet must use one cache version across all pages");
 const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
 assert.match(examplesCss, /var\(--docs-field\)/, "example pages must use the shared docs field token");
 assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
@@ -252,9 +252,8 @@ const jsonLayoutIds = new Set([
   "manual-menu", "manual-menu-code", "manual-layout",
   "manual-drag", "manual-drag-code",
   "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5",
-  "manual-drag-result", "manual-compact", "manual-compact-code", "manual-appearance", "manual-appearance-code",
-  "manual-colors", "manual-colors-code", "manual-random", "manual-random-code",
-  "manual-random-combined", "manual-random-combined-code"
+  "manual-drag-result", "manual-appearance", "manual-appearance-code",
+  "manual-colors", "manual-colors-code", "manual-random", "manual-random-code", "manual-random-action"
 ]);
 for (const [id, entry] of Object.entries(docsContent.manual)) {
   if (!jsonLayoutIds.has(id)) assert.equal("layout" in entry, false, `${id} must keep layout in composition code`);
@@ -280,6 +279,24 @@ assert.match(siteDemos["docs/manual.mjs"], /manual-content-statement[\s\S]*?text
 assert.match(siteDemos["docs/manual.mjs"], /introId[\s\S]*?span: content\[introId\]\.layout\.span[\s\S]*?codeId[\s\S]*?span: content\[codeId\]\.layout\.span[\s\S]*?resultId[\s\S]*?span: content\[resultId\]\.layout\.span/, "manual 02.1–02.3 must consume their three-part JSON layouts");
 assert.deepEqual(docsContent.manual["manual-menu"].layout, { place: [1, 19], span: [2, 2] }, "manual 03 explanation must be 2×2");
 assert.deepEqual(docsContent.manual["manual-menu-code"].layout, { place: [3, 19], span: [4, 2] }, "manual 03 code must be 4×2");
+assert.equal(docsContent.manual["manual-menu"].title, "03 / titlebar controls", "manual 03 must use the human-facing titlebar term");
+assert.match(docsContent.manual["manual-menu"].intro, /top-right corner[\s\S]*API[\s\S]*menu/, "manual 03 must locate the buttons and bridge to the real menu API term");
+for (const id of ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"]) {
+  assert.equal("eyebrow" in docsContent.manual[id], false, `${id} must not repeat the titlebar label inside its compact result`);
+  assert.equal("statement" in docsContent.manual[id], false, `${id} must not repeat its title inside its compact result`);
+  assert.match(docsContent.manual[id].body, /^minimize: (?:true|false) · close: (?:true|false)$/, `${id} must state its exact menu settings on one line`);
+}
+assert.match(siteDemos["docs/manual.mjs"], /\["manual-menu-both", 1, 21[\s\S]*\["manual-menu-minimize", 4, 21[\s\S]*\["manual-menu-close", 1, 22[\s\S]*\["manual-menu-none", 4, 22[\s\S]*span: \[3, 1\]/, "manual 03 must compare four compact 3×1 titlebar examples in two rows");
+assert.deepEqual(docsContent.manual["manual-menu-code"].code, [
+  "const block = blocks.add(content, {",
+  '  title: "minimize + close",',
+  "  menu: { minimize: true, close: true }",
+  "});",
+  "",
+  "block.minimized = true;",
+  "block.minimized = false;",
+  "block.remove();"
+], "manual 03 must show one non-redundant menu route that matches its first result block");
 assert.deepEqual(docsContent.manual["manual-layout"].layout, { place: [1, 8], span: [2, 1] }, "size and position must be one row high under setup");
 assert.equal(docsContent.manual["manual-layout"].title, "block size and position", "the setup sublesson must name the block that span and place control");
 assert.equal("manual-layout-code" in docsContent.manual, false, "size and position must not duplicate setup code in a separate block");
@@ -287,8 +304,8 @@ assert.equal("manual-layout-result" in docsContent.manual, false, "setup must no
 assert.ok(docsContent.manual["manual-start-b"].code.includes("block.span(4, 2);"), "setup code must own the size example");
 assert.ok(docsContent.manual["manual-start-b"].code.includes("block.place(1, 1);"), "setup code must own the position example");
 assert.ok(docsContent.manual["manual-start-b"].code.some((line) => line.includes("menu: { minimize: true, close: true }")), "setup code must give added blocks the standard minimize and close actions");
-assert.deepEqual(docsContent.manual["manual-drag"].layout, { place: [1, 26], span: [2, 1] }, "manual 04 dragging explanation must be compact 2×1");
-assert.deepEqual(docsContent.manual["manual-drag-code"].layout, { place: [3, 26], span: [4, 1] }, "manual 04 dragging code must be compact 4×1");
+assert.deepEqual(docsContent.manual["manual-drag"].layout, { place: [1, 24], span: [2, 1] }, "manual 04 dragging explanation must be compact 2×1");
+assert.deepEqual(docsContent.manual["manual-drag-code"].layout, { place: [3, 24], span: [4, 1] }, "manual 04 dragging code must be compact 4×1");
 assert.deepEqual([
   docsContent.manual["manual-drag-fixed-1"].layout.place,
   docsContent.manual["manual-drag-fixed-2"].layout.place,
@@ -296,34 +313,69 @@ assert.deepEqual([
   docsContent.manual["manual-drag-result"].layout.place,
   docsContent.manual["manual-drag-fixed-4"].layout.place,
   docsContent.manual["manual-drag-fixed-5"].layout.place
-], [[1, 27], [2, 27], [3, 27], [5, 28], [4, 27], [6, 27]], "manual 04 must form the compact 111101 / 000010 challenge");
+], [[1, 25], [2, 25], [3, 25], [5, 26], [4, 25], [6, 25]], "manual 04 must form the compact 111101 / 000010 challenge");
 for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5", "manual-drag-result"]) {
   assert.deepEqual(docsContent.manual[id].layout.span, [1, 1], `${id} must remain a 1×1 puzzle piece`);
 }
 assert.equal(docsContent.manual["manual-drag-result"].title, "block", "manual 04 must name the movable piece like the other blocks");
 assert.equal("statement" in docsContent.manual["manual-drag-result"], false, "manual 04 must let the misplaced block communicate without an arrow or instruction");
 assert.deepEqual(docsContent.manual["manual-drag-code"].code, ["blocks.draggable = true;", "blocks.snap = true;"], "manual 04 must teach dragging separately from size and position");
-assert.deepEqual(docsContent.manual["manual-compact"].layout, { place: [1, 30], span: [2, 2] }, "manual 05 explanation must be 2×2");
-assert.deepEqual(docsContent.manual["manual-compact-code"].layout, { place: [3, 30], span: [4, 2] }, "manual 05 code must be 4×2 beside its explanation");
-assert.deepEqual(docsContent.manual["manual-appearance"].layout, { place: [1, 33], span: [2, 1] }, "manual 06 explanation must be compact 2×1");
-assert.deepEqual(docsContent.manual["manual-appearance-code"].layout, { place: [3, 33], span: [4, 1] }, "manual 06 code must be compact 4×1 beside its explanation");
-assert.deepEqual(docsContent.manual["manual-colors"].layout, { place: [1, 37], span: [2, 2] }, "manual 07 explanation must be 2×2");
-assert.deepEqual(docsContent.manual["manual-colors-code"].layout, { place: [3, 37], span: [4, 2] }, "manual 07 code must be 4×2 beside its explanation");
-assert.ok(docsContent.manual["manual-colors-code"].code.includes('const colors = ["cyan", "magenta", "yellow"];'), "manual 07 must define the three demonstrated colors");
-assert.ok(docsContent.manual["manual-colors-code"].code.some((line) => line.trim() === "block.color = color;"), "manual 07 must apply each defined color to its block");
-assert.deepEqual(docsContent.manual["manual-random"].layout, { place: [1, 42], span: [2, 2] }, "manual 08 explanation must be 2×2");
-assert.deepEqual(docsContent.manual["manual-random-code"].layout, { place: [3, 42], span: [4, 2] }, "manual 08 code must be 4×2 beside its explanation");
-assert.deepEqual(docsContent.manual["manual-random-combined"].layout, { place: [1, 45], span: [2, 2] }, "manual color + inverse explanation must be 2×2");
-assert.deepEqual(docsContent.manual["manual-random-combined-code"].layout, { place: [3, 45], span: [4, 2] }, "manual color + inverse code must be 4×2 beside its explanation");
+assert.equal("manual-compact" in docsContent.manual, false, "compact() must stay in the API reference instead of the beginner manual");
+assert.equal("manual-compact-code" in docsContent.manual, false, "the beginner manual must not carry a separate compact() code lesson");
+assert.deepEqual(docsContent.manual["manual-appearance"].layout, { place: [1, 28], span: [2, 1] }, "manual 05 explanation must be compact 2×1");
+assert.deepEqual(docsContent.manual["manual-appearance-code"].layout, { place: [3, 28], span: [4, 1] }, "manual 05 code must be compact 4×1 beside its explanation");
+assert.deepEqual(docsContent.manual["manual-colors"].layout, { place: [1, 32], span: [2, 2] }, "manual 06 explanation must be 2×2");
+assert.deepEqual(docsContent.manual["manual-colors-code"].layout, { place: [3, 32], span: [4, 2] }, "manual 06 code must be 4×2 beside its explanation");
+assert.ok(docsContent.manual["manual-colors-code"].code.includes('const colors = ["cyan", "magenta", "yellow"];'), "manual 06 must define the three demonstrated colors");
+assert.ok(docsContent.manual["manual-colors-code"].code.some((line) => line.trim() === "block.color = color;"), "manual 06 must apply each defined color to its block");
+assert.deepEqual(docsContent.manual["manual-random"].layout, { place: [1, 37], span: [2, 2] }, "manual 07 explanation must be 2×2");
+assert.deepEqual(docsContent.manual["manual-random-code"].layout, { place: [3, 37], span: [3, 2] }, "manual 07 code must be 3×2 beside its explanation");
+assert.deepEqual(docsContent.manual["manual-random-action"].layout, { place: [6, 37], span: [1, 2] }, "manual 07 rerun action must occupy the freed sixth column");
+assert.equal(docsContent.manual["manual-random-action"].action, "random", "manual 07 action must describe a fresh random draw");
+assert.deepEqual(docsContent.manual["manual-random-action"].fields, [
+  { name: "colorVariation", label: "colorVariation", min: 0, max: 1, step: 0.1, value: 0.5 },
+  { name: "inversionVariation", label: "colorInverse", min: 0, max: 1, step: 0.1, value: 0.5 }
+], "manual 07 must expose both chance parameters through the same control shape");
+assert.deepEqual(docsContent.manual["manual-random-code"].code, [
+  'blocks.variant = "random";',
+  'blocks.colorArray = ["cyan", "magenta", "yellow"];',
+  "",
+  "blocks.colorVariation = 0.5;",
+  "blocks.inversionVariation = 0.5;",
+  "",
+  "for (let index = 0; index < 12; index += 1) {",
+  '  blocks.add("your content");',
+  "}"
+], "manual 07 must show one complete settings-to-results route");
+for (const id of [
+  "manual-random-color-0", "manual-random-color-50", "manual-random-color-100",
+  "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100",
+  "manual-random-combined", "manual-random-combined-code"
+]) assert.equal(id in docsContent.manual, false, `manual 07 must not duplicate its adjustable settings in ${id}`);
+for (const id of Array.from({ length: 12 }, (_, index) => `manual-random-mix-${index + 1}`)) {
+  assert.equal("statement" in docsContent.manual[id], false, `${id} must remain a typographic result`);
+}
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /const samples|sampleIndex|random:\s*\(\)/, "manual 07 must use the real default random source");
+assert.match(siteDemos["docs/manual.mjs"], /manual-random-control[\s\S]*colorVariation[\s\S]*inversionVariation/, "manual 07 must render both parameters in one control block");
+assert.match(siteDemos["docs/manual.mjs"], /function randomizeChanceSettings[\s\S]*Math\.random[\s\S]*rerollChanceResults/, "manual 07 random action must choose and display new slider settings");
+assert.match(siteDemos["docs/manual.mjs"], /useSystemVariant[\s\S]*delete options\.variant/, "chance results must inherit the configured random system variant");
+assert.match(siteDemos["docs/manual.mjs"], /manual-random-trigger[\s\S]*rerollChanceResults/, "manual 07 must expose a button that reruns the chance code");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /🎲|Re-roll Randomness/, "manual 07 must not use decorative AI-style casino copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /manual-contract|exact contract →|function contract\(/, "manual must not render exact-contract separator rows");
 assert.match(siteDemos["docs/manual.mjs"], /manual-chapter-heading/, "manual chapters must expose real h2 headings for assistive navigation");
+assert.deepEqual(docsContent.manual["manual-next"], {
+  title: "08 / unblocked",
+  statement: "So, the blocks are unblocked now."
+}, "manual 08 must end with one dry Swiss punchline and no example navigation");
+assert.doesNotMatch(siteDemos["docs/manual.mjs"], /function next\(|manual-next-links/, "manual 08 must not retain the old examples-link renderer");
+assert.match(siteDemos["docs/manual.mjs"], /manual-next[\s\S]*blockContent: overviewText\(content\["manual-next"\]\)/, "manual 08 must use the same large neutral statement architecture as chapter 02");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /ResizeObserver|MutationObserver|registerAdapter|document\.createElement\("video"\)/, "advanced lifecycle examples must stay outside the beginner route");
-for (const anchor of ["eli10", "start", "content", "menu", "dragging", "compact", "appearance", "colors", "chance", "next"]) {
+for (const anchor of ["eli10", "start", "content", "menu", "dragging", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes('"' + anchor + '"'), "manual misses #" + anchor);
 }
 const manualCopy = JSON.stringify(docsContent.manual).toLowerCase();
 assert.doesNotMatch(manualCopy, /same object/, "manual copy must speak about the reader's content, not its own test fixture");
-assert.ok((manualCopy.match(/\byour\b/g) || []).length >= 15, "manual copy must repeatedly address the reader where appearance varies");
+assert.ok((manualCopy.match(/\byour\b/g) || []).length >= 10, "manual copy must address the reader without repeating generic filler inside chance specimens");
 for (const anchor of ["exports", "options", "system-state", "system-methods", "block-controller", "add-options", "adapters", "reorder-event", "css-hooks", "errors"]) {
   assert.ok(referenceSectionsSource.includes('"' + anchor + '"'), "reference sections miss #" + anchor);
 }

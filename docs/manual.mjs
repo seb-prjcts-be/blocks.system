@@ -5,12 +5,9 @@ import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.5";
 const board = document.querySelector("#manual-board");
 const reader = document.querySelector("#manual-reader");
 const resetButton = document.querySelector("#manual-reset");
-const samples = [0.05, 0.1, 0.6, 0.05, 0.8, 0.6, 0.05, 0.4, 0.8, 0.6];
-let sampleIndex = 0;
 const blocks = createBlocksSystem({
   variant: "regular",
   snap: true,
-  random: () => samples[sampleIndex++ % samples.length],
   labels: { move: "move" },
   blockDefaults: { menu: { minimize: true, close: true } }
 });
@@ -26,17 +23,17 @@ const manualIds = [
   "manual-drag", "manual-drag-code",
   "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5",
   "manual-drag-result",
-  "manual-compact", "manual-compact-code", "manual-appearance", "manual-appearance-code", "manual-appearance-regular",
+  "manual-appearance", "manual-appearance-code", "manual-appearance-regular",
   "manual-appearance-inverse", "manual-colors", "manual-colors-code", "manual-color-cyan",
-  "manual-color-magenta", "manual-color-yellow", "manual-random", "manual-random-code",
-  "manual-random-color-0", "manual-random-color-50", "manual-random-color-100",
-  "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100",
-  "manual-random-combined", "manual-random-combined-code", "manual-random-mix-1", "manual-random-mix-2",
-  "manual-random-mix-3", "manual-random-mix-4", "manual-next"
+  "manual-color-magenta", "manual-color-yellow", "manual-random", "manual-random-code", "manual-random-action",
+  "manual-random-mix-1", "manual-random-mix-2",
+  "manual-random-mix-3", "manual-random-mix-4", "manual-random-mix-5", "manual-random-mix-6",
+  "manual-random-mix-7", "manual-random-mix-8", "manual-random-mix-9", "manual-random-mix-10",
+  "manual-random-mix-11", "manual-random-mix-12", "manual-next"
 ];
 const content = await loadDocsContent("manual", manualIds);
 blocks.attach(board);
-blocks.setGrid(6, 50);
+blocks.setGrid(6, 43);
 quantizeSurface(board);
 
 function text(name, value, className = "") {
@@ -169,27 +166,43 @@ function factory({ eyebrow, states, action }) {
   };
 }
 
-function next(entry) {
-  const root = specimen(entry);
-  const links = document.createElement("div");
-  links.className = "manual-next-links";
-  for (const item of entry.items) {
-    const link = text("a", item.label);
-    link.href = item.href;
-    links.append(link);
-  }
-  root.append(links);
+function chance(index) {
+  const root = document.createElement("div");
+  root.className = "manual-chance-cell";
+  root.append(text("strong", String(index + 1).padStart(2, "0")));
   return root;
 }
 
-function chance(entry) {
+function randomControls(entry) {
   const root = document.createElement("div");
-  root.className = "manual-chance-cell";
-  root.append(
-    text("small", entry.title.replace(/^\d+(?:\.\d+)?\s*\/\s*/, "")),
-    text("strong", entry.statement)
-  );
-  return root;
+  root.className = "manual-random-controls";
+  const inputs = {};
+  const outputs = {};
+  for (const field of entry.fields) {
+    const label = document.createElement("label");
+    label.className = "manual-random-field";
+    const labelRow = document.createElement("span");
+    labelRow.className = "manual-random-label";
+    const output = document.createElement("output");
+    output.htmlFor = "manual-" + field.name;
+    const input = document.createElement("input");
+    input.id = "manual-" + field.name;
+    input.name = field.name;
+    input.type = "range";
+    input.min = String(field.min);
+    input.max = String(field.max);
+    input.step = String(field.step);
+    input.value = String(field.value);
+    labelRow.append(text("span", field.label), output);
+    label.append(labelRow, input);
+    root.append(label);
+    inputs[field.name] = input;
+    outputs[field.name] = output;
+  }
+  const button = text("button", entry.action, "manual-random-trigger");
+  button.type = "button";
+  root.append(button);
+  return { root, inputs, outputs, button };
 }
 
 function lockLessonBlock(block) {
@@ -204,7 +217,7 @@ function lockLessonBlock(block) {
   title.removeAttribute("aria-keyshortcuts");
 }
 
-function add({ id, title, blockContent, span, place, variant = "regular", menu, anchor = "", protectedBlock = false, classes = [] }) {
+function add({ id, title, blockContent, span, place, variant = "regular", useSystemVariant = false, menu, anchor = "", protectedBlock = false, classes = [] }) {
   if (anchor && blockContent instanceof Node) blockContent.prepend(text("h2", title, "manual-chapter-heading"));
   const options = {
     id,
@@ -212,6 +225,7 @@ function add({ id, title, blockContent, span, place, variant = "regular", menu, 
     variant,
     menu: protectedBlock ? { minimize: false, close: false } : menu
   };
+  if (useSystemVariant) delete options.variant;
   if (options.menu === undefined) delete options.menu;
   const block = blocks.add(blockContent, options);
   block.span(...span);
@@ -231,6 +245,8 @@ function appendReaderEntry(root, entry, headingName) {
   if (entry.intro) root.append(text("p", entry.intro));
   if (entry.statement) root.append(text("p", entry.statement));
   if (entry.body) root.append(text("p", entry.body));
+  if (entry.action) root.append(text("p", entry.action));
+  if (entry.fields) root.append(text("p", entry.fields.map((field) => field.label + " " + field.min + "–" + field.max).join(" · ")));
   if (entry.code) {
     const pre = document.createElement("pre");
     pre.append(text("code", Array.isArray(entry.code) ? entry.code.join("\n") : entry.code));
@@ -257,10 +273,9 @@ function createReaderArticle() {
     ["manual-finish", ["manual-content-html-intro", "manual-content-html-code", "manual-content-html", "manual-content-object-intro", "manual-content-object-code", "manual-content-object", "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory"]],
     ["manual-menu", ["manual-menu-code", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"]],
     ["manual-drag", ["manual-drag-code", "manual-drag-result"]],
-    ["manual-compact", ["manual-compact-code"]],
     ["manual-appearance", ["manual-appearance-code", "manual-appearance-regular", "manual-appearance-inverse"]],
     ["manual-colors", ["manual-colors-code", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow"]],
-    ["manual-random", ["manual-random-code", "manual-random-color-0", "manual-random-color-50", "manual-random-color-100", "manual-random-inverse-0", "manual-random-inverse-50", "manual-random-inverse-100", "manual-random-combined", "manual-random-combined-code"]],
+    ["manual-random", ["manual-random-code", "manual-random-action"]],
     ["manual-next", []]
   ];
   const fragment = document.createDocumentFragment();
@@ -334,9 +349,9 @@ add({ id: "manual-menu-code", title: content["manual-menu-code"].title, blockCon
 for (const [id, column, row, menu] of [
   ["manual-menu-both", 1, 21, { minimize: true, close: true }],
   ["manual-menu-minimize", 4, 21, { minimize: true, close: false }],
-  ["manual-menu-close", 1, 23, { minimize: false, close: true }],
-  ["manual-menu-none", 4, 23, { minimize: false, close: false }]
-]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, row], menu, classes: ["manual-half"] });
+  ["manual-menu-close", 1, 22, { minimize: false, close: true }],
+  ["manual-menu-none", 4, 22, { minimize: false, close: false }]
+]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 1], place: [column, row], menu, classes: ["manual-half"] });
 add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: introCard(content["manual-layout"]), span: content["manual-layout"].layout.span, place: content["manual-layout"].layout.place, protectedBlock: true });
 add({ id: "manual-drag", title: content["manual-drag"].title, blockContent: introCard(content["manual-drag"]), span: content["manual-drag"].layout.span, place: content["manual-drag"].layout.place, anchor: "dragging", protectedBlock: true, classes: ["manual-chapter-start"] });
 add({ id: "manual-drag-code", title: content["manual-drag-code"].title, blockContent: codeOnlyCard(content["manual-drag-code"]), span: content["manual-drag-code"].layout.span, place: content["manual-drag-code"].layout.place, protectedBlock: true });
@@ -347,10 +362,8 @@ for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fix
 add({ id: "manual-drag-result", title: content["manual-drag-result"].title, blockContent: specimen(content["manual-drag-result"]), span: content["manual-drag-result"].layout.span, place: content["manual-drag-result"].layout.place });
 
 for (const [id, codeId, anchor] of [
-  ["manual-compact", "manual-compact-code", "compact"],
   ["manual-appearance", "manual-appearance-code", "appearance"],
-  ["manual-colors", "manual-colors-code", "colors"],
-  ["manual-random", "manual-random-code", "chance"]
+  ["manual-colors", "manual-colors-code", "colors"]
 ]) {
   add({ id, title: content[id].title, blockContent: introCard(content[id]), span: content[id].layout.span, place: content[id].layout.place, anchor, protectedBlock: true, classes: ["manual-chapter-start"] });
   add({ id: codeId, title: content[codeId].title, blockContent: codeOnlyCard(content[codeId]), span: content[codeId].layout.span, place: content[codeId].layout.place, protectedBlock: true });
@@ -359,45 +372,89 @@ for (const [id, codeId, anchor] of [
 for (const [id, column, variant] of [
   ["manual-appearance-regular", 1, "regular"],
   ["manual-appearance-inverse", 4, "inverse"]
-]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, 34], variant, classes: ["manual-half"] });
+]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, 29], variant, classes: ["manual-half"] });
 
 for (const [id, column, color] of [
   ["manual-color-cyan", 1, "cyan"],
   ["manual-color-magenta", 3, "magenta"],
   ["manual-color-yellow", 5, "yellow"]
 ]) {
-  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 2], place: [column, 39], classes: ["manual-third"] });
+  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 2], place: [column, 34], classes: ["manual-third"] });
   block.color = color;
 }
 
-blocks.variant = "random";
-blocks.colorArray = ["cyan", "magenta", "yellow"];
-blocks.inversionVariation = 0;
-for (const [id, column, variation] of [
-  ["manual-random-color-0", 1, 0],
-  ["manual-random-color-50", 2, 0.5],
-  ["manual-random-color-100", 3, 1]
-]) {
-  blocks.colorVariation = variation;
-  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 44], classes: ["manual-sixth"] });
+const chanceControls = randomControls(content["manual-random-action"]);
+const chanceCode = codeOnlyCard(content["manual-random-code"]);
+const chanceCodeElement = chanceCode.querySelector("code");
+add({ id: "manual-random", title: content["manual-random"].title, blockContent: introCard(content["manual-random"]), span: content["manual-random"].layout.span, place: content["manual-random"].layout.place, anchor: "chance", protectedBlock: true, classes: ["manual-chapter-start"] });
+add({ id: "manual-random-code", title: content["manual-random-code"].title, blockContent: chanceCode, span: content["manual-random-code"].layout.span, place: content["manual-random-code"].layout.place, protectedBlock: true });
+add({ id: "manual-random-action", title: content["manual-random-action"].title, blockContent: chanceControls.root, span: content["manual-random-action"].layout.span, place: content["manual-random-action"].layout.place, protectedBlock: true, classes: ["manual-random-action-block"] });
+
+let chanceResults = [];
+
+function addChanceResult(id, column, row, index) {
+  const block = add({
+    id,
+    title: content[id].title,
+    blockContent: chance(index),
+    span: [1, 1],
+    place: [column, row],
+    useSystemVariant: true,
+    menu: { minimize: false, close: false },
+    classes: ["manual-sixth", "manual-chance-result"]
+  });
+  lockLessonBlock(block);
+  chanceResults.push(block);
 }
-blocks.colorVariation = 0;
-for (const [id, column, variation] of [
-  ["manual-random-inverse-0", 4, 0],
-  ["manual-random-inverse-50", 5, 0.5],
-  ["manual-random-inverse-100", 6, 1]
-]) {
-  blocks.inversionVariation = variation;
-  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 44], classes: ["manual-sixth"] });
+
+function rerollChanceResults() {
+  if (chanceResults.length > 0) {
+    const snap = blocks.snap;
+    blocks.snap = false;
+    for (const block of chanceResults) block.remove();
+    blocks.snap = snap;
+    chanceResults = [];
+  }
+
+  const colorVariation = Number(chanceControls.inputs.colorVariation.value);
+  const inversionVariation = Number(chanceControls.inputs.inversionVariation.value);
+  chanceControls.outputs.colorVariation.value = colorVariation.toFixed(1);
+  chanceControls.outputs.inversionVariation.value = inversionVariation.toFixed(1);
+  const code = [...content["manual-random-code"].code];
+  code[3] = "blocks.colorVariation = " + colorVariation.toFixed(1) + ";";
+  code[4] = "blocks.inversionVariation = " + inversionVariation.toFixed(1) + ";";
+  chanceCodeElement.textContent = code.join("\n");
+
+  blocks.variant = "random";
+  blocks.colorArray = ["cyan", "magenta", "yellow"];
+  blocks.colorVariation = colorVariation;
+  blocks.inversionVariation = inversionVariation;
+  for (let index = 0; index < 12; index += 1) {
+    const column = (index % 6) + 1;
+    const row = 39 + Math.floor(index / 6);
+    addChanceResult("manual-random-mix-" + (index + 1), column, row, index);
+  }
+
+  blocks.variant = "regular";
+  blocks.colorVariation = 0;
+  blocks.inversionVariation = 0;
 }
-add({ id: "manual-random-combined", title: content["manual-random-combined"].title, blockContent: introCard(content["manual-random-combined"]), span: content["manual-random-combined"].layout.span, place: content["manual-random-combined"].layout.place, protectedBlock: true });
-add({ id: "manual-random-combined-code", title: content["manual-random-combined-code"].title, blockContent: codeOnlyCard(content["manual-random-combined-code"]), span: content["manual-random-combined-code"].layout.span, place: content["manual-random-combined-code"].layout.place, protectedBlock: true });
-blocks.colorVariation = 0.5;
-blocks.inversionVariation = 0.5;
-for (const [index, column] of [1, 2, 3, 4].entries()) {
-  const id = "manual-random-mix-" + (index + 1);
-  add({ id, title: content[id].title, blockContent: chance(content[id]), span: [1, 1], place: [column, 47], classes: ["manual-sixth"] });
+
+function randomizeChanceSettings() {
+  for (const input of Object.values(chanceControls.inputs)) {
+    const min = Number(input.min);
+    const max = Number(input.max);
+    const step = Number(input.step);
+    const stepCount = Math.round((max - min) / step);
+    const stepIndex = Math.floor(Math.random() * (stepCount + 1));
+    input.value = String(Number((min + stepIndex * step).toFixed(10)));
+  }
+  rerollChanceResults();
 }
-add({ id: "manual-next", title: content["manual-next"].title, blockContent: next(content["manual-next"]), span: [6, 2], place: [1, 49], anchor: "next", protectedBlock: true, classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
+
+chanceControls.button.addEventListener("click", randomizeChanceSettings);
+for (const input of Object.values(chanceControls.inputs)) input.addEventListener("input", rerollChanceResults);
+rerollChanceResults();
+add({ id: "manual-next", title: content["manual-next"].title, blockContent: overviewText(content["manual-next"]), span: [6, 2], place: [1, 42], anchor: "next", protectedBlock: true, classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
 
 board.dataset.manualReady = "true";
