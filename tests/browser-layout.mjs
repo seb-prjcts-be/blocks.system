@@ -573,6 +573,9 @@ async function measureManual(width, height, dpr = 1) {
       const mastheadRect = document.querySelector(".manual-masthead").getBoundingClientRect();
       const mastheadTitle = document.querySelector(".manual-masthead h1");
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
+      const codeOrResultTitles = objects
+        .map(function (block) { return block.querySelector(":scope > .blocks-system-menu > .blocks-system-title")?.textContent.trim() || ""; })
+        .filter(function (title) { return /\\b(?:code|result)\\b/i.test(title); });
       const code = board.querySelector(".manual-code");
       const rootStyle = getComputedStyle(document.documentElement);
       const eli10Block = board.querySelector('[data-block-object="manual-eli10"]');
@@ -990,6 +993,7 @@ async function measureManual(width, height, dpr = 1) {
         },
         finishBlockTop: finishBlockRect.top,
         finishBlockBottom: finishBlockRect.bottom,
+        codeOrResultTitles,
         contentOptions,
         contentPairs,
         contentOverview: {
@@ -1024,6 +1028,7 @@ async function measureManual(width, height, dpr = 1) {
             tag: imageDemo.tagName,
             source: new URL(image.src).pathname,
             alt: image.alt,
+            caption: imageDemo.querySelector("figcaption")?.textContent ?? null,
             fit: getComputedStyle(image).objectFit
           },
           factory: {
@@ -1806,6 +1811,7 @@ try {
     assert.equal(desktopManual.mastheadTitle, "Container. Blocks. Grid. Block.", "manual mist de volledige systeemvolgorde in zijn hoofdtitel");
     assert.equal(desktopManual.introCount, 0, "manual legt bovenaan zijn zichtbare leerroute nog eens uit");
     assert.equal(desktopManual.mastheadBorderBottomWidth, "0px", "manual toont nog een horizontale lijn onder de titel");
+    assert.deepEqual(desktopManual.codeOrResultTitles, [], "manual toont nog titeltekst met code of result");
     assert.deepEqual(
       { column: desktopManual.eli10.column, row: desktopManual.eli10.row, spanColumns: desktopManual.eli10.spanColumns, spanRows: desktopManual.eli10.spanRows },
       { column: "2", row: "1", spanColumns: "3", spanRows: "2" },
@@ -1836,6 +1842,17 @@ try {
     assert.equal(desktopManual.columnGap, 6, "manual erft niet de standaardafstand van 6px uit de library");
     assert.equal(desktopManual.startPair.horizontalGap, desktopManual.columnGap, "setupstappen en setupcode gebruiken niet de standaard library-tussenruimte");
     assert.equal(desktopManual.startPair.verticalGapAfterEli10, desktopManual.rowHeight + 2 * desktopManual.rowGap, "manual 01 laat niet exact één rasterrij open na ELI10");
+    const factoryPair = desktopManual.contentPairs.find(function (pair) { return pair.name === "factory"; });
+    assert.deepEqual({
+      introColumn: factoryPair.introColumn,
+      introSpan: factoryPair.introSpan,
+      codeColumn: factoryPair.codeColumn,
+      codeSpan: factoryPair.codeSpan,
+      resultColumn: factoryPair.resultColumn,
+      resultSpan: factoryPair.resultSpan
+    }, {
+      introColumn: "1", introSpan: "1", codeColumn: "2", codeSpan: "3", resultColumn: "5", resultSpan: "2"
+    }, "factory gebruikt niet de verhouding uitleg 1 + code 3 + resultaat 2");
     assert.deepEqual(desktopManual.menuLessonPair, {
       explanation: { column: "1", row: "19", spanColumns: "2", spanRows: "2" },
       code: { column: "3", row: "19", spanColumns: "4", spanRows: "2" }
@@ -2203,8 +2220,9 @@ try {
     assert.equal(manual.contentExamples.trusted.tag, "ARTICLE", `manual toont trusted HTML niet als echte inhoud op ${width}px`);
     assert.match(manual.contentExamples.trusted.text, /Structure makes movement visible\./, `manual mist de typografische HTML-inhoud op ${width}px`);
     assert.equal(manual.contentExamples.object.tag, "FIGURE", `manual toont de foto niet als echt object op ${width}px`);
-    assert.match(manual.contentExamples.object.source, /\/docs\/img\/pexels-peter-dyllong-2158803154-37352130\.jpg$/, `manual gebruikt niet de opgegeven foto op ${width}px`);
+    assert.match(manual.contentExamples.object.source, /\/docs\/img\/skatepark\.jpg$/, `manual gebruikt niet de eenvoudige skatepark-bestandsnaam op ${width}px`);
     assert.equal(manual.contentExamples.object.alt, "Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail.", `manual mist de beschrijvende foto-alttekst op ${width}px`);
+    assert.equal(manual.contentExamples.object.caption, null, `manual toont nog een caption die niet meer in de voorbeeldcode staat op ${width}px`);
     assert.equal(manual.contentExamples.object.fit, "cover", `manual plaatst de foto niet beeldvullend op ${width}px`);
     assert.ok(manual.contentCodeOverflow.every(function (item) { return item.overflow <= 1; }), `manual contentcode krijgt interne verticale scroll op ${width}px: ${JSON.stringify(manual.contentCodeOverflow)}`);
     assert.deepEqual(manual.contentExamples.factory, {

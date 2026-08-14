@@ -97,6 +97,6 @@ assert.doesNotMatch(css, /manual-next-links/, "the Swiss closing block must not 
 assert.doesNotMatch(css, /manual-next-block \.manual-result/, "the Swiss closing block must not inherit the old result-card typography");
 assert.doesNotMatch(css, /\.manual-matrix|\.reference-map|\.reference-axis|\.reference-focus/, "matrix styling must not remain active");
 assert.doesNotMatch(libraryCss, /\.(?:manual|reference)-/, "the library stylesheet must not absorb docs composition");
-await access(resolve(root, "docs", "img", "pexels-peter-dyllong-2158803154-37352130.jpg"));
+await access(resolve(root, "docs", "img", "skatepark.jpg"));
 
 console.log("blocks.system site presentation — linear docs composition OK");

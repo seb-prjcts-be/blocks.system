@@ -146,11 +146,8 @@
       "code": [
         "const figure = document.createElement(\"figure\");",
         "const image = document.createElement(\"img\");",
-        "image.src = \"./img/pexels-peter-dyllong-2158803154-37352130.jpg\";",
-        "image.alt = \"Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail.\";",
-        "const caption = document.createElement(\"figcaption\");",
-        "caption.textContent = \"02 / direction\";",
-        "figure.append(image, caption);",
+        "image.src = \"./img/skatepark.jpg\";",
+        "figure.append(image);",
         "blocks.add(figure, { id: \"block-image\", title: \"image\" });"
       ],
       "layout": {
@@ -160,7 +157,6 @@
     },
     "manual-content-object": {
       "title": "result",
-      "caption": "02 / direction",
       "alt": "Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail.",
       "layout": {
         "place": [4, 14],
@@ -190,15 +186,15 @@
       ],
       "layout": {
         "place": [2, 16],
-        "span": [2, 2]
+        "span": [3, 2]
       }
     },
     "manual-content-factory": {
       "title": "result",
       "states": ["structure", "contrast", "rhythm", "space"],
       "layout": {
-        "place": [4, 16],
-        "span": [3, 2]
+        "place": [5, 16],
+        "span": [2, 2]
       }
     },
     "manual-menu": {

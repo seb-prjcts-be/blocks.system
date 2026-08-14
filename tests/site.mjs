@@ -243,11 +243,14 @@ assert.deepEqual(docsContent.manual["manual-start-blocks"].layout, { place: [1, 
 assert.deepEqual(docsContent.manual["manual-start-grid"].layout, { place: [1, 7], span: [2, 1] }, "manual GRID step must own its requested proportions");
 assert.deepEqual(docsContent.manual["manual-start-b"].layout, { place: [3, 5], span: [4, 4] }, "manual setup code must align with the four visual setup steps");
 assert.deepEqual(docsContent.manual["manual-finish"].layout, { place: [1, 10], span: [5, 2] }, "manual 02 statement must be five columns wide");
-for (const [name, row] of [["html", 12], ["object", 14], ["factory", 16]]) {
+for (const [name, row] of [["html", 12], ["object", 14]]) {
   assert.deepEqual(docsContent.manual[`manual-content-${name}-intro`].layout, { place: [1, row], span: [1, 2] }, `manual ${name} intro must be 1×2`);
   assert.deepEqual(docsContent.manual[`manual-content-${name}-code`].layout, { place: [2, row], span: [2, 2] }, `manual ${name} code must be 2×2`);
   assert.deepEqual(docsContent.manual[`manual-content-${name}`].layout, { place: [4, row], span: [3, 2] }, `manual ${name} result must be 3×2`);
 }
+assert.deepEqual(docsContent.manual["manual-content-factory-intro"].layout, { place: [1, 16], span: [1, 2] }, "manual factory intro must be 1×2");
+assert.deepEqual(docsContent.manual["manual-content-factory-code"].layout, { place: [2, 16], span: [3, 2] }, "manual factory code must be 3×2");
+assert.deepEqual(docsContent.manual["manual-content-factory"].layout, { place: [5, 16], span: [2, 2] }, "manual factory result must be 2×2");
 const jsonLayoutIds = new Set([
   "manual-start-a", "manual-start-div", "manual-start-blocks", "manual-start-grid", "manual-start-b", "manual-finish",
   "manual-content-html-intro", "manual-content-html-code", "manual-content-html",
@@ -375,6 +378,7 @@ assert.match(siteDemos["docs/manual.mjs"], /function randomizeChanceSettings[\s\
 assert.match(siteDemos["docs/manual.mjs"], /useSystemVariant[\s\S]*delete options\.variant/, "chance results must inherit the configured random system variant");
 assert.match(siteDemos["docs/manual.mjs"], /function addChanceResult[\s\S]*title: ""/, "all twelve chance results must keep an empty visible titlebar");
 assert.match(siteDemos["docs/manual.mjs"], /id: "manual-random-action", title: ""/, "manual 08 action block must keep an empty visible titlebar");
+assert.match(siteDemos["docs/manual.mjs"], /function titlebarTitle\(title\)[\s\S]*\\b\(\?:code\|result\)\\b[\s\S]*title: titlebarTitle\(title\)/, "manual titlebars must hide code and result labels centrally");
 assert.match(siteDemos["docs/manual.mjs"], /manual-random-trigger[\s\S]*rerollChanceResults/, "manual 07 must expose a button that reruns the chance code");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /🎲|Re-roll Randomness/, "manual 07 must not use decorative AI-style casino copy");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /manual-contract|exact contract →|function contract\(/, "manual must not render exact-contract separator rows");
@@ -470,8 +474,9 @@ for (const entry of Object.values(docsContent.manual)) {
 }
 assert.ok(docsContent.manual["manual-start-b"].code.includes("blocks.setGrid(4, 4);"), "manual must create the requested four-by-four example grid");
 assert.ok(docsContent.manual["manual-content-html-code"].code.includes("    <strong>Structure makes movement visible.</strong>"), "02.1 HTML code must create the text shown in its result");
-assert.ok(docsContent.manual["manual-content-object-code"].code.some((line) => line.includes("pexels-peter-dyllong-2158803154-37352130.jpg")), "02 object code must load the photo shown in its result");
-assert.ok(docsContent.manual["manual-content-object-code"].code.some((line) => line.includes("02 / direction")), "02 object code must create the caption shown in its result");
+assert.ok(docsContent.manual["manual-content-object-code"].code.some((line) => line.includes("./img/skatepark.jpg")), "02 object code must use the simple skatepark filename shown in its result");
+assert.doesNotMatch(docsContent.manual["manual-content-object-code"].code.join("\n"), /image\.alt|figcaption|caption/i, "02 object code must stay focused on adding the image object");
+assert.equal("caption" in docsContent.manual["manual-content-object"], false, "02 object result must not retain a caption omitted by its code");
 assert.ok(docsContent.manual["manual-content-factory-code"].code.some((line) => line.includes("structure") && line.includes("contrast")), "02 factory code must define the states shown in its result");
 assert.ok(docsContent.manual["manual-content-factory-code"].code.some((line) => line.includes("addEventListener")), "02 factory code must create the interaction shown in its result");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner copy must say object instead of node");

@@ -125,16 +125,16 @@ function htmlResult({ eyebrow, statement, footer }) {
   return root;
 }
 
-function imageObject({ alt, caption }) {
+function imageObject({ alt }) {
   const figure = document.createElement("figure");
   figure.className = "manual-content-demo manual-content-image-demo";
   const image = document.createElement("img");
-  image.src = new URL("./img/pexels-peter-dyllong-2158803154-37352130.jpg", import.meta.url).href;
+  image.src = new URL("./img/skatepark.jpg", import.meta.url).href;
   image.width = 5184;
   image.height = 3456;
   image.alt = alt;
   image.decoding = "async";
-  figure.append(image, text("figcaption", caption));
+  figure.append(image);
   return figure;
 }
 
@@ -204,11 +204,15 @@ function lockLessonBlock(block) {
   title.removeAttribute("aria-keyshortcuts");
 }
 
+function titlebarTitle(title) {
+  return typeof title === "string" && /\b(?:code|result)\b/i.test(title) ? "" : title;
+}
+
 function add({ id, title, blockContent, span, place, variant = "regular", useSystemVariant = false, menu, anchor = "", protectedBlock = false, classes = [] }) {
   if (anchor && blockContent instanceof Node) blockContent.prepend(text("h2", title, "manual-chapter-heading"));
   const options = {
     id,
-    title,
+    title: titlebarTitle(title),
     variant,
     menu: protectedBlock ? { minimize: false, close: false } : menu
   };
