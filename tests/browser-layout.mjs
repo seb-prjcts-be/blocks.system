@@ -530,6 +530,7 @@ async function measureMainNavigation() {
       const navigation = navbar.querySelector(".nav-links");
       const links = Array.from(navigation.querySelectorAll(":scope > li > a"));
       const topbar = document.querySelector(".example-topbar");
+      const credit = document.querySelector("footer .site-credit");
       return {
         labels: links.map(function (link) { return link.textContent.trim(); }),
         fragmentLinks: links.filter(function (link) { return link.getAttribute("href").includes("#"); }).map(function (link) { return link.getAttribute("href"); }),
@@ -538,6 +539,11 @@ async function measureMainNavigation() {
         controlsTarget: document.getElementById(toggle.getAttribute("aria-controls")) === navigation,
         navbarBottom: navbar.getBoundingClientRect().bottom,
         contentTop: topbar ? topbar.getBoundingClientRect().top : null,
+        footerCredit: credit ? {
+          text: credit.textContent.trim(),
+          href: credit.href,
+          displayed: getComputedStyle(credit).display !== "none" && getComputedStyle(credit).visibility !== "hidden"
+        } : null,
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
       };
     })()`,
@@ -552,6 +558,11 @@ function assertMainNavigation(state, page, current = null) {
   assert.deepEqual(state.current, current ? [current] : [], `${page} markeert niet exact de echte huidige pagina`);
   assert.equal(state.navigationCount, 1, `${page} bevat meer dan één navigatielandmark`);
   assert.equal(state.controlsTarget, true, `${page} koppelt de hamburger niet aan het gedeelde menu`);
+  assert.deepEqual(state.footerCredit, {
+    text: "blocks.system by Sebastien Vanblaere",
+    href: "https://sebastienvanblaere.be/",
+    displayed: true
+  }, `${page} toont geen werkende auteurslink in zijn footer`);
   assert.ok(state.horizontalOverflow <= 0.5, `${page} krijgt horizontale overflow door het gedeelde menu`);
 }
 
@@ -692,7 +703,7 @@ async function measureManual(width, height, dpr = 1) {
       nextStatementRange.selectNodeContents(nextStatement);
       const dragPatternBlocks = [
         "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3",
-        "manual-drag-locked", "manual-drag-fixed-4", "manual-drag-fixed-5"
+        "manual-drag-fixed-4", "manual-drag-fixed-5", "manual-drag-movable", "manual-drag-locked"
       ].map(function (id) { return board.querySelector('[data-block-object="' + id + '"]'); });
       const trustedDemo = board.querySelector(".manual-content-html-demo");
       const imageDemo = board.querySelector(".manual-content-image-demo");
@@ -1459,28 +1470,36 @@ async function exerciseManualKeyboardReorder() {
         await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
       }
       const board = document.querySelector("#manual-board");
-      const block = board.querySelector('[data-block-object="manual-drag-locked"]');
-      const handle = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
-      const beforeColumn = getComputedStyle(block).getPropertyValue("--block-column").trim();
-      const beforeRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
       const reorderDetails = [];
       board.addEventListener("blocks:reorder", function (event) { reorderDetails.push(event.detail); });
-      handle.focus();
-      const focusAcquired = document.activeElement === handle;
-      handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true, cancelable: true }));
+      const move = async function (id) {
+        const block = board.querySelector('[data-block-object="' + id + '"]');
+        const handle = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
+        const beforeColumn = getComputedStyle(block).getPropertyValue("--block-column").trim();
+        const beforeRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
+        handle.focus();
+        const focusAcquired = document.activeElement === handle;
+        handle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", bubbles: true, cancelable: true }));
+        await new Promise(function (resolveFrame) {
+          requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
+        });
+        return {
+          beforeColumn,
+          beforeRow,
+          afterColumn: getComputedStyle(block).getPropertyValue("--block-column").trim(),
+          afterRow: getComputedStyle(block).getPropertyValue("--block-row").trim(),
+          focusAcquired,
+          focusAfterMove: document.activeElement === handle
+        };
+      };
+      const movable = await move("manual-drag-movable");
+      const locked = await move("manual-drag-locked");
       await new Promise(function (resolveFrame) {
         requestAnimationFrame(function () { requestAnimationFrame(resolveFrame); });
       });
-      const focusAfterFirstMove = document.activeElement === handle;
-      const afterFirstColumn = getComputedStyle(block).getPropertyValue("--block-column").trim();
-      const afterFirstRow = getComputedStyle(block).getPropertyValue("--block-row").trim();
       return {
-        beforeColumn,
-        beforeRow,
-        afterFirstColumn,
-        afterFirstRow,
-        focusAcquired,
-        focusAfterFirstMove,
+        movable,
+        locked,
         events: reorderDetails.map(function (detail) {
           return { id: detail.id, input: detail.input, direction: detail.direction };
         })
@@ -1903,7 +1922,7 @@ try {
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const desktopManual = await measureManual(1280, 900, 2);
-  if (desktopManual.blockCount === 63) {
+  if (desktopManual.blockCount === 64) {
     assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
     assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
     assert.ok(desktopManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op desktop");
@@ -2026,7 +2045,7 @@ try {
     assert.equal(desktopManual.reader.headings.length, 10, "de doorlopende leesroute moet ELI10 en alle negen lessen bevatten");
     assert.ok(desktopManual.reader.subheadings.length >= 16, "de doorlopende leesroute mist sublessen");
     assert.match(desktopManual.reader.text, /anything the browser can render/i, "de doorlopende leesroute mist de kernuitleg");
-    assert.equal(desktopManual.protectedBlocks.length, 63, "manual test niet elk libraryblok op zijn standaardinteractie");
+    assert.equal(desktopManual.protectedBlocks.length, 64, "manual test niet elk libraryblok op zijn standaardinteractie");
     assert.deepEqual(desktopManual.protectedBlocks.filter(function (block) { return block.draggable === "false"; }).map(function (block) { return block.id; }), ["manual-drag-locked"], "manual moet exact één niet-versleepbaar block hebben");
     assert.ok(desktopManual.protectedBlocks.every(function (block) { return block.actions === 2; }), "elk manualblock moet standaard minimaliseren en sluiten tonen");
     assert.ok(desktopManual.protectedBlocks.filter(function (block) { return block.id !== "manual-drag-locked"; }).every(function (block) {
@@ -2037,7 +2056,7 @@ try {
       code: { column: "3", row: "26", spanColumns: "4", spanRows: "1" }
     }, "manual 04 is niet als afzonderlijke dragging-les opgebouwd");
     assert.deepEqual(desktopManual.dragResult, {
-      column: "5",
+      column: "6",
       row: "28",
       spanColumns: "1",
       spanRows: "1",
@@ -2048,10 +2067,11 @@ try {
       { id: "manual-drag-fixed-1", column: "1", row: "27", spanColumns: "1", spanRows: "1" },
       { id: "manual-drag-fixed-2", column: "2", row: "27", spanColumns: "1", spanRows: "1" },
       { id: "manual-drag-fixed-3", column: "3", row: "27", spanColumns: "1", spanRows: "1" },
-      { id: "manual-drag-locked", column: "5", row: "28", spanColumns: "1", spanRows: "1" },
       { id: "manual-drag-fixed-4", column: "4", row: "27", spanColumns: "1", spanRows: "1" },
-      { id: "manual-drag-fixed-5", column: "6", row: "27", spanColumns: "1", spanRows: "1" }
-    ], "manual 04 tekent niet de bedoelde 111101 / 000010-puzzel");
+      { id: "manual-drag-fixed-5", column: "6", row: "27", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-movable", column: "5", row: "28", spanColumns: "1", spanRows: "1" },
+      { id: "manual-drag-locked", column: "6", row: "28", spanColumns: "1", spanRows: "1" }
+    ], "manual 04 zet het sleepbare en vaste block niet naast elkaar onder de puzzel");
     assert.deepEqual(desktopManual.baseColorsLessonPair, {
       explanation: { column: "1", row: "30", spanColumns: "2", spanRows: "2" },
       code: { column: "3", row: "30", spanColumns: "2", spanRows: "2" }
@@ -2111,19 +2131,21 @@ try {
     assert.equal(randomness.count, 12, "de twee kansrijen bevatten na herhalen niet twaalf blocks");
     assert.deepEqual(randomness.markers, ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"], "de kansrijen verliezen hun sobere volgnummering");
     assert.deepEqual(await exerciseManualKeyboardReorder(), {
-      beforeColumn: "5",
-      beforeRow: "28",
-      afterFirstColumn: "5",
-      afterFirstRow: "28",
-      focusAcquired: true,
-      focusAfterFirstMove: true,
-      events: []
-    }, "het expliciet vaste block mag niet via het toetsenbord verplaatsen");
+      movable: {
+        beforeColumn: "5", beforeRow: "28", afterColumn: "5", afterRow: "27",
+        focusAcquired: true, focusAfterMove: true
+      },
+      locked: {
+        beforeColumn: "6", beforeRow: "28", afterColumn: "6", afterRow: "28",
+        focusAcquired: true, focusAfterMove: true
+      },
+      events: [{ id: "manual-drag-movable", input: "keyboard", direction: "up" }]
+    }, "het gewone block moet in het gat kunnen en het expliciet vaste block moet ernaast blijven staan");
     assert.deepEqual(await exerciseManualMenuLesson(), {
       minimized: { state: "true", hidden: "true" },
       restored: "false",
       closeRemoved: true,
-      remainingBlocks: 62
+      remainingBlocks: 63
     }, "interactieve menuvoorbeelden moeten bedienbaar blijven naast de beschermde uitleg");
     await protocol.send("Emulation.setDeviceMetricsOverride", {
       width: 390,

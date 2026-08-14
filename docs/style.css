@@ -37,6 +37,33 @@ body {
 a { color: inherit; }
 code, pre { font-family: "Consolas", "Courier New", monospace; }
 
+.site-credit {
+  color: inherit;
+  text-transform: none;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.home-foot,
+.site-footer {
+  font: 400 11px/1.35 "Consolas", "Courier New", monospace;
+  letter-spacing: 0.03em;
+}
+
+.home-foot {
+  position: fixed;
+  z-index: 20;
+  right: 18px;
+  bottom: 12px;
+}
+
+.site-footer {
+  width: min(100%, 1440px);
+  margin-inline: auto;
+  padding: 0 18px 28px;
+  text-align: right;
+}
+
 .skip-link {
   position: fixed;
   z-index: 101;

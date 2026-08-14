@@ -28,7 +28,7 @@ for (const [label, html, current] of [
   assert.match(html, /<meta name="viewport"/, label + " needs a viewport declaration");
   assert.match(html, /<nav id="navbar"/, label + " needs the shared navigation");
   assert.match(html, new RegExp('aria-current="page">\\s*' + current), label + " needs its current navigation state");
-  assert.match(html, /style\.css\?v=0\.2\.45/, label + " must load the current docs stylesheet");
+  assert.match(html, /style\.css\?v=0\.2\.46/, label + " must load the current docs stylesheet");
 }
 
 assert.match(homeHtml, /id="home-board"/, "home keeps its live proof field");
@@ -81,7 +81,7 @@ assert.match(serializedReference, /definition\.url[\s\S]*address\(\) prefers it/
 assert.match(serializedReference, /adapter \\"html\\"[\s\S]*trusted definition\.markup/, "reference must retain the built-in html adapter contract");
 
 const count = Object.values(content).slice(1).reduce((total, section) => total + Object.keys(section).length, 0);
-assert.equal(count, 82, "content must keep the thematic reference, vanilla.waves row, two layout invitations, base-color lesson and one adjustable chance lesson");
+assert.equal(count, 83, "content must keep the thematic reference, vanilla.waves row, both drag specimens, two layout invitations, base-color lesson and one adjustable chance lesson");
 const cssToken = (source, name) => source.match(new RegExp(name + ":\\s*(#[0-9a-f]+)", "i"))?.[1].toLowerCase() ?? null;
 assert.equal(cssToken(css, "--system-field"), cssToken(libraryCss, "--blocks-field-color"), "the home field must define the shared library and documentation field color");
 assert.equal(cssToken(css, "--system-paper"), cssToken(libraryCss, "--blocks-paper-color"), "the home blocks must define the shared library and documentation paper color");

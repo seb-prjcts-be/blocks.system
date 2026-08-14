@@ -306,7 +306,8 @@
       "title": "dragging code",
       "code": [
         "blocks.snap = true;",
-        "const fixed = blocks.add(\"I'm not draggable!\", {",
+        "blocks.add(\"block\");",
+        "blocks.add(\"I'm not draggable!\", {",
         "  draggable: false",
         "});"
       ],
@@ -353,6 +354,13 @@
     "manual-drag-locked": {
       "title": "I'm not draggable!",
       "body": "This block keeps its place.",
+      "layout": {
+        "place": [6, 28],
+        "span": [1, 1]
+      }
+    },
+    "manual-drag-movable": {
+      "title": "block",
       "layout": {
         "place": [5, 28],
         "span": [1, 1]

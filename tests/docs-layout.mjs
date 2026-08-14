@@ -43,6 +43,6 @@ const referenceOrder = [
 assert.deepEqual(Object.keys(content.reference), referenceOrder, "reference content must follow the same setup-to-block-to-appearance route as the manual");
 
 const count = Object.values(content).slice(1).reduce((total, section) => total + Object.keys(section).length, 0);
-assert.equal(count, 82, "documentation content must contain the thematic reference, vanilla.waves row, two layout invitations, base-color lesson and one adjustable chance lesson");
+assert.equal(count, 83, "documentation content must contain the thematic reference, vanilla.waves row, both drag specimens, two layout invitations, base-color lesson and one adjustable chance lesson");
 
 console.log("blocks.system docs layout — linear recovery contract passed");

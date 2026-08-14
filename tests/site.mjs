@@ -46,6 +46,16 @@ for (const [page, html] of Object.entries(pageHtml)) {
   }
 }
 
+const creditedPages = [
+  "index.html", "docs/index.html", "docs/api.html", "docs/reference-fallback.html",
+  "examples/index.html", "examples/basic-grid/index.html", "examples/mixed-content/index.html", "examples/custom-adapter/index.html"
+];
+for (const page of creditedPages) {
+  const html = pageHtml[page];
+  assert.equal((html.match(/class="site-credit"/g) || []).length, 1, `${page} must credit its author exactly once in the footer`);
+  assert.match(html, /<footer[\s\S]*?<a class="site-credit" href="https:\/\/sebastienvanblaere\.be\/">blocks\.system by Sebastien Vanblaere<\/a>[\s\S]*?<\/footer>/, `${page} must link the author credit to the canonical personal site`);
+}
+
 const readme = await read("README.md");
 const readmeNl = await read("README_NL.md");
 const packageData = JSON.parse(await read("package.json"));
@@ -177,7 +187,7 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
 const styleVersions = new Set(Object.entries(pageHtml)
   .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.45"], "one consumer stylesheet must use one cache version across all pages");
+assert.deepEqual([...styleVersions], ["0.2.46"], "one consumer stylesheet must use one cache version across all pages");
 const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
 assert.match(examplesCss, /var\(--system-field\)/, "example pages must use the shared system field token");
 assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
@@ -273,7 +283,7 @@ const jsonLayoutIds = new Set([
   "manual-menu", "manual-menu-code", "manual-layout",
   "manual-drag", "manual-drag-code",
   "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5",
-  "manual-drag-locked", "manual-base-colors", "manual-base-colors-code", "manual-appearance", "manual-appearance-code",
+  "manual-drag-movable", "manual-drag-locked", "manual-base-colors", "manual-base-colors-code", "manual-appearance", "manual-appearance-code",
   "manual-colors", "manual-colors-code", "manual-random", "manual-random-code", "manual-random-action"
 ]);
 assert.deepEqual(docsContent.manual["manual-play-prompt"].layout, { place: [6, 1], span: [1, 1] }, "the play prompt must occupy cell 6,1");
@@ -341,15 +351,17 @@ assert.deepEqual([
   docsContent.manual["manual-drag-fixed-1"].layout.place,
   docsContent.manual["manual-drag-fixed-2"].layout.place,
   docsContent.manual["manual-drag-fixed-3"].layout.place,
-  docsContent.manual["manual-drag-locked"].layout.place,
   docsContent.manual["manual-drag-fixed-4"].layout.place,
-  docsContent.manual["manual-drag-fixed-5"].layout.place
-], [[1, 27], [2, 27], [3, 27], [5, 28], [4, 27], [6, 27]], "manual 04 must form the compact 111101 / 000010 challenge");
-for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5", "manual-drag-locked"]) {
+  docsContent.manual["manual-drag-fixed-5"].layout.place,
+  docsContent.manual["manual-drag-movable"].layout.place,
+  docsContent.manual["manual-drag-locked"].layout.place
+], [[1, 27], [2, 27], [3, 27], [4, 27], [6, 27], [5, 28], [6, 28]], "manual 04 must keep the movable and locked blocks beside each other below the gap");
+for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5", "manual-drag-movable", "manual-drag-locked"]) {
   assert.deepEqual(docsContent.manual[id].layout.span, [1, 1], `${id} must remain a 1×1 puzzle piece`);
 }
+assert.equal(docsContent.manual["manual-drag-movable"].title, "block", "manual 04 must restore the draggable puzzle block");
 assert.equal(docsContent.manual["manual-drag-locked"].title, "I'm not draggable!", "manual 04 must name its only drag exception clearly");
-assert.deepEqual(docsContent.manual["manual-drag-code"].code, ["blocks.snap = true;", "const fixed = blocks.add(\"I'm not draggable!\", {", "  draggable: false", "});"], "manual 04 must teach the sole per-block drag exception through the public API");
+assert.deepEqual(docsContent.manual["manual-drag-code"].code, ["blocks.snap = true;", "blocks.add(\"block\");", "blocks.add(\"I'm not draggable!\", {", "  draggable: false", "});"], "manual 04 must contrast the default draggable block with its sole exception");
 assert.equal("manual-compact" in docsContent.manual, false, "compact() must stay in the API reference instead of the beginner manual");
 assert.equal("manual-compact-code" in docsContent.manual, false, "the beginner manual must not carry a separate compact() code lesson");
 assert.deepEqual(docsContent.manual["manual-base-colors"].layout, { place: [1, 30], span: [2, 2] }, "manual 05 base-color explanation must be 2×2");

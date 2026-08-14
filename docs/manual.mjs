@@ -22,7 +22,7 @@ const manualIds = [
   "manual-layout",
   "manual-drag", "manual-drag-code",
   "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5",
-  "manual-drag-locked",
+  "manual-drag-movable", "manual-drag-locked",
   "manual-base-colors", "manual-base-colors-code",
   "manual-appearance", "manual-appearance-code", "manual-appearance-regular",
   "manual-appearance-inverse", "manual-colors", "manual-colors-code", "manual-color-cyan",
@@ -260,7 +260,7 @@ function createReaderArticle() {
     ["manual-start-a", ["manual-start-div", "manual-start-blocks", "manual-start-grid", "manual-start-b", "manual-layout"]],
     ["manual-finish", ["manual-content-html-intro", "manual-content-html-code", "manual-content-html", "manual-content-object-intro", "manual-content-object-code", "manual-content-object", "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory", "manual-content-waves-intro", "manual-content-waves-code", "manual-content-waves"]],
     ["manual-menu", ["manual-menu-code", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"]],
-    ["manual-drag", ["manual-drag-code", "manual-drag-locked"]],
+    ["manual-drag", ["manual-drag-code", "manual-drag-movable", "manual-drag-locked"]],
     ["manual-base-colors", ["manual-base-colors-code"]],
     ["manual-appearance", ["manual-appearance-code", "manual-appearance-regular", "manual-appearance-inverse"]],
     ["manual-colors", ["manual-colors-code", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow"]],
@@ -366,6 +366,7 @@ add({ id: "manual-drag-code", title: content["manual-drag-code"].title, blockCon
 for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5"]) {
   add({ id, title: content[id].title, blockContent: "", span: content[id].layout.span, place: content[id].layout.place });
 }
+add({ id: "manual-drag-movable", title: content["manual-drag-movable"].title, blockContent: "", span: content["manual-drag-movable"].layout.span, place: content["manual-drag-movable"].layout.place });
 add({ id: "manual-drag-locked", title: content["manual-drag-locked"].title, blockContent: specimen(content["manual-drag-locked"]), span: content["manual-drag-locked"].layout.span, place: content["manual-drag-locked"].layout.place, draggable: false });
 
 for (const [id, codeId, anchor] of [

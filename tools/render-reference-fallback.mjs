@@ -56,7 +56,7 @@ export function renderReferenceFallback(content) {
   <title>linear reference · blocks.system</title>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="../blocks.system.css?v=0.1.15">
-  <link rel="stylesheet" href="style.css?v=0.2.45">
+  <link rel="stylesheet" href="style.css?v=0.2.46">
 </head>
 <body class="docs-page reference-page reference-fallback-page">
   <main class="reference-fallback-main">
@@ -68,6 +68,9 @@ export function renderReferenceFallback(content) {
     </header>
 ${entries}
   </main>
+  <footer class="site-footer">
+    <a class="site-credit" href="https://sebastienvanblaere.be/">blocks.system by Sebastien Vanblaere</a>
+  </footer>
 </body>
 </html>
 `;
