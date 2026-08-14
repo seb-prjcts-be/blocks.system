@@ -28,16 +28,17 @@ for (const [label, html, current] of [
   assert.match(html, /<meta name="viewport"/, label + " needs a viewport declaration");
   assert.match(html, /<nav id="navbar"/, label + " needs the shared navigation");
   assert.match(html, new RegExp('aria-current="page">\\s*' + current), label + " needs its current navigation state");
-  assert.match(html, /style\.css\?v=0\.2\.42/, label + " must load the current docs stylesheet");
+  assert.match(html, /style\.css\?v=0\.2\.44/, label + " must load the current docs stylesheet");
 }
 
 assert.match(homeHtml, /id="home-board"/, "home keeps its live proof field");
 assert.doesNotMatch(manualHtml, /class="docs-chapters"/, "manual masthead must not repeat the lesson sequence as a TOC");
 assert.doesNotMatch(manualHtml, /id="manual-convention"/, "manual masthead must not explain the visible lesson flow twice");
 assert.match(manualHtml, /manual-reader[\s\S]*manual-field/, "manual must retain a continuous reading route before the interactive field");
-assert.match(manualHtml, /id="manual-reset"/, "manual must retain its recovery action");
+assert.doesNotMatch(manualHtml, /id="manual-reset"/, "manual must not duplicate the reset block in its masthead");
+assert.match(manual, /manual-reset-block[\s\S]*resetControl/, "manual must retain its recovery action in the field");
 assert.doesNotMatch(manualHtml, /manual-matrix/, "manual must not restore the dense lesson matrix");
-assert.match(manual, /blocks\.setGrid\(6, 46\)/, "manual must keep the base-color lesson and two chance-result rows before chapter 09");
+assert.match(manual, /blocks\.setGrid\(6, 48\)/, "manual must keep the compact ASCII row, base-color lesson and two chance-result rows before chapter 09");
 assert.equal((manual.match(/createBlocksSystem\(/g) || []).length, 1, "manual must use one real library field");
 assert.match(manual, /manual-reader[\s\S]*manual-layout/, "manual code must retain the reading route and size-position lesson");
 assert.doesNotMatch(manual, /manual-layout-sandbox|sandboxBlocks|dragSpecimen/, "manual must not embed a second mini-app for lesson 04");
@@ -45,7 +46,7 @@ assert.doesNotMatch(manual, /manual-matrix/, "manual code must not reintroduce t
 for (const anchor of ["eli10", "start", "content", "menu", "dragging", "base-colors", "appearance", "colors", "chance", "next"]) {
   assert.ok(manual.includes('"' + anchor + '"'), "manual misses #" + anchor);
 }
-assert.match(manual, /manual-content-html-code[\s\S]*manual-content-object-code[\s\S]*manual-content-factory-code/, "manual must keep the three focused content examples");
+assert.match(manual, /manual-content-html-code[\s\S]*manual-content-object-code[\s\S]*manual-content-factory-code[\s\S]*manual-content-waves-code/, "manual must keep the four focused content examples");
 assert.match(manual, /manual-random-controls/, "manual must keep the adjustable chance controls");
 assert.match(manual, /manual-random-mix-12/, "manual must keep all twelve results of the adjustable chance example");
 
@@ -53,7 +54,7 @@ assert.doesNotMatch(apiHtml, /class="reference-index"/, "reference masthead must
 assert.doesNotMatch(apiHtml, /class="reference-introduction"/, "reference masthead must not explain the visible learning route twice");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");
 assert.doesNotMatch(css, /\.docs-masthead\s*\{[^}]*border-bottom/, "manual and reference mastheads must not draw a horizontal rule below their titles");
-assert.match(reference, /blocks\.setGrid\(6, 78\)/, "reference must use the wide thematic field");
+assert.match(reference, /blocks\.setGrid\(6, 79\)/, "reference must use the wide thematic field without internal table scrolling");
 assert.equal((reference.match(/createBlocksSystem\(/g) || []).length, 1, "reference must use one shared lookup field");
 assert.doesNotMatch(reference + sections, /reference-matrix|REFERENCE_COLUMNS|reference-axis|setFocusedColumn/, "reference must not compress contracts into a matrix");
 for (const id of Object.keys(content.reference)) {
@@ -80,7 +81,7 @@ assert.match(serializedReference, /definition\.url[\s\S]*address\(\) prefers it/
 assert.match(serializedReference, /adapter \\"html\\"[\s\S]*trusted definition\.markup/, "reference must retain the built-in html adapter contract");
 
 const count = Object.values(content).slice(1).reduce((total, section) => total + Object.keys(section).length, 0);
-assert.equal(count, 77, "content must keep the thematic reference, base-color lesson and one adjustable chance lesson");
+assert.equal(count, 82, "content must keep the thematic reference, vanilla.waves row, two layout invitations, base-color lesson and one adjustable chance lesson");
 const cssToken = (source, name) => source.match(new RegExp(name + ":\\s*(#[0-9a-f]+)", "i"))?.[1].toLowerCase() ?? null;
 assert.equal(cssToken(css, "--system-field"), cssToken(libraryCss, "--blocks-field-color"), "the home field must define the shared library and documentation field color");
 assert.equal(cssToken(css, "--system-paper"), cssToken(libraryCss, "--blocks-paper-color"), "the home blocks must define the shared library and documentation paper color");

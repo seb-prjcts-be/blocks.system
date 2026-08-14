@@ -1,8 +1,7 @@
-import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.15";
+import { createBlocksSystem } from "../../blocks.system.mjs?v=0.1.16";
 
 const blocks = createBlocksSystem({
-  snap: true,
-  blockDefaults: { menu: { minimize: true, close: true } }
+  snap: true
 });
 
 blocks.attach("#field");

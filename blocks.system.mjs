@@ -10,7 +10,7 @@ const EMPTY_COLOR_ARRAY = Object.freeze([]);
 const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
-const DEFAULT_MENU_OPTIONS = Object.freeze({ close: false, minimize: true });
+const DEFAULT_MENU_OPTIONS = Object.freeze({ close: true, minimize: true });
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
         move: "move with the arrow keys",
@@ -41,12 +41,12 @@ function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.b
 }
 
 function normalizeBlockDefaults(value) {
-    if (value === undefined) return Object.freeze({ menu: null });
+    if (value === undefined) return Object.freeze({ menu: DEFAULT_MENU_OPTIONS });
     if (!value || typeof value !== "object") {
         throw new TypeError("blocks.system.blockDefaults verwacht een object.");
     }
     return Object.freeze({
-        menu: normalizeAutomaticMenu(value.menu)
+        menu: normalizeAutomaticMenu(value.menu, DEFAULT_MENU_OPTIONS)
     });
 }
 
@@ -843,6 +843,7 @@ export function createBlocksSystem(options = {}) {
             const handle = event.target.closest(".blocks-system-menu");
             const shell = handle?.closest(".blocks-system-object");
             if (!handle || !shell || shell.parentElement !== surface) return;
+            if (shell.getAttribute("data-block-draggable") !== "true") return;
 
             stopDragging();
             finishDragAnimations();
@@ -963,6 +964,7 @@ export function createBlocksSystem(options = {}) {
             const handle = event.target.closest(".blocks-system-title");
             const shell = handle?.closest(".blocks-system-object");
             if (!handle || event.target !== handle || !shell || shell.parentElement !== surface) return;
+            if (shell.getAttribute("data-block-draggable") !== "true") return;
 
             if (snapEnabled) {
                 if (!moveGridWithKeyboard(shell, event.key)) return;
@@ -1245,6 +1247,7 @@ export function createBlocksSystem(options = {}) {
         let appearanceValue = resolveAppearance(addOptions.variant ?? variantMode);
         let variantValue = appearanceValue.variant;
         let minimizedValue = Boolean(addOptions.minimized);
+        let draggableValue = addOptions.draggable === undefined ? true : Boolean(addOptions.draggable);
         const shell = document.createElement("section");
         shell.className = "blocks-system-object";
         shell.setAttribute("data-block-object", id);
@@ -1320,11 +1323,13 @@ export function createBlocksSystem(options = {}) {
         }
 
         function syncMenuInteractionState() {
+            const effectiveDraggable = draggableEnabled && draggableValue;
+            shell.setAttribute("data-block-draggable", String(effectiveDraggable));
             if (!menuNode || !titleNode) return;
             menuNode.removeAttribute("tabindex");
             menuNode.removeAttribute("aria-label");
-            titleNode.tabIndex = draggableEnabled ? 0 : -1;
-            if (draggableEnabled) {
+            titleNode.tabIndex = effectiveDraggable ? 0 : -1;
+            if (effectiveDraggable) {
                 titleNode.setAttribute("role", "button");
                 titleNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.move}`);
                 titleNode.setAttribute("aria-keyshortcuts", "ArrowLeft ArrowUp ArrowRight ArrowDown");
@@ -1438,10 +1443,13 @@ export function createBlocksSystem(options = {}) {
             return block;
         }
 
-        function menu(name, close = false) {
+        function menu(name, close = true) {
             assertActive();
             const menuOptions = close && typeof close === "object"
-                ? { close: Boolean(close.close), minimize: close.minimize !== false }
+                ? {
+                    close: close.close === undefined ? DEFAULT_MENU_OPTIONS.close : Boolean(close.close),
+                    minimize: close.minimize === undefined ? DEFAULT_MENU_OPTIONS.minimize : Boolean(close.minimize)
+                }
                 : { close: Boolean(close), minimize: true };
             if (!menuNode) {
                 menuNode = document.createElement("header");
@@ -1515,6 +1523,16 @@ export function createBlocksSystem(options = {}) {
             get: () => minimizedValue,
             set: setMinimized
         });
+        Object.defineProperty(controller, "draggable", {
+            enumerable: true,
+            get: () => draggableValue,
+            set(value) {
+                assertActive();
+                draggableValue = Boolean(value);
+                if (!draggableValue) drag.stop();
+                syncMenuInteractionState();
+            }
+        });
         syncAppearance();
         syncMinimizedState();
         block = Object.freeze(controller);
@@ -1532,6 +1550,7 @@ export function createBlocksSystem(options = {}) {
             row
         }));
         menuInteractionSetters.set(id, syncMenuInteractionState);
+        syncMenuInteractionState();
         return block;
     }
 

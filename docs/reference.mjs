@@ -1,19 +1,17 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.16";
 import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.85";
-import { REFERENCE_SECTIONS } from "./reference-sections.mjs?v=0.1.4";
+import { REFERENCE_SECTIONS } from "./reference-sections.mjs?v=0.1.5";
 
 const board = document.querySelector("#reference-board");
 const blocks = createBlocksSystem({
   variant: "regular",
-  snap: true,
-  draggable: false,
-  blockDefaults: { menu: { minimize: true, close: true } }
+  snap: true
 });
 
 const content = await loadDocsContent("reference", REFERENCE_SECTIONS.map(({ id }) => id));
 
 blocks.attach(board);
-blocks.setGrid(6, 78);
+blocks.setGrid(6, 79);
 quantizeSurface(board);
 
 function text(name, value, className = "") {

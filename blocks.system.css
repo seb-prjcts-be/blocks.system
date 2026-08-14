@@ -30,13 +30,13 @@
     grid-template-rows: repeat(var(--blocks-rows), minmax(0, 1fr));
 }
 
-.blocks-system-surface[data-draggable="true"] .blocks-system-menu {
+.blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"] > .blocks-system-menu {
     cursor: grab;
     touch-action: none;
     user-select: none;
 }
 
-.blocks-system-surface[data-draggable="true"] .blocks-system-menu:active {
+.blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"] > .blocks-system-menu:active {
     cursor: grabbing;
 }
 
@@ -45,7 +45,7 @@
     outline-offset: -3px;
 }
 
-.blocks-system-surface[data-draggable="true"] .blocks-system-object:has(> .blocks-system-menu > .blocks-system-title:focus-visible) {
+.blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"]:has(> .blocks-system-menu > .blocks-system-title:focus-visible) {
     outline: 3px solid var(--blocks-ink-color);
     outline-offset: -3px;
 }

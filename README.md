@@ -21,8 +21,7 @@ addressable HTML, SVG, canvas, custom elements and adapter-driven content.
     snap: true,
     colorArray: ["cyan", "magenta", "yellow"],
     colorVariation: 0.2,
-    inversionVariation: 0.5,
-    blockDefaults: { menu: { minimize: true, close: true } }
+    inversionVariation: 0.5
   });
 
   blocks.attach("#blocks-field");
@@ -125,17 +124,17 @@ blocks.register({
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- One block: `menu`, `minimized`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
+- One block: `menu`, `minimized`, `draggable`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
 
 Accessible menu labels follow the document language (`nl` or English) and can
 be overridden with `createBlocksSystem({ labels: { move, minimize, restore,
 close } })`. A locked layout removes menu headers from the keyboard tab order;
 their minimize and close buttons remain available.
 
-`blockDefaults.menu` applies the same menu controls to every new block. `title`
-is optional: when omitted, the menu has no visible title while the block `id`
-remains the accessible fallback name for its controls. Use `menu: false` to
-remove the whole menu, or a local `menu` object for an exception.
+Every new block starts with minimize and close controls. `title` is optional:
+when omitted, the titlebar has no visible text while the block `id` remains the
+accessible fallback name for its controls. Use `menu: false` to remove the whole
+titlebar, or `blockDefaults.menu` and a local `menu` object for exceptions.
 
 Dragging by a block's menu bar is enabled by default. During pointer dragging,
 a magnetic preview marks the block's landing position while the other blocks
@@ -146,7 +145,7 @@ block to CSS auto-flow. Focus the same header and use the arrow keys for the
 same grid movement without a pointer. The surface emits `blocks:reorder` after
 pointer and keyboard moves with one stable detail shape: `id`, `input`, `mode`,
 `key`, indices, grid positions and direction. Set `blocks.draggable = false` to
-lock the layout.
+lock the whole layout, or `block.draggable = false` to lock one block.
 
 Use `blocks.compact()` only when you explicitly want gap filling. It keeps each
 placed block in its column and preserves the vertical order of blocks whose

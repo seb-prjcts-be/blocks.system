@@ -447,14 +447,12 @@ footer a { color: var(--ink); }
   text-transform: lowercase;
 }
 
-.manual-intro,
 .reference-introduction {
   display: grid;
   gap: 18px;
   align-content: end;
 }
 
-.manual-intro p,
 .reference-introduction p {
   max-width: 50ch;
   margin: 0;
@@ -479,8 +477,7 @@ footer a { color: var(--ink); }
   text-underline-offset: 3px;
 }
 
-.manual-intro #manual-reset {
-  justify-self: start;
+.manual-reset-trigger {
   appearance: none;
   border: 1px solid currentColor;
   border-radius: 0;
@@ -490,8 +487,8 @@ footer a { color: var(--ink); }
   cursor: pointer;
 }
 
-.manual-intro #manual-reset:hover,
-.manual-intro #manual-reset:focus-visible {
+.manual-reset-trigger:hover,
+.manual-reset-trigger:focus-visible {
   background: var(--ink);
   color: var(--system-paper);
   outline: none;
@@ -1003,6 +1000,7 @@ footer a { color: var(--ink); }
 }
 
 @media (max-width: 900px) {
+  .manual-masthead::after,
   .reference-masthead::after {
     display: block;
     height: 29px;

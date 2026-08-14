@@ -1,13 +1,10 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.16";
 import { loadDocsContent } from "./shell.mjs?v=0.1.85";
 
 const board = document.querySelector("#home-board");
 const blocks = createBlocksSystem({
   variant: "regular",
-  snap: true,
-  blockDefaults: {
-    menu: { minimize: true, close: true }
-  }
+  snap: true
 });
 const homeIds = ["home-title", "home-photo", "home-intro"];
 const content = await loadDocsContent("home", homeIds);

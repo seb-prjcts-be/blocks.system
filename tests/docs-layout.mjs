@@ -11,17 +11,18 @@ const apiHtml = await read("docs/api.html");
 const css = await read("docs/style.css");
 const content = JSON.parse(await read("docs/content.json"));
 
-assert.match(manual, /blocks\.setGrid\(6, 46\)/, "manual must keep the base-color lesson and two chance-result rows");
+assert.match(manual, /blocks\.setGrid\(6, 48\)/, "manual must keep the compact ASCII row, base-color lesson and two chance-result rows");
 assert.equal((manual.match(/createBlocksSystem\(/g) || []).length, 1, "manual must use one real library field");
-assert.match(manual, /manual-reader[\s\S]*manual-reset[\s\S]*manual-layout/, "manual must retain its reading route, reset and size-position lesson");
+assert.match(manual, /manual-reader[\s\S]*manual-reset-block[\s\S]*manual-layout/, "manual must retain its reading route, reset block and size-position lesson");
 assert.doesNotMatch(manual, /manual-layout-sandbox|sandboxBlocks|dragSpecimen/, "manual must not embed a second mini-app for lesson 04");
-assert.match(manual, /function lockLessonBlock[\s\S]*dataset\.manualKind = protectedBlock \? "lesson"/, "manual must protect explanation and code blocks");
+assert.doesNotMatch(manual, /lockLessonBlock|protectedBlock|manualKind/, "manual must use the public library interaction instead of private locks");
+assert.match(manual, /draggable: false/, "manual must demonstrate one explicit per-block drag exception");
 const chanceHelper = manual.match(/function chance\([\s\S]*?\n}\n/)?.[0] || "";
 assert.match(chanceHelper, /padStart\(2, "0"\)/, "chance examples must retain their sober two-digit markers");
 assert.doesNotMatch(chanceHelper, /small/, "chance examples must not restore redundant specimen labels");
 assert.doesNotMatch(manual, /manual-matrix/, "manual must not restore the five-column lesson matrix");
 
-assert.match(reference, /blocks\.setGrid\(6, 78\)/, "reference must use the wide thematic lookup field");
+assert.match(reference, /blocks\.setGrid\(6, 79\)/, "reference must use the wide thematic lookup field without internal table scrolling");
 assert.doesNotMatch(reference, /reference-matrix|REFERENCE_COLUMNS|setFocusedColumn|reference-axis/, "reference must not compress contracts into a colour matrix");
 assert.doesNotMatch(apiHtml, /class="reference-index"/, "reference masthead must not repeat the thematic sequence as a TOC");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");
@@ -42,6 +43,6 @@ const referenceOrder = [
 assert.deepEqual(Object.keys(content.reference), referenceOrder, "reference content must follow the same setup-to-block-to-appearance route as the manual");
 
 const count = Object.values(content).slice(1).reduce((total, section) => total + Object.keys(section).length, 0);
-assert.equal(count, 77, "documentation content must contain the thematic reference, base-color lesson and one adjustable chance lesson");
+assert.equal(count, 82, "documentation content must contain the thematic reference, vanilla.waves row, two layout invitations, base-color lesson and one adjustable chance lesson");
 
 console.log("blocks.system docs layout — linear recovery contract passed");

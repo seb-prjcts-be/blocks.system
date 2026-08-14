@@ -24,6 +24,22 @@
     "manual-eli10": {
       "title": "00 / ELI10"
     },
+    "manual-play-prompt": {
+      "title": "layout prompt",
+      "body": "Feel free to mess up this layout. You can just...",
+      "layout": {
+        "place": [6, 1],
+        "span": [1, 1]
+      }
+    },
+    "manual-reset-block": {
+      "title": "reset action",
+      "action": "Reset it!",
+      "layout": {
+        "place": [6, 2],
+        "span": [1, 1]
+      }
+    },
     "manual-start-a": {
       "title": "01 / set up the CDN",
       "body": "Start by loading the latest release. The CDN brings the library's stylesheet and JavaScript module into your page.",
@@ -71,10 +87,7 @@
         "",
         "const blocks = createBlocksSystem({",
         "  snap: true,",
-        "  variant: \"regular\",",
-        "  blockDefaults: {",
-        "    menu: { minimize: true, close: true }",
-        "  }",
+        "  variant: \"regular\"",
         "});",
         "",
         "blocks.attach(\"#blocks-field\");",
@@ -134,7 +147,7 @@
       }
     },
     "manual-content-object-intro": {
-      "title": "element object",
+      "title": "image",
       "intro": "Use a browser element for text, images, SVG, canvas, forms or media. For untrusted text, set textContent.",
       "layout": {
         "place": [1, 14],
@@ -164,7 +177,7 @@
       }
     },
     "manual-content-factory-intro": {
-      "title": "factory",
+      "title": "interactive",
       "intro": "Use a function when every added block needs a fresh element and its own interaction.",
       "layout": {
         "place": [1, 16],
@@ -197,11 +210,47 @@
         "span": [2, 2]
       }
     },
+    "manual-content-waves-intro": {
+      "title": "library",
+      "intro": "A grid of characters, each glyph chosen from a shifting vanilla.waves sampler. The renderer lives in its own file; this example only sets up the element and adds it as a block.",
+      "layout": {
+        "place": [1, 18],
+        "span": [1, 2]
+      }
+    },
+    "manual-content-waves-code": {
+      "title": "code",
+      "code": [
+        "const ascii = document.createElement(\"div\");",
+        "Object.assign(ascii.dataset, {",
+        "  wv: \"ascii\",",
+        "  cols: \"34\",",
+        "  rows: \"12\",",
+        "  chars: \" ·-=+*#%@\"",
+        "});",
+        "blocks.add(ascii, {",
+        "  id: \"block-ascii\",",
+        "  title: \"ASCII content\"",
+        "});",
+        "VanillaWaves.init(ascii);"
+      ],
+      "layout": {
+        "place": [2, 18],
+        "span": [3, 2]
+      }
+    },
+    "manual-content-waves": {
+      "title": "result",
+      "layout": {
+        "place": [5, 18],
+        "span": [2, 2]
+      }
+    },
     "manual-menu": {
       "title": "03 / titlebar controls",
-      "intro": "The titlebar can show a minimize button, a close button, both or neither. These controls sit in the top-right corner. The API calls this configuration menu. A controller can also minimize, restore or remove its own block. Close removes this example; reload the page to restore the full manual.",
+      "intro": "Every block starts with minimize and close in its top-right corner. The API calls the titlebar configuration menu. A controller can also minimize, restore or remove its own block. Close removes an example; reset restores the full manual.",
       "layout": {
-        "place": [1, 19],
+        "place": [1, 21],
         "span": [2, 2]
       }
     },
@@ -209,8 +258,7 @@
       "title": "menu code",
       "code": [
         "const block = blocks.add(content, {",
-        "  title: \"minimize + close\",",
-        "  menu: { minimize: true, close: true }",
+        "  title: \"hello\"",
         "});",
         "",
         "block.minimized = true;",
@@ -218,25 +266,25 @@
         "block.remove();"
       ],
       "layout": {
-        "place": [3, 19],
+        "place": [3, 21],
         "span": [4, 2]
       }
     },
     "manual-menu-both": {
-      "title": "minimize + close",
-      "body": "minimize: true · close: true"
+      "title": "minimize",
+      "body": "Use − to collapse the content."
     },
     "manual-menu-minimize": {
-      "title": "minimize",
-      "body": "minimize: true · close: false"
+      "title": "restore",
+      "body": "Use + to show the content again."
     },
     "manual-menu-close": {
       "title": "close",
-      "body": "minimize: false · close: true"
+      "body": "Use × to remove one block."
     },
     "manual-menu-none": {
-      "title": "neither",
-      "body": "minimize: false · close: false"
+      "title": "reset",
+      "body": "Use reset above to restore the lesson."
     },
     "manual-layout": {
       "title": "block size and position",
@@ -248,62 +296,65 @@
     },
     "manual-drag": {
       "title": "04 / dragging",
-      "intro": "Turn dragging on to move blocks by their titlebars. Snap keeps each move on the grid.",
+      "intro": "Every block moves by its titlebar. Snap keeps each move on the grid; set draggable false only for a block that must keep its place.",
       "layout": {
-        "place": [1, 24],
+        "place": [1, 26],
         "span": [2, 1]
       }
     },
     "manual-drag-code": {
       "title": "dragging code",
       "code": [
-        "blocks.draggable = true;",
-        "blocks.snap = true;"
+        "blocks.snap = true;",
+        "const fixed = blocks.add(\"I'm not draggable!\", {",
+        "  draggable: false",
+        "});"
       ],
       "layout": {
-        "place": [3, 24],
+        "place": [3, 26],
         "span": [4, 1]
       }
     },
     "manual-drag-fixed-1": {
       "title": "block",
       "layout": {
-        "place": [1, 25],
+        "place": [1, 27],
         "span": [1, 1]
       }
     },
     "manual-drag-fixed-2": {
       "title": "block",
       "layout": {
-        "place": [2, 25],
+        "place": [2, 27],
         "span": [1, 1]
       }
     },
     "manual-drag-fixed-3": {
       "title": "block",
       "layout": {
-        "place": [3, 25],
+        "place": [3, 27],
         "span": [1, 1]
       }
     },
     "manual-drag-fixed-4": {
       "title": "block",
       "layout": {
-        "place": [4, 25],
+        "place": [4, 27],
         "span": [1, 1]
       }
     },
     "manual-drag-fixed-5": {
       "title": "block",
       "layout": {
-        "place": [6, 25],
+        "place": [6, 27],
         "span": [1, 1]
       }
     },
-    "manual-drag-result": {
-      "title": "block",
+    "manual-drag-locked": {
+      "title": "I'm not draggable!",
+      "body": "This block keeps its place.",
       "layout": {
-        "place": [5, 26],
+        "place": [5, 28],
         "span": [1, 1]
       }
     },
@@ -311,7 +362,7 @@
       "title": "05 / set the base colors",
       "intro": "Set the field, paper, titlebar and text colors once on the container. Every block inherits these four CSS variables unless you override one block later.",
       "layout": {
-        "place": [1, 28],
+        "place": [1, 30],
         "span": [2, 2]
       }
     },
@@ -326,7 +377,7 @@
         "}"
       ],
       "layout": {
-        "place": [3, 28],
+        "place": [3, 30],
         "span": [2, 2]
       }
     },
@@ -334,7 +385,7 @@
       "title": "06 / choose an appearance",
       "intro": "Choose one fixed monochrome variant. Regular uses dark ink on paper; inverse exchanges figure and ground. Color and chance come later.",
       "layout": {
-        "place": [1, 31],
+        "place": [1, 33],
         "span": [2, 1]
       }
     },
@@ -345,7 +396,7 @@
         "blocks.add(content, { variant: \"inverse\" });"
       ],
       "layout": {
-        "place": [3, 31],
+        "place": [3, 33],
         "span": [4, 1]
       }
     },
@@ -365,7 +416,7 @@
       "title": "07 / set a color",
       "intro": "Set one block color directly. Any valid CSS color can define its border, titlebar and hover frame; the content surface stays neutral.",
       "layout": {
-        "place": [1, 35],
+        "place": [1, 37],
         "span": [2, 2]
       }
     },
@@ -383,7 +434,7 @@
         "}"
       ],
       "layout": {
-        "place": [3, 35],
+        "place": [3, 37],
         "span": [4, 2]
       }
     },
@@ -409,7 +460,7 @@
       "title": "08 / set the chance",
       "intro": "Set both chances between 0 and 1. colorVariation is checked first. inversionVariation applies only to blocks that remain monochrome. The twelve blocks below use the current values.",
       "layout": {
-        "place": [1, 40],
+        "place": [1, 42],
         "span": [2, 2]
       }
     },
@@ -427,7 +478,7 @@
         "}"
       ],
       "layout": {
-        "place": [3, 40],
+        "place": [3, 42],
         "span": [3, 2]
       }
     },
@@ -440,7 +491,7 @@
       ],
       "action": "random",
       "layout": {
-        "place": [6, 40],
+        "place": [6, 42],
         "span": [1, 2]
       }
     },
@@ -503,7 +554,7 @@
         "  colorArray: [],",
         "  colorVariation: 0,",
         "  inversionVariation: 1 / 3,",
-        "  blockDefaults: { menu: false },",
+        "  blockDefaults: { menu: { minimize: true, close: true } },",
         "  blocks: []",
         "});"
       ],
@@ -555,7 +606,8 @@
         "  title: \"hello\",",
         "  menu: { minimize: true, close: true },",
         "  variant: \"regular\",",
-        "  minimized: false",
+        "  minimized: false,",
+        "  draggable: true",
         "});"
       ],
       "headers": ["kind + contract", "returns / type", "purpose"],
@@ -565,7 +617,8 @@
         { "cells": ["option · title", "string", "Optional visible titlebar text. Without it, id remains only the accessible fallback for actions."] },
         { "cells": ["option · menu", "boolean | { minimize?, close? }", "Configure titlebar controls for this block."] },
         { "cells": ["option · variant", "string", "Override the system appearance for this block."] },
-        { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] }
+        { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
+        { "cells": ["option · draggable", "boolean · true", "Allow this block to move while the system remains draggable."] }
       ]
     },
     "reference-block-layout": {
@@ -604,7 +657,7 @@
       ],
       "headers": ["kind + contract", "type or returns", "purpose"],
       "rows": [
-        { "cells": ["option · blockDefaults.menu", "boolean | object", "Default titlebar controls for new blocks; the initial value is no menu."] },
+        { "cells": ["option · blockDefaults.menu", "boolean | object", "Default titlebar controls for new blocks; minimize and close are both enabled initially."] },
         { "cells": ["option · menu", "boolean | object", "Enable, disable or configure controls for one new block."] },
         { "cells": ["option · menu.minimize", "boolean", "Show minimize and restore."] },
         { "cells": ["option · menu.close", "boolean", "Show remove."] },
@@ -627,7 +680,9 @@
       ],
       "headers": ["kind + contract", "type or initial value", "purpose"],
       "rows": [
-        { "cells": ["property · draggable", "boolean · true", "Allow pointer and keyboard reordering."] },
+        { "cells": ["property · blocks.draggable", "boolean · true", "Allow pointer and keyboard reordering for the whole system."] },
+        { "cells": ["option · draggable", "boolean · true", "Set the initial drag state for one new block."] },
+        { "cells": ["property · block.draggable", "boolean · true", "Read or change whether one block can move."] },
         { "cells": ["property · snap", "boolean · false", "Use grid positions instead of flow order while moving."] },
         { "cells": ["event · blocks:reorder", "CustomEvent", "Fires after a pointer or keyboard move."] }
       ],
@@ -678,6 +733,7 @@
         { "cells": ["property · id", "readonly string", "Stable lowercase kebab-case id."] },
         { "cells": ["property · element", "readonly HTMLElement", "The outer block element. Do not call element.remove(); use remove() so the system releases its layout."] },
         { "cells": ["property · content", "readonly HTMLDivElement", "The content host inside the block."] },
+        { "cells": ["property · draggable", "boolean", "Read or change whether this block can move."] },
         { "cells": ["method · describe(options?)", "definition", "Serialize this live block for the built-in html adapter."] },
         { "cells": ["option · options.url", "string | URL", "Name the page in the serialized definition."] },
         { "id": "api-address", "cells": ["method · address(id)", "string", "Build ?block=id from definition.url or the system catalogUrl."] }
@@ -773,6 +829,7 @@
         { "cells": ["hook · [data-block-color]", "Color selected from the user's array."] },
         { "cells": ["hook · [data-block-minimized]", "Minimized state."] },
         { "cells": ["hook · [data-draggable]", "Surface drag state."] },
+        { "cells": ["hook · [data-block-draggable]", "Effective drag state for one block."] },
         { "cells": ["hook · CSS custom properties", "--blocks-gap · --blocks-field-color · --blocks-paper-color · --blocks-ink-color · --blocks-text-color · --blocks-font-family · --blocks-content-padding"] }
       ]
     },

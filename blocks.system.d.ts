@@ -59,6 +59,8 @@ export interface AddBlockOptions {
   menu?: boolean | BlockMenuOptions;
   variant?: string;
   minimized?: boolean;
+  /** Allow this block to move while the system remains draggable. Defaults to true. */
+  draggable?: boolean;
 }
 
 export interface BlockMenuOptions {
@@ -77,6 +79,7 @@ export interface BlockController {
   color: string;
   variant: string;
   minimized: boolean;
+  draggable: boolean;
   menu(name: string, options?: boolean | BlockMenuOptions): BlockController;
   span(columns: number, rows: number): BlockController;
   place(column: number, row: number): BlockController;

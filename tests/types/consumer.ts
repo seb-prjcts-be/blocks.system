@@ -17,10 +17,12 @@ const blocks: BlocksSystem = createBlocksSystem({
 
 blocks.attach(document.body).setGrid(6, 4);
 const block: BlockController = blocks
-  .add(document.createElement("article"), { id: "typed-block", title: "typed" })
+  .add(document.createElement("article"), { id: "typed-block", title: "typed", draggable: false })
   .span(2, 1)
   .place(1, 1)
   .menu("typed", { close: true });
+block.draggable = true;
+const blockDraggable: boolean = block.draggable;
 
 blocks.register({ id: "typed-detail", adapter: "html", url: "detail.html", markup: "<p>typed</p>" });
 const typedAddress: string = blocks.address("typed-detail");
@@ -51,4 +53,7 @@ blocks.field?.addEventListener("blocks:change", (event) => {
 // @ts-expect-error Grid dimensions are readable state, not writable settings.
 blocks.columns = 9;
 
-void [block, columns, rows, minified, shared, typedAddress, typedSnippet, describedUrl];
+// @ts-expect-error Per-block dragging accepts booleans only.
+blocks.add("invalid", { draggable: "no" });
+
+void [block, blockDraggable, columns, rows, minified, shared, typedAddress, typedSnippet, describedUrl];

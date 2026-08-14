@@ -21,8 +21,7 @@ adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
     snap: true,
     colorArray: ["cyan", "magenta", "yellow"],
     colorVariation: 0.2,
-    inversionVariation: 0.5,
-    blockDefaults: { menu: { minimize: true, close: true } }
+    inversionVariation: 0.5
   });
 
   blocks.attach("#blocks-field");
@@ -130,18 +129,18 @@ blocks.register({
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- Eén block: `menu`, `minimized`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
+- Eén block: `menu`, `minimized`, `draggable`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
 overschrijfbaar via `createBlocksSystem({ labels: { move, minimize, restore,
 close } })`. Bij een vergrendelde layout verdwijnen menuheaders uit de
 toetsenbordvolgorde; hun minimaliseer- en sluitknoppen blijven bereikbaar.
 
-`blockDefaults.menu` geeft ieder nieuw block dezelfde menuknoppen. `title` is
-optioneel: zonder titel heeft het menu geen zichtbare titel, terwijl het block-
-`id` de toegankelijke fallbacknaam voor de knoppen blijft. Gebruik `menu: false`
-om de volledige balk weg te laten, of een lokaal `menu`-object voor een
-uitzondering.
+Ieder nieuw block krijgt standaard minimaliseren en sluiten. `title` is
+optioneel: zonder titel heeft de titelbalk geen zichtbare tekst, terwijl het
+block-`id` de toegankelijke fallbacknaam voor de knoppen blijft. Gebruik
+`menu: false` om de volledige titelbalk weg te laten, of `blockDefaults.menu` en
+een lokaal `menu`-object voor uitzonderingen.
 
 Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen
 toont een magnetische preview waar het block zal landen, terwijl de andere
@@ -152,7 +151,8 @@ ruimtelijk verplaatst block terug in CSS auto-flow. Focus dezelfde header en
 gebruik de pijltjestoetsen voor dezelfde rasterbeweging zonder pointer. Na een
 pointer- of toetsverplaatsing vuurt de surface `blocks:reorder` met één vaste
 detailvorm: `id`, `input`, `mode`, `key`, indices, rasterposities en richting.
-Zet `blocks.draggable = false` om de layout te vergrendelen.
+Zet `blocks.draggable = false` om de hele layout te vergrendelen, of
+`block.draggable = false` om één block vast te zetten.
 
 Gebruik `blocks.compact()` alleen wanneer je expliciet gaten wil vullen. De
 methode houdt ieder geplaatst block in zijn kolom en bewaart de verticale

@@ -1,28 +1,28 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.16";
 import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.85";
 import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.6";
+import { mountVanillaWavesDemo } from "./vanilla-waves-demo.mjs?v=0.1.3";
 
 const board = document.querySelector("#manual-board");
 const reader = document.querySelector("#manual-reader");
-const resetButton = document.querySelector("#manual-reset");
 const blocks = createBlocksSystem({
   variant: "regular",
   snap: true,
-  labels: { move: "move" },
-  blockDefaults: { menu: { minimize: true, close: true } }
+  labels: { move: "move" }
 });
 
 const manualIds = [
-  "manual-eli10", "manual-start-a", "manual-start-div", "manual-start-blocks", "manual-start-grid", "manual-start-b", "manual-finish",
+  "manual-eli10", "manual-play-prompt", "manual-reset-block", "manual-start-a", "manual-start-div", "manual-start-blocks", "manual-start-grid", "manual-start-b", "manual-finish",
   "manual-content-html-intro", "manual-content-html-code", "manual-content-html",
   "manual-content-object-intro", "manual-content-object-code", "manual-content-object",
   "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory",
+  "manual-content-waves-intro", "manual-content-waves-code", "manual-content-waves",
   "manual-menu", "manual-menu-code", "manual-menu-both", "manual-menu-minimize",
   "manual-menu-close", "manual-menu-none",
   "manual-layout",
   "manual-drag", "manual-drag-code",
   "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5",
-  "manual-drag-result",
+  "manual-drag-locked",
   "manual-base-colors", "manual-base-colors-code",
   "manual-appearance", "manual-appearance-code", "manual-appearance-regular",
   "manual-appearance-inverse", "manual-colors", "manual-colors-code", "manual-color-cyan",
@@ -34,7 +34,7 @@ const manualIds = [
 ];
 const content = await loadDocsContent("manual", manualIds);
 blocks.attach(board);
-blocks.setGrid(6, 46);
+blocks.setGrid(6, 48);
 quantizeSurface(board);
 
 function text(name, value, className = "") {
@@ -192,42 +192,39 @@ function randomControls(entry) {
   return { root, inputs, outputs, button };
 }
 
-function lockLessonBlock(block) {
-  const menu = block.element.querySelector(":scope > .blocks-system-menu");
-  const title = menu?.querySelector(".blocks-system-title");
-  menu?.addEventListener("pointerdown", (event) => event.stopPropagation());
-  menu?.addEventListener("keydown", (event) => event.stopPropagation());
-  if (!title) return;
-  title.tabIndex = -1;
-  title.removeAttribute("role");
-  title.removeAttribute("aria-label");
-  title.removeAttribute("aria-keyshortcuts");
+function resetManual() {
+  window.location.reload();
+}
+
+function resetControl(entry) {
+  const button = text("button", entry.action, "manual-reset-trigger");
+  button.type = "button";
+  button.addEventListener("click", resetManual);
+  return button;
 }
 
 function titlebarTitle(title) {
   return typeof title === "string" && /\b(?:code|result)\b/i.test(title) ? "" : title;
 }
 
-function add({ id, title, blockContent, span, place, variant = "regular", useSystemVariant = false, menu, anchor = "", protectedBlock = false, classes = [] }) {
+function add({ id, title, blockContent, span, place, variant = "regular", useSystemVariant = false, draggable, anchor = "", classes = [] }) {
   if (anchor && blockContent instanceof Node) blockContent.prepend(text("h2", title, "manual-chapter-heading"));
   const options = {
     id,
     title: titlebarTitle(title),
     variant,
-    menu: protectedBlock ? { minimize: false, close: false } : menu
+    draggable
   };
   if (useSystemVariant) delete options.variant;
-  if (options.menu === undefined) delete options.menu;
+  if (options.draggable === undefined) delete options.draggable;
   const block = blocks.add(blockContent, options);
   block.span(...span);
   block.place(...place);
-  block.element.dataset.manualKind = protectedBlock ? "lesson" : "demo";
   block.element.classList.add(...classes);
   if (anchor) {
     block.element.id = anchor;
     block.element.classList.add("manual-anchor");
   }
-  if (protectedBlock) lockLessonBlock(block);
   return block;
 }
 
@@ -261,9 +258,9 @@ function createReaderArticle() {
   const lessons = [
     ["manual-eli10", []],
     ["manual-start-a", ["manual-start-div", "manual-start-blocks", "manual-start-grid", "manual-start-b", "manual-layout"]],
-    ["manual-finish", ["manual-content-html-intro", "manual-content-html-code", "manual-content-html", "manual-content-object-intro", "manual-content-object-code", "manual-content-object", "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory"]],
+    ["manual-finish", ["manual-content-html-intro", "manual-content-html-code", "manual-content-html", "manual-content-object-intro", "manual-content-object-code", "manual-content-object", "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory", "manual-content-waves-intro", "manual-content-waves-code", "manual-content-waves"]],
     ["manual-menu", ["manual-menu-code", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"]],
-    ["manual-drag", ["manual-drag-code", "manual-drag-result"]],
+    ["manual-drag", ["manual-drag-code", "manual-drag-locked"]],
     ["manual-base-colors", ["manual-base-colors-code"]],
     ["manual-appearance", ["manual-appearance-code", "manual-appearance-regular", "manual-appearance-inverse"]],
     ["manual-colors", ["manual-colors-code", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow"]],
@@ -281,7 +278,6 @@ function createReaderArticle() {
 }
 
 createReaderArticle();
-resetButton.addEventListener("click", () => window.location.reload());
 
 const eli10Block = add({
   id: "manual-eli10",
@@ -290,11 +286,26 @@ const eli10Block = add({
   span: [3, 2],
   place: [2, 1],
   anchor: "eli10",
-  protectedBlock: true,
   classes: ["manual-half", "manual-eli10-block"]
 });
 eli10Block.element.style.setProperty("--blocks-content-padding", "0px");
 mountEli10Schema(eli10Block.element.querySelector("#eli10-schema"));
+
+add({
+  id: "manual-play-prompt",
+  title: "",
+  blockContent: specimen(content["manual-play-prompt"]),
+  span: content["manual-play-prompt"].layout.span,
+  place: content["manual-play-prompt"].layout.place
+});
+add({
+  id: "manual-reset-block",
+  title: "",
+  blockContent: resetControl(content["manual-reset-block"]),
+  variant: "inverse",
+  span: content["manual-reset-block"].layout.span,
+  place: content["manual-reset-block"].layout.place
+});
 
 for (const id of ["manual-start-a", "manual-start-div", "manual-start-blocks", "manual-start-grid"]) {
   add({
@@ -304,7 +315,6 @@ for (const id of ["manual-start-a", "manual-start-div", "manual-start-blocks", "
     span: content[id].layout.span,
     place: content[id].layout.place,
     anchor: id === "manual-start-a" ? "start" : "",
-    protectedBlock: true,
     classes: id === "manual-start-a" ? ["manual-chapter-start", "manual-cdn-step"] : []
   });
 }
@@ -314,7 +324,6 @@ add({
   blockContent: codeOnlyCard(content["manual-start-b"]),
   span: content["manual-start-b"].layout.span,
   place: content["manual-start-b"].layout.place,
-  protectedBlock: true
 });
 add({
   id: "manual-finish",
@@ -323,7 +332,6 @@ add({
   span: content["manual-finish"].layout.span,
   place: content["manual-finish"].layout.place,
   anchor: "content",
-  protectedBlock: true,
   classes: ["manual-chapter-start"]
 });
 for (const name of ["html", "object", "factory"]) {
@@ -331,57 +339,64 @@ for (const name of ["html", "object", "factory"]) {
   const codeId = "manual-content-" + name + "-code";
   const resultId = "manual-content-" + name;
   const result = name === "html" ? htmlResult(content[resultId]) : name === "object" ? imageObject(content[resultId]) : factory(content[resultId]);
-  add({ id: introId, title: content[introId].title, blockContent: introCard(content[introId]), span: content[introId].layout.span, place: content[introId].layout.place, protectedBlock: true });
-  add({ id: codeId, title: content[codeId].title, blockContent: codeOnlyCard(content[codeId]), span: content[codeId].layout.span, place: content[codeId].layout.place, protectedBlock: true, classes: ["manual-content-code-block"] });
+  add({ id: introId, title: content[introId].title, blockContent: introCard(content[introId]), span: content[introId].layout.span, place: content[introId].layout.place });
+  add({ id: codeId, title: content[codeId].title, blockContent: codeOnlyCard(content[codeId]), span: content[codeId].layout.span, place: content[codeId].layout.place, classes: ["manual-content-code-block"] });
   add({ id: resultId, title: content[resultId].title, blockContent: result, span: content[resultId].layout.span, place: content[resultId].layout.place, classes: ["manual-content-result-block"] });
 }
 
-add({ id: "manual-menu", title: content["manual-menu"].title, blockContent: introCard(content["manual-menu"]), span: content["manual-menu"].layout.span, place: content["manual-menu"].layout.place, anchor: "menu", protectedBlock: true, classes: ["manual-chapter-start"] });
-add({ id: "manual-menu-code", title: content["manual-menu-code"].title, blockContent: codeOnlyCard(content["manual-menu-code"]), span: content["manual-menu-code"].layout.span, place: content["manual-menu-code"].layout.place, protectedBlock: true });
-for (const [id, column, row, menu] of [
-  ["manual-menu-both", 1, 21, { minimize: true, close: true }],
-  ["manual-menu-minimize", 4, 21, { minimize: true, close: false }],
-  ["manual-menu-close", 1, 22, { minimize: false, close: true }],
-  ["manual-menu-none", 4, 22, { minimize: false, close: false }]
-]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 1], place: [column, row], menu, classes: ["manual-half"] });
-add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: introCard(content["manual-layout"]), span: content["manual-layout"].layout.span, place: content["manual-layout"].layout.place, protectedBlock: true });
-add({ id: "manual-drag", title: content["manual-drag"].title, blockContent: introCard(content["manual-drag"]), span: content["manual-drag"].layout.span, place: content["manual-drag"].layout.place, anchor: "dragging", protectedBlock: true, classes: ["manual-chapter-start"] });
-add({ id: "manual-drag-code", title: content["manual-drag-code"].title, blockContent: codeOnlyCard(content["manual-drag-code"]), span: content["manual-drag-code"].layout.span, place: content["manual-drag-code"].layout.place, protectedBlock: true });
+const wavesHost = document.createElement("div");
+wavesHost.className = "manual-content-demo manual-content-waves-demo";
+add({ id: "manual-content-waves-intro", title: content["manual-content-waves-intro"].title, blockContent: introCard(content["manual-content-waves-intro"]), span: content["manual-content-waves-intro"].layout.span, place: content["manual-content-waves-intro"].layout.place });
+add({ id: "manual-content-waves-code", title: content["manual-content-waves-code"].title, blockContent: codeOnlyCard(content["manual-content-waves-code"]), span: content["manual-content-waves-code"].layout.span, place: content["manual-content-waves-code"].layout.place, classes: ["manual-content-code-block"] });
+const wavesBlock = add({ id: "manual-content-waves", title: content["manual-content-waves"].title, blockContent: wavesHost, span: content["manual-content-waves"].layout.span, place: content["manual-content-waves"].layout.place, classes: ["manual-content-result-block"] });
+wavesBlock.element.style.setProperty("--blocks-content-padding", "0px");
+mountVanillaWavesDemo(wavesHost);
+
+add({ id: "manual-menu", title: content["manual-menu"].title, blockContent: introCard(content["manual-menu"]), span: content["manual-menu"].layout.span, place: content["manual-menu"].layout.place, anchor: "menu", classes: ["manual-chapter-start"] });
+add({ id: "manual-menu-code", title: content["manual-menu-code"].title, blockContent: codeOnlyCard(content["manual-menu-code"]), span: content["manual-menu-code"].layout.span, place: content["manual-menu-code"].layout.place });
+for (const [id, column, row] of [
+  ["manual-menu-both", 1, 23],
+  ["manual-menu-minimize", 4, 23],
+  ["manual-menu-close", 1, 24],
+  ["manual-menu-none", 4, 24]
+]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 1], place: [column, row], classes: ["manual-half"] });
+add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: introCard(content["manual-layout"]), span: content["manual-layout"].layout.span, place: content["manual-layout"].layout.place });
+add({ id: "manual-drag", title: content["manual-drag"].title, blockContent: introCard(content["manual-drag"]), span: content["manual-drag"].layout.span, place: content["manual-drag"].layout.place, anchor: "dragging", classes: ["manual-chapter-start"] });
+add({ id: "manual-drag-code", title: content["manual-drag-code"].title, blockContent: codeOnlyCard(content["manual-drag-code"]), span: content["manual-drag-code"].layout.span, place: content["manual-drag-code"].layout.place });
 for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5"]) {
-  const fixed = add({ id, title: content[id].title, blockContent: "", span: content[id].layout.span, place: content[id].layout.place, menu: { minimize: false, close: false } });
-  lockLessonBlock(fixed);
+  add({ id, title: content[id].title, blockContent: "", span: content[id].layout.span, place: content[id].layout.place });
 }
-add({ id: "manual-drag-result", title: content["manual-drag-result"].title, blockContent: specimen(content["manual-drag-result"]), span: content["manual-drag-result"].layout.span, place: content["manual-drag-result"].layout.place });
+add({ id: "manual-drag-locked", title: content["manual-drag-locked"].title, blockContent: specimen(content["manual-drag-locked"]), span: content["manual-drag-locked"].layout.span, place: content["manual-drag-locked"].layout.place, draggable: false });
 
 for (const [id, codeId, anchor] of [
   ["manual-base-colors", "manual-base-colors-code", "base-colors"],
   ["manual-appearance", "manual-appearance-code", "appearance"],
   ["manual-colors", "manual-colors-code", "colors"]
 ]) {
-  add({ id, title: content[id].title, blockContent: introCard(content[id]), span: content[id].layout.span, place: content[id].layout.place, anchor, protectedBlock: true, classes: ["manual-chapter-start"] });
-  add({ id: codeId, title: content[codeId].title, blockContent: codeOnlyCard(content[codeId]), span: content[codeId].layout.span, place: content[codeId].layout.place, protectedBlock: true });
+  add({ id, title: content[id].title, blockContent: introCard(content[id]), span: content[id].layout.span, place: content[id].layout.place, anchor, classes: ["manual-chapter-start"] });
+  add({ id: codeId, title: content[codeId].title, blockContent: codeOnlyCard(content[codeId]), span: content[codeId].layout.span, place: content[codeId].layout.place });
 }
 
 for (const [id, column, variant] of [
   ["manual-appearance-regular", 1, "regular"],
   ["manual-appearance-inverse", 4, "inverse"]
-]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, 32], variant, classes: ["manual-half"] });
+]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, 34], variant, classes: ["manual-half"] });
 
 for (const [id, column, color] of [
   ["manual-color-cyan", 1, "cyan"],
   ["manual-color-magenta", 3, "magenta"],
   ["manual-color-yellow", 5, "yellow"]
 ]) {
-  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 2], place: [column, 37], classes: ["manual-third"] });
+  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 2], place: [column, 39], classes: ["manual-third"] });
   block.color = color;
 }
 
 const chanceControls = randomControls(content["manual-random-action"]);
 const chanceCode = codeOnlyCard(content["manual-random-code"]);
 const chanceCodeElement = chanceCode.querySelector("code");
-add({ id: "manual-random", title: content["manual-random"].title, blockContent: introCard(content["manual-random"]), span: content["manual-random"].layout.span, place: content["manual-random"].layout.place, anchor: "chance", protectedBlock: true, classes: ["manual-chapter-start"] });
-add({ id: "manual-random-code", title: content["manual-random-code"].title, blockContent: chanceCode, span: content["manual-random-code"].layout.span, place: content["manual-random-code"].layout.place, protectedBlock: true });
-add({ id: "manual-random-action", title: "", blockContent: chanceControls.root, span: content["manual-random-action"].layout.span, place: content["manual-random-action"].layout.place, protectedBlock: true, classes: ["manual-random-action-block"] });
+add({ id: "manual-random", title: content["manual-random"].title, blockContent: introCard(content["manual-random"]), span: content["manual-random"].layout.span, place: content["manual-random"].layout.place, anchor: "chance", classes: ["manual-chapter-start"] });
+add({ id: "manual-random-code", title: content["manual-random-code"].title, blockContent: chanceCode, span: content["manual-random-code"].layout.span, place: content["manual-random-code"].layout.place });
+add({ id: "manual-random-action", title: "", blockContent: chanceControls.root, span: content["manual-random-action"].layout.span, place: content["manual-random-action"].layout.place, classes: ["manual-random-action-block"] });
 
 let chanceResults = [];
 
@@ -393,10 +408,8 @@ function addChanceResult(id, column, row, index) {
     span: [1, 1],
     place: [column, row],
     useSystemVariant: true,
-    menu: { minimize: false, close: false },
     classes: ["manual-sixth", "manual-chance-result"]
   });
-  lockLessonBlock(block);
   chanceResults.push(block);
 }
 
@@ -424,7 +437,7 @@ function rerollChanceResults() {
   blocks.inversionVariation = inversionVariation;
   for (let index = 0; index < 12; index += 1) {
     const column = (index % 6) + 1;
-    const row = 42 + Math.floor(index / 6);
+    const row = 44 + Math.floor(index / 6);
     addChanceResult("manual-random-mix-" + (index + 1), column, row, index);
   }
 
@@ -448,7 +461,7 @@ function randomizeChanceSettings() {
 chanceControls.button.addEventListener("click", randomizeChanceSettings);
 for (const input of Object.values(chanceControls.inputs)) input.addEventListener("input", rerollChanceResults);
 rerollChanceResults();
-add({ id: "manual-next", title: content["manual-next"].title, blockContent: overviewText(content["manual-next"]), span: [6, 2], place: [1, 45], anchor: "next", protectedBlock: true, classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
+add({ id: "manual-next", title: content["manual-next"].title, blockContent: overviewText(content["manual-next"]), span: [6, 2], place: [1, 47], anchor: "next", classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
 
 board.dataset.manualReady = "true";
 scrollToCurrentHash();
