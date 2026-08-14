@@ -641,6 +641,8 @@ async function measureManual(width, height, dpr = 1) {
       const dragLessonBlock = board.querySelector('[data-block-object="manual-drag"]');
       const dragCodeBlock = board.querySelector('[data-block-object="manual-drag-code"]');
       const dragResultBlock = board.querySelector('[data-block-object="manual-drag-result"]');
+      const baseColorsLessonBlock = board.querySelector('[data-block-object="manual-base-colors"]');
+      const baseColorsCodeBlock = board.querySelector('[data-block-object="manual-base-colors-code"]');
       const appearanceLessonBlock = board.querySelector('[data-block-object="manual-appearance"]');
       const appearanceCodeBlock = board.querySelector('[data-block-object="manual-appearance-code"]');
       const colorsLessonBlock = board.querySelector('[data-block-object="manual-colors"]');
@@ -659,8 +661,8 @@ async function measureManual(width, height, dpr = 1) {
       const imageDemo = board.querySelector(".manual-content-image-demo");
       const image = imageDemo.querySelector("img");
       const factoryDemo = board.querySelector(".manual-content-factory-demo");
-      const factoryButton = factoryDemo.querySelector("button");
-      const chapterIds = ["content", "menu", "dragging", "appearance", "colors", "chance", "next"];
+      const factoryButton = factoryDemo;
+      const chapterIds = ["content", "menu", "dragging", "base-colors", "appearance", "colors", "chance", "next"];
       const chapterGaps = chapterIds.map(function (id) {
         const block = document.getElementById(id);
         const previous = block.previousElementSibling;
@@ -672,6 +674,10 @@ async function measureManual(width, height, dpr = 1) {
       });
       const codeBlockWidths = Array.from(board.querySelectorAll(":scope > .manual-code-block"), function (block) {
         return { id: block.dataset.blockObject, width: block.getBoundingClientRect().width };
+      });
+      const contentCodeOverflow = ["html", "object", "factory"].map(function (name) {
+        const code = board.querySelector('[data-block-object="manual-content-' + name + '-code"] .manual-code');
+        return { name, overflow: code.scrollHeight - code.clientHeight };
       });
       const colorBlockStyles = ["manual-color-cyan", "manual-color-magenta", "manual-color-yellow"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
@@ -852,6 +858,20 @@ async function measureManual(width, height, dpr = 1) {
             spanRows: block.style.getPropertyValue("--block-span-rows")
           };
         }),
+        baseColorsLessonPair: {
+          explanation: {
+            column: baseColorsLessonBlock.style.getPropertyValue("--block-column"),
+            row: baseColorsLessonBlock.style.getPropertyValue("--block-row"),
+            spanColumns: baseColorsLessonBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: baseColorsLessonBlock.style.getPropertyValue("--block-span-rows")
+          },
+          code: {
+            column: baseColorsCodeBlock.style.getPropertyValue("--block-column"),
+            row: baseColorsCodeBlock.style.getPropertyValue("--block-row"),
+            spanColumns: baseColorsCodeBlock.style.getPropertyValue("--block-span-columns"),
+            spanRows: baseColorsCodeBlock.style.getPropertyValue("--block-span-rows")
+          }
+        },
         appearanceLessonPair: {
           explanation: {
             column: appearanceLessonBlock.style.getPropertyValue("--block-column"),
@@ -906,12 +926,19 @@ async function measureManual(width, height, dpr = 1) {
         scrollbarWidth: rootStyle.scrollbarWidth,
         scrollbarColor: rootStyle.scrollbarColor,
         boardWidth: boardRect.width,
+        boardTop: boardRect.top,
         mastheadTitle: mastheadTitle.textContent,
+        introCount: document.querySelectorAll("#manual-convention").length,
+        mastheadBorderBottomWidth: getComputedStyle(document.querySelector(".manual-masthead")).borderBottomWidth,
         mastheadGap: boardRect.top - mastheadRect.bottom,
         rowHeight: parseFloat(getComputedStyle(board).gridAutoRows),
         rowGap: parseFloat(getComputedStyle(board).rowGap),
         columnGap: parseFloat(getComputedStyle(board).columnGap),
         eli10: {
+          column: eli10Block.style.getPropertyValue("--block-column"),
+          row: eli10Block.style.getPropertyValue("--block-row"),
+          spanColumns: eli10Block.style.getPropertyValue("--block-span-columns"),
+          spanRows: eli10Block.style.getPropertyValue("--block-span-rows"),
           blockWidth: eli10BlockRect.width,
           blockTop: eli10BlockRect.top,
           blockRight: eli10BlockRect.right,
@@ -1000,12 +1027,12 @@ async function measureManual(width, height, dpr = 1) {
           factory: {
             tag: factoryDemo.tagName,
             state: factoryDemo.dataset.state,
-            index: factoryDemo.querySelector(".manual-factory-index").textContent,
-            button: factoryButton.textContent
+            text: factoryButton.textContent
           }
         },
         chapterGaps,
         codeBlockWidths,
+        contentCodeOverflow,
         colorBlockStyles,
         randomExamples,
         randomMiniGrids,
@@ -1061,10 +1088,6 @@ async function measureManualMatrix(width, height, dpr = 1) {
           ariaLabel: title?.getAttribute("aria-label") ?? null
         };
       };
-      const toc = Array.from(document.querySelectorAll(".docs-chapters a"), function (link) {
-        const target = document.querySelector(link.getAttribute("href"));
-        return { label: link.textContent.trim(), href: link.getAttribute("href"), title: target?.querySelector(".blocks-system-title")?.textContent ?? "" };
-      });
       const protectedBlocks = objects.filter(function (block) { return block.dataset.manualKind === "lesson"; }).map(function (block) {
         const title = block.querySelector(":scope > .blocks-system-menu > .blocks-system-title");
         return {
@@ -1085,14 +1108,15 @@ async function measureManualMatrix(width, height, dpr = 1) {
         pageSurfaceCount: document.querySelectorAll(".blocks-system-surface").length,
         boardObjectCount: objects.length,
         protectedBlocks,
-        toc,
+        tocCount: document.querySelectorAll(".docs-chapters").length,
+        mastheadTitle: document.querySelector(".manual-masthead h1").textContent,
         reader: {
           tag: reader.tagName,
           headings: Array.from(reader.querySelectorAll("h2"), function (heading) { return heading.textContent; }),
           subheadings: Array.from(reader.querySelectorAll("h3"), function (heading) { return heading.textContent; }),
           text: reader.textContent.replace(/\\s+/g, " ").trim()
         },
-        convention: document.querySelector("#manual-convention").textContent.trim(),
+        introCount: document.querySelectorAll("#manual-convention").length,
         resetLabel: document.querySelector("#manual-reset").textContent.trim(),
         start: box("manual-start"),
         startCode: box("manual-start-code"),
@@ -1178,12 +1202,10 @@ async function exerciseManualFactory() {
   const result = await protocol.send("Runtime.evaluate", {
     expression: `(function () {
       const factory = document.querySelector(".manual-content-factory-demo");
-      const index = factory.querySelector(".manual-factory-index");
-      const button = factory.querySelector(".manual-factory-action");
       const beforeState = factory.dataset.state;
-      const beforeIndex = index.textContent;
-      button.click();
-      return { beforeState, beforeIndex, afterState: factory.dataset.state, afterIndex: index.textContent };
+      const beforeText = factory.textContent;
+      factory.click();
+      return { beforeState, beforeText, afterState: factory.dataset.state, afterText: factory.textContent };
     })()`,
     returnByValue: true
   });
@@ -1768,23 +1790,32 @@ try {
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const desktopManual = await measureManual(1280, 900, 2);
-  if (desktopManual.blockCount === 56) {
+  if (desktopManual.blockCount === 58) {
     assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
     assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
     assert.ok(desktopManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op desktop");
     assert.deepEqual(desktopManual.outsideBoard, [], "manual plaatst inhoud buiten zijn board");
     assert.deepEqual(desktopManual.clippedContent, [], "manual knipt inhoud af");
     assert.deepEqual(desktopManual.textOverlaps, [], "manual laat tekst overlappen");
+    assert.ok(desktopManual.contentCodeOverflow.every(function (item) { return item.overflow <= 1; }), `manual contentcode krijgt interne verticale scroll: ${JSON.stringify(desktopManual.contentCodeOverflow)}`);
     assert.equal(desktopManual.pageSurfaceCount, 1, "manual moet één echt library-veld gebruiken");
     assert.equal(desktopManual.nestedSurfaces, 0, "manual mag geen geneste mini-app bevatten");
     assert.equal(desktopManual.draggable, "true", "manual moet de echte library-interactie behouden");
+    assert.equal(desktopManual.mastheadTitle, "Container. Blocks. Grid. Block.", "manual mist de volledige systeemvolgorde in zijn hoofdtitel");
+    assert.equal(desktopManual.introCount, 0, "manual legt bovenaan zijn zichtbare leerroute nog eens uit");
+    assert.equal(desktopManual.mastheadBorderBottomWidth, "0px", "manual toont nog een horizontale lijn onder de titel");
+    assert.deepEqual(
+      { column: desktopManual.eli10.column, row: desktopManual.eli10.row, spanColumns: desktopManual.eli10.spanColumns, spanRows: desktopManual.eli10.spanRows },
+      { column: "2", row: "1", spanColumns: "3", spanRows: "2" },
+      "ELI10 moet één gridkolom naar rechts staan zonder van maat of rij te veranderen"
+    );
     assert.equal(desktopManual.eli10.contentPadding, "0px", "ELI10 gebruikt nog library-binnenruimte rond de animatie");
     assert.equal(desktopManual.eli10.visualPadding, "0px", "ELI10 voegt zelf nog binnenruimte rond de animatie toe");
     assert.ok(Math.abs(desktopManual.eli10.visual.width - desktopManual.eli10.visual.hostWidth) <= 1, "ELI10 vult de beschikbare breedte niet");
     assert.ok(Math.abs(desktopManual.eli10.visual.height - desktopManual.eli10.visual.hostHeight) <= 1, "ELI10 vult de beschikbare hoogte niet");
     assert.ok(desktopManual.eli10.visual.hostWidth <= desktopManual.eli10.contentWidth + 1, "ELI10-host groeit buiten het inhoudsvlak");
     assert.ok(desktopManual.eli10.visual.hostHeight <= desktopManual.eli10.contentHeight + 1, "ELI10-host groeit verticaal buiten het inhoudsvlak");
-    assert.deepEqual(desktopManual.startPair.a, { column: "1", row: "4", spanColumns: "6", spanRows: "1" }, "de CDN-stap gebruikt niet de volledige breedte boven setup");
+    assert.deepEqual(desktopManual.startPair.a, { column: "3", row: "4", spanColumns: "4", spanRows: "1" }, "de CDN-stap moet vier kolommen breed en rechts uitgelijnd zijn");
     assert.deepEqual(desktopManual.startPair.cdn, {
       bodyWhiteSpace: "nowrap",
       bodyFits: true,
@@ -1819,7 +1850,7 @@ try {
     assert.ok(desktopManual.codeBlockWidths.every((item) => Math.abs(item.width - desktopManual.boardWidth) <= 2), "manual-code moet de volledige rustige leesbreedte gebruiken");
     assert.equal(desktopManual.resetLabel, "reset manual", "manual mist zijn herstelactie");
     assert.equal(desktopManual.reader.tag, "ARTICLE", "de doorlopende leesroute moet een article zijn");
-    assert.equal(desktopManual.reader.headings.length, 9, "de doorlopende leesroute moet alle negen lessen bevatten");
+    assert.equal(desktopManual.reader.headings.length, 10, "de doorlopende leesroute moet ELI10 en alle negen lessen bevatten");
     assert.ok(desktopManual.reader.subheadings.length >= 16, "de doorlopende leesroute mist sublessen");
     assert.match(desktopManual.reader.text, /anything the browser can render/i, "de doorlopende leesroute mist de kernuitleg");
     assert.ok(desktopManual.protectedBlocks.length >= 15, "manual beschermt onvoldoende uitleg- en codeblokken");
@@ -1846,37 +1877,41 @@ try {
       { id: "manual-drag-fixed-4", column: "4", row: "25", spanColumns: "1", spanRows: "1" },
       { id: "manual-drag-fixed-5", column: "6", row: "25", spanColumns: "1", spanRows: "1" }
     ], "manual 04 tekent niet de bedoelde 111101 / 000010-puzzel");
+    assert.deepEqual(desktopManual.baseColorsLessonPair, {
+      explanation: { column: "1", row: "28", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "28", spanColumns: "2", spanRows: "2" }
+    }, "manual 05 toont de vier basiskleuren niet als uitleg en echte CSS");
     assert.deepEqual(desktopManual.appearanceLessonPair, {
-      explanation: { column: "1", row: "28", spanColumns: "2", spanRows: "1" },
-      code: { column: "3", row: "28", spanColumns: "4", spanRows: "1" }
-    }, "manual 05 is niet compact opgesplitst in uitleg 2×1 en code 4×1");
+      explanation: { column: "1", row: "31", spanColumns: "2", spanRows: "1" },
+      code: { column: "3", row: "31", spanColumns: "4", spanRows: "1" }
+    }, "manual 06 is niet compact opgesplitst in uitleg 2×1 en code 4×1");
     assert.deepEqual(desktopManual.colorsLessonPair, {
-      explanation: { column: "1", row: "32", spanColumns: "2", spanRows: "2" },
-      code: { column: "3", row: "32", spanColumns: "4", spanRows: "2" }
-    }, "manual 06 is niet opgesplitst in uitleg 2×2 en code 4×2");
+      explanation: { column: "1", row: "35", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "35", spanColumns: "4", spanRows: "2" }
+    }, "manual 07 is niet opgesplitst in uitleg 2×2 en code 4×2");
     assert.deepEqual(desktopManual.randomLessonPair, {
-      explanation: { column: "1", row: "37", spanColumns: "2", spanRows: "2" },
-      code: { column: "3", row: "37", spanColumns: "3", spanRows: "2" }
-    }, "manual 07 is niet opgesplitst in uitleg 2×2 en code 3×2");
+      explanation: { column: "1", row: "40", spanColumns: "2", spanRows: "2" },
+      code: { column: "3", row: "40", spanColumns: "3", spanRows: "2" }
+    }, "manual 08 is niet opgesplitst in uitleg 2×2 en code 3×2");
     assert.deepEqual(desktopManual.randomAction, {
-      column: "6", row: "37", spanColumns: "1", spanRows: "2"
-    }, "manual 07 gebruikt de vrije zesde kolom niet voor de herhaalactie");
-    assert.equal(desktopManual.nextStatementLines, 1, "manual 08 breekt 'now' onnodig naar een tweede desktopregel");
+      column: "6", row: "40", spanColumns: "1", spanRows: "2"
+    }, "manual 08 gebruikt de vrije zesde kolom niet voor de herhaalactie");
+    assert.equal(desktopManual.nextStatementLines, 1, "manual 09 breekt 'now' onnodig naar een tweede desktopregel");
     assert.deepEqual(desktopManual.randomExamples, [
       "01", "02", "03", "04", "05", "06",
       "07", "08", "09", "10", "11", "12"
     ].map(function (marker) { return { marker, childCount: 1 }; }), "de kansvoorbeelden zijn geen sobere genummerde specimens");
     assert.deepEqual(desktopManual.randomMiniGrids.combined.map(function (item) { return { column: item.column, row: item.row }; }), [
-      { column: "1", row: "39" }, { column: "2", row: "39" }, { column: "3", row: "39" },
-      { column: "4", row: "39" }, { column: "5", row: "39" }, { column: "6", row: "39" },
-      { column: "1", row: "40" }, { column: "2", row: "40" }, { column: "3", row: "40" },
-      { column: "4", row: "40" }, { column: "5", row: "40" }, { column: "6", row: "40" }
-    ], "manual 07 vormt geen twee volledige rijen van zes resultaten");
+      { column: "1", row: "42" }, { column: "2", row: "42" }, { column: "3", row: "42" },
+      { column: "4", row: "42" }, { column: "5", row: "42" }, { column: "6", row: "42" },
+      { column: "1", row: "43" }, { column: "2", row: "43" }, { column: "3", row: "43" },
+      { column: "4", row: "43" }, { column: "5", row: "43" }, { column: "6", row: "43" }
+    ], "manual 08 vormt geen twee volledige rijen van zes resultaten");
     assert.deepEqual(await exerciseManualFactory(), {
       beforeState: "structure",
-      beforeIndex: "01",
+      beforeText: "structure",
       afterState: "contrast",
-      afterIndex: "02"
+      afterText: "contrast"
     }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
     const randomness = await exerciseManualRandomness();
     assert.equal(randomness.label, "random", "manual 07 benoemt de nieuwe trekking niet duidelijk");
@@ -1909,7 +1944,7 @@ try {
       minimized: { state: "true", hidden: "true" },
       restored: "false",
       closeRemoved: true,
-      remainingBlocks: 55
+      remainingBlocks: 57
     }, "interactieve menuvoorbeelden moeten bedienbaar blijven naast de beschermde uitleg");
     await navigateTo(`${pageUrl}docs/`);
     const mobileManual = await measureManual(390, 844, 1);
@@ -1926,12 +1961,14 @@ try {
     });
     await navigateTo(pageUrl + "docs/api.html");
     const linearReferenceResult = await protocol.send("Runtime.evaluate", {
-      expression: "(async () => { for (let attempt = 0; attempt < 60 && !document.querySelector('#reference-board')?.dataset.referenceReady; attempt += 1) await new Promise((done) => requestAnimationFrame(done)); const board = document.querySelector('#reference-board'); const blocks = Array.from(board.querySelectorAll(':scope > .blocks-system-object')); const rect = board.getBoundingClientRect(); const anchors = ['exports','options','container','system-methods','grid','system-state','blocks','add-options','block-layout','block-methods','content','titlebar-controls','dragging','reorder-event','appearance','colors','chance','block-controller','adapters','adapter-methods','field-dom','css-hooks','errors']; return { ready: board.dataset.referenceReady, ids: blocks.map((block) => block.dataset.blockObject), contractKinds: Array.from(board.querySelectorAll('.reference-table tbody td:first-child'), (cell) => cell.textContent.split(' · ')[0]), missingAnchors: anchors.filter((id) => !document.getElementById(id)), columns: getComputedStyle(board).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, outside: blocks.filter((block) => { const box = block.getBoundingClientRect(); return box.left < rect.left - .5 || box.right > rect.right + .5; }).map((block) => block.dataset.blockObject), surfaces: board.querySelectorAll('.blocks-system-surface').length, draggable: board.dataset.draggable, quantized: board.dataset.quantized, tableOverflow: Array.from(board.querySelectorAll('.reference-table-wrap')).map((node) => getComputedStyle(node).overflow), verticallyScrollableTables: Array.from(board.querySelectorAll('.reference-table-wrap')).filter((node) => node.scrollHeight > node.clientHeight + 1).map((node) => node.closest('.blocks-system-object').dataset.blockObject) }; })()",
+      expression: "(async () => { for (let attempt = 0; attempt < 60 && !document.querySelector('#reference-board')?.dataset.referenceReady; attempt += 1) await new Promise((done) => requestAnimationFrame(done)); const board = document.querySelector('#reference-board'); const blocks = Array.from(board.querySelectorAll(':scope > .blocks-system-object')); const rect = board.getBoundingClientRect(); const anchors = ['exports','options','container','system-methods','grid','system-state','blocks','add-options','block-layout','block-methods','content','titlebar-controls','dragging','reorder-event','appearance','colors','chance','block-controller','adapters','adapter-methods','field-dom','css-hooks','errors']; return { ready: board.dataset.referenceReady, boardTop: rect.top, indexCount: document.querySelectorAll('.reference-index').length, introCount: document.querySelectorAll('.reference-introduction').length, ids: blocks.map((block) => block.dataset.blockObject), contractKinds: Array.from(board.querySelectorAll('.reference-table tbody td:first-child'), (cell) => cell.textContent.split(' · ')[0]), missingAnchors: anchors.filter((id) => !document.getElementById(id)), columns: getComputedStyle(board).gridTemplateColumns.split(' ').length, overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth, outside: blocks.filter((block) => { const box = block.getBoundingClientRect(); return box.left < rect.left - .5 || box.right > rect.right + .5; }).map((block) => block.dataset.blockObject), surfaces: board.querySelectorAll('.blocks-system-surface').length, draggable: board.dataset.draggable, quantized: board.dataset.quantized, tableOverflow: Array.from(board.querySelectorAll('.reference-table-wrap')).map((node) => getComputedStyle(node).overflow), verticallyScrollableTables: Array.from(board.querySelectorAll('.reference-table-wrap')).filter((node) => node.scrollHeight > node.clientHeight + 1).map((node) => node.closest('.blocks-system-object').dataset.blockObject) }; })()",
       awaitPromise: true,
       returnByValue: true
     });
     const linearReference = linearReferenceResult.result.value;
     assert.equal(linearReference.ready, "true", "reference meldt niet dat haar inhoud klaar is");
+    assert.equal(linearReference.indexCount, 0, "reference toont bovenaan nog een TOC");
+    assert.equal(linearReference.introCount, 0, "reference legt bovenaan de zichtbare leerroute nog eens uit");
     assert.deepEqual(linearReference.ids, [
       "reference-system-create", "reference-container", "reference-grid", "reference-block-create",
       "reference-block-layout", "reference-content", "reference-titlebar", "reference-dragging",
@@ -1948,8 +1985,35 @@ try {
     assert.equal(linearReference.surfaces, 0, "reference mag geen geneste grids bevatten");
     assert.equal(linearReference.draggable, "false", "reference moet zijn leesvolgorde vergrendelen");
     assert.equal(linearReference.quantized, "true", "reference moet hele rastertracks gebruiken");
+    assert.ok(Math.abs(linearReference.boardTop - desktopManual.boardTop) <= 0.5, "manual en reference starten hun desktopgrid niet op dezelfde y-positie");
+    const referenceDocumentNode = await protocol.send("DOM.getDocument");
+    const referenceBlockNode = await protocol.send("DOM.querySelector", {
+      nodeId: referenceDocumentNode.root.nodeId,
+      selector: '[data-block-object="reference-system-create"]'
+    });
+    await protocol.send("CSS.forcePseudoState", {
+      nodeId: referenceBlockNode.nodeId,
+      forcedPseudoClasses: ["hover"]
+    });
+    const referenceHover = await manualHoverSignature("reference-system-create");
+    assert.equal(referenceHover.outlineWidth, "3px", "referenceblokken tonen geen mouseoverkader wanneer de leesvolgorde vergrendeld is");
+    assert.equal(referenceHover.outlineColor, referenceHover.borderColor, "reference-mouseover gebruikt niet de kleur van het echte libraryblok");
+    await protocol.send("CSS.forcePseudoState", { nodeId: referenceBlockNode.nodeId, forcedPseudoClasses: [] });
     assert.ok(linearReference.tableOverflow.every((value) => value === "auto"), "reference tabellen moeten lokaal kunnen scrollen");
     assert.deepEqual(linearReference.verticallyScrollableTables, [], "reference-tabellen mogen op desktop geen interne verticale scrollbar nodig hebben");
+    await protocol.send("Emulation.setDeviceMetricsOverride", {
+      width: 390,
+      height: 844,
+      deviceScaleFactor: 1,
+      mobile: false
+    });
+    await navigateTo(pageUrl + "docs/api.html");
+    const mobileReferenceResult = await protocol.send("Runtime.evaluate", {
+      expression: "(async () => { for (let attempt = 0; attempt < 60 && !document.querySelector('#reference-board')?.dataset.referenceReady; attempt += 1) await new Promise((done) => requestAnimationFrame(done)); window.scrollTo(0, 0); return document.querySelector('#reference-board').getBoundingClientRect().top; })()",
+      awaitPromise: true,
+      returnByValue: true
+    });
+    assert.ok(Math.abs(mobileReferenceResult.result.value - mobileManual.boardTop) <= 0.5, "manual en reference starten hun mobiele grid niet op dezelfde y-positie");
   } else {
   assert.equal(desktopManual.ready, "true", "manual meldt niet dat de lesmatrix klaar is");
   assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
@@ -1957,18 +2021,8 @@ try {
   assert.ok(desktopManual.horizontalOverflow <= 0.5, "manual krijgt horizontale overflow op desktop");
   assert.equal(desktopManual.pageSurfaceCount, 2, "les 04 heeft geen afzonderlijk sandbox-veld naast het manual-veld");
   assert.ok(desktopManual.boardObjectCount > 40, "manual verliest lessen uit de volledige beginnersroute");
-  assert.deepEqual(desktopManual.toc, [
-    ["00 / ELI10", "#eli10"],
-    ["01 / start the system", "#start"],
-    ["02 / content can be anything", "#content"],
-    ["03 / titlebar controls", "#menu"],
-    ["04 / dragging", "#dragging"],
-    ["05 / choose an appearance", "#appearance"],
-    ["06 / set a color", "#colors"],
-    ["07 / set the chance", "#chance"],
-    ["08 / unblocked", "#next"]
-  ].map(function ([label, href]) { return { label, href, title: label }; }), "TOC-label, anker en blocktitel zijn niet overal dezelfde lesnaam");
-  assert.equal(desktopManual.convention, "Rows are lessons; columns are explanation, code and live result — this manual is itself a blocks field.", "manual legt zijn matrixconventie niet uit");
+  assert.equal(desktopManual.tocCount, 0, "manual toont bovenaan nog een TOC");
+  assert.equal(desktopManual.introCount, 0, "manual legt bovenaan zijn zichtbare leerroute nog eens uit");
   assert.equal(desktopManual.resetLabel, "reset manual", "manual heeft geen eenduidige herstelactie");
   assert.equal(desktopManual.reader.tag, "ARTICLE", "doorlopende lestekst staat niet in het primaire article");
   assert.deepEqual(desktopManual.reader.headings, [
@@ -2096,7 +2150,7 @@ try {
     assert.deepEqual(manual.nonIntegerHorizontalGeometry, [], `manual laat fractionele blockgeometrie achter op ${width}px: ${manual.nonIntegerHorizontalGeometry.join(", ")}`);
     assert.equal(manual.codeOverflow, "auto", `manual code scrollt niet intern op ${width}px`);
     assert.equal(manual.eli10.title, "00 / ELI10", `manual begint niet met ELI10 op ${width}px`);
-    assert.equal(manual.mastheadTitle, "Container. Blocks. Block.", `manual mist zijn nieuwe hoofdtitel op ${width}px`);
+    assert.equal(manual.mastheadTitle, "Container. Blocks. Grid. Block.", `manual mist de volledige systeemvolgorde in zijn hoofdtitel op ${width}px`);
     assert.equal(manual.eli10.visual.role, "img", `ELI10 publiceert zijn canvas niet als toegankelijke visual op ${width}px`);
     assert.match(manual.eli10.visual.label, /container div[\s\S]*blocks system[\s\S]*grid[\s\S]*block inside/i, `ELI10 beschrijft container, systeem, grid en block niet in zijn visual op ${width}px`);
     assert.ok(manual.eli10.visual.width > 0 && manual.eli10.visual.height > 0, `ELI10 rendert geen zichtbaar schema op ${width}px`);
@@ -2150,11 +2204,11 @@ try {
     assert.match(manual.contentExamples.object.source, /\/docs\/img\/pexels-peter-dyllong-2158803154-37352130\.jpg$/, `manual gebruikt niet de opgegeven foto op ${width}px`);
     assert.equal(manual.contentExamples.object.alt, "Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail.", `manual mist de beschrijvende foto-alttekst op ${width}px`);
     assert.equal(manual.contentExamples.object.fit, "cover", `manual plaatst de foto niet beeldvullend op ${width}px`);
+    assert.ok(manual.contentCodeOverflow.every(function (item) { return item.overflow <= 1; }), `manual contentcode krijgt interne verticale scroll op ${width}px: ${JSON.stringify(manual.contentCodeOverflow)}`);
     assert.deepEqual(manual.contentExamples.factory, {
-      tag: "ARTICLE",
+      tag: "BUTTON",
       state: "structure",
-      index: "01",
-      button: "next state"
+      text: "structure"
     }, `manual start niet met een vers interactief factory-element op ${width}px`);
     assert.equal(manual.scrollbarWidth, "thin", `manual gebruikt geen dunne OS-scrollbar op ${width}px`);
     assert.match(manual.scrollbarColor, /rgba\(17, 17, 17, 0\.58\)/, `manual gebruikt geen neutrale scrollbar op ${width}px`);
@@ -2166,9 +2220,9 @@ try {
 
   assert.deepEqual(await exerciseManualFactory(), {
     beforeState: "structure",
-    beforeIndex: "01",
+    beforeText: "structure",
     afterState: "contrast",
-    afterIndex: "02"
+    afterText: "contrast"
   }, "de factory-inhoud moet zichtbaar naar haar volgende state schakelen");
 
   assert.deepEqual(await exerciseManualReset(), {
@@ -2377,7 +2431,6 @@ try {
   const aliases = {
     "manual.html": "start",
     "system.html": "start",
-    "examples.html": "next",
     "guide.html": "start",
     "guide-blocks.html": "content",
     "guide-finish.html": "next",
@@ -2393,6 +2446,35 @@ try {
     assert.equal(aliasResult.result.value.pathname, "/docs/", `${file} komt niet op de canonieke /docs/ route uit`);
     assert.equal(aliasResult.result.value.hash, `#${anchor}`, `${file} komt niet op #${anchor} uit`);
     assert.equal(aliasResult.result.value.search, "", `${file} laat de legacy query in de canonieke URL staan`);
+  }
+
+  await navigateTo(`${pageUrl}docs/examples.html?legacy=1`);
+  await new Promise(function (resolveAlias) { setTimeout(resolveAlias, 60); });
+  const examplesAliasResult = await protocol.send("Runtime.evaluate", {
+    expression: `({ pathname: location.pathname, hash: location.hash, search: location.search })`,
+    returnByValue: true
+  });
+  assert.equal(examplesAliasResult.result.value.pathname, "/examples/", "examples.html komt niet op de echte voorbeeldenindex uit");
+  assert.equal(examplesAliasResult.result.value.hash, "", "examples.html houdt een verouderd manualfragment bij");
+  assert.equal(examplesAliasResult.result.value.search, "", "examples.html laat de legacy query in de canonieke URL staan");
+
+  for (const [route, readySelector, anchor] of [
+    ["docs/#next", "#manual-board[data-manual-ready]", "#next"],
+    ["docs/api.html#colors", "#reference-board[data-reference-ready]", "#colors"]
+  ]) {
+    await navigateTo(`${pageUrl}${route}`);
+    await protocol.send("Runtime.evaluate", {
+      expression: `(async () => { for (let attempt = 0; attempt < 120 && !document.querySelector(${JSON.stringify(readySelector)}); attempt += 1) await new Promise((done) => requestAnimationFrame(done)); return true; })()`,
+      awaitPromise: true,
+      returnByValue: true
+    });
+    await new Promise(function (resolveHash) { setTimeout(resolveHash, 80); });
+    const hashPosition = await protocol.send("Runtime.evaluate", {
+      expression: `(() => { const target = document.querySelector(${JSON.stringify(anchor)}); const box = target.getBoundingClientRect(); return { scrollY, top: box.top, bottom: box.bottom, viewport: innerHeight }; })()`,
+      returnByValue: true
+    });
+    assert.ok(hashPosition.result.value.scrollY > 1000, `${route} blijft bovenaan nadat het dynamische doel is gemaakt`);
+    assert.ok(hashPosition.result.value.top < hashPosition.result.value.viewport && hashPosition.result.value.bottom > 0, `${route} maakt het dynamische doel niet zichtbaar: ${JSON.stringify(hashPosition.result.value)}`);
   }
 
   console.log("browser-layout: gedeelde cascade, drie examples, routes op 1440–320px @1x/@2x en zeven legacy aliases — OK");

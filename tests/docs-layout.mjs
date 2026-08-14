@@ -11,7 +11,7 @@ const apiHtml = await read("docs/api.html");
 const css = await read("docs/style.css");
 const content = JSON.parse(await read("docs/content.json"));
 
-assert.match(manual, /blocks\.setGrid\(6, 43\)/, "manual must keep compact titlebar examples and two chance-result rows");
+assert.match(manual, /blocks\.setGrid\(6, 46\)/, "manual must keep the base-color lesson and two chance-result rows");
 assert.equal((manual.match(/createBlocksSystem\(/g) || []).length, 1, "manual must use one real library field");
 assert.match(manual, /manual-reader[\s\S]*manual-reset[\s\S]*manual-layout/, "manual must retain its reading route, reset and size-position lesson");
 assert.doesNotMatch(manual, /manual-layout-sandbox|sandboxBlocks|dragSpecimen/, "manual must not embed a second mini-app for lesson 04");
@@ -23,7 +23,7 @@ assert.doesNotMatch(manual, /manual-matrix/, "manual must not restore the five-c
 
 assert.match(reference, /blocks\.setGrid\(6, 78\)/, "reference must use the wide thematic lookup field");
 assert.doesNotMatch(reference, /reference-matrix|REFERENCE_COLUMNS|setFocusedColumn|reference-axis/, "reference must not compress contracts into a colour matrix");
-assert.match(apiHtml, /class="reference-index"/, "reference must expose a direct linear lookup index");
+assert.doesNotMatch(apiHtml, /class="reference-index"/, "reference masthead must not repeat the thematic sequence as a TOC");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");
 assert.doesNotMatch(css, /\.manual-matrix|\.reference-map|\.reference-axis|\.reference-focus/, "retired matrix styling must not remain active documentation code");
 assert.match(css, /\.manual-reader/, "functional reading styles must remain available");
@@ -42,6 +42,6 @@ const referenceOrder = [
 assert.deepEqual(Object.keys(content.reference), referenceOrder, "reference content must follow the same setup-to-block-to-appearance route as the manual");
 
 const count = Object.values(content).slice(1).reduce((total, section) => total + Object.keys(section).length, 0);
-assert.equal(count, 75, "documentation content must contain the thematic reference and one adjustable chance lesson");
+assert.equal(count, 77, "documentation content must contain the thematic reference, base-color lesson and one adjustable chance lesson");
 
 console.log("blocks.system docs layout — linear recovery contract passed");

@@ -130,6 +130,11 @@ const stableModuleUrl = `data:text/javascript;base64,${Buffer.from(stableSource)
 const stableModule = await import(stableModuleUrl);
 assert.deepEqual(Object.keys(stableModule).sort(), ["createBlocksSystem", "system"], "stable tag must expose the documented module entrypoints");
 assert.ok(stableCss.includes(".blocks-system-surface"), "stable tag must contain the documented stylesheet");
+if (DOCS_RELEASE.releaseStatus === "released") {
+  const currentCss = await readFile(resolve(root, "blocks.system.css"), "utf8");
+  assert.equal(DOCS_RELEASE.sourceRef, stableTag, "released docs must identify the stable tag as their source");
+  assert.equal(currentCss, stableCss, "released docs may not serve stylesheet behavior that differs from their stable tag");
+}
 const manualStart = JSON.stringify([docsContent.manual["manual-start-a"], docsContent.manual["manual-start-b"]]);
 assert.ok(manualStart.includes(`${DOCS_RELEASE.stableCdnBase}/blocks.system.mjs`), "manual ESM snippet must resolve to the verified stable tag");
 assert.ok(manualStart.includes(`${DOCS_RELEASE.stableCdnBase}/blocks.system.css`), "manual CSS snippet must resolve to the verified stable tag");

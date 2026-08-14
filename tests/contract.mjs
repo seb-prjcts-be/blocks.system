@@ -216,6 +216,16 @@ const hubNode = await hub.mount("dagverloop", hubHost);
 assert.equal(hubNode.innerHTML, "<p>Het dagverloop.</p>", "the built-in html adapter must mount markup into a host");
 assert.equal(hubHost.getAttribute("data-block-mounted"), "dagverloop", "the host must record the mounted block");
 
+const automaticIds = createBlocksSystem({ variant: "regular" });
+automaticIds.attach(new TestElement());
+automaticIds.add("<p>explicit</p>", { id: "block-1" });
+assert.equal(automaticIds.add("<p>automatic</p>").id, "block-2", "automatic ids must skip ids already claimed explicitly");
+assert.throws(
+  function () { automaticIds.add("<p>empty</p>", { id: "" }); },
+  /Ongeldig block-id/,
+  "an explicitly empty id must be rejected instead of silently generated"
+);
+
 const configured = createBlocksSystem({
   snap: true,
   draggable: false,
@@ -469,6 +479,24 @@ assert.equal(adapterUnmounts, 1, "unmount must run the registered adapter cleanu
 assert.equal(adapterHost.children.length, 0, "unmount must remove the mounted adapter root");
 assert.equal(adapterHost.getAttribute("data-block-mounted"), null, "unmount must clear the host state");
 
+local.registerAdapter("nested-root", {
+  mount({ host }) {
+    const wrapper = document.createElement("article");
+    const nested = document.createElement("span");
+    wrapper.appendChild(nested);
+    host.appendChild(wrapper);
+    return nested;
+  }
+});
+local.register({ id: "nested-root", adapter: "nested-root" });
+const nestedRootHost = new TestElement();
+await assert.rejects(
+  local.mount("nested-root", nestedRootHost),
+  /root-element/,
+  "mount must reject a descendant that is not the direct adapter root"
+);
+assert.equal(nestedRootHost.getAttribute("data-block-mounted"), null, "a rejected adapter root must not mark the host as mounted");
+
 const field = new TestElement();
 const font = {
   href: "https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap",
@@ -482,8 +510,12 @@ assert.equal(document.head.children[0].getAttribute("data-blocks-system-font"), 
 assert.throws(function () { local.font = { family: "" }; }, /family mag niet leeg/, "empty font families must fail early");
 local.attach(field);
 assert.equal(field.style.getPropertyValue("--blocks-font-family"), '"Oswald"', "the configured font must reach the attached field");
+const nextField = new TestElement();
+local.attach(nextField);
+assert.equal(field.style.getPropertyValue("--blocks-font-family"), "", "reattaching must clear the library font token from the old field");
+assert.equal(nextField.style.getPropertyValue("--blocks-font-family"), '"Oswald"', "reattaching must apply the configured font to the new field");
 local.font = null;
-assert.equal(field.style.getPropertyValue("--blocks-font-family"), "", "resetting font must restore the CSS default");
+assert.equal(nextField.style.getPropertyValue("--blocks-font-family"), "", "resetting font must restore the CSS default");
 local.setGrid(4, 4);
 assert.equal(local.columns, 4, "setGrid must expose the current column count");
 assert.equal(local.rows, 4, "setGrid must expose the current row count");

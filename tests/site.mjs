@@ -84,13 +84,13 @@ const standaloneExamples = Object.fromEntries(await Promise.all(exampleDirectori
 ])));
 
 assert.deepEqual(DOCS_RELEASE, {
-  sourceRef: "v0.3.0",
-  releaseStatus: "released",
+  sourceRef: "main",
+  releaseStatus: "unreleased",
   packageVersion: "0.3.0",
   stableRef: "v0.3.0",
   nextRelease: null,
   stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0"
-}, "docs release metadata must identify the complete v0.3.0 release line");
+}, "docs release metadata must distinguish the current main branch from stable v0.3.0");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
@@ -115,7 +115,8 @@ for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]
   assert.match(content, /import \{ createBlocksSystem \}/, `${file} must show the configurable factory`);
   assert.doesNotMatch(content, /const\s+(?!block)[A-Za-z_$][\w$]*\s*=\s*blocks(?:\.system)?\.add\(/, `${file} must prefix returned controllers with block`);
   assert.match(content, /\[Home\]\(https:\/\/seb-prjcts-be\.github\.io\/blocks\.system\/\)/, `${file} must link to the public homepage`);
-  assert.match(content, /https:\/\/seb-prjcts-be\.github\.io\/blocks\.system\/docs\/#next/, `${file} examples link must land on the example index`);
+  assert.match(content, /https:\/\/seb-prjcts-be\.github\.io\/blocks\.system\/examples\//, `${file} examples link must land on the standalone example index`);
+  assert.match(content, /block(?:Canvas|Canvas)\.place\(3, 1\)/, `${file} sequential Start and Middle snippets must not overlap`);
 }
 assert.doesNotMatch(readmeNl, /\b(?:DOM-)?node\b/i, "README_NL beginnerstaal must say object or element instead of node");
 
@@ -134,7 +135,6 @@ assert.doesNotMatch(declarations, /\bmargin\??\s*:/, "margin must remain ordinar
 const aliasTargets = {
   "manual.html": "start",
   "system.html": "start",
-  "examples.html": "next",
   "guide.html": "start",
   "guide-blocks.html": "content",
   "guide-finish.html": "next",
@@ -146,6 +146,10 @@ for (const [file, anchor] of Object.entries(aliasTargets)) {
   assert.ok(alias.includes(`location.replace(new URL("./#${anchor}"`), `${file} must replace history with #${anchor}`);
   assert.ok(alias.includes(`href="./#${anchor}"`), `${file} must retain a no-script link`);
 }
+const examplesAlias = pageHtml["docs/examples.html"];
+assert.match(examplesAlias, /rel="canonical" href="\.\.\/examples\/"/, "examples.html must declare the standalone examples index as canonical");
+assert.ok(examplesAlias.includes('location.replace(new URL("../examples/"'), "examples.html must redirect to the standalone examples index");
+assert.ok(examplesAlias.includes('href="../examples/"'), "examples.html must retain a no-script link to the standalone examples index");
 
 const navigationPages = [
   ["home", homeHtml, "home"],
@@ -172,9 +176,9 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
 const styleVersions = new Set(Object.entries(pageHtml)
   .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.36"], "one consumer stylesheet must use one cache version across all pages");
+assert.deepEqual([...styleVersions], ["0.2.42"], "one consumer stylesheet must use one cache version across all pages");
 const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
-assert.match(examplesCss, /var\(--docs-field\)/, "example pages must use the shared docs field token");
+assert.match(examplesCss, /var\(--system-field\)/, "example pages must use the shared system field token");
 assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
 for (const [page, html] of [["home", homeHtml], ["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /class="nav-hamburger"[^>]*aria-controls="primary-navigation"/, `${page} hamburger must identify its navigation`);
@@ -229,7 +233,7 @@ JSON.stringify(docsContent, (key, value) => {
 for (const forbiddenKey of ["adapter", "anchor", "class", "className", "defaults", "html", "lifecycle", "minimized", "renderer", "variant"]) {
   assert.equal(docsContentKeys.has(forbiddenKey), false, `docs content must not own ${forbiddenKey}`);
 }
-assert.deepEqual(docsContent.manual["manual-start-a"].layout, { place: [1, 4], span: [6, 1] }, "manual CDN step must span the full width above setup");
+assert.deepEqual(docsContent.manual["manual-start-a"].layout, { place: [3, 4], span: [4, 1] }, "manual CDN step must be four columns wide and aligned right");
 assert.deepEqual(docsContent.manual["manual-start-a"].code, [
   `${DOCS_RELEASE.stableCdnBase}/blocks.system.css`,
   `${DOCS_RELEASE.stableCdnBase}/blocks.system.mjs`
@@ -238,7 +242,7 @@ assert.deepEqual(docsContent.manual["manual-start-div"].layout, { place: [1, 5],
 assert.deepEqual(docsContent.manual["manual-start-blocks"].layout, { place: [1, 6], span: [2, 1] }, "manual BLOCKS step must own its requested proportions");
 assert.deepEqual(docsContent.manual["manual-start-grid"].layout, { place: [1, 7], span: [2, 1] }, "manual GRID step must own its requested proportions");
 assert.deepEqual(docsContent.manual["manual-start-b"].layout, { place: [3, 5], span: [4, 4] }, "manual setup code must align with the four visual setup steps");
-assert.deepEqual(docsContent.manual["manual-finish"].layout, { place: [1, 10], span: [6, 2] }, "manual 02 statement must own its full-width proportions");
+assert.deepEqual(docsContent.manual["manual-finish"].layout, { place: [1, 10], span: [5, 2] }, "manual 02 statement must be five columns wide");
 for (const [name, row] of [["html", 12], ["object", 14], ["factory", 16]]) {
   assert.deepEqual(docsContent.manual[`manual-content-${name}-intro`].layout, { place: [1, row], span: [1, 2] }, `manual ${name} intro must be 1×2`);
   assert.deepEqual(docsContent.manual[`manual-content-${name}-code`].layout, { place: [2, row], span: [2, 2] }, `manual ${name} code must be 2×2`);
@@ -252,7 +256,7 @@ const jsonLayoutIds = new Set([
   "manual-menu", "manual-menu-code", "manual-layout",
   "manual-drag", "manual-drag-code",
   "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5",
-  "manual-drag-result", "manual-appearance", "manual-appearance-code",
+  "manual-drag-result", "manual-base-colors", "manual-base-colors-code", "manual-appearance", "manual-appearance-code",
   "manual-colors", "manual-colors-code", "manual-random", "manual-random-code", "manual-random-action"
 ]);
 for (const [id, entry] of Object.entries(docsContent.manual)) {
@@ -322,15 +326,25 @@ assert.equal("statement" in docsContent.manual["manual-drag-result"], false, "ma
 assert.deepEqual(docsContent.manual["manual-drag-code"].code, ["blocks.draggable = true;", "blocks.snap = true;"], "manual 04 must teach dragging separately from size and position");
 assert.equal("manual-compact" in docsContent.manual, false, "compact() must stay in the API reference instead of the beginner manual");
 assert.equal("manual-compact-code" in docsContent.manual, false, "the beginner manual must not carry a separate compact() code lesson");
-assert.deepEqual(docsContent.manual["manual-appearance"].layout, { place: [1, 28], span: [2, 1] }, "manual 05 explanation must be compact 2×1");
-assert.deepEqual(docsContent.manual["manual-appearance-code"].layout, { place: [3, 28], span: [4, 1] }, "manual 05 code must be compact 4×1 beside its explanation");
-assert.deepEqual(docsContent.manual["manual-colors"].layout, { place: [1, 32], span: [2, 2] }, "manual 06 explanation must be 2×2");
-assert.deepEqual(docsContent.manual["manual-colors-code"].layout, { place: [3, 32], span: [4, 2] }, "manual 06 code must be 4×2 beside its explanation");
-assert.ok(docsContent.manual["manual-colors-code"].code.includes('const colors = ["cyan", "magenta", "yellow"];'), "manual 06 must define the three demonstrated colors");
-assert.ok(docsContent.manual["manual-colors-code"].code.some((line) => line.trim() === "block.color = color;"), "manual 06 must apply each defined color to its block");
-assert.deepEqual(docsContent.manual["manual-random"].layout, { place: [1, 37], span: [2, 2] }, "manual 07 explanation must be 2×2");
-assert.deepEqual(docsContent.manual["manual-random-code"].layout, { place: [3, 37], span: [3, 2] }, "manual 07 code must be 3×2 beside its explanation");
-assert.deepEqual(docsContent.manual["manual-random-action"].layout, { place: [6, 37], span: [1, 2] }, "manual 07 rerun action must occupy the freed sixth column");
+assert.deepEqual(docsContent.manual["manual-base-colors"].layout, { place: [1, 28], span: [2, 2] }, "manual 05 base-color explanation must be 2×2");
+assert.deepEqual(docsContent.manual["manual-base-colors-code"].layout, { place: [3, 28], span: [2, 2] }, "manual 05 base-color code must be 2×2 beside its explanation");
+assert.deepEqual(docsContent.manual["manual-base-colors-code"].code, [
+  "#blocks-field {",
+  "  --blocks-field-color: #e7e6e0;",
+  "  --blocks-paper-color: #efeee8;",
+  "  --blocks-ink-color: #000;",
+  "  --blocks-text-color: #14140f;",
+  "}"
+], "manual 05 must show all four public base-color variables on the container");
+assert.deepEqual(docsContent.manual["manual-appearance"].layout, { place: [1, 31], span: [2, 1] }, "manual 06 explanation must be compact 2×1");
+assert.deepEqual(docsContent.manual["manual-appearance-code"].layout, { place: [3, 31], span: [4, 1] }, "manual 06 code must be compact 4×1 beside its explanation");
+assert.deepEqual(docsContent.manual["manual-colors"].layout, { place: [1, 35], span: [2, 2] }, "manual 07 explanation must be 2×2");
+assert.deepEqual(docsContent.manual["manual-colors-code"].layout, { place: [3, 35], span: [4, 2] }, "manual 07 code must be 4×2 beside its explanation");
+assert.ok(docsContent.manual["manual-colors-code"].code.includes('const colors = ["cyan", "magenta", "yellow"];'), "manual 07 must define the three demonstrated colors");
+assert.ok(docsContent.manual["manual-colors-code"].code.some((line) => line.trim() === "block.color = color;"), "manual 07 must apply each defined color to its block");
+assert.deepEqual(docsContent.manual["manual-random"].layout, { place: [1, 40], span: [2, 2] }, "manual 08 explanation must be 2×2");
+assert.deepEqual(docsContent.manual["manual-random-code"].layout, { place: [3, 40], span: [3, 2] }, "manual 08 code must be 3×2 beside its explanation");
+assert.deepEqual(docsContent.manual["manual-random-action"].layout, { place: [6, 40], span: [1, 2] }, "manual 08 rerun action must occupy the freed sixth column");
 assert.equal(docsContent.manual["manual-random-action"].action, "random", "manual 07 action must describe a fresh random draw");
 assert.deepEqual(docsContent.manual["manual-random-action"].fields, [
   { name: "colorVariation", label: "colorVariation", min: 0, max: 1, step: 0.1, value: 0.5 },
@@ -364,13 +378,13 @@ assert.doesNotMatch(siteDemos["docs/manual.mjs"], /🎲|Re-roll Randomness/, "ma
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /manual-contract|exact contract →|function contract\(/, "manual must not render exact-contract separator rows");
 assert.match(siteDemos["docs/manual.mjs"], /manual-chapter-heading/, "manual chapters must expose real h2 headings for assistive navigation");
 assert.deepEqual(docsContent.manual["manual-next"], {
-  title: "08 / unblocked",
+  title: "09 / unblocked",
   statement: "So, the blocks are unblocked now."
-}, "manual 08 must end with one dry Swiss punchline and no example navigation");
+}, "manual 09 must end with one dry Swiss punchline and no example navigation");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /function next\(|manual-next-links/, "manual 08 must not retain the old examples-link renderer");
 assert.match(siteDemos["docs/manual.mjs"], /manual-next[\s\S]*blockContent: overviewText\(content\["manual-next"\]\)/, "manual 08 must use the same large neutral statement architecture as chapter 02");
 assert.doesNotMatch(siteDemos["docs/manual.mjs"], /ResizeObserver|MutationObserver|registerAdapter|document\.createElement\("video"\)/, "advanced lifecycle examples must stay outside the beginner route");
-for (const anchor of ["eli10", "start", "content", "menu", "dragging", "appearance", "colors", "chance", "next"]) {
+for (const anchor of ["eli10", "start", "content", "menu", "dragging", "base-colors", "appearance", "colors", "chance", "next"]) {
   assert.ok(siteDemos["docs/manual.mjs"].includes('"' + anchor + '"'), "manual misses #" + anchor);
 }
 const manualCopy = JSON.stringify(docsContent.manual).toLowerCase();
@@ -454,7 +468,23 @@ for (const entry of Object.values(docsContent.manual)) {
 }
 assert.ok(docsContent.manual["manual-start-b"].code.includes("blocks.setGrid(4, 4);"), "manual must create the requested four-by-four example grid");
 assert.ok(docsContent.manual["manual-content-html-code"].code.includes("    <strong>Structure makes movement visible.</strong>"), "02.1 HTML code must create the text shown in its result");
+assert.ok(docsContent.manual["manual-content-object-code"].code.some((line) => line.includes("pexels-peter-dyllong-2158803154-37352130.jpg")), "02 object code must load the photo shown in its result");
+assert.ok(docsContent.manual["manual-content-object-code"].code.some((line) => line.includes("02 / direction")), "02 object code must create the caption shown in its result");
+assert.ok(docsContent.manual["manual-content-factory-code"].code.some((line) => line.includes("structure") && line.includes("contrast")), "02 factory code must define the states shown in its result");
+assert.ok(docsContent.manual["manual-content-factory-code"].code.some((line) => line.includes("addEventListener")), "02 factory code must create the interaction shown in its result");
 assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /\b(?:DOM node|Node|node)\b/, "beginner copy must say object instead of node");
+assert.doesNotMatch(JSON.stringify(Object.values(docsContent.manual)), /"contract"/, "manual content must not retain unused legacy contract links");
+
+const definitionReference = JSON.stringify(docsContent.reference["reference-definition-create"]);
+assert.match(definitionReference, /filters\.query[\s\S]*adapter/, "reference query search must name adapter among its searchable fields");
+const adapterReference = JSON.stringify(docsContent.reference["reference-adapter-methods"]);
+assert.match(adapterReference, /mount\(context\)[\s\S]*block, host, settings and adapter/i, "reference must describe the full mount context");
+assert.match(adapterReference, /snippet\(context\)[\s\S]*block and settings only/i, "reference must distinguish the smaller snippet context");
+for (const token of ["--blocks-gap", "--blocks-field-color", "--blocks-paper-color", "--blocks-ink-color", "--blocks-text-color", "--blocks-font-family", "--blocks-content-padding"]) {
+  assert.ok(JSON.stringify(docsContent.reference["reference-field-signals"]).includes(token), `reference CSS hooks miss ${token}`);
+}
+assert.doesNotMatch(pageHtml["docs/reference-fallback.html"], /data-reference-(?:column|aspect)="undefined"/, "reference fallback must not emit undefined legacy metadata");
+assert.match(eli10Source, /container[\s\S]*blocks[\s\S]*grid[\s\S]*block/i, "ELI10 source comment must describe all four teaching steps");
 
 assert.doesNotMatch(libraryCss, /\.(?:home|manual|reference)-/, "library CSS must not own docs composition");
 assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "base CSS must remain separate from motion");

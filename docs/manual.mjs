@@ -1,6 +1,6 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.15";
-import { loadDocsContent, quantizeSurface } from "./shell.mjs?v=0.1.79";
-import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.5";
+import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.85";
+import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.6";
 
 const board = document.querySelector("#manual-board");
 const reader = document.querySelector("#manual-reader");
@@ -23,6 +23,7 @@ const manualIds = [
   "manual-drag", "manual-drag-code",
   "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5",
   "manual-drag-result",
+  "manual-base-colors", "manual-base-colors-code",
   "manual-appearance", "manual-appearance-code", "manual-appearance-regular",
   "manual-appearance-inverse", "manual-colors", "manual-colors-code", "manual-color-cyan",
   "manual-color-magenta", "manual-color-yellow", "manual-random", "manual-random-code", "manual-random-action",
@@ -33,7 +34,7 @@ const manualIds = [
 ];
 const content = await loadDocsContent("manual", manualIds);
 blocks.attach(board);
-blocks.setGrid(6, 43);
+blocks.setGrid(6, 46);
 quantizeSurface(board);
 
 function text(name, value, className = "") {
@@ -137,32 +138,18 @@ function imageObject({ alt, caption }) {
   return figure;
 }
 
-function factory({ eyebrow, states, action }) {
+function factory({ states }) {
   return function createFreshElement() {
-    const root = document.createElement("article");
-    root.className = "manual-content-demo manual-content-factory-demo";
-    const index = text("span", "", "manual-factory-index");
-    index.setAttribute("aria-hidden", "true");
-    const state = text("strong", "", "manual-factory-state");
-    state.setAttribute("aria-live", "polite");
-    const button = text("button", action, "manual-factory-action");
+    const button = text("button", states[0], "manual-content-demo manual-content-factory-demo");
     button.type = "button";
     let active = 0;
-    const render = () => {
-      index.textContent = String(active + 1).padStart(2, "0");
-      state.textContent = states[active];
-      root.dataset.state = states[active];
-    };
+    button.dataset.state = states[active];
     button.addEventListener("click", () => {
       active = (active + 1) % states.length;
-      render();
+      button.textContent = states[active];
+      button.dataset.state = states[active];
     });
-    render();
-    const readout = document.createElement("div");
-    readout.className = "manual-factory-readout";
-    readout.append(index, state);
-    root.append(text("small", eyebrow), readout, button);
-    return root;
+    return button;
   };
 }
 
@@ -273,6 +260,7 @@ function createReaderArticle() {
     ["manual-finish", ["manual-content-html-intro", "manual-content-html-code", "manual-content-html", "manual-content-object-intro", "manual-content-object-code", "manual-content-object", "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory"]],
     ["manual-menu", ["manual-menu-code", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"]],
     ["manual-drag", ["manual-drag-code", "manual-drag-result"]],
+    ["manual-base-colors", ["manual-base-colors-code"]],
     ["manual-appearance", ["manual-appearance-code", "manual-appearance-regular", "manual-appearance-inverse"]],
     ["manual-colors", ["manual-colors-code", "manual-color-cyan", "manual-color-magenta", "manual-color-yellow"]],
     ["manual-random", ["manual-random-code", "manual-random-action"]],
@@ -296,7 +284,7 @@ const eli10Block = add({
   title: content["manual-eli10"].title,
   blockContent: eli10(content["manual-eli10"]),
   span: [3, 2],
-  place: [1, 1],
+  place: [2, 1],
   anchor: "eli10",
   protectedBlock: true,
   classes: ["manual-half", "manual-eli10-block"]
@@ -362,6 +350,7 @@ for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fix
 add({ id: "manual-drag-result", title: content["manual-drag-result"].title, blockContent: specimen(content["manual-drag-result"]), span: content["manual-drag-result"].layout.span, place: content["manual-drag-result"].layout.place });
 
 for (const [id, codeId, anchor] of [
+  ["manual-base-colors", "manual-base-colors-code", "base-colors"],
   ["manual-appearance", "manual-appearance-code", "appearance"],
   ["manual-colors", "manual-colors-code", "colors"]
 ]) {
@@ -372,14 +361,14 @@ for (const [id, codeId, anchor] of [
 for (const [id, column, variant] of [
   ["manual-appearance-regular", 1, "regular"],
   ["manual-appearance-inverse", 4, "inverse"]
-]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, 29], variant, classes: ["manual-half"] });
+]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 2], place: [column, 32], variant, classes: ["manual-half"] });
 
 for (const [id, column, color] of [
   ["manual-color-cyan", 1, "cyan"],
   ["manual-color-magenta", 3, "magenta"],
   ["manual-color-yellow", 5, "yellow"]
 ]) {
-  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 2], place: [column, 34], classes: ["manual-third"] });
+  const block = add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [2, 2], place: [column, 37], classes: ["manual-third"] });
   block.color = color;
 }
 
@@ -431,7 +420,7 @@ function rerollChanceResults() {
   blocks.inversionVariation = inversionVariation;
   for (let index = 0; index < 12; index += 1) {
     const column = (index % 6) + 1;
-    const row = 39 + Math.floor(index / 6);
+    const row = 42 + Math.floor(index / 6);
     addChanceResult("manual-random-mix-" + (index + 1), column, row, index);
   }
 
@@ -455,6 +444,7 @@ function randomizeChanceSettings() {
 chanceControls.button.addEventListener("click", randomizeChanceSettings);
 for (const input of Object.values(chanceControls.inputs)) input.addEventListener("input", rerollChanceResults);
 rerollChanceResults();
-add({ id: "manual-next", title: content["manual-next"].title, blockContent: overviewText(content["manual-next"]), span: [6, 2], place: [1, 42], anchor: "next", protectedBlock: true, classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
+add({ id: "manual-next", title: content["manual-next"].title, blockContent: overviewText(content["manual-next"]), span: [6, 2], place: [1, 45], anchor: "next", protectedBlock: true, classes: ["manual-code-block", "manual-next-block", "manual-chapter-start"] });
 
 board.dataset.manualReady = "true";
+scrollToCurrentHash();

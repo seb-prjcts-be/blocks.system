@@ -9,6 +9,7 @@ import {
 import { createBlocksSystem as createMinBlocksSystem } from "blocks.system/min";
 
 const blocks: BlocksSystem = createBlocksSystem({
+  catalogUrl: null,
   snap: true,
   draggable: true,
   blockDefaults: { menu: { minimize: true, close: true } }
@@ -40,6 +41,11 @@ document.body.addEventListener("blocks:reorder", (event) => {
 document.body.addEventListener("blocks:change", (event) => {
   const detail: BlocksChangeDetail = event.detail;
   void detail.ids;
+});
+
+blocks.field?.addEventListener("blocks:change", (event) => {
+  const detail: BlocksChangeDetail = event.detail;
+  void detail.type;
 });
 
 // @ts-expect-error Grid dimensions are readable state, not writable settings.

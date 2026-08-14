@@ -6,8 +6,8 @@
   <meta name="description" content="Linear blocks.system API reference without JavaScript.">
   <title>linear reference · blocks.system</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="../blocks.system.css?v=0.1.13">
-  <link rel="stylesheet" href="style.css?v=0.2.36">
+  <link rel="stylesheet" href="../blocks.system.css?v=0.1.14">
+  <link rel="stylesheet" href="style.css?v=0.2.42">
 </head>
 <body class="docs-page reference-page reference-fallback-page">
   <main class="reference-fallback-main">
@@ -17,7 +17,7 @@
       <p>The enhanced page presents the same contracts as one direct reading sequence.</p>
       <p><a href="api.html">open the interactive reference</a></p>
     </header>
-<section id="exports" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="exports" class="reference-fallback-entry">
   <h2>create the system</h2><span id="options" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">Import the factory and create one independent blocks system. The module also exports a shared system when one global instance is enough.</p>
   <pre class="reference-code"><code>import { createBlocksSystem } from &quot;./blocks.system.mjs&quot;;
@@ -45,7 +45,7 @@ const blocks = createBlocksSystem({
 <tr><td data-label="kind + contract">option · blocks</td><td data-label="returns / type / default">BlockDefinition[] · []</td><td data-label="purpose">Register definitions during creation.</td></tr></tbody></table></div>
 </section>
 
-<section id="container" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="container" class="reference-fallback-entry">
   <h2>attach a container</h2><span id="system-methods" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">Attach the system to one existing element before adding content. A selector and an Element are both accepted.</p>
   <pre class="reference-code"><code>blocks.attach(&quot;#blocks-field&quot;);</code></pre>
@@ -53,7 +53,7 @@ const blocks = createBlocksSystem({
 <tr><td data-label="kind + contract">property · field</td><td data-label="returns / type">Element | null</td><td data-label="purpose">The currently attached field.</td></tr></tbody></table></div>
 </section>
 
-<section id="grid" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="grid" class="reference-fallback-entry">
   <h2>set the grid</h2><span id="system-state" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">Define the field dimensions before placing blocks. Columns come first; all dimensions and positions use positive whole numbers.</p>
   <pre class="reference-code"><code>blocks.snap = true;
@@ -65,7 +65,7 @@ blocks.setGrid(4, 4);</code></pre>
 <tr id="api-compact"><td data-label="kind + contract">method · compact()</td><td data-label="returns / type / default">blocks</td><td data-label="purpose">Move fixed grid blocks upward to fill vertical gaps.</td></tr></tbody></table></div>
 </section>
 
-<section id="blocks" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="blocks" class="reference-fallback-entry">
   <h2>create a block</h2><span id="add-options" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">add() turns content into one block and returns its controller. id identifies the block; title is optional visible text in its titlebar.</p>
   <pre class="reference-code"><code>const block = blocks.add(content, {
@@ -83,7 +83,7 @@ blocks.setGrid(4, 4);</code></pre>
 <tr><td data-label="kind + contract">option · minimized</td><td data-label="returns / type">boolean</td><td data-label="purpose">Set the initial minimized state.</td></tr></tbody></table></div>
 </section>
 
-<section id="block-layout" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="block-layout" class="reference-fallback-entry">
   <h2>size and position</h2><span id="block-methods" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">Size the returned block, then place it. Coordinates start at 1 and columns come before rows.</p>
   <pre class="reference-code"><code>block.span(4, 2);
@@ -93,7 +93,7 @@ block.place(1, 1);</code></pre>
 <tr id="api-flow"><td data-label="kind + contract">method · flow()</td><td data-label="returns">block</td><td data-label="purpose">Return this block to CSS automatic order.</td></tr></tbody></table></div>
 </section>
 
-<section id="content" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="content" class="reference-fallback-entry">
   <h2>choose the content</h2>
   <p class="reference-intro">A block accepts trusted HTML, a Node or a factory. Never pass untrusted text as HTML; create an element and assign textContent instead.</p>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>accepted value</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">content · HTML</td><td data-label="accepted value">string</td><td data-label="purpose">Trusted markup parsed by the browser.</td></tr>
@@ -102,7 +102,7 @@ block.place(1, 1);</code></pre>
 <tr><td data-label="kind + contract">property · block.content</td><td data-label="accepted value">readonly HTMLDivElement</td><td data-label="purpose">The content host inside the returned block.</td></tr></tbody></table></div>
 </section>
 
-<section id="titlebar-controls" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="titlebar-controls" class="reference-fallback-entry">
   <h2>titlebar controls</h2>
   <p class="reference-intro">Configure minimize and close when the system or block is created, or update one block later through its controller.</p>
   <pre class="reference-code"><code>block.menu(&quot;hello&quot;, {
@@ -119,7 +119,7 @@ block.place(1, 1);</code></pre>
 <tr><td data-label="kind + contract">method · remove()</td><td data-label="type or returns">true</td><td data-label="purpose">Remove the block and release its layout.</td></tr></tbody></table></div>
 </section>
 
-<section id="dragging" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="dragging" class="reference-fallback-entry">
   <h2>dragging and order</h2><span id="reorder-event" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">draggable enables pointer and keyboard movement. snap keeps moves on the configured grid; otherwise blocks move through flow order.</p>
   <pre class="reference-code"><code>field.addEventListener(&quot;blocks:reorder&quot;, (event) =&gt; {
@@ -134,7 +134,7 @@ block.place(1, 1);</code></pre>
   <p class="reference-details">input is pointer or keyboard; mode is grid or flow; from and to are { column, row } or null. direction is up, right, down, left or still.</p>
 </section>
 
-<section id="appearance" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="appearance" class="reference-fallback-entry">
   <h2>choose an appearance</h2>
   <p class="reference-intro">Set a default appearance for future blocks or override it on one block. Built-in fixed variants are regular and inverse; random delegates to the chance settings.</p>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>type or initial value</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">option · variant</td><td data-label="type or initial value">string · random</td><td data-label="purpose">Appearance used for new blocks.</td></tr>
@@ -144,7 +144,7 @@ block.place(1, 1);</code></pre>
 <tr><td data-label="kind + contract">property · block.variant</td><td data-label="type or initial value">string</td><td data-label="purpose">Read or change the resolved appearance of one block.</td></tr></tbody></table></div>
 </section>
 
-<section id="colors" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="colors" class="reference-fallback-entry">
   <h2>set a color</h2>
   <p class="reference-intro">Assign one CSS color directly to a block, or provide an array used by future random blocks.</p>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>type or initial value</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">option · colorArray</td><td data-label="type or initial value">readonly string[] · []</td><td data-label="purpose">User-owned CSS colors available to future random blocks.</td></tr>
@@ -152,7 +152,7 @@ block.place(1, 1);</code></pre>
 <tr><td data-label="kind + contract">property · block.color</td><td data-label="type or initial value">string</td><td data-label="purpose">Read or set one block's CSS color.</td></tr></tbody></table></div>
 </section>
 
-<section id="chance" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="chance" class="reference-fallback-entry">
   <h2>set the chance</h2>
   <p class="reference-intro">Chance only affects future blocks created with the random variant. Color is checked first; inversion applies to the remaining monochrome blocks.</p>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>type or initial value</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">option · random</td><td data-label="type or initial value">() =&gt; number · Math.random</td><td data-label="purpose">Random source used for appearance decisions.</td></tr>
@@ -160,7 +160,7 @@ block.place(1, 1);</code></pre>
 <tr><td data-label="kind + contract">property · blocks.inversionVariation</td><td data-label="type or initial value">number · 1 / 3</td><td data-label="purpose">Inverse share from 0 to 1 inside the remaining monochrome range.</td></tr></tbody></table></div>
 </section>
 
-<section id="block-controller" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="block-controller" class="reference-fallback-entry">
   <h2>inspect and serialize a block</h2>
   <p class="reference-intro">add() returns one controller. Use it instead of removing or rewriting the outer DOM element directly.</p>
   <pre class="reference-code"><code>const definition = block.describe({
@@ -174,7 +174,7 @@ block.place(1, 1);</code></pre>
 <tr id="api-address"><td data-label="kind + contract">method · address(id)</td><td data-label="type or returns">string</td><td data-label="purpose">Build ?block=id from definition.url or the system catalogUrl.</td></tr></tbody></table></div>
 </section>
 
-<section id="adapters" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="adapters" class="reference-fallback-entry">
   <h2>definitions + adapters</h2>
   <p class="reference-intro">Definitions describe reusable content. Register definitions and their lifecycle adapters on the shared system.</p>
   <pre class="reference-code"><code>const definition = {
@@ -208,14 +208,14 @@ const notes = blocks.list({
 <tr><td data-label="kind + contract">adapter · adapter &quot;html&quot;</td><td data-label="returns or type">built-in</td><td data-label="purpose">Mounts and snippets trusted definition.markup. Replace it with registerAdapter(&quot;html&quot;, adapter, { replace: true }).</td></tr>
 <tr><td data-label="kind + contract">method · listAdapters()</td><td data-label="returns or type">string[]</td><td data-label="purpose">List registered adapter ids, starting with the built-in html adapter.</td></tr>
 <tr><td data-label="kind + contract">method · list(filters?)</td><td data-label="returns or type">definition[]</td><td data-label="purpose">Filter definitions with any combination of the four filters below.</td></tr>
-<tr><td data-label="kind + contract">filter · filters.query</td><td data-label="returns or type">string</td><td data-label="purpose">Match text in the definition id, label, description, medium or category.</td></tr>
+<tr><td data-label="kind + contract">filter · filters.query</td><td data-label="returns or type">string</td><td data-label="purpose">Match text in the definition id, label, description, adapter, medium or category.</td></tr>
 <tr><td data-label="kind + contract">filter · filters.adapter</td><td data-label="returns or type">string</td><td data-label="purpose">Keep definitions that use this adapter id.</td></tr>
 <tr><td data-label="kind + contract">filter · filters.medium</td><td data-label="returns or type">string</td><td data-label="purpose">Keep definitions with this medium.</td></tr>
 <tr><td data-label="kind + contract">filter · filters.category</td><td data-label="returns or type">string</td><td data-label="purpose">Keep definitions in this category.</td></tr>
 <tr><td data-label="kind + contract">method · get(id)</td><td data-label="returns or type">definition | null</td><td data-label="purpose">Read one registered definition.</td></tr></tbody></table></div>
 </section>
 
-<section id="adapter-methods" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="adapter-methods" class="reference-fallback-entry">
   <h2>adapter lifecycle methods</h2>
   <p class="reference-intro">Adapters own mount and cleanup lifecycle; the system methods below use those lifecycle hooks for registered definitions.</p>
   <pre class="reference-code"><code>await blocks.mount(&quot;block-note&quot;, target, { text: &quot;hello&quot; });
@@ -226,15 +226,14 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
 <tr><td data-label="kind + contract">method · remount(id, target, overrides?)</td><td data-label="returns or required">Promise&lt;Element&gt;</td><td data-label="purpose">Unmount and mount again with new settings.</td></tr>
 <tr><td data-label="kind + contract">method · snippet(id, overrides?)</td><td data-label="returns or required">string</td><td data-label="purpose">Ask the adapter for a reusable snippet.</td></tr>
 <tr><td data-label="kind + contract">override · overrides</td><td data-label="returns or required">Record&lt;string, unknown&gt;</td><td data-label="purpose">Adapter-specific settings merged over definition.defaults; for the note adapter, { text: &quot;hello&quot; } is valid.</td></tr>
-<tr><td data-label="kind + contract">lifecycle · mount(context)</td><td data-label="returns or required">yes</td><td data-label="purpose">Return an Element or { node }, directly or through a Promise.</td></tr>
-<tr><td data-label="kind + contract">lifecycle · ready(context)</td><td data-label="returns or required">no</td><td data-label="purpose">Prepare before mount.</td></tr>
-<tr><td data-label="kind + contract">lifecycle · unmount(mounted)</td><td data-label="returns or required">no</td><td data-label="purpose">Release listeners or resources.</td></tr>
-<tr><td data-label="kind + contract">lifecycle · snippet(context)</td><td data-label="returns or required">no</td><td data-label="purpose">Return reusable source text.</td></tr>
-<tr><td data-label="kind + contract">lifecycle · context</td><td data-label="returns or required">—</td><td data-label="purpose">Contains block, host, settings and adapter.</td></tr>
+<tr><td data-label="kind + contract">lifecycle · mount(context)</td><td data-label="returns or required">yes</td><td data-label="purpose">Return the direct child root Element or { node }, directly or through a Promise. Context contains block, host, settings and adapter.</td></tr>
+<tr><td data-label="kind + contract">lifecycle · ready(context)</td><td data-label="returns or required">no</td><td data-label="purpose">Prepare before mount with the same context as mount.</td></tr>
+<tr><td data-label="kind + contract">lifecycle · unmount(mounted)</td><td data-label="returns or required">no</td><td data-label="purpose">Release listeners or resources. Mounted contains the mount context plus node.</td></tr>
+<tr><td data-label="kind + contract">lifecycle · snippet(context)</td><td data-label="returns or required">no</td><td data-label="purpose">Receives block and settings only; return reusable source text.</td></tr>
 <tr><td data-label="kind + contract">property · mounted.node</td><td data-label="returns or required">Element</td><td data-label="purpose">The node returned by mount and tracked for cleanup.</td></tr></tbody></table></div>
 </section>
 
-<section id="field-dom" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="field-dom" class="reference-fallback-entry">
   <h2>field events + DOM hooks</h2><span id="css-hooks" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">The attached field exposes stable DOM hooks and dispatches blocks:change after explicit state changes. Reordering is documented with dragging above.</p>
   <pre class="reference-code"><code>field.addEventListener(&quot;blocks:change&quot;, (event) =&gt; {
@@ -251,11 +250,12 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
 <tr><td data-label="kind + hook">hook · [data-block-variant]</td><td data-label="purpose">Resolved appearance. Custom variant names pass validation and land here for consumer styling — for example a light footnote weight.</td></tr>
 <tr><td data-label="kind + hook">hook · [data-block-color]</td><td data-label="purpose">Color selected from the user's array.</td></tr>
 <tr><td data-label="kind + hook">hook · [data-block-minimized]</td><td data-label="purpose">Minimized state.</td></tr>
-<tr><td data-label="kind + hook">hook · [data-draggable]</td><td data-label="purpose">Surface drag state.</td></tr></tbody></table></div>
+<tr><td data-label="kind + hook">hook · [data-draggable]</td><td data-label="purpose">Surface drag state.</td></tr>
+<tr><td data-label="kind + hook">hook · CSS custom properties</td><td data-label="purpose">--blocks-gap · --blocks-field-color · --blocks-paper-color · --blocks-ink-color · --blocks-text-color · --blocks-font-family · --blocks-content-padding</td></tr></tbody></table></div>
   <p class="reference-details">For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks.</p>
 </section>
 
-<section id="errors" class="reference-fallback-entry" data-reference-column="undefined" data-reference-aspect="undefined">
+<section id="errors" class="reference-fallback-entry">
   <h2>failures + boundaries</h2>
   <small>fail early</small>
   <strong>Invalid input throws.</strong>

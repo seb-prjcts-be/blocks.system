@@ -1,9 +1,9 @@
 /**
- * ELI10 schema — div / blocks / block.
+ * ELI10 schema — container / blocks / grid / block.
  *
- * Three panels are drawn cumulatively: an empty container, the system attached
- * to that container, and one individual block inside it. The instance owns its
- * host, so this small explanatory sketch cannot collide with the manual.
+ * Four panels are drawn cumulatively: an empty container, the system attached
+ * to that container, its grid, and one individual block inside it. The instance
+ * owns its host, so this small explanatory sketch cannot collide with the manual.
  */
 export function mountEli10Schema(host) {
   if (!(host instanceof HTMLElement)) throw new TypeError("ELI10 needs its visual host.");
@@ -32,10 +32,10 @@ export function mountEli10Schema(host) {
     const STEP_MS = 1800;
     const ENTER_MS = 620;
 
-    const PAPER = "#f5f5f2";
+    const PAPER = "#efeee8";
     const INK = "#111";
     const MUTED = "#666";
-    const FIELD = "#d9d8d2";
+    const FIELD = "#e7e6e0";
 
     const STEPS = [
       { title: "1 / container" },

@@ -22,8 +22,7 @@
   },
   "manual": {
     "manual-eli10": {
-      "title": "00 / ELI10",
-      "contract": "api.html#exports"
+      "title": "00 / ELI10"
     },
     "manual-start-a": {
       "title": "01 / set up the CDN",
@@ -32,10 +31,9 @@
         "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.css",
         "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.mjs"
       ],
-      "contract": "api.html#system-methods",
       "layout": {
-        "place": [1, 4],
-        "span": [6, 1]
+        "place": [3, 4],
+        "span": [4, 1]
       }
     },
     "manual-start-div": {
@@ -95,10 +93,9 @@
     "manual-finish": {
       "title": "02 / content can be anything",
       "statement": "A block can hold anything the browser can render.",
-      "contract": "api.html#add-options",
       "layout": {
         "place": [1, 10],
-        "span": [6, 2]
+        "span": [5, 2]
       }
     },
     "manual-content-html-intro": {
@@ -119,11 +116,7 @@
         "    <span>type · interval · contrast</span>",
         "  </article>",
         "`;",
-        "",
-        "blocks.add(html, {",
-        "  id: \"block-html\",",
-        "  title: \"HTML\"",
-        "});"
+        "blocks.add(html, { id: \"block-html\", title: \"HTML\" });"
       ],
       "layout": {
         "place": [2, 12],
@@ -151,14 +144,14 @@
     "manual-content-object-code": {
       "title": "code",
       "code": [
+        "const figure = document.createElement(\"figure\");",
         "const image = document.createElement(\"img\");",
-        "image.src = \"./image.jpg\";",
-        "image.alt = \"Describe the image.\";",
-        "",
-        "blocks.add(image, {",
-        "  id: \"block-image\",",
-        "  title: \"image\"",
-        "});"
+        "image.src = \"./img/pexels-peter-dyllong-2158803154-37352130.jpg\";",
+        "image.alt = \"Black-and-white skatepark with converging concrete ramps, painted lines and a metal rail.\";",
+        "const caption = document.createElement(\"figcaption\");",
+        "caption.textContent = \"02 / direction\";",
+        "figure.append(image, caption);",
+        "blocks.add(figure, { id: \"block-image\", title: \"image\" });"
       ],
       "layout": {
         "place": [2, 14],
@@ -185,16 +178,15 @@
     "manual-content-factory-code": {
       "title": "code",
       "code": [
+        "const states = [\"structure\", \"contrast\", \"rhythm\", \"space\"];",
         "const factory = () => {",
         "  const button = document.createElement(\"button\");",
-        "  button.textContent = \"next state\";",
+        "  let active = 0;",
+        "  button.textContent = states[active];",
+        "  button.addEventListener(\"click\", () => { button.textContent = states[++active % states.length]; });",
         "  return button;",
         "};",
-        "",
-        "blocks.add(factory, {",
-        "  id: \"block-button\",",
-        "  title: \"interactive\"",
-        "});"
+        "blocks.add(factory, { id: \"block-button\", title: \"interactive\" });"
       ],
       "layout": {
         "place": [2, 16],
@@ -203,9 +195,7 @@
     },
     "manual-content-factory": {
       "title": "result",
-      "eyebrow": "03 / live",
       "states": ["structure", "contrast", "rhythm", "space"],
-      "action": "next state",
       "layout": {
         "place": [4, 16],
         "span": [3, 2]
@@ -214,7 +204,6 @@
     "manual-menu": {
       "title": "03 / titlebar controls",
       "intro": "The titlebar can show a minimize button, a close button, both or neither. These controls sit in the top-right corner. The API calls this configuration menu. A controller can also minimize, restore or remove its own block. Close removes this example; reload the page to restore the full manual.",
-      "contract": "api.html#block-methods",
       "layout": {
         "place": [1, 19],
         "span": [2, 2]
@@ -256,7 +245,6 @@
     "manual-layout": {
       "title": "block size and position",
       "intro": "Set size first, then position. Columns come before rows and coordinates start at 1.",
-      "contract": "api.html#block-methods",
       "layout": {
         "place": [1, 8],
         "span": [2, 1]
@@ -265,7 +253,6 @@
     "manual-drag": {
       "title": "04 / dragging",
       "intro": "Turn dragging on to move blocks by their titlebars. Snap keeps each move on the grid.",
-      "contract": "api.html#system-state",
       "layout": {
         "place": [1, 24],
         "span": [2, 1]
@@ -324,12 +311,34 @@
         "span": [1, 1]
       }
     },
-    "manual-appearance": {
-      "title": "05 / choose an appearance",
-      "intro": "Choose one fixed monochrome variant. Regular uses dark ink on paper; inverse exchanges figure and ground. Color and chance come later.",
-      "contract": "api.html#add-options",
+    "manual-base-colors": {
+      "title": "05 / set the base colors",
+      "intro": "Set the field, paper, titlebar and text colors once on the container. Every block inherits these four CSS variables unless you override one block later.",
       "layout": {
         "place": [1, 28],
+        "span": [2, 2]
+      }
+    },
+    "manual-base-colors-code": {
+      "title": "base color code",
+      "code": [
+        "#blocks-field {",
+        "  --blocks-field-color: #e7e6e0;",
+        "  --blocks-paper-color: #efeee8;",
+        "  --blocks-ink-color: #000;",
+        "  --blocks-text-color: #14140f;",
+        "}"
+      ],
+      "layout": {
+        "place": [3, 28],
+        "span": [2, 2]
+      }
+    },
+    "manual-appearance": {
+      "title": "06 / choose an appearance",
+      "intro": "Choose one fixed monochrome variant. Regular uses dark ink on paper; inverse exchanges figure and ground. Color and chance come later.",
+      "layout": {
+        "place": [1, 31],
         "span": [2, 1]
       }
     },
@@ -340,7 +349,7 @@
         "blocks.add(content, { variant: \"inverse\" });"
       ],
       "layout": {
-        "place": [3, 28],
+        "place": [3, 31],
         "span": [4, 1]
       }
     },
@@ -357,11 +366,10 @@
       "body": "variant: \"inverse\""
     },
     "manual-colors": {
-      "title": "06 / set a color",
+      "title": "07 / set a color",
       "intro": "Set one block color directly. Any valid CSS color can define its border, titlebar and hover frame; the content surface stays neutral.",
-      "contract": "api.html#block-controller",
       "layout": {
-        "place": [1, 32],
+        "place": [1, 35],
         "span": [2, 2]
       }
     },
@@ -379,7 +387,7 @@
         "}"
       ],
       "layout": {
-        "place": [3, 32],
+        "place": [3, 35],
         "span": [4, 2]
       }
     },
@@ -402,11 +410,10 @@
       "body": "Only color changes."
     },
     "manual-random": {
-      "title": "07 / set the chance",
+      "title": "08 / set the chance",
       "intro": "Set both chances between 0 and 1. colorVariation is checked first. inversionVariation applies only to blocks that remain monochrome. The twelve blocks below use the current values.",
-      "contract": "api.html#system-state",
       "layout": {
-        "place": [1, 37],
+        "place": [1, 40],
         "span": [2, 2]
       }
     },
@@ -424,7 +431,7 @@
         "}"
       ],
       "layout": {
-        "place": [3, 37],
+        "place": [3, 40],
         "span": [3, 2]
       }
     },
@@ -437,7 +444,7 @@
       ],
       "action": "random",
       "layout": {
-        "place": [6, 37],
+        "place": [6, 40],
         "span": [1, 2]
       }
     },
@@ -478,7 +485,7 @@
       "title": "result 12"
     },
     "manual-next": {
-      "title": "08 / unblocked",
+      "title": "09 / unblocked",
       "statement": "So, the blocks are unblocked now."
     }
   },
@@ -718,7 +725,7 @@
         { "cells": ["adapter · adapter \"html\"", "built-in", "Mounts and snippets trusted definition.markup. Replace it with registerAdapter(\"html\", adapter, { replace: true })."] },
         { "cells": ["method · listAdapters()", "string[]", "List registered adapter ids, starting with the built-in html adapter."] },
         { "cells": ["method · list(filters?)", "definition[]", "Filter definitions with any combination of the four filters below."] },
-        { "cells": ["filter · filters.query", "string", "Match text in the definition id, label, description, medium or category."] },
+        { "cells": ["filter · filters.query", "string", "Match text in the definition id, label, description, adapter, medium or category."] },
         { "cells": ["filter · filters.adapter", "string", "Keep definitions that use this adapter id."] },
         { "cells": ["filter · filters.medium", "string", "Keep definitions with this medium."] },
         { "cells": ["filter · filters.category", "string", "Keep definitions in this category."] },
@@ -740,11 +747,10 @@
         { "cells": ["method · remount(id, target, overrides?)", "Promise<Element>", "Unmount and mount again with new settings."] },
         { "cells": ["method · snippet(id, overrides?)", "string", "Ask the adapter for a reusable snippet."] },
         { "cells": ["override · overrides", "Record<string, unknown>", "Adapter-specific settings merged over definition.defaults; for the note adapter, { text: \"hello\" } is valid."] },
-        { "cells": ["lifecycle · mount(context)", "yes", "Return an Element or { node }, directly or through a Promise."] },
-        { "cells": ["lifecycle · ready(context)", "no", "Prepare before mount."] },
-        { "cells": ["lifecycle · unmount(mounted)", "no", "Release listeners or resources."] },
-        { "cells": ["lifecycle · snippet(context)", "no", "Return reusable source text."] },
-        { "cells": ["lifecycle · context", "—", "Contains block, host, settings and adapter."] },
+        { "cells": ["lifecycle · mount(context)", "yes", "Return the direct child root Element or { node }, directly or through a Promise. Context contains block, host, settings and adapter."] },
+        { "cells": ["lifecycle · ready(context)", "no", "Prepare before mount with the same context as mount."] },
+        { "cells": ["lifecycle · unmount(mounted)", "no", "Release listeners or resources. Mounted contains the mount context plus node."] },
+        { "cells": ["lifecycle · snippet(context)", "no", "Receives block and settings only; return reusable source text."] },
         { "cells": ["property · mounted.node", "Element", "The node returned by mount and tracked for cleanup."] }
       ]
     },
@@ -770,7 +776,8 @@
         { "cells": ["hook · [data-block-variant]", "Resolved appearance. Custom variant names pass validation and land here for consumer styling — for example a light footnote weight."] },
         { "cells": ["hook · [data-block-color]", "Color selected from the user's array."] },
         { "cells": ["hook · [data-block-minimized]", "Minimized state."] },
-        { "cells": ["hook · [data-draggable]", "Surface drag state."] }
+        { "cells": ["hook · [data-draggable]", "Surface drag state."] },
+        { "cells": ["hook · CSS custom properties", "--blocks-gap · --blocks-field-color · --blocks-paper-color · --blocks-ink-color · --blocks-text-color · --blocks-font-family · --blocks-content-padding"] }
       ]
     },
     "reference-system-errors": {

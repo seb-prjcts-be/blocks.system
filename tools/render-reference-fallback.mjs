@@ -35,7 +35,7 @@ function renderEntry(entry, definition) {
     renderTable(entry),
     entry.details && `<p class="reference-details">${escapeHtml(entry.details)}</p>`,
   ].filter(Boolean).join("\n  ");
-  return `<section id="${escapeHtml(definition.anchor)}" class="reference-fallback-entry" data-reference-column="${escapeHtml(definition.column)}" data-reference-aspect="${escapeHtml(definition.aspect)}">
+  return `<section id="${escapeHtml(definition.anchor)}" class="reference-fallback-entry">
   <h2>${escapeHtml(entry.title)}</h2>${aliases}
   ${contents}
 </section>`;
@@ -55,8 +55,8 @@ export function renderReferenceFallback(content) {
   <meta name="description" content="Linear blocks.system API reference without JavaScript.">
   <title>linear reference · blocks.system</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="../blocks.system.css?v=0.1.13">
-  <link rel="stylesheet" href="style.css?v=0.2.36">
+  <link rel="stylesheet" href="../blocks.system.css?v=0.1.14">
+  <link rel="stylesheet" href="style.css?v=0.2.42">
 </head>
 <body class="docs-page reference-page reference-fallback-page">
   <main class="reference-fallback-main">

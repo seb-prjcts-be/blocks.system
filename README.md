@@ -3,7 +3,7 @@
 **[Home](https://seb-prjcts-be.github.io/blocks.system/)** ·
 **[Manual](https://seb-prjcts-be.github.io/blocks.system/docs/)** ·
 **[API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)** ·
-**[Examples](https://seb-prjcts-be.github.io/blocks.system/docs/#next)**
+**[Examples](https://seb-prjcts-be.github.io/blocks.system/examples/)**
 
 `blocks.system` is a dependency-free ESM browser core for individually
 addressable HTML, SVG, canvas, custom elements and adapter-driven content.
@@ -68,7 +68,7 @@ const blockCanvas = blocks.add(document.createElement("canvas"), {
   title: "canvas"
 });
 blockCanvas.span(2, 1);
-blockCanvas.place(2, 1);
+blockCanvas.place(3, 1);
 blockCanvas.variant = "inverse";
 blockCanvas.minimized = false;
 blockCanvas.color = "#222";
@@ -79,7 +79,7 @@ The built-in variants are `regular` and `inverse`. A colour selected from your
 array uses one generic `color` state: the chosen colour draws the block frame
 and menu bar, while the block paper and rendered content stay neutral. The menu
 automatically uses whichever system neutral—ink or paper—has the stronger
-contrast against the chosen colour. On draggable blocks, the hover frame reuses
+contrast against the chosen colour. On every block, the hover frame reuses
 the current block frame colour, including inverse and user-selected colours.
 Other explicit variant names remain available as hooks for your own CSS, but
 the library does not style them as named colours.
@@ -163,9 +163,10 @@ page; only genuinely overflowing inner content scrolls locally first.
 The measured mechanics and boundaries are recorded in
 [`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
-See the [v0.3.0 API reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
-for arguments and return values. The installation snippets, runtime, types and
-reference all use the same immutable release.
+See the [API reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
+for arguments and return values. Public installation snippets remain pinned to
+immutable `v0.3.0`; the current `main` runtime, types and reference are explicitly
+marked unreleased while they move beyond that tag.
 
 ## Verified status
 
@@ -184,8 +185,7 @@ The following checks passed locally:
 
 `v0.3.0` is the latest immutable public release. Its breaking changes and
 migration notes are recorded in [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md).
-Future `main` work must identify itself as unreleased before it diverges from
-this tag.
+Current `main` is identified as unreleased because it has diverged from this tag.
 
 ## Develop
 

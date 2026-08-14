@@ -5,8 +5,8 @@
   --ink: #111;
   --muted: #666;
   --line: rgba(0, 0, 0, 0.2);
-  --docs-field: #d9d8d2;
-  --docs-paper: #efeee8;
+  --system-field: #e7e6e0;
+  --system-paper: #efeee8;
   color-scheme: light;
   scrollbar-color: rgba(17, 17, 17, 0.58) transparent;
   scrollbar-width: thin;
@@ -135,10 +135,9 @@ footer a { color: var(--ink); }
 /* Home */
 
 .home-page {
-  --home-field: #e7e6e0;
   --home-navbar-height: 56px;
   overflow: hidden;
-  background: var(--home-field);
+  background: var(--system-field);
 }
 
 .home-page #navbar {
@@ -161,7 +160,7 @@ footer a { color: var(--ink); }
   height: 100%;
   min-height: 0;
   border: 0;
-  background-color: var(--home-field);
+  background-color: var(--system-field);
   background-image:
     linear-gradient(to right, rgba(20, 20, 15, 0.16) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(20, 20, 15, 0.16) 1px, transparent 1px);
@@ -342,7 +341,7 @@ footer a { color: var(--ink); }
   --docs-row: 132px;
   --docs-masthead-aside: 250px;
   --docs-chapter-space: 144px;
-  background: var(--docs-field);
+  background: var(--system-field);
 }
 
 .docs-page #navbar {
@@ -363,7 +362,6 @@ footer a { color: var(--ink); }
   width: min(100%, 1440px);
   margin: 0 auto var(--docs-chapter-space);
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--ink);
 }
 
 .docs-masthead > span {
@@ -380,7 +378,7 @@ footer a { color: var(--ink); }
   width: min(100%, 1440px);
   margin: 0 auto;
   border-color: var(--ink);
-  background: var(--docs-field);
+  background: var(--system-field);
   /* Tijdelijk zichtbaar voor de gridaudit. */
   background-image:
     linear-gradient(to right, transparent calc(100% - 1px), rgb(17 17 17 / 32%) 0),
@@ -495,7 +493,7 @@ footer a { color: var(--ink); }
 .manual-intro #manual-reset:hover,
 .manual-intro #manual-reset:focus-visible {
   background: var(--ink);
-  color: var(--docs-paper);
+  color: var(--system-paper);
   outline: none;
 }
 
@@ -659,14 +657,33 @@ footer a { color: var(--ink); }
   overflow: hidden;
 }
 
+.manual-content-factory-demo {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  align-items: end;
+  font: 600 clamp(2rem, 4vw, 4rem)/0.82 "Instrument Sans", sans-serif;
+  letter-spacing: -0.055em;
+  text-transform: lowercase;
+}
+
+.manual-content-factory-demo:hover,
+.manual-content-factory-demo:focus-visible {
+  background: var(--block-color);
+  color: var(--block-paper-color);
+  outline: none;
+}
+
 .manual-content-html-demo {
   gap: 6px;
   padding-block: 16px;
 }
 
 .manual-content-html-demo small,
-.manual-content-image-demo figcaption,
-.manual-content-factory-demo small {
+.manual-content-image-demo figcaption {
   font: 400 11px/1.2 "Consolas", "Courier New", monospace;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -710,52 +727,6 @@ footer a { color: var(--ink); }
   padding: 5px 7px;
   background: #000;
   color: var(--paper);
-}
-
-.manual-factory-readout {
-  align-self: end;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: end;
-  gap: 10px;
-}
-
-.manual-factory-index {
-  font: 600 clamp(4rem, 7.4vw, 8rem)/0.72 "Instrument Sans", sans-serif;
-  letter-spacing: -0.07em;
-}
-
-.manual-factory-state {
-  min-width: 0;
-  padding-bottom: 0.15em;
-  font: 600 clamp(1.2rem, 2vw, 2.4rem)/0.9 "Instrument Sans", sans-serif;
-  letter-spacing: -0.045em;
-  overflow-wrap: anywhere;
-  text-transform: lowercase;
-}
-
-.manual-factory-action {
-  appearance: none;
-  width: 100%;
-  margin: 0;
-  padding: 7px 0 0;
-  border: 0;
-  border-top: 1px solid currentColor;
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-  text-align: left;
-  font: 500 11px/1.25 "Consolas", "Courier New", monospace;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
-
-.manual-factory-action::after { content: " \2192"; }
-.manual-factory-action:hover,
-.manual-factory-action:focus-visible {
-  background: var(--block-color);
-  color: var(--block-paper-color);
-  outline: none;
 }
 
 .manual-card-code {
@@ -863,6 +834,11 @@ footer a { color: var(--ink); }
 
 .manual-code-card { padding: 0; }
 .manual-code-card .manual-code { height: 100%; }
+.manual-content-code-block .manual-code {
+  padding: 12px;
+  font-size: 11px;
+  line-height: 1.45;
+}
 
 .manual-eli10 {
   display: flex;
@@ -890,7 +866,7 @@ footer a { color: var(--ink); }
 .manual-field-preview span,
 .manual-compact-preview span {
   border: 1px solid currentColor;
-  background: var(--docs-field);
+  background: var(--system-field);
 }
 
 .manual-field-preview span:nth-child(1),
@@ -996,11 +972,6 @@ footer a { color: var(--ink); }
   .manual-content-html-demo small,
   .manual-content-html-demo > span,
   .manual-content-image-demo figcaption,
-  .manual-content-factory-demo small,
-  .manual-factory-action { font-size: 10px; }
-  .manual-factory-index { font-size: 3.4rem; }
-  .manual-factory-state { font-size: 1.05rem; }
-  .manual-factory-action { padding-top: 4px; }
   .manual-foot { flex-direction: column; padding-inline: 8px; }
 }
 
@@ -1015,6 +986,28 @@ footer a { color: var(--ink); }
   font: 600 clamp(3.4rem, 8.5vw, 8rem)/0.78 "Instrument Sans", sans-serif;
   letter-spacing: -0.06em;
   text-transform: lowercase;
+}
+
+.reference-masthead h1 {
+  display: grid;
+}
+
+.docs-masthead-title,
+.docs-masthead-title-measure {
+  grid-area: 1 / 1;
+}
+
+.docs-masthead-title-measure {
+  visibility: hidden;
+  letter-spacing: -0.055em;
+}
+
+@media (max-width: 900px) {
+  .reference-masthead::after {
+    display: block;
+    height: 29px;
+    content: "";
+  }
 }
 
 .reference-board { --blocks-columns: 6; }
@@ -1085,7 +1078,7 @@ footer a { color: var(--ink); }
   position: sticky;
   top: 0;
   z-index: 1;
-  background: var(--docs-paper);
+  background: var(--system-paper);
   text-transform: uppercase;
 }
 
@@ -1109,7 +1102,7 @@ footer a { color: var(--ink); }
   margin: 24px auto 0;
   padding: 18px;
   border: 1px solid var(--ink);
-  background: var(--docs-paper);
+  background: var(--system-paper);
 }
 
 .reference-nojs h2,
@@ -1148,7 +1141,7 @@ footer a { color: var(--ink); }
   min-width: 0;
   margin-top: 38px;
   border: 1px solid var(--ink);
-  background: var(--docs-paper);
+  background: var(--system-paper);
 }
 
 .reference-fallback-entry h2 {
@@ -1204,8 +1197,8 @@ footer a { color: var(--ink); }
 }
 
 @media (max-width: 560px) {
-  .reference-main { padding: 88px 8px 18px; }
-  .reference-masthead h1 { font-size: clamp(3.4rem, 18vw, 5rem); }
+  .reference-main { padding: 104px 8px 18px; }
+  .reference-masthead h1 { font-size: clamp(3.2rem, 17vw, 5.2rem); }
   .reference-board > .reference-cell {
     --block-span-columns: 1 !important;
   }
@@ -1278,7 +1271,7 @@ footer a { color: var(--ink); }
   min-height: 100svh;
   margin: 0;
   padding: 76px 10px 10px;
-  background: var(--docs-field);
+  background: var(--system-field);
   color: var(--ink);
   font: 400 12px/1.45 "Instrument Sans", "Segoe UI", sans-serif;
 }
@@ -1305,7 +1298,7 @@ footer a { color: var(--ink); }
   text-decoration: none;
 }
 .example-page .example-actions a:hover,
-.example-page .example-actions a:focus-visible { background: var(--ink); color: var(--docs-paper); }
+.example-page .example-actions a:focus-visible { background: var(--ink); color: var(--system-paper); }
 .example-page .example-main { display: grid; min-height: 0; place-items: center; }
 .example-page .field {
   --blocks-font-family: "Instrument Sans";
@@ -1333,12 +1326,12 @@ footer a { color: var(--ink); }
   min-height: 180px;
   padding: 14px;
   border: 1px solid var(--ink);
-  background: var(--docs-paper);
+  background: var(--system-paper);
   color: inherit;
   text-decoration: none;
 }
 .examples-index-list a:hover,
-.examples-index-list a:focus-visible { background: var(--ink); color: var(--docs-paper); outline: none; }
+.examples-index-list a:focus-visible { background: var(--ink); color: var(--system-paper); outline: none; }
 .examples-index-list small { font: 400 11px/1.2 "Consolas", "Courier New", monospace; letter-spacing: 0.05em; text-transform: uppercase; }
 .examples-index-list strong { align-self: end; font: 600 clamp(1.5rem, 3vw, 2.5rem)/0.9 "Instrument Sans", sans-serif; letter-spacing: -0.04em; text-transform: lowercase; }
 .examples-index-list p { color: inherit; }

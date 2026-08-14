@@ -5,7 +5,7 @@ let docsContentRequest;
 
 async function readDocsContent() {
   if (!docsContentRequest) {
-    docsContentRequest = fetch(new URL("./content.json?v=0.3.85", import.meta.url)).then(async (response) => {
+    docsContentRequest = fetch(new URL("./content.json?v=0.3.92", import.meta.url)).then(async (response) => {
       if (!response.ok) throw new Error(`Could not load docs content (${response.status}).`);
       const content = await response.json();
       if (content.schema !== DOCS_CONTENT_SCHEMA) {
@@ -115,6 +115,20 @@ export function quantizeSurface(surface, { maxWidth = 1440 } = {}) {
   observer.observe(container);
   update();
   return Object.freeze({ disconnect: () => observer.disconnect(), update });
+}
+
+export function scrollToCurrentHash() {
+  if (!window.location.hash) return false;
+  let id;
+  try {
+    id = decodeURIComponent(window.location.hash.slice(1));
+  } catch {
+    return false;
+  }
+  const target = document.getElementById(id);
+  if (!target) return false;
+  requestAnimationFrame(() => target.scrollIntoView({ block: "start", behavior: "instant" }));
+  return true;
 }
 
 initNavigation();

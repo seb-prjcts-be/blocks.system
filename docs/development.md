@@ -14,12 +14,12 @@
 - `index.html` is de voordeur met één echt blocks-systeem.
 - `docs/index.html` is de levende manual op de canonieke route `/docs/`.
 - `docs/api.html` is de volledige, niet-versleepbare reference.
-- `docs/content.json` bezit de inhoud van de 70 levende docblocks:
-  3 op home, 47 in de manual en 10 in de reference. Titels, uitleg, termen,
+- `docs/content.json` bezit de inhoud van de levende docblocks op home, in de
+  manual en in de reference. Titels, uitleg, termen,
   toegankelijke labels, links en codevoorbeelden staan daar. De JSON spiegelt
-  block-ID's als koppelsleutel. De vijf startblokken 01a, DIV, BLOCKS, GRID en
-  01b bezitten ook hun eigen `place` en `span`; overige volgorde en layout, DOM-opbouw, gedrag en
-  lifecycle blijven bij de betreffende docscompositie.
+  block-ID's als koppelsleutel. Waar een manualitem `layout` bevat, bezit het
+  ook zijn eigen `place` en `span`; overige compositie, DOM-opbouw, gedrag en
+  lifecycle blijven bij de betreffende docsmodule.
   Zelfgetekende visuals (de ELI10-canvasstappen), media-assetpaden en berekende
   interactiestatus blijven bewust compositie- of gedragscode. Navigatie,
   paginametadata, toolbars en footers blijven in semantische HTML. De library

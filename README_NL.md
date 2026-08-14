@@ -3,7 +3,7 @@
 **[Home](https://seb-prjcts-be.github.io/blocks.system/)** ·
 **[Handleiding](https://seb-prjcts-be.github.io/blocks.system/docs/)** ·
 **[API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)** ·
-**[Voorbeelden](https://seb-prjcts-be.github.io/blocks.system/docs/#next)**
+**[Voorbeelden](https://seb-prjcts-be.github.io/blocks.system/examples/)**
 
 `blocks.system` is een dependencyvrije ESM-browserkern voor individueel
 adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
@@ -70,7 +70,7 @@ const blockCanvas = blocks.add(document.createElement("canvas"), {
   title: "canvas"
 });
 blockCanvas.span(2, 1);
-blockCanvas.place(2, 1);
+blockCanvas.place(3, 1);
 blockCanvas.variant = "inverse";
 blockCanvas.minimized = false;
 blockCanvas.color = "#222";
@@ -81,7 +81,7 @@ De ingebouwde varianten zijn `regular` en `inverse`. Een kleur uit je array
 gebruikt één generieke `color`-state: de gekozen kleur tekent het blockkader en
 de menubalk, terwijl het blockpapier en de gerenderde inhoud neutraal blijven.
 Het menu kiest automatisch de systeeminkt of het systeempapier met het sterkste
-contrast tegen de gekozen kleur. Bij versleepbare blocks hergebruikt het
+contrast tegen de gekozen kleur. Bij alle blocks hergebruikt het
 hoverkader de huidige blockrandkleur, ook bij inverse en gebruikerskleuren.
 Andere expliciete variantnamen blijven haken voor je eigen CSS, maar de
 library geeft ze geen ingebouwde kleurstijl.
@@ -168,9 +168,10 @@ alleen echt overlopende binneninhoud scrollt eerst lokaal.
 De gemeten werking en grenzen staan duurzaam in
 [`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
-Bekijk de [v0.3.0-API-reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
-voor argumenten en returnwaarden. Installatiesnippets, runtime, types en
-reference gebruiken allemaal dezelfde onveranderlijke release.
+Bekijk de [API-reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
+voor argumenten en returnwaarden. Publieke installatiesnippets blijven op de
+onveranderlijke `v0.3.0` vastgezet; de huidige runtime, types en reference op
+`main` zijn expliciet als niet uitgebracht aangeduid zolang ze van die tag afwijken.
 
 ## Gecontroleerde status
 
@@ -189,8 +190,7 @@ Lokaal geslaagd:
 
 `v0.3.0` is de recentste onveranderlijke publieke release. Breaking changes en
 migratienotities staan in [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md).
-Toekomstig werk op `main` moet opnieuw als niet uitgebracht worden aangeduid
-voordat het van deze tag afwijkt.
+De huidige `main` is als niet uitgebracht aangeduid omdat hij van deze tag afwijkt.
 
 ## Ontwikkelen
 

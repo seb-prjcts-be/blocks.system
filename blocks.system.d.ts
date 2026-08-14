@@ -117,7 +117,7 @@ export interface BlocksChangeDetail {
 }
 
 export interface BlocksSystemOptions {
-  catalogUrl?: string | URL;
+  catalogUrl?: string | URL | null;
   random?: () => number;
   snap?: boolean;
   draggable?: boolean;
@@ -173,6 +173,11 @@ declare global {
   }
 
   interface HTMLElementEventMap {
+    "blocks:reorder": CustomEvent<BlocksReorderDetail>;
+    "blocks:change": CustomEvent<BlocksChangeDetail>;
+  }
+
+  interface ElementEventMap {
     "blocks:reorder": CustomEvent<BlocksReorderDetail>;
     "blocks:change": CustomEvent<BlocksChangeDetail>;
   }

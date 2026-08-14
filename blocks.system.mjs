@@ -333,7 +333,7 @@ function createBlockCatalog(options = {}) {
         unmount(host);
         const result = await adapter.mount(context);
         const node = result && result.node ? result.node : result;
-        if (!(node instanceof Element) || !host.contains(node)) {
+        if (!(node instanceof Element) || node.parentNode !== host) {
             throw new TypeError(`Adapter ${block.adapter} moet een gemount root-element teruggeven.`);
         }
         const mounted = { ...context, node };
@@ -1034,6 +1034,7 @@ export function createBlocksSystem(options = {}) {
             surface.removeAttribute("data-draggable");
             surface.style.removeProperty("--blocks-columns");
             surface.style.removeProperty("--blocks-rows");
+            surface.style.removeProperty("--blocks-font-family");
         }
         if (surface !== nextSurface) drag.bind(nextSurface);
         surface = nextSurface;
@@ -1219,7 +1220,15 @@ export function createBlocksSystem(options = {}) {
     function add(content, addOptions = {}) {
         if (!surface) throw new Error("Roep eerst blocks.system.attach(target) aan.");
         drag.stop();
-        const id = String(addOptions.id || `block-${++objectIndex}`);
+        let id;
+        if (addOptions.id !== undefined) {
+            if (typeof addOptions.id !== "string") throw new TypeError(`Ongeldig block-id: ${addOptions.id}`);
+            id = addOptions.id;
+        } else {
+            do {
+                id = `block-${++objectIndex}`;
+            } while (objects.has(id));
+        }
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new TypeError(`Ongeldig block-id: ${id}`);
         if (objects.has(id)) throw new Error(`Block bestaat al: ${id}`);
         const automaticMenu = normalizeAutomaticMenu(

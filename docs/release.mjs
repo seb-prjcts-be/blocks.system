@@ -1,6 +1,6 @@
 export const DOCS_RELEASE = Object.freeze({
-  sourceRef: "v0.3.0",
-  releaseStatus: "released",
+  sourceRef: "main",
+  releaseStatus: "unreleased",
   packageVersion: "0.3.0",
   stableRef: "v0.3.0",
   nextRelease: null,
