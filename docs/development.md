@@ -114,7 +114,7 @@ Open daarna `http://localhost/blocks.system/`, `/docs/` en
 
 ## Publicatie
 
-Werk volgens de lokale `AGENTS.md`: projectwerk gebeurt op een werkbranch,
+Werk volgens de lokale projectafspraken: projectwerk gebeurt op een werkbranch,
 commit alleen op verzoek en push nooit zonder expliciete toestemming. Voor publicatie:
 
 `package.json` heeft `private`: true: dit project is geen npm-package en mag

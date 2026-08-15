@@ -1,7 +1,4 @@
 node_modules/
 _site/
-AGENTS.md
-CLAUDE.md
-STATUS.md
 .DS_Store
 .tmp-*

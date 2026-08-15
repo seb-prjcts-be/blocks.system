@@ -47,7 +47,6 @@ jobs:
             --exclude "node_modules" \
             --exclude "tests" \
             --exclude "tools" \
-            --exclude "STATUS.md" \
             ./ _site/
           touch _site/.nojekyll
 
