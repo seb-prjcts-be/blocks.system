@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.16";
-import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.85";
+import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.86";
 import { REFERENCE_SECTIONS } from "./reference-sections.mjs?v=0.1.5";
 
 const board = document.querySelector("#reference-board");

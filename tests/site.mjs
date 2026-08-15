@@ -94,6 +94,25 @@ const standaloneExamples = Object.fromEntries(await Promise.all(exampleDirectori
   await read(`examples/${example}/index.html`)
 ])));
 
+const docsShellEntries = [
+  ["index.html", "docs/home.mjs"],
+  ["docs/index.html", "docs/manual.mjs"],
+  ["docs/api.html", "docs/reference.mjs"]
+];
+for (const [page, entry] of docsShellEntries) {
+  const standaloneShell = pageHtml[page].match(/<script type="module" src="([^"]*shell\.mjs\?v=[^"]+)"><\/script>/)?.[1];
+  const importedShell = siteDemos[entry].match(/from "(\.\/shell\.mjs\?v=[^"]+)"/)?.[1];
+  assert.ok(standaloneShell, `${page} must load the shared shell directly for navigation`);
+  assert.ok(importedShell, `${entry} must import the shared shell utilities`);
+  const pageUrl = new URL(page, "https://blocks.system.test/");
+  const entryUrl = new URL(entry, "https://blocks.system.test/");
+  assert.equal(
+    new URL(importedShell, entryUrl).href,
+    new URL(standaloneShell, pageUrl).href,
+    `${page} and ${entry} must resolve one identical shell module URL so navigation initializes once`
+  );
+}
+
 assert.deepEqual(DOCS_RELEASE, {
   sourceRef: "main",
   releaseStatus: "unreleased",

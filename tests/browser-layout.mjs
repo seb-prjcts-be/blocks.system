@@ -982,6 +982,7 @@ async function measureManual(width, height, dpr = 1) {
         boardWidth: boardRect.width,
         boardTop: boardRect.top,
         mastheadTitle: mastheadTitle.textContent,
+        mastheadSourceLabel: document.querySelector(".manual-masthead [data-docs-source-prefix]")?.textContent.trim() ?? null,
         mastheadMetrics: {
           top: mastheadRect.top,
           bottom: mastheadRect.bottom,
@@ -1922,6 +1923,7 @@ try {
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const desktopManual = await measureManual(1280, 900, 2);
+  assert.equal(desktopManual.mastheadSourceLabel, "manual / ELI10 + nine steps · main · unreleased", "manual mag de gedeelde bronmetadata maar één keer in de masthead zetten");
   if (desktopManual.blockCount === 64) {
     assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
     assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
