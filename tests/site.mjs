@@ -111,13 +111,13 @@ for (const [page, entry] of docsShellEntries) {
 }
 
 assert.deepEqual(DOCS_RELEASE, {
-  sourceRef: "v0.4.0",
-  releaseStatus: "released",
+  sourceRef: "main",
+  releaseStatus: "unreleased",
   packageVersion: "0.4.0",
   stableRef: "v0.4.0",
   nextRelease: null,
   stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0"
-}, "docs release metadata must identify the complete v0.4.0 release line");
+}, "docs release metadata must distinguish the post-release main docs from stable v0.4.0");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");

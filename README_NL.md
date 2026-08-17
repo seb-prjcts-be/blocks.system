@@ -231,9 +231,10 @@ alleen echt overlopende binneninhoud scrollt eerst lokaal.
 De gemeten werking en grenzen staan duurzaam in
 [`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
-Bekijk de [v0.4.0 API-reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
-voor argumenten en returnwaarden. Installatiesnippets, runtime, types en
-reference gebruiken dezelfde onveranderlijke release.
+Bekijk de [API-reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
+voor argumenten en returnwaarden. Publieke installatiesnippets blijven op de
+onveranderlijke `v0.4.0` vastgezet; de huidige docs op `main` zijn na hun
+post-release reference-layoutfix als niet uitgebracht aangeduid.
 
 ## Gecontroleerde status
 

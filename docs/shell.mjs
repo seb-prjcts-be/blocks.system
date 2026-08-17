@@ -1,4 +1,4 @@
-import { docsSourceLabel } from "./release.mjs?v=0.1.1";
+import { docsSourceLabel } from "./release.mjs?v=0.1.2";
 
 const DOCS_CONTENT_SCHEMA = "blocks.system/docs-content@3";
 let docsContentRequest;
