@@ -13,7 +13,8 @@
   een zelfstandige, lichte leveringsroute en laden geen volledige sitecascade.
 - `index.html` is de voordeur met één echt blocks-systeem.
 - `docs/index.html` is de levende manual op de canonieke route `/docs/`.
-- `docs/api.html` is de volledige, niet-versleepbare reference.
+- `docs/api.html` is de volledige reference; zoals elders staat verslepen er
+  standaard aan en kan een consumer dat expliciet uitschakelen.
 - `docs/content.json` bezit de inhoud van de levende docblocks op home, in de
   manual en in de reference. Titels, uitleg, termen,
   toegankelijke labels, links en codevoorbeelden staan daar. De JSON spiegelt
@@ -111,8 +112,9 @@ Open daarna `http://localhost/blocks.system/`, `/docs/` en
 
 ## Publicatie
 
-Werk volgens de lokale projectafspraken: projectwerk gebeurt op een werkbranch,
-commit alleen op verzoek en push nooit zonder expliciete toestemming. Voor publicatie:
+Werk volgens de lokale projectafspraken: werk rechtstreeks in de canonieke
+checkout op `main`, commit alleen op verzoek en push nooit zonder expliciete
+toestemming. Voor publicatie:
 
 `package.json` heeft `private`: true: dit project is geen npm-package en mag
 niet via npm publiceren. De publieke distributieroute is een GitHub-release-tag

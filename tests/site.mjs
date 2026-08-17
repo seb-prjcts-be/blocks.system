@@ -80,6 +80,7 @@ for (const page of ["index.html", "docs/index.html", "docs/api.html", "docs/refe
 }
 const developmentGuide = await read("docs/development.md");
 const releaseNotes = await read("docs/releases/v0.4.0.md");
+const patchReleaseNotes = await read("docs/releases/v0.4.1.md");
 const eli10Source = await read("docs/eli10-schema.mjs");
 const vanillaWavesSource = await read("docs/vanilla-waves-demo.mjs");
 const siteDemoFiles = [
@@ -113,16 +114,19 @@ for (const [page, entry] of docsShellEntries) {
 assert.deepEqual(DOCS_RELEASE, {
   sourceRef: "main",
   releaseStatus: "unreleased",
-  packageVersion: "0.4.0",
+  packageVersion: "0.4.1",
   stableRef: "v0.4.0",
-  nextRelease: null,
+  nextRelease: "v0.4.1",
   stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0"
-}, "docs release metadata must distinguish the post-release main docs from stable v0.4.0");
+}, "docs release metadata must distinguish the v0.4.1 candidate from stable v0.4.0");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
 for (const contractChange of ["layout", "snap", "placement", "flow-grid", "resizable", "exportLayout()", "localStorage", "Instrument Sans"]) {
   assert.ok(releaseNotes.includes(contractChange), `v0.4.0 release notes miss ${contractChange}`);
+}
+for (const patchChange of ["reference", "browser", "v0.4.0"]) {
+  assert.ok(patchReleaseNotes.includes(patchChange), `v0.4.1 release notes miss ${patchChange}`);
 }
 for (const [page, html] of [["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /data-docs-source-prefix/, `${page} must visibly identify its current source line`);
