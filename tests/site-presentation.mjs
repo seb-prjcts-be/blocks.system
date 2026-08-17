@@ -28,7 +28,7 @@ for (const [label, html, current] of [
   assert.match(html, /<meta name="viewport"/, label + " needs a viewport declaration");
   assert.match(html, /<nav id="navbar"/, label + " needs the shared navigation");
   assert.match(html, new RegExp('aria-current="page">\\s*' + current), label + " needs its current navigation state");
-  assert.match(html, /style\.css\?v=0\.2\.46/, label + " must load the current docs stylesheet");
+  assert.match(html, /style\.css\?v=0\.2\.47/, label + " must load the current docs stylesheet");
 }
 
 assert.match(homeHtml, /id="home-board"/, "home keeps its live proof field");

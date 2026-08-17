@@ -1,5 +1,5 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.16";
-import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.89";
+import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.90";
 import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.6";
 import { mountVanillaWavesDemo } from "./vanilla-waves-demo.mjs?v=0.1.3";
 

@@ -41,13 +41,13 @@
 }
 
 .blocks-system-object:hover {
-    outline: 3px solid var(--block-color);
-    outline-offset: -3px;
+    outline: 3px solid var(--blocks-ink-color);
+    outline-offset: 0;
 }
 
 .blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"]:has(> .blocks-system-menu > .blocks-system-title:focus-visible) {
     outline: 3px solid var(--blocks-ink-color);
-    outline-offset: -3px;
+    outline-offset: 0;
 }
 
 .blocks-system-title:focus-visible {
@@ -113,7 +113,7 @@
     min-width: 0;
     min-height: 0;
     overflow: hidden;
-    border: 1px solid var(--block-color);
+    border: 1px solid var(--blocks-ink-color);
     background: var(--block-paper-color);
     color: var(--block-content-color);
 }
@@ -148,7 +148,7 @@
     gap: 6px;
     height: 22px;
     min-height: 22px;
-    border-bottom: 1px solid var(--block-color);
+    border-bottom: 1px solid var(--blocks-ink-color);
     background: var(--block-color);
     color: var(--block-menu-color);
     padding: 3px 7px;

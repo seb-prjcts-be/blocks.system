@@ -499,7 +499,7 @@ assert.equal(nestedRootHost.getAttribute("data-block-mounted"), null, "a rejecte
 
 const field = new TestElement();
 const font = {
-  href: "https://fonts.googleapis.com/css2?family=Oswald:wght@400;600&display=swap",
+  href: "https://fonts.example.test/css2?family=Oswald:wght@400;600&display=swap",
   family: "Oswald"
 };
 local.font = font;

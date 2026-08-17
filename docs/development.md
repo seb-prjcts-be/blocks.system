@@ -6,10 +6,10 @@
 - `blocks.system.min.mjs` wordt uitsluitend door `npm run build:min` gemaakt.
 - `blocks.system.css` is het afzonderlijk gepubliceerde librarycontract en bevat
   alleen herbruikbare surface-, block- en state-CSS.
-- `docs/style.css` is de enige sitecascade voor home, manual, reference en alle
-  examples. Iedere canonieke pagina laadt eerst de library-CSS en daarna dit
+- `docs/style.css` is de enige sitecascade voor home, manual en reference.
+  Iedere canonieke pagina laadt eerst de library-CSS en daarna dit
   consumerbestand, elk exact één keer.
-- `docs/alias.css` blijft bewust apart: de zeven kleine redirectpagina's zijn
+- `docs/alias.css` blijft bewust apart: de zes kleine redirectpagina's zijn
   een zelfstandige, lichte leveringsroute en laden geen volledige sitecascade.
 - `index.html` is de voordeur met één echt blocks-systeem.
 - `docs/index.html` is de levende manual op de canonieke route `/docs/`.
@@ -24,12 +24,10 @@
   interactiestatus blijven bewust compositie- of gedragscode. Navigatie,
   paginametadata, toolbars en footers blijven in semantische HTML. De library
   leest dit bestand niet.
-- `examples/<naam>/` is zelfstandig, uitvoerbaar en kopieerbaar.
-
 `docs/shell.mjs` bezit uitsluitend gedeelde docsfuncties: navigatie, één
 gecachete en streng gevalideerde contentloader en hele-pixelkwantisering. De
 loader weigert ontbrekende én ongebruikte block-ID's. De gedeelde CSS-shell
-staat onder `.docs-*`; home, manual, reference en examples voegen in
+staat onder `.docs-*`; home, manual en reference voegen in
 `docs/style.css` alleen hun eigen delta toe. Hun ESM-composities blijven
 afzonderlijk en niets daarvan lekt naar de core.
 
@@ -40,9 +38,8 @@ afzonderlijk en niets daarvan lekt naar de core.
 | `/` | productbelofte en één levende proof |
 | `/docs/` | start, resultaat, layout, kleuren, random variatie en vervolgstappen |
 | `/docs/api.html` | exacte API, errors, definition shape en CSS-hooks |
-| `/examples/<naam>/` | zelfstandige uitvoer en downloadbare module |
 
-`manual.html`, `system.html`, `examples.html`, de drie oude guidepagina's en
+`manual.html`, `system.html`, de drie oude guidepagina's en
 `about.html` zijn blijvende HTTP-200-aliases. Ze vervangen de browserhistory
 naar één vast anchor op `/docs/` en houden een gewone fallbacklink.
 
@@ -52,8 +49,7 @@ Wanneer publiek gedrag verandert, controleer in dezelfde commit:
 
 1. `README.md` en `README_NL.md`;
 2. de relevante manual- en referenceblocks;
-3. de drie standalone examples;
-4. contract-, link- en browsertests;
+3. contract-, link- en browsertests;
 
 `npm run test:types` compileert hetzelfde consumentenfixture met Node16- en
 bundler-resolutie. Voeg een publieke API-wijziging daar toe wanneer de
@@ -84,12 +80,13 @@ library-API.
   niet. `colorArray` is standaard leeg; een positieve `colorVariation` vereist
   minstens één door de gebruiker gekozen CSS-kleur.
 - De library bezit alleen `regular` en `inverse`. Een gekozen gebruikerskleur
-  krijgt de generieke `color`-state: de kleur tekent uitsluitend het blockkader
-  en de menubalk. Het hoverkader hergebruikt voor elke variant `--block-color`:
-  zwart bij `regular`, licht bij `inverse` en de gekozen gebruikerskleur bij
-  `color`. Blockpapier, tekst en zelfgetekende inhoud in HTML, canvas of SVG
-  blijven neutraal. Voor een gebruikerskleur kiest de library tussen de neutrale
-  systeeminkt en het systeempapier op basis van de sterkste contrastverhouding.
+  krijgt de generieke `color`-state: de kleur vult uitsluitend de titelbalk.
+  Elk block behoudt een dunne zwarte rand en krijgt hetzelfde sterkere zwarte
+  kader bij mouseover of toetsenbordfocus. Blockpapier, tekst en zelfgetekende
+  inhoud in HTML, canvas of SVG blijven neutraal; alleen `inverse` wisselt
+  papier en inkt ook over het inhoudsvlak. Voor een gebruikerskleur kiest de
+  library tussen de neutrale systeeminkt en het systeempapier op basis van de
+  sterkste contrastverhouding.
 - Bewaar een regel hier alleen wanneer de reden niet betrouwbaar uit broncode,
   tests of gitgeschiedenis terug te vinden is.
 
@@ -124,12 +121,12 @@ die jsDelivr voor ESM en CSS kan leveren.
 1. draai `npm run check` en `git diff --check`;
 2. stage uitsluitend bedoelde publieke bestanden;
 3. push alleen na Sebs expliciete opdracht;
-4. verifieer daarna live home, manual, reference en examples;
+4. verifieer daarna live home, manual en reference;
 5. maak pas een versie-tag wanneer de publieke API klaar is om via jsDelivr te
    pinnen.
 
 `v0.3.0` is de huidige onveranderlijke publieke release. Op de releasecommit
-gebruiken library, types, Pages-manual, reference, voorbeelden en
+gebruiken library, types, Pages-manual, reference en
 installatiesnippets exact datzelfde contract. `docs/release.mjs` is de canonieke
 bron voor `sourceRef`, `releaseStatus`, `packageVersion`, `stableRef` en
 `nextRelease`.

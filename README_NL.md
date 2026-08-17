@@ -2,8 +2,7 @@
 
 **[Home](https://seb-prjcts-be.github.io/blocks.system/)** ·
 **[Handleiding](https://seb-prjcts-be.github.io/blocks.system/docs/)** ·
-**[API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)** ·
-**[Voorbeelden](https://seb-prjcts-be.github.io/blocks.system/examples/)**
+**[API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)**
 
 `blocks.system` is een dependencyvrije ESM-browserkern voor individueel
 adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
@@ -76,14 +75,15 @@ blockCanvas.color = "#222";
 blockCanvas.remove();
 ```
 
-De ingebouwde varianten zijn `regular` en `inverse`. Een kleur uit je array
-gebruikt één generieke `color`-state: de gekozen kleur tekent het blockkader en
-de menubalk, terwijl het blockpapier en de gerenderde inhoud neutraal blijven.
-Het menu kiest automatisch de systeeminkt of het systeempapier met het sterkste
-contrast tegen de gekozen kleur. Bij alle blocks hergebruikt het
-hoverkader de huidige blockrandkleur, ook bij inverse en gebruikerskleuren.
-Andere expliciete variantnamen blijven haken voor je eigen CSS, maar de
-library geeft ze geen ingebouwde kleurstijl.
+De ingebouwde varianten zijn `regular` en `inverse`; inverse wisselt papier en
+inkt over het inhoudsvlak. Een kleur uit je array gebruikt één generieke
+`color`-state en vult alleen de titelbalk, terwijl het blockpapier en de
+gerenderde inhoud neutraal blijven. Het menu kiest automatisch de systeeminkt
+of het systeempapier met het sterkste contrast tegen de gekozen kleur. Elk
+block behoudt dezelfde dunne zwarte begrenzing en krijgt hetzelfde sterkere
+zwarte kader bij mouseover of toetsenbordfocus. Andere expliciete
+variantnamen blijven haken voor je eigen CSS, maar de library geeft ze geen
+ingebouwde kleurstijl.
 
 ## Einde
 
@@ -179,14 +179,14 @@ Op 2026-08-10 bevat release `v0.3.0` de gedocumenteerde publieke
 werking: blocks aanmaken en beheren, menu's, gridlayout,
 snap- en toetsenbordbeweging, `compact()`, varianten en toevalskleur,
 adapters, events, TypeScript-declaraties, home, manual, reference en drie
-uitvoerbare voorbeelden.
+bijhorende controles.
 
 Lokaal geslaagd:
 
 - `npm run check`: minified ESM, contracten, TypeScript, pagina's,
-  links, voorbeelden en responsieve browser-layoutchecks.
+  links en responsieve browser-layoutchecks.
 - `npm run test:presentation`: presentatie- en publieke paginastructuurchecks.
-- Apache/XAMPP: `/`, `/docs/` en `/examples/` geven elk HTTP 200.
+- Apache/XAMPP: `/` en `/docs/` geven elk HTTP 200.
 
 `v0.3.0` is de recentste onveranderlijke publieke release. Breaking changes en
 migratienotities staan in [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md).
@@ -200,7 +200,7 @@ npm run check
 ```
 
 `npm run check` bouwt de minified module opnieuw en controleert
-daarna API, docs, voorbeelden, lokale links en de echte showcase-layout in
+API, docs, lokale links en de echte showcase-layout in
 headless Chrome. Stel `CHROME_PATH` in wanneer Chrome of Edge niet op een
 standaardlocatie staat.
 

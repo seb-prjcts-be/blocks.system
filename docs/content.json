@@ -422,7 +422,7 @@
     },
     "manual-colors": {
       "title": "07 / set a color",
-      "intro": "Set one block color directly. Any valid CSS color can define its border, titlebar and hover frame; the content surface stays neutral.",
+      "intro": "Set one block color directly. Any valid CSS color fills its titlebar; every block keeps the same thin black border and stronger black hover frame. The content stays neutral unless the block is inverse.",
       "layout": {
         "place": [1, 37],
         "span": [2, 2]
