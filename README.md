@@ -225,11 +225,11 @@ The measured mechanics and boundaries are recorded in
 
 See the [API reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
 for arguments and return values. Public installation snippets are pinned to
-immutable `v0.4.1`, the same source identified by the released documentation.
+immutable `v0.4.2`, the same source identified by the released documentation.
 
 ## Verified status
 
-As checked on 2026-08-17, release `v0.4.1` implements the documented public
+As checked on 2026-08-17, release `v0.4.2` implements the documented public
 surface: one immutable layout model, fixed- and flow-grid movement, flow-grid
 resizing, layout persistence, minimization, `compact()`, adapters, events,
 TypeScript declarations, the homepage, manual and reference.
@@ -243,8 +243,10 @@ The following checks passed locally:
 - Targeted browser checks covered fixed-grid documentation and flow-grid order,
   resize, minimize and layout restore.
 
-`v0.4.1` is the latest immutable public release. Its verification fixes are
-recorded in [`docs/releases/v0.4.1.md`](docs/releases/v0.4.1.md); the preceding
+`v0.4.2` is the latest immutable public release. Its release-boundary correction
+is recorded in [`docs/releases/v0.4.2.md`](docs/releases/v0.4.2.md); the
+documentation fixes are recorded in
+[`docs/releases/v0.4.1.md`](docs/releases/v0.4.1.md), while the preceding
 breaking changes and migration notes remain in
 [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md).
 The `v0.4.0` line replaced `snap` plus `placement` with one immutable `layout`:

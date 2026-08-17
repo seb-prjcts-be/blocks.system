@@ -81,6 +81,7 @@ for (const page of ["index.html", "docs/index.html", "docs/api.html", "docs/refe
 const developmentGuide = await read("docs/development.md");
 const releaseNotes = await read("docs/releases/v0.4.0.md");
 const patchReleaseNotes = await read("docs/releases/v0.4.1.md");
+const boundaryReleaseNotes = await read("docs/releases/v0.4.2.md");
 const eli10Source = await read("docs/eli10-schema.mjs");
 const vanillaWavesSource = await read("docs/vanilla-waves-demo.mjs");
 const siteDemoFiles = [
@@ -112,13 +113,13 @@ for (const [page, entry] of docsShellEntries) {
 }
 
 assert.deepEqual(DOCS_RELEASE, {
-  sourceRef: "v0.4.1",
+  sourceRef: "v0.4.2",
   releaseStatus: "released",
-  packageVersion: "0.4.1",
-  stableRef: "v0.4.1",
+  packageVersion: "0.4.2",
+  stableRef: "v0.4.2",
   nextRelease: null,
-  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.1"
-}, "docs release metadata must keep the v0.4.1 release surfaces in lockstep");
+  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.2"
+}, "docs release metadata must keep the v0.4.2 release surfaces in lockstep");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
@@ -127,6 +128,9 @@ for (const contractChange of ["layout", "snap", "placement", "flow-grid", "resiz
 }
 for (const patchChange of ["reference", "browser", "v0.4.0"]) {
   assert.ok(patchReleaseNotes.includes(patchChange), `v0.4.1 release notes miss ${patchChange}`);
+}
+for (const boundaryChange of ["v0.4.1", "docsSourceLabel()", "GitHub Release"]) {
+  assert.ok(boundaryReleaseNotes.includes(boundaryChange), `v0.4.2 release notes miss ${boundaryChange}`);
 }
 for (const [page, html] of [["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /data-docs-source-prefix/, `${page} must visibly identify its current source line`);
@@ -473,7 +477,7 @@ const mainCdnBase = DOCS_RELEASE.stableCdnBase;
 const manualStartContent = JSON.stringify([docsContent.manual["manual-start-a"], docsContent.manual["manual-start-b"]]);
 assert.ok(manualStartContent.includes(mainCdnBase), "manual installation snippets must use the immutable stable ref");
 assert.match(siteDemos["docs/shell.mjs"], /docsSourceLabel\(\)/, "the shared shell must render canonical source metadata");
-assert.doesNotMatch(apiHtml, /main · unreleased/, "the released reference must identify the immutable v0.4.1 source");
+assert.doesNotMatch(apiHtml, /main · unreleased/, "the released reference must identify the immutable v0.4.2 source");
 assert.deepEqual(packageData.exports["."], {
   types: "./blocks.system.d.ts",
   default: "./blocks.system.mjs"

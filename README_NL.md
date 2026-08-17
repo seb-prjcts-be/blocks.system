@@ -233,12 +233,12 @@ De gemeten werking en grenzen staan duurzaam in
 
 Bekijk de [API-reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
 voor argumenten en returnwaarden. Publieke installatiesnippets zijn op de
-onveranderlijke `v0.4.1` vastgezet, dezelfde bron die de uitgebrachte docs
+onveranderlijke `v0.4.2` vastgezet, dezelfde bron die de uitgebrachte docs
 vermelden.
 
 ## Gecontroleerde status
 
-Op 2026-08-17 bevat release `v0.4.1` de gedocumenteerde publieke werking: één
+Op 2026-08-17 bevat release `v0.4.2` de gedocumenteerde publieke werking: één
 onveranderlijk layoutmodel, beweging in fixed- en flow-grid, flow-grid-resize,
 layoutopslag, minimalisering, `compact()`, adapters, events,
 TypeScript-declaraties, home, manual en reference.
@@ -251,9 +251,10 @@ Lokaal geslaagd:
 - Gerichte browserchecks dekken de fixed-grid-documentatie en flow-grid-volgorde,
   resize, minimalisering en layoutherstel.
 
-`v0.4.1` is de recentste onveranderlijke publieke release. De verificatiefixes
-staan in [`docs/releases/v0.4.1.md`](docs/releases/v0.4.1.md); de eerdere
-breaking changes en migratienotities blijven in
+`v0.4.2` is de recentste onveranderlijke publieke release. De correctie van de
+releasegrens staat in [`docs/releases/v0.4.2.md`](docs/releases/v0.4.2.md); de
+documentatiefixes staan in [`docs/releases/v0.4.1.md`](docs/releases/v0.4.1.md)
+en de eerdere breaking changes en migratienotities blijven in
 [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md).
 De `v0.4.0`-lijn verving `snap` plus `placement` door één onveranderlijke `layout`:
 `free`, `fixed-grid` of `flow-grid`. Verwijderde opties stoppen meteen

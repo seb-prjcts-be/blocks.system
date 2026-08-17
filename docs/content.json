@@ -44,8 +44,8 @@
       "title": "01 / set up the CDN",
       "body": "Start by loading the latest release. The CDN brings the library's stylesheet and JavaScript module into your page.",
       "code": [
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.1/blocks.system.css",
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.1/blocks.system.mjs"
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.2/blocks.system.css",
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.2/blocks.system.mjs"
       ],
       "layout": {
         "place": [3, 4],
@@ -79,11 +79,11 @@
     "manual-start-b": {
       "title": "setup code",
       "code": [
-        "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.1/blocks.system.css\">",
+        "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.2/blocks.system.css\">",
         "<div id=\"blocks-field\"></div>",
         "",
         "<script type=\"module\">",
-        "import { createBlocksSystem } from \"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.1/blocks.system.mjs\";",
+        "import { createBlocksSystem } from \"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.2/blocks.system.mjs\";",
         "",
         "const blocks = createBlocksSystem({",
         "  layout: \"fixed-grid\",",
