@@ -73,6 +73,67 @@ blockCanvas.color = "#222";
 blockCanvas.remove();
 ```
 
+### Automatic flow and personal layout
+
+Use `placement: "flow"` when blocks need a starting size but no fixed address.
+The browser then lays them out in DOM order without dense backfilling. Add them
+in the wanted initial order—sorting by title remains an application decision:
+
+```js
+const blocks = createBlocksSystem({
+  snap: true,
+  placement: "flow",
+  resizable: true,
+  variant: "regular"
+});
+
+blocks.attach("#blocks-field").setGrid(4, 6);
+
+const collator = new Intl.Collator(document.documentElement.lang, {
+  numeric: true,
+  sensitivity: "base"
+});
+
+for (const item of [...items].sort((a, b) => collator.compare(a.title, b.title))) {
+  blocks.add(item.content, { id: item.id, title: item.title }).span(...item.span);
+}
+```
+
+In this mode, dragging changes order. Dragging the thin right or bottom edge
+changes the span in whole grid units; the same controls work with arrow keys
+when focused. Minimizing keeps the titlebar and releases the block's extra rows,
+so later blocks move up automatically.
+
+`exportLayout()` returns only layout state—ids, order, spans, optional fixed
+positions and minimized state, never block content. That makes `localStorage`
+the simple fit for a personal layout on one browser. Keep role defaults in the
+application, then restore the local override with a role-specific key:
+
+```js
+const role = document.body.dataset.role || "student";
+const storageKey = `blocks.system:dashboard:${role}`;
+
+try {
+  const storedLayout = localStorage.getItem(storageKey);
+  if (storedLayout) blocks.restoreLayout(JSON.parse(storedLayout));
+} catch (error) {
+  console.warn("Stored block layout was ignored.", error);
+}
+
+function saveLayout() {
+  localStorage.setItem(storageKey, JSON.stringify(blocks.exportLayout()));
+}
+
+for (const eventName of ["blocks:reorder", "blocks:resize", "blocks:change"]) {
+  blocks.field.addEventListener(eventName, saveLayout);
+}
+```
+
+`localStorage` is browser/profile-specific, not an account database. Use a
+server store such as SQLite only when layouts or content must follow authenticated
+people across devices or be shared and administered centrally. The core stays
+storage-agnostic in both cases.
+
 The built-in variants are `regular` and `inverse`; inverse exchanges paper and
 ink across the content surface. A colour selected from your array uses one
 generic `color` state and fills only the titlebar, while the block paper and
@@ -119,15 +180,15 @@ blocks.register({
 
 ## API map
 
-- Creation: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Shared system: `attach`, `setGrid`, `compact`, `columns`, `rows`, `snap`, `draggable`, `font`, `variant`,
+- Creation: `createBlocksSystem({ snap, placement, draggable, resizable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Shared system: `attach`, `setGrid`, `compact`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `snap`, `placement`, `draggable`, `resizable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- One block: `menu`, `minimized`, `draggable`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
+- One block: `menu`, `minimized`, `draggable`, `resizable`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
 
 Accessible menu labels follow the document language (`nl` or English) and can
-be overridden with `createBlocksSystem({ labels: { move, minimize, restore,
+be overridden with `createBlocksSystem({ labels: { move, resize, minimize, restore,
 close } })`. A locked layout removes menu headers from the keyboard tab order;
 their minimize and close buttons remain available.
 
@@ -147,10 +208,12 @@ pointer and keyboard moves with one stable detail shape: `id`, `input`, `mode`,
 `key`, indices, grid positions and direction. Set `blocks.draggable = false` to
 lock the whole layout, or `block.draggable = false` to lock one block.
 
-Use `blocks.compact()` only when you explicitly want gap filling. It keeps each
+Use `blocks.compact()` only when you explicitly want gap filling in fixed
+placement. It keeps each
 placed block in its column and preserves the vertical order of blocks whose
 columns overlap; it does not shrink the configured grid. `block.minimized`
-remains collapse-in-place.
+remains collapse-in-place there. In flow placement it keeps one titlebar row
+and lets later blocks reflow upward.
 Removing a placed block releases its former grid area. If that leaves a row
 entirely unoccupied, a later block that fits may move into that row; deliberately
 empty composition space remains untouched. Use `compact()` when you explicitly

@@ -130,9 +130,9 @@ for (const [page, html] of [["manual", manualHtml], ["reference", apiHtml]]) {
 
 const documentedApi = [
   "createBlocksSystem", "blockDefaults", "attach", "setGrid", "compact", "columns", "rows",
-  "snap", "draggable", "variant", "variants", "colorArray", "colorVariation",
-  "inversionVariation", "add", "registerAdapter", "menu", "span", "place", "flow",
-  "minimized", "color"
+  "snap", "placement", "draggable", "resizable", "variant", "variants", "colorArray", "colorVariation",
+  "inversionVariation", "add", "exportLayout", "restoreLayout", "registerAdapter", "menu", "span", "place", "flow",
+  "minimized", "color", "blocks:resize"
 ];
 for (const apiName of documentedApi) {
   assert.ok(readme.includes(apiName), `README.md misses ${apiName}`);
@@ -152,7 +152,7 @@ assert.equal(packageData.private, true, "the package must remain private because
 assert.match(developmentGuide, /`private`: true[\s\S]*niet via npm publiceren/i, "development docs must explain the private npm boundary");
 assert.match(developmentGuide, /GitHub-release-tag[\s\S]*jsDelivr/i, "development docs must name the public tag-and-CDN distribution channel");
 assert.equal(packageData.scripts["test:presentation"], "node tests/site-presentation.mjs", "presentation locks must remain available outside the core gate");
-for (const declaration of ["BlocksSystem", "BlockController", "BlocksReorderDetail", "BlocksChangeDetail", "createBlocksSystem"]) {
+for (const declaration of ["BlocksSystem", "BlockController", "BlocksLayout", "BlocksReorderDetail", "BlocksResizeDetail", "BlocksChangeDetail", "createBlocksSystem"]) {
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);
 }
 assert.match(declarations, /readonly columns:\s*number;[\s\S]*readonly rows:\s*number;/, "grid dimensions must stay read-only in TypeScript");
@@ -438,10 +438,10 @@ assert.ok(referenceOrder.every((id, index) => index === 0 || referenceSectionsSo
 const serializedReference = JSON.stringify(docsContent.reference);
 for (const apiName of [
   "createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "compact()",
-  "columns", "rows", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation",
+  "columns", "rows", "placement", "draggable", "resizable", "labels", "colorArray", "colorVariation", "inversionVariation",
   "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)",
-  "flow()", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",
-  "unmount(target)", "address(id)", "blocks:reorder", "blocks:change"
+  "flow()", "exportLayout()", "restoreLayout(layout)", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",
+  "unmount(target)", "address(id)", "blocks:reorder", "blocks:resize", "blocks:change"
 ]) {
   assert.ok(serializedReference.includes(apiName), `reference misses ${apiName}`);
 }
@@ -519,12 +519,17 @@ assert.match(eli10Source, /container[\s\S]*blocks[\s\S]*grid[\s\S]*block/i, "ELI
 assert.doesNotMatch(libraryCss, /\.(?:home|manual|reference)-/, "library CSS must not own docs composition");
 assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "base CSS must remain separate from motion");
 assert.doesNotMatch(libraryCss, /data-block-variant="(?:red|green|blue|cyan|magenta|yellow)"/, "library CSS must not own an RGB or CMY palette");
-assert.match(libraryCss, /\.blocks-system-object:hover\s*\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*0;/, "hover must strengthen every block with the same exterior black frame");
+assert.match(libraryCss, /\.blocks-system-object:hover,\s*[^\{]+\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*0;/, "hover must strengthen every block with the same exterior black frame");
+assert.match(libraryCss, /\[data-placement="flow"\]\s*\{[^}]*grid-auto-flow:\s*row;/, "flow placement must preserve DOM order without dense backfilling");
+assert.match(libraryCss, /\[data-placement="flow"\][^\{]+\[data-block-minimized="true"\]\s*\{[^}]*grid-row:\s*auto \/ span 1;/, "minimized flow blocks must release their extra rows");
+assert.match(libraryCss, /\.blocks-system-resize--inline\s*\{[^}]*cursor:\s*ew-resize;/, "flow blocks must expose a horizontal resize line");
+assert.match(libraryCss, /\.blocks-system-resize--block\s*\{[^}]*cursor:\s*ns-resize;/, "flow blocks must expose a vertical resize line");
 assert.match(libraryCss, /\.blocks-system-object\s*\{[^}]*border:\s*1px solid var\(--blocks-ink-color\);/, "every block must keep one thin black boundary independent of its appearance");
 assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*border-bottom:\s*1px solid var\(--blocks-ink-color\);[^}]*background:\s*var\(--block-color\);/, "block color must remain inside a black-bounded titlebar");
 assert.match(libraryCss, /\[data-block-variant="inverse"\]\s*\{[^}]*--block-paper-color:\s*var\(--blocks-ink-color\);[^}]*--block-content-color:\s*var\(--blocks-paper-color\);/, "inverse must extend its monochrome treatment through the content surface");
 assert.match(docsContent.manual["manual-colors"].intro, /fills its titlebar[\s\S]*black border[\s\S]*black hover frame[\s\S]*inverse/i, "manual color guidance must match the titlebar-only standard and full inverse content");
 assert.match(librarySource, /new CustomEvent\("blocks:reorder"/, "core must expose reorder events");
+assert.match(librarySource, /new CustomEvent\("blocks:resize"/, "core must expose resize events");
 assert.match(siteCss, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*scroll-behavior:\s*auto/, "site motion must respect reduced motion");
 
 const pureBlockColor = /(?:#(?:ff0000|00ff00|0000ff|00ffff|ff00ff|ffff00)|rgb\(\s*(?:255\s*,\s*0\s*,\s*0|0\s*,\s*255\s*,\s*0|0\s*,\s*0\s*,\s*255|0\s*,\s*255\s*,\s*255|255\s*,\s*0\s*,\s*255|255\s*,\s*255\s*,\s*0)\s*\))/i;

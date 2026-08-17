@@ -75,6 +75,69 @@ blockCanvas.color = "#222";
 blockCanvas.remove();
 ```
 
+### Automatische flow en persoonlijke layout
+
+Gebruik `placement: "flow"` wanneer blocks wel een startgrootte maar geen vast
+adres nodig hebben. De browser plaatst ze dan in DOM-volgorde zonder gaten
+achteraf dicht te vullen. Voeg ze in de gewenste startvolgorde toe; sorteren op
+titel blijft een keuze van de toepassing:
+
+```js
+const blocks = createBlocksSystem({
+  snap: true,
+  placement: "flow",
+  resizable: true,
+  variant: "regular"
+});
+
+blocks.attach("#blocks-field").setGrid(4, 6);
+
+const collator = new Intl.Collator(document.documentElement.lang, {
+  numeric: true,
+  sensitivity: "base"
+});
+
+for (const item of [...items].sort((a, b) => collator.compare(a.title, b.title))) {
+  blocks.add(item.content, { id: item.id, title: item.title }).span(...item.span);
+}
+```
+
+Verslepen verandert in deze modus de volgorde. Versleep de dunne rechter- of
+onderrand om de span in volledige rastereenheden aan te passen; met focus doen
+de pijltjestoetsen hetzelfde. Minimaliseren behoudt de titelbalk maar geeft de
+extra rijen vrij, zodat volgende blocks automatisch opschuiven.
+
+`exportLayout()` geeft alleen layoutstatus terug—id's, volgorde, spans,
+eventuele vaste plaatsen en minimaliseerstatus, nooit blockinhoud. Daarom past
+`localStorage` goed voor een persoonlijke layout in één browser. Bewaar de
+standaard per rol in de toepassing en herstel daarna de lokale afwijking met
+een sleutel per rol:
+
+```js
+const rol = document.body.dataset.role || "student";
+const opslagSleutel = `blocks.system:dashboard:${rol}`;
+
+try {
+  const opgeslagenLayout = localStorage.getItem(opslagSleutel);
+  if (opgeslagenLayout) blocks.restoreLayout(JSON.parse(opgeslagenLayout));
+} catch (error) {
+  console.warn("De opgeslagen blocklayout is genegeerd.", error);
+}
+
+function bewaarLayout() {
+  localStorage.setItem(opslagSleutel, JSON.stringify(blocks.exportLayout()));
+}
+
+for (const eventNaam of ["blocks:reorder", "blocks:resize", "blocks:change"]) {
+  blocks.field.addEventListener(eventNaam, bewaarLayout);
+}
+```
+
+`localStorage` hoort bij één browserprofiel en is geen accountdatabase. Gebruik
+pas een serveropslag zoals SQLite wanneer layout of inhoud aangemelde personen
+over meerdere apparaten moet volgen, gedeeld wordt of centraal beheer nodig
+heeft. De kern blijft in beide gevallen opslagneutraal.
+
 De ingebouwde varianten zijn `regular` en `inverse`; inverse wisselt papier en
 inkt over het inhoudsvlak. Een kleur uit je array gebruikt één generieke
 `color`-state en vult alleen de titelbalk, terwijl het blockpapier en de
@@ -124,15 +187,15 @@ blocks.register({
 
 ## API-overzicht
 
-- Aanmaak: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Gedeeld systeem: `attach`, `setGrid`, `compact`, `columns`, `rows`, `snap`, `draggable`, `font`, `variant`,
+- Aanmaak: `createBlocksSystem({ snap, placement, draggable, resizable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Gedeeld systeem: `attach`, `setGrid`, `compact`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `snap`, `placement`, `draggable`, `resizable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- Eén block: `menu`, `minimized`, `draggable`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
+- Eén block: `menu`, `minimized`, `draggable`, `resizable`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
-overschrijfbaar via `createBlocksSystem({ labels: { move, minimize, restore,
+overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, restore,
 close } })`. Bij een vergrendelde layout verdwijnen menuheaders uit de
 toetsenbordvolgorde; hun minimaliseer- en sluitknoppen blijven bereikbaar.
 
@@ -154,10 +217,12 @@ detailvorm: `id`, `input`, `mode`, `key`, indices, rasterposities en richting.
 Zet `blocks.draggable = false` om de hele layout te vergrendelen, of
 `block.draggable = false` om één block vast te zetten.
 
-Gebruik `blocks.compact()` alleen wanneer je expliciet gaten wil vullen. De
+Gebruik `blocks.compact()` alleen wanneer je in vaste plaatsing expliciet gaten
+wil vullen. De
 methode houdt ieder geplaatst block in zijn kolom en bewaart de verticale
 volgorde van blocks met overlappende kolommen; het ingestelde raster verkleint
-niet stilzwijgend. `block.minimized` blijft inklappen op dezelfde plaats.
+niet stilzwijgend. Daar blijft `block.minimized` inklappen op dezelfde plaats;
+in flowplaatsing behoudt het één titelbalkrij en schuiven latere blocks omhoog.
 Bij `remove()` komt de vroegere rasterruimte van het geplaatste block vrij. Als
 daardoor een rij volledig onbewoond wordt, mag een later passend block naar die
 rij opschuiven; bewust lege compositieruimte blijft leeg. Gebruik `compact()`

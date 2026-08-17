@@ -8,9 +8,24 @@ export interface BlocksFont {
 
 export interface BlocksLabels {
   move: string;
+  resize: string;
   restore: string;
   minimize: string;
   close: string;
+}
+
+export type BlocksPlacement = "fixed" | "flow";
+
+export interface BlocksLayoutEntry {
+  id: string;
+  span: readonly [columns: number, rows: number];
+  place: readonly [column: number, row: number] | null;
+  minimized: boolean;
+}
+
+export interface BlocksLayout {
+  version: 1;
+  blocks: readonly BlocksLayoutEntry[];
 }
 
 export interface BlockDefinition {
@@ -61,6 +76,8 @@ export interface AddBlockOptions {
   minimized?: boolean;
   /** Allow this block to move while the system remains draggable. Defaults to true. */
   draggable?: boolean;
+  /** Allow this block to resize when the system uses resizable flow placement. Defaults to true. */
+  resizable?: boolean;
 }
 
 export interface BlockMenuOptions {
@@ -80,6 +97,7 @@ export interface BlockController {
   variant: string;
   minimized: boolean;
   draggable: boolean;
+  resizable: boolean;
   menu(name: string, options?: boolean | BlockMenuOptions): BlockController;
   span(columns: number, rows: number): BlockController;
   place(column: number, row: number): BlockController;
@@ -111,6 +129,19 @@ export interface BlocksReorderDetail {
   direction: "up" | "right" | "down" | "left" | "still";
 }
 
+export interface BlocksResizeSize {
+  columns: number;
+  rows: number;
+}
+
+export interface BlocksResizeDetail {
+  id: string;
+  input: "pointer" | "keyboard";
+  axis: "inline" | "block";
+  from: BlocksResizeSize;
+  to: BlocksResizeSize;
+}
+
 export type BlocksChangeType = "compact" | "minimize" | "restore" | "remove";
 
 export interface BlocksChangeDetail {
@@ -123,7 +154,11 @@ export interface BlocksSystemOptions {
   catalogUrl?: string | URL | null;
   random?: () => number;
   snap?: boolean;
+  /** Keep explicit grid addresses or let blocks follow DOM order. Defaults to fixed. */
+  placement?: BlocksPlacement;
   draggable?: boolean;
+  /** Show resize lines for flow-grid blocks. Defaults to false. */
+  resizable?: boolean;
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
   variant?: string;
@@ -140,7 +175,9 @@ export interface BlocksSystem {
   readonly columns: number;
   readonly rows: number;
   snap: boolean;
+  placement: BlocksPlacement;
   draggable: boolean;
+  resizable: boolean;
   font: Readonly<BlocksFont> | null;
   variant: string;
   readonly variants: readonly string[];
@@ -160,6 +197,10 @@ export interface BlocksSystem {
   setGrid(columns: number, rows: number): BlocksSystem;
   compact(): BlocksSystem;
   add(content: BlockContent, options?: AddBlockOptions): BlockController;
+  /** Export content-free layout state in current DOM order. */
+  exportLayout(): BlocksLayout;
+  /** Restore known block order, spans, optional fixed positions and minimized state. */
+  restoreLayout(layout: BlocksLayout): BlocksSystem;
   mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
   unmount(target: string | Element): boolean;
   remount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
@@ -177,11 +218,13 @@ declare global {
 
   interface HTMLElementEventMap {
     "blocks:reorder": CustomEvent<BlocksReorderDetail>;
+    "blocks:resize": CustomEvent<BlocksResizeDetail>;
     "blocks:change": CustomEvent<BlocksChangeDetail>;
   }
 
   interface ElementEventMap {
     "blocks:reorder": CustomEvent<BlocksReorderDetail>;
+    "blocks:resize": CustomEvent<BlocksResizeDetail>;
     "blocks:change": CustomEvent<BlocksChangeDetail>;
   }
 }

@@ -30,6 +30,11 @@
     grid-template-rows: repeat(var(--blocks-rows), minmax(0, 1fr));
 }
 
+.blocks-system-surface[data-snap="true"][data-placement="flow"] {
+    grid-auto-flow: row;
+    grid-auto-rows: minmax(0, 1fr);
+}
+
 .blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"] > .blocks-system-menu {
     cursor: grab;
     touch-action: none;
@@ -40,11 +45,7 @@
     cursor: grabbing;
 }
 
-.blocks-system-object:hover {
-    outline: 3px solid var(--blocks-ink-color);
-    outline-offset: 0;
-}
-
+.blocks-system-object:hover,
 .blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"]:has(> .blocks-system-menu > .blocks-system-title:focus-visible) {
     outline: 3px solid var(--blocks-ink-color);
     outline-offset: 0;
@@ -121,6 +122,10 @@
 .blocks-system-object[data-block-minimized="true"] {
     align-self: start;
     min-height: 0;
+}
+
+.blocks-system-surface[data-snap="true"][data-placement="flow"] > .blocks-system-object[data-block-flow="true"][data-block-minimized="true"] {
+    grid-row: auto / span 1;
 }
 
 .blocks-system-object[data-block-minimized="true"] .blocks-system-content {
@@ -210,4 +215,45 @@
 .blocks-system-content > svg {
     display: block;
     max-width: 100%;
+}
+
+.blocks-system-resize {
+    box-sizing: border-box;
+    position: absolute;
+    z-index: 2;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--blocks-ink-color);
+    opacity: 0;
+    padding: 0;
+    touch-action: none;
+}
+
+.blocks-system-resize--inline {
+    top: 22px;
+    right: 0;
+    bottom: 0;
+    width: 7px;
+    cursor: ew-resize;
+}
+
+.blocks-system-resize--block {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 7px;
+    cursor: ns-resize;
+}
+
+.blocks-system-resize:focus-visible {
+    opacity: 1;
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+}
+
+.blocks-system-object[data-block-resizing="true"] {
+    outline: 3px solid var(--blocks-ink-color);
+    outline-offset: 0;
 }

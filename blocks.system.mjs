@@ -8,18 +8,21 @@
 const BUILT_IN_VARIANTS = Object.freeze(["regular", "inverse"]);
 const EMPTY_COLOR_ARRAY = Object.freeze([]);
 const DEFAULT_INVERSION_VARIATION = 1 / 3;
+const LAYOUT_VERSION = 1;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
 const DEFAULT_MENU_OPTIONS = Object.freeze({ close: true, minimize: true });
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
         move: "move with the arrow keys",
+        resize: "resize",
         restore: "restore",
         minimize: "minimize",
         close: "close"
     }),
     nl: Object.freeze({
         move: "verplaatsen met de pijltjestoetsen",
+        resize: "formaat wijzigen",
         restore: "herstellen",
         minimize: "minimaliseren",
         close: "sluiten"
@@ -107,6 +110,36 @@ function normalizeVariant(value) {
         throw new TypeError(`Ongeldige blockvariant: ${name || "(leeg)"}`);
     }
     return name;
+}
+
+function normalizePlacement(value) {
+    const placement = String(value ?? "fixed").trim().toLowerCase();
+    if (placement === "fixed" || placement === "flow") return placement;
+    throw new TypeError("blocks.system.placement verwacht fixed of flow.");
+}
+
+function normalizeLayoutSnapshot(value) {
+    if (!value || typeof value !== "object" || value.version !== LAYOUT_VERSION || !Array.isArray(value.blocks)) {
+        throw new TypeError(`blocks.system.restoreLayout() verwacht layout version ${LAYOUT_VERSION}.`);
+    }
+    const seen = new Set();
+    return value.blocks.map((entry) => {
+        if (!entry || typeof entry !== "object") throw new TypeError("Elk opgeslagen block verwacht een layoutobject.");
+        const id = String(entry.id || "");
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || seen.has(id)) {
+            throw new TypeError(`Ongeldig of dubbel opgeslagen block-id: ${id || "(leeg)"}`);
+        }
+        seen.add(id);
+        const span = Array.isArray(entry.span) ? entry.span.map(Number) : [];
+        const place = entry.place === null ? null : Array.isArray(entry.place) ? entry.place.map(Number) : [];
+        if (span.length !== 2 || span.some((unit) => !Number.isInteger(unit) || unit < 1)) {
+            throw new TypeError(`Opgeslagen span van ${id} verwacht twee positieve gehele rastereenheden.`);
+        }
+        if (place !== null && (place.length !== 2 || place.some((unit) => !Number.isInteger(unit) || unit < 1))) {
+            throw new TypeError(`Opgeslagen plaats van ${id} verwacht null of twee positieve gehele rastercoördinaten.`);
+        }
+        return Object.freeze({ id, span, place, minimized: Boolean(entry.minimized) });
+    });
 }
 
 function normalizeColorArray(value) {
@@ -408,12 +441,15 @@ export function createBlocksSystem(options = {}) {
     const objectLayouts = new Map();
     const objectLayoutSetters = new Map();
     const menuInteractionSetters = new Map();
+    const resizeInteractionSetters = new Map();
     const randomSource = typeof options.random === "function" ? options.random : Math.random;
     let surface = null;
     let columns = 1;
     let rows = 1;
     let snapEnabled = options.snap === undefined ? false : Boolean(options.snap);
+    let placementState = normalizePlacement(options.placement);
     let draggableEnabled = options.draggable === undefined ? true : Boolean(options.draggable);
+    let resizableEnabled = options.resizable === undefined ? false : Boolean(options.resizable);
     let fontState = normalizeFont(options.font);
     const labels = normalizeLabels(options.labels);
     const blockDefaults = normalizeBlockDefaults(options.blockDefaults);
@@ -471,11 +507,33 @@ export function createBlocksSystem(options = {}) {
         surface.classList.add("blocks-system-surface");
         surface.setAttribute("data-blocks-system", "");
         surface.setAttribute("data-snap", String(snapEnabled));
+        surface.setAttribute("data-placement", placementState);
         surface.setAttribute("data-draggable", String(draggableEnabled));
+        surface.setAttribute("data-resizable", String(resizableEnabled));
         surface.style.setProperty("--blocks-columns", String(columns));
         surface.style.setProperty("--blocks-rows", String(rows));
         applyFontState();
         for (const syncMenuInteraction of menuInteractionSetters.values()) syncMenuInteraction();
+        for (const syncResizeInteraction of resizeInteractionSetters.values()) syncResizeInteraction();
+    }
+
+    function gridMetrics() {
+        const style = getComputedStyle(surface);
+        const bounds = surface.getBoundingClientRect();
+        const pixelTracks = (value) => Array.from(String(value || "").matchAll(/(-?\d*\.?\d+)px/g), (match) => Number(match[1]));
+        const columnTracks = pixelTracks(style.gridTemplateColumns);
+        const rowTracks = pixelTracks(style.gridTemplateRows);
+        const columnGap = Number.parseFloat(style.columnGap) || 0;
+        const rowGap = Number.parseFloat(style.rowGap) || 0;
+        const left = bounds.left + (Number.parseFloat(style.borderLeftWidth) || 0) + (Number.parseFloat(style.paddingLeft) || 0);
+        const top = bounds.top + (Number.parseFloat(style.borderTopWidth) || 0) + (Number.parseFloat(style.paddingTop) || 0);
+        return {
+            left,
+            top,
+            columns: columnTracks.length || columns,
+            columnStep: (columnTracks[0] || bounds.width / Math.max(1, columns)) + columnGap,
+            rowStep: (rowTracks[0] || bounds.height / Math.max(1, rows)) + rowGap,
+        };
     }
 
     function createDragController() {
@@ -505,37 +563,6 @@ export function createBlocksSystem(options = {}) {
                     },
                 }),
             );
-        }
-
-        function pixelTracks(value) {
-            return Array.from(String(value || "").matchAll(/(-?\d*\.?\d+)px/g), (match) => Number(match[1]));
-        }
-
-        function gridMetrics() {
-            // Meet de werkelijk gerenderde tracks, zodat responsive CSS leidend blijft.
-            const style = getComputedStyle(surface);
-            const bounds = surface.getBoundingClientRect();
-            const columnTracks = pixelTracks(style.gridTemplateColumns);
-            const rowTracks = pixelTracks(style.gridTemplateRows);
-            const columnGap = Number.parseFloat(style.columnGap) || 0;
-            const rowGap = Number.parseFloat(style.rowGap) || 0;
-            const left =
-                bounds.left +
-                (Number.parseFloat(style.borderLeftWidth) || 0) +
-                (Number.parseFloat(style.paddingLeft) || 0);
-            const top =
-                bounds.top +
-                (Number.parseFloat(style.borderTopWidth) || 0) +
-                (Number.parseFloat(style.paddingTop) || 0);
-            const columnStep = (columnTracks[0] || bounds.width / Math.max(1, columns)) + columnGap;
-            const rowStep = (rowTracks[0] || bounds.height / Math.max(1, rows)) + rowGap;
-            return {
-                left,
-                top,
-                columns: columnTracks.length || columns,
-                columnStep,
-                rowStep,
-            };
         }
 
         function gridLayoutSnapshot(elements, metrics) {
@@ -893,8 +920,8 @@ export function createBlocksSystem(options = {}) {
                 previewOrigin: { left: previewBounds.left, top: previewBounds.top },
                 previewDirection: "still",
             };
-            if (snapEnabled) {
-                // Snapmodus is ruimtelijk; zonder snap blijft de bestaande flowreorder actief.
+            if (snapEnabled && placementState === "fixed") {
+                // Vaste snapmodus is ruimtelijk; flowplaatsing bewaart alleen de DOM-volgorde.
                 const metrics = gridMetrics();
                 const gridLayouts = gridLayoutSnapshot(allObjects, metrics);
                 const draggedLayout = gridLayouts.find((layout) => layout.element === shell);
@@ -966,7 +993,7 @@ export function createBlocksSystem(options = {}) {
             if (!handle || event.target !== handle || !shell || shell.parentElement !== surface) return;
             if (shell.getAttribute("data-block-draggable") !== "true") return;
 
-            if (snapEnabled) {
+            if (snapEnabled && placementState === "fixed") {
                 if (!moveGridWithKeyboard(shell, event.key)) return;
                 event.preventDefault();
                 return;
@@ -1033,7 +1060,9 @@ export function createBlocksSystem(options = {}) {
             surface.classList.remove("blocks-system-surface");
             surface.removeAttribute("data-blocks-system");
             surface.removeAttribute("data-snap");
+            surface.removeAttribute("data-placement");
             surface.removeAttribute("data-draggable");
+            surface.removeAttribute("data-resizable");
             surface.style.removeProperty("--blocks-columns");
             surface.style.removeProperty("--blocks-rows");
             surface.style.removeProperty("--blocks-font-family");
@@ -1057,9 +1086,74 @@ export function createBlocksSystem(options = {}) {
         );
     }
 
+    function emitResize(detail) {
+        if (!surface || typeof surface.dispatchEvent !== "function") return;
+        surface.dispatchEvent(new CustomEvent("blocks:resize", { detail }));
+    }
+
     function directObjectElements() {
         if (!surface) return [];
         return Array.from(surface.children).filter((element) => element.matches?.(".blocks-system-object"));
+    }
+
+    function exportLayout() {
+        return {
+            version: LAYOUT_VERSION,
+            blocks: directObjectElements().map((element) => {
+                const id = element.getAttribute("data-block-object");
+                const layout = objectLayouts.get(id);
+                const block = objects.get(id);
+                return {
+                    id,
+                    span: [layout.columns, layout.rows],
+                    place: layout.column === null || layout.row === null ? null : [layout.column, layout.row],
+                    minimized: block.minimized,
+                };
+            }),
+        };
+    }
+
+    function restoreLayout(snapshot) {
+        drag.stop();
+        const entries = normalizeLayoutSnapshot(snapshot);
+        const knownEntries = entries.filter((entry) => objects.has(entry.id));
+        const targetLayouts = knownEntries.map((entry) => ({
+            id: entry.id,
+            columns: entry.span[0],
+            rows: entry.span[1],
+            column: entry.place?.[0] ?? null,
+            row: entry.place?.[1] ?? null,
+        }));
+        for (const layout of targetLayouts) {
+            const lastColumn = layout.column === null ? layout.columns : layout.column + layout.columns - 1;
+            const lastRow = layout.row === null ? layout.rows : layout.row + layout.rows - 1;
+            if (lastColumn > columns || lastRow > rows) {
+                throw new RangeError(`Opgeslagen layout van ${layout.id} past niet in raster ${columns}×${rows}.`);
+            }
+        }
+        const placedTargets = targetLayouts.filter((layout) => layout.column !== null && layout.row !== null);
+        for (let index = 0; index < placedTargets.length; index += 1) {
+            for (let otherIndex = index + 1; otherIndex < placedTargets.length; otherIndex += 1) {
+                if (layoutsOverlap(placedTargets[index], placedTargets[otherIndex])) {
+                    throw new RangeError(`Opgeslagen layouts van ${placedTargets[index].id} en ${placedTargets[otherIndex].id} overlappen.`);
+                }
+            }
+        }
+
+        const savedIds = new Set(knownEntries.map((entry) => entry.id));
+        const ordered = [
+            ...knownEntries.map((entry) => objects.get(entry.id).element),
+            ...directObjectElements().filter((element) => !savedIds.has(element.getAttribute("data-block-object"))),
+        ];
+        for (const element of ordered) surface.insertBefore(element, null);
+        for (const block of objects.values()) block.flow();
+        for (const entry of knownEntries) objects.get(entry.id).span(...entry.span);
+        for (const entry of knownEntries) {
+            const block = objects.get(entry.id);
+            if (entry.place) block.place(...entry.place);
+            block.minimized = entry.minimized;
+        }
+        return api;
     }
 
     function layoutsOverlap(first, second) {
@@ -1248,6 +1342,7 @@ export function createBlocksSystem(options = {}) {
         let variantValue = appearanceValue.variant;
         let minimizedValue = Boolean(addOptions.minimized);
         let draggableValue = addOptions.draggable === undefined ? true : Boolean(addOptions.draggable);
+        let resizableValue = addOptions.resizable === undefined ? true : Boolean(addOptions.resizable);
         const shell = document.createElement("section");
         shell.className = "blocks-system-object";
         shell.setAttribute("data-block-object", id);
@@ -1263,6 +1358,9 @@ export function createBlocksSystem(options = {}) {
         let actionsNode = null;
         let minimizeNode = null;
         let closeNode = null;
+        const resizeHandles = new Map();
+        let resizeState = null;
+        let resizeFallbackTarget = null;
         let colorValue = "";
         let spanColumns = 1;
         let spanRows = 1;
@@ -1302,6 +1400,7 @@ export function createBlocksSystem(options = {}) {
             placeColumn = layout.column;
             placeRow = layout.row;
             objectLayouts.set(id, { ...layout });
+            shell.setAttribute("data-block-flow", String(layout.column === null || layout.row === null));
             shell.style.setProperty("--block-span-columns", String(spanColumns));
             shell.style.setProperty("--block-span-rows", String(spanRows));
             if (placeColumn === null || placeRow === null) {
@@ -1341,6 +1440,145 @@ export function createBlocksSystem(options = {}) {
             if (closeNode) closeNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.close}`);
         }
 
+        function removeResizeFallback() {
+            if (!resizeFallbackTarget) return;
+            resizeFallbackTarget.removeEventListener("pointermove", moveResize);
+            resizeFallbackTarget.removeEventListener("pointerup", finishResize);
+            resizeFallbackTarget.removeEventListener("pointercancel", finishResize);
+            resizeFallbackTarget = null;
+        }
+
+        function stopResize(pointerId, commit = false) {
+            if (!resizeState || (pointerId !== undefined && resizeState.pointerId !== pointerId)) return;
+            const current = resizeState;
+            resizeState = null;
+            removeResizeFallback();
+            if (!commit && (spanColumns !== current.from.columns || spanRows !== current.from.rows)) {
+                applyLayout({ columns: current.from.columns, rows: current.from.rows, column: placeColumn, row: placeRow });
+            }
+            shell.removeAttribute("data-block-resizing");
+            if (current.handle.hasPointerCapture?.(current.pointerId)) current.handle.releasePointerCapture(current.pointerId);
+            if (commit && (spanColumns !== current.from.columns || spanRows !== current.from.rows)) {
+                emitResize({
+                    id,
+                    input: "pointer",
+                    axis: current.axis,
+                    from: current.from,
+                    to: { columns: spanColumns, rows: spanRows },
+                });
+            }
+        }
+
+        function moveResize(event) {
+            if (!resizeState || resizeState.pointerId !== event.pointerId) return;
+            event.preventDefault();
+            const columnDelta = resizeState.axis === "inline"
+                ? Math.round((event.clientX - resizeState.startX) / resizeState.metrics.columnStep)
+                : 0;
+            const rowDelta = resizeState.axis === "block"
+                ? Math.round((event.clientY - resizeState.startY) / resizeState.metrics.rowStep)
+                : 0;
+            const nextColumns = Math.max(1, Math.min(columns, resizeState.from.columns + columnDelta));
+            const nextRows = Math.max(1, Math.min(rows, resizeState.from.rows + rowDelta));
+            if (nextColumns === spanColumns && nextRows === spanRows) return;
+            applyLayout({ columns: nextColumns, rows: nextRows, column: placeColumn, row: placeRow });
+        }
+
+        function finishResize(event) {
+            stopResize(event.pointerId, event.type === "pointerup");
+        }
+
+        function startResize(event, axis, handle) {
+            if (event.button !== 0 || shell.getAttribute("data-block-resizable") !== "true") return;
+            drag.stop();
+            stopResize();
+            resizeState = {
+                pointerId: event.pointerId,
+                axis,
+                handle,
+                startX: event.clientX,
+                startY: event.clientY,
+                metrics: gridMetrics(),
+                from: { columns: spanColumns, rows: spanRows },
+            };
+            shell.setAttribute("data-block-resizing", axis);
+            let pointerCaptured = false;
+            if (typeof handle.setPointerCapture === "function") {
+                try {
+                    handle.setPointerCapture(event.pointerId);
+                    pointerCaptured = handle.hasPointerCapture?.(event.pointerId) ?? true;
+                } catch {
+                    pointerCaptured = false;
+                }
+            }
+            if (!pointerCaptured && typeof window === "object") {
+                resizeFallbackTarget = window;
+                window.addEventListener("pointermove", moveResize);
+                window.addEventListener("pointerup", finishResize);
+                window.addEventListener("pointercancel", finishResize);
+            }
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        function resizeWithKeyboard(event, axis) {
+            const deltas = {
+                ArrowLeft: [-1, 0],
+                ArrowRight: [1, 0],
+                ArrowUp: [0, -1],
+                ArrowDown: [0, 1],
+            };
+            const delta = deltas[event.key];
+            if (!delta || (axis === "inline" && delta[1] !== 0) || (axis === "block" && delta[0] !== 0)) return;
+            const from = { columns: spanColumns, rows: spanRows };
+            const nextColumns = Math.max(1, Math.min(columns, spanColumns + delta[0]));
+            const nextRows = Math.max(1, Math.min(rows, spanRows + delta[1]));
+            if (nextColumns === spanColumns && nextRows === spanRows) return;
+            event.preventDefault();
+            applyLayout({ columns: nextColumns, rows: nextRows, column: placeColumn, row: placeRow });
+            emitResize({ id, input: "keyboard", axis, from, to: { columns: spanColumns, rows: spanRows } });
+        }
+
+        function createResizeHandle(axis) {
+            const handle = document.createElement("button");
+            handle.type = "button";
+            handle.className = `blocks-system-resize blocks-system-resize--${axis}`;
+            handle.setAttribute("aria-label", `${titleNode?.textContent || addOptions.title || id}: ${labels.resize} ${axis === "inline" ? "← →" : "↑ ↓"}`);
+            handle.setAttribute("aria-keyshortcuts", axis === "inline" ? "ArrowLeft ArrowRight" : "ArrowUp ArrowDown");
+            handle.addEventListener("pointerdown", (event) => startResize(event, axis, handle));
+            handle.addEventListener("pointermove", moveResize);
+            handle.addEventListener("pointerup", finishResize);
+            handle.addEventListener("pointercancel", finishResize);
+            handle.addEventListener("lostpointercapture", finishResize);
+            handle.addEventListener("keydown", (event) => resizeWithKeyboard(event, axis));
+            shell.appendChild(handle);
+            resizeHandles.set(axis, handle);
+        }
+
+        function syncResizeInteractionState() {
+            const effectiveResizable =
+                resizableEnabled &&
+                resizableValue &&
+                snapEnabled &&
+                placementState === "flow" &&
+                placeColumn === null &&
+                placeRow === null &&
+                !minimizedValue;
+            shell.setAttribute("data-block-resizable", String(effectiveResizable));
+            if (effectiveResizable) {
+                for (const axis of ["inline", "block"]) {
+                    if (!resizeHandles.has(axis)) createResizeHandle(axis);
+                }
+                for (const [axis, handle] of resizeHandles) {
+                    handle.setAttribute("aria-label", `${titleNode?.textContent || addOptions.title || id}: ${labels.resize} ${axis === "inline" ? "← →" : "↑ ↓"}`);
+                }
+            } else {
+                stopResize();
+                for (const handle of resizeHandles.values()) handle.remove();
+                resizeHandles.clear();
+            }
+        }
+
         function assertActive() {
             if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
         }
@@ -1372,17 +1610,20 @@ export function createBlocksSystem(options = {}) {
             if (minimizedValue === nextValue) return;
             minimizedValue = nextValue;
             syncMinimizedState();
+            syncResizeInteractionState();
             emitChange({ type: minimizedValue ? "minimize" : "restore", id });
         }
 
         function remove() {
             assertActive();
             drag.stop();
+            stopResize();
             const releasedLayout = objectLayouts.get(id);
             objects.delete(id);
             objectLayouts.delete(id);
             objectLayoutSetters.delete(id);
             menuInteractionSetters.delete(id);
+            resizeInteractionSetters.delete(id);
             shell.remove();
             const movedIds = releasedLayout ? collapseReleasedLayout(releasedLayout) : [];
             emitChange({ type: "remove", id, ids: [id, ...movedIds] });
@@ -1406,6 +1647,7 @@ export function createBlocksSystem(options = {}) {
             };
             assertLayoutFits(id, nextLayout);
             applyLayout(nextLayout);
+            syncResizeInteractionState();
             return block;
         }
 
@@ -1426,6 +1668,7 @@ export function createBlocksSystem(options = {}) {
             };
             assertLayoutFits(id, nextLayout);
             applyLayout(nextLayout);
+            syncResizeInteractionState();
             return block;
         }
 
@@ -1440,6 +1683,7 @@ export function createBlocksSystem(options = {}) {
             };
             assertLayoutFits(id, nextLayout);
             applyLayout(nextLayout);
+            syncResizeInteractionState();
             return block;
         }
 
@@ -1486,6 +1730,7 @@ export function createBlocksSystem(options = {}) {
             }
             syncMinimizedState();
             syncMenuInteractionState();
+            syncResizeInteractionState();
             return block;
         }
 
@@ -1533,6 +1778,15 @@ export function createBlocksSystem(options = {}) {
                 syncMenuInteractionState();
             }
         });
+        Object.defineProperty(controller, "resizable", {
+            enumerable: true,
+            get: () => resizableValue,
+            set(value) {
+                assertActive();
+                resizableValue = Boolean(value);
+                syncResizeInteractionState();
+            }
+        });
         syncAppearance();
         syncMinimizedState();
         block = Object.freeze(controller);
@@ -1550,7 +1804,9 @@ export function createBlocksSystem(options = {}) {
             row
         }));
         menuInteractionSetters.set(id, syncMenuInteractionState);
+        resizeInteractionSetters.set(id, syncResizeInteractionState);
         syncMenuInteractionState();
+        syncResizeInteractionState();
         return block;
     }
 
@@ -1564,6 +1820,8 @@ export function createBlocksSystem(options = {}) {
         setGrid,
         compact,
         add,
+        exportLayout,
+        restoreLayout,
         mount,
         unmount,
         remount,
@@ -1587,12 +1845,29 @@ export function createBlocksSystem(options = {}) {
                 applySurfaceState();
             }
         },
+        placement: {
+            enumerable: true,
+            get: () => placementState,
+            set(value) {
+                placementState = normalizePlacement(value);
+                drag.stop();
+                applySurfaceState();
+            }
+        },
         draggable: {
             enumerable: true,
             get: () => draggableEnabled,
             set(value) {
                 draggableEnabled = Boolean(value);
                 if (!draggableEnabled) drag.stop();
+                applySurfaceState();
+            }
+        },
+        resizable: {
+            enumerable: true,
+            get: () => resizableEnabled,
+            set(value) {
+                resizableEnabled = Boolean(value);
                 applySurfaceState();
             }
         },

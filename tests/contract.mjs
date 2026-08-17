@@ -12,12 +12,14 @@ const source = await readFile(sourcePath, "utf8");
 const minified = await readFile(minPath, "utf8");
 
 assert.doesNotMatch(source, /vanilla\.waves|p5\.waves|VanillaWaves|WavesLoader|P5WindowSketches|\bWEL\b/, "the core must not know a local runtime");
-assert.ok(["attach", "setGrid", "compact", "add", "register", "registerAdapter", "mount", "unmount"]
+assert.ok(["attach", "setGrid", "compact", "add", "exportLayout", "restoreLayout", "register", "registerAdapter", "mount", "unmount"]
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
 assert.equal(singleton.snap, false, "snap must be disabled by default");
+assert.equal(singleton.placement, "fixed", "fixed placement must preserve the existing default");
 assert.equal(singleton.columns, 1, "grid columns must be readable from the default system");
 assert.equal(singleton.rows, 1, "grid rows must be readable from the default system");
 assert.equal(singleton.draggable, true, "dragging must be enabled by default");
+assert.equal(singleton.resizable, false, "interactive resizing must remain opt-in");
 assert.equal(singleton.font, null, "external fonts must remain opt-in");
 assert.equal(singleton.variant, "random", "visual variants must be random by default");
 assert.deepEqual(singleton.variants, ["regular", "inverse"], "only the monochrome library variants must be discoverable");
@@ -27,6 +29,7 @@ assert.equal(singleton.inversionVariation, 1 / 3, "automatic inversion must pres
 assert.equal("colorVary" in singleton, false, "the abbreviated colorVary name must leave the public API");
 assert.deepEqual(singleton.labels, {
   move: "move with the arrow keys",
+  resize: "resize",
   restore: "restore",
   minimize: "minimize",
   close: "close"
@@ -287,6 +290,59 @@ assert.throws(function () {
 assert.throws(function () {
   createBlocksSystem({ blockDefaults: { menu: "yes" } });
 }, /blockDefaults\.menu/, "blockDefaults.menu must be boolean or an options object");
+
+assert.throws(function () {
+  createBlocksSystem({ placement: "dense" });
+}, /placement/, "unknown placement modes must fail early");
+
+const flowing = createBlocksSystem({
+  snap: true,
+  placement: "flow",
+  resizable: true,
+  variant: "regular"
+});
+const flowingField = new TestElement();
+flowing.attach(flowingField).setGrid(4, 6);
+assert.equal(flowing.placement, "flow", "flow placement must be readable");
+assert.equal(flowing.resizable, true, "interactive resizing must be configurable");
+assert.equal(flowingField.getAttribute("data-placement"), "flow", "flow placement must be exposed to CSS");
+assert.equal(flowingField.getAttribute("data-resizable"), "true", "resize state must be exposed to CSS");
+const flowBravo = flowing.add("bravo", { id: "flow-bravo", title: "Bravo" }).span(2, 2);
+const flowAlpha = flowing.add("alpha", { id: "flow-alpha", title: "Alpha" }).span(1, 3);
+flowAlpha.minimized = true;
+assert.equal(flowBravo.element.getAttribute("data-block-flow"), "true", "an unplaced block must expose CSS auto-flow state");
+assert.equal(flowBravo.resizable, true, "blocks must inherit active resize behavior");
+assert.equal(flowBravo.element.getAttribute("data-block-resizable"), "true", "effective resize state must be exposed to CSS");
+assert.equal(flowAlpha.element.getAttribute("data-block-resizable"), "false", "a minimized titlebar must not retain overlapping resize controls");
+assert.equal(flowBravo.element.style.getPropertyValue("--block-column"), "", "flow-grid blocks must remain addressless");
+assert.equal(flowBravo.element.style.getPropertyValue("--block-row"), "", "flow-grid blocks must remain addressless");
+flowBravo.place(1, 1);
+assert.equal(flowBravo.element.getAttribute("data-block-resizable"), "false", "an explicitly placed block must not expose flow resize controls");
+flowBravo.flow();
+assert.equal(flowBravo.element.getAttribute("data-block-resizable"), "true", "flow() must restore resize controls for an addressless block");
+
+const savedFlowLayout = flowing.exportLayout();
+assert.deepEqual(savedFlowLayout, {
+  version: 1,
+  blocks: [
+    { id: "flow-bravo", span: [2, 2], place: null, minimized: false },
+    { id: "flow-alpha", span: [1, 3], place: null, minimized: true }
+  ]
+}, "layout export must preserve DOM order, spans, placement and minimized state without content");
+
+flowingField.insertBefore(flowAlpha.element, flowBravo.element);
+flowBravo.span(1, 1);
+flowAlpha.minimized = false;
+assert.equal(flowing.restoreLayout(savedFlowLayout), flowing, "layout restore must remain chainable");
+assert.deepEqual(
+  flowingField.children.filter((child) => child.matches?.(".blocks-system-object")).map((child) => child.getAttribute("data-block-object")),
+  ["flow-bravo", "flow-alpha"],
+  "layout restore must recover the saved DOM order"
+);
+assert.equal(flowBravo.element.style.getPropertyValue("--block-span-columns"), "2", "layout restore must recover column spans");
+assert.equal(flowBravo.element.style.getPropertyValue("--block-span-rows"), "2", "layout restore must recover row spans");
+assert.equal(flowAlpha.minimized, true, "layout restore must recover minimized state");
+assert.throws(function () { flowing.restoreLayout({ version: 2, blocks: [] }); }, /version/, "unknown layout versions must fail early");
 
 const compacting = createBlocksSystem({ variant: "regular" });
 const compactingField = new TestElement();
