@@ -438,9 +438,25 @@ async function hoverSignature() {
 }
 
 async function navigateTo(url) {
-  const loaded = protocol.once("Page.loadEventFired");
-  await protocol.send("Page.navigate", { url });
-  await loaded;
+  const currentLocation = await protocol.send("Runtime.evaluate", {
+    expression: "location.href",
+    returnByValue: true
+  });
+  const currentUrl = new URL(currentLocation.result.value);
+  const targetUrl = new URL(url);
+  const sameDocument = currentUrl.origin === targetUrl.origin
+    && currentUrl.pathname === targetUrl.pathname
+    && currentUrl.search === targetUrl.search;
+
+  if (currentUrl.href !== targetUrl.href) {
+    if (sameDocument) {
+      await protocol.send("Page.navigate", { url: targetUrl.href });
+    } else {
+      const loaded = protocol.once("Page.loadEventFired");
+      await protocol.send("Page.navigate", { url: targetUrl.href });
+      await loaded;
+    }
+  }
   await protocol.send("Runtime.evaluate", {
     expression: "document.fonts ? document.fonts.ready : Promise.resolve()",
     awaitPromise: true
