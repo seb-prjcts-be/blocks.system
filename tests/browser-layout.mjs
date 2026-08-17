@@ -448,14 +448,16 @@ async function navigateTo(url) {
     && currentUrl.pathname === targetUrl.pathname
     && currentUrl.search === targetUrl.search;
 
-  if (currentUrl.href !== targetUrl.href) {
-    if (sameDocument) {
-      await protocol.send("Page.navigate", { url: targetUrl.href });
-    } else {
-      const loaded = protocol.once("Page.loadEventFired");
-      await protocol.send("Page.navigate", { url: targetUrl.href });
-      await loaded;
-    }
+  if (currentUrl.href === targetUrl.href) {
+    const loaded = protocol.once("Page.loadEventFired");
+    await protocol.send("Page.reload", { ignoreCache: true });
+    await loaded;
+  } else if (sameDocument) {
+    await protocol.send("Page.navigate", { url: targetUrl.href });
+  } else {
+    const loaded = protocol.once("Page.loadEventFired");
+    await protocol.send("Page.navigate", { url: targetUrl.href });
+    await loaded;
   }
   await protocol.send("Runtime.evaluate", {
     expression: "document.fonts ? document.fonts.ready : Promise.resolve()",
