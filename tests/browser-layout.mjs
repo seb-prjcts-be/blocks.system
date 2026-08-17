@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { docsSourceLabel } from "../docs/release.mjs";
 import { startBrowserHarness } from "./support/browser-harness.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -1941,7 +1942,7 @@ try {
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const desktopManual = await measureManual(1280, 900, 2);
-  assert.equal(desktopManual.mastheadSourceLabel, "manual / ELI10 + nine steps · main · unreleased", "manual mag de gedeelde bronmetadata maar één keer in de masthead zetten");
+  assert.equal(desktopManual.mastheadSourceLabel, `manual / ELI10 + nine steps · ${docsSourceLabel()}`, "manual mag de gedeelde bronmetadata maar één keer in de masthead zetten");
   if (desktopManual.blockCount === 64) {
     assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
     assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
