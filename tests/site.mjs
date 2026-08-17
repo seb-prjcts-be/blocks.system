@@ -112,13 +112,13 @@ for (const [page, entry] of docsShellEntries) {
 }
 
 assert.deepEqual(DOCS_RELEASE, {
-  sourceRef: "main",
-  releaseStatus: "unreleased",
+  sourceRef: "v0.4.1",
+  releaseStatus: "released",
   packageVersion: "0.4.1",
-  stableRef: "v0.4.0",
-  nextRelease: "v0.4.1",
-  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0"
-}, "docs release metadata must distinguish the v0.4.1 candidate from stable v0.4.0");
+  stableRef: "v0.4.1",
+  nextRelease: null,
+  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.1"
+}, "docs release metadata must keep the v0.4.1 release surfaces in lockstep");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
@@ -473,7 +473,7 @@ const mainCdnBase = DOCS_RELEASE.stableCdnBase;
 const manualStartContent = JSON.stringify([docsContent.manual["manual-start-a"], docsContent.manual["manual-start-b"]]);
 assert.ok(manualStartContent.includes(mainCdnBase), "manual installation snippets must use the immutable stable ref");
 assert.match(siteDemos["docs/shell.mjs"], /docsSourceLabel\(\)/, "the shared shell must render canonical source metadata");
-assert.doesNotMatch(apiHtml, /main · unreleased/, "the released reference must identify the immutable v0.4.0 source");
+assert.doesNotMatch(apiHtml, /main · unreleased/, "the released reference must identify the immutable v0.4.1 source");
 assert.deepEqual(packageData.exports["."], {
   types: "./blocks.system.d.ts",
   default: "./blocks.system.mjs"

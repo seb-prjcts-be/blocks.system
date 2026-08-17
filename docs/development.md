@@ -127,19 +127,20 @@ die jsDelivr voor ESM en CSS kan leveren.
 5. maak pas een versie-tag wanneer de publieke API klaar is om via jsDelivr te
    pinnen.
 
-`v0.4.0` is de huidige onveranderlijke publieke release. Op de releasecommit
+`v0.4.1` is de huidige onveranderlijke publieke release. Op de releasecommit
 gebruiken library, types, Pages-manual, reference en
 installatiesnippets exact datzelfde contract. `docs/release.mjs` is de canonieke
 bron voor `sourceRef`, `releaseStatus`, `packageVersion`, `stableRef` en
 `nextRelease`.
 
-- ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.mjs`
-- CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.css`
+- ESM: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.1/blocks.system.mjs`
+- CSS: `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.1/blocks.system.css`
 
-Breaking changes en migratiestappen staan in
+De verificatiefixes staan in [`releases/v0.4.1.md`](releases/v0.4.1.md); de
+eerdere breaking changes en migratiestappen blijven in
 [`releases/v0.4.0.md`](releases/v0.4.0.md). Zodra toekomstig `main` van de tag
 afwijkt, moet `sourceRef` opnieuw `main` en `releaseStatus` opnieuw `unreleased`
-worden; `stableRef` blijft dan `v0.4.0`.
+worden; `stableRef` blijft dan `v0.4.1`.
 
 De release-driftcontracttest eist dat package-versie, zichtbare bronstatus,
 docs-pins, runtime, typings en reference in lockstep bewegen.

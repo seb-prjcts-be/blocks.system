@@ -224,13 +224,12 @@ The measured mechanics and boundaries are recorded in
 [`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
 See the [API reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
-for arguments and return values. Public installation snippets remain pinned to
-immutable `v0.4.0`; the current `main` docs are marked unreleased after their
-post-release reference-layout fix.
+for arguments and return values. Public installation snippets are pinned to
+immutable `v0.4.1`, the same source identified by the released documentation.
 
 ## Verified status
 
-As checked on 2026-08-17, release `v0.4.0` implements the documented public
+As checked on 2026-08-17, release `v0.4.1` implements the documented public
 surface: one immutable layout model, fixed- and flow-grid movement, flow-grid
 resizing, layout persistence, minimization, `compact()`, adapters, events,
 TypeScript declarations, the homepage, manual and reference.
@@ -244,9 +243,11 @@ The following checks passed locally:
 - Targeted browser checks covered fixed-grid documentation and flow-grid order,
   resize, minimize and layout restore.
 
-`v0.4.0` is the latest immutable public release. Its breaking changes and
-migration notes are recorded in [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md).
-The release replaces `snap` plus `placement` with one immutable `layout`:
+`v0.4.1` is the latest immutable public release. Its verification fixes are
+recorded in [`docs/releases/v0.4.1.md`](docs/releases/v0.4.1.md); the preceding
+breaking changes and migration notes remain in
+[`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md).
+The `v0.4.0` line replaced `snap` plus `placement` with one immutable `layout`:
 `free`, `fixed-grid` or `flow-grid`. Retired options fail early with their exact
 replacement instead of creating a hybrid layout.
 
