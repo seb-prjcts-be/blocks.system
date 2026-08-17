@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { access, readFile, readdir } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { dirname, extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { renderReferenceFallback } from "../tools/render-reference-fallback.mjs";
@@ -11,7 +11,6 @@ const pages = [
   "index.html",
   "docs/index.html",
   "docs/system.html",
-  "docs/examples.html",
   "docs/api.html",
   "docs/reference-fallback.html",
   "docs/guide.html",
@@ -19,10 +18,6 @@ const pages = [
   "docs/guide-finish.html",
   "docs/about.html",
   "docs/manual.html",
-  "examples/index.html",
-  "examples/basic-grid/index.html",
-  "examples/mixed-content/index.html",
-  "examples/custom-adapter/index.html"
 ];
 
 async function read(path) {
@@ -47,8 +42,7 @@ for (const [page, html] of Object.entries(pageHtml)) {
 }
 
 const creditedPages = [
-  "index.html", "docs/index.html", "docs/api.html", "docs/reference-fallback.html",
-  "examples/index.html", "examples/basic-grid/index.html", "examples/mixed-content/index.html", "examples/custom-adapter/index.html"
+  "index.html", "docs/index.html", "docs/api.html", "docs/reference-fallback.html"
 ];
 for (const page of creditedPages) {
   const html = pageHtml[page];
@@ -66,33 +60,36 @@ const declarations = await read("blocks.system.d.ts");
 const librarySource = await read("blocks.system.mjs");
 const libraryCss = await read("blocks.system.css");
 const siteCss = await read("docs/style.css");
+const instrumentSansAssets = [
+  "docs/assets/fonts/instrument-sans-latin.woff2",
+  "docs/assets/fonts/instrument-sans-latin-ext.woff2"
+];
+await Promise.all(instrumentSansAssets.map((asset) => access(resolve(root, asset))));
+const instrumentSansLicense = await read("docs/assets/fonts/OFL.txt");
+assert.match(instrumentSansLicense, /SIL Open Font License, Version 1\.1/, "the local Instrument Sans files must retain their OFL license");
+assert.doesNotMatch(siteCss, /https?:\/\/fonts\.(?:googleapis|gstatic)\.com/i, "site CSS must not request Google Fonts");
+for (const asset of instrumentSansAssets) {
+  const filename = asset.split("/").at(-1);
+  assert.match(siteCss, new RegExp(`url\\("\\./assets/fonts/${filename}"\\)`), `site CSS must load ${filename} locally`);
+}
 const homeHtml = pageHtml["index.html"];
 const manualHtml = pageHtml["docs/index.html"];
 const apiHtml = pageHtml["docs/api.html"];
-const exampleIndexHtml = pageHtml["examples/index.html"];
+for (const page of ["index.html", "docs/index.html", "docs/api.html", "docs/reference-fallback.html"]) {
+  assert.match(pageHtml[page], /blocks\.system\.css\?v=0\.1\.20260817/, `${page} must load the current block appearance stylesheet`);
+}
 const developmentGuide = await read("docs/development.md");
-const releaseNotes = await read("docs/releases/v0.3.0.md");
+const releaseNotes = await read("docs/releases/v0.4.0.md");
 const eli10Source = await read("docs/eli10-schema.mjs");
 const vanillaWavesSource = await read("docs/vanilla-waves-demo.mjs");
 const siteDemoFiles = [
   "docs/home.mjs",
   "docs/manual.mjs",
   "docs/reference.mjs",
-  "docs/shell.mjs",
-  "examples/basic-grid/demo.mjs",
-  "examples/mixed-content/demo.mjs",
-  "examples/custom-adapter/demo.mjs"
+  "docs/shell.mjs"
 ];
 const siteDemos = Object.fromEntries(await Promise.all(siteDemoFiles.map(async (file) => [file, await read(file)])));
 const referenceSectionsSource = await read("docs/reference-sections.mjs");
-const exampleDirectories = (await readdir(resolve(root, "examples"), { withFileTypes: true }))
-  .filter((entry) => entry.isDirectory())
-  .map((entry) => entry.name)
-  .sort();
-const standaloneExamples = Object.fromEntries(await Promise.all(exampleDirectories.map(async (example) => [
-  example,
-  await read(`examples/${example}/index.html`)
-])));
 
 const docsShellEntries = [
   ["index.html", "docs/home.mjs"],
@@ -114,28 +111,28 @@ for (const [page, entry] of docsShellEntries) {
 }
 
 assert.deepEqual(DOCS_RELEASE, {
-  sourceRef: "main",
-  releaseStatus: "unreleased",
-  packageVersion: "0.3.0",
-  stableRef: "v0.3.0",
+  sourceRef: "v0.4.0",
+  releaseStatus: "released",
+  packageVersion: "0.4.0",
+  stableRef: "v0.4.0",
   nextRelease: null,
-  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0"
-}, "docs release metadata must distinguish the current main branch from stable v0.3.0");
+  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0"
+}, "docs release metadata must identify the complete v0.4.0 release line");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
-for (const contractChange of ["margin", "listAdapters()", "replace: true", "definition.url", "describe({ url })", "fully occupied grid row"]) {
-  assert.ok(releaseNotes.includes(contractChange), `v0.3.0 release notes miss ${contractChange}`);
+for (const contractChange of ["layout", "snap", "placement", "flow-grid", "resizable", "exportLayout()", "localStorage", "Instrument Sans"]) {
+  assert.ok(releaseNotes.includes(contractChange), `v0.4.0 release notes miss ${contractChange}`);
 }
-for (const [page, html] of [["manual", manualHtml], ["reference", apiHtml], ["examples", exampleIndexHtml]]) {
+for (const [page, html] of [["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /data-docs-source-prefix/, `${page} must visibly identify its current source line`);
 }
 
 const documentedApi = [
   "createBlocksSystem", "blockDefaults", "attach", "setGrid", "compact", "columns", "rows",
-  "snap", "draggable", "variant", "variants", "colorArray", "colorVariation",
-  "inversionVariation", "add", "registerAdapter", "menu", "span", "place", "flow",
-  "minimized", "color"
+  "layout", "draggable", "resizable", "variant", "variants", "colorArray", "colorVariation",
+  "inversionVariation", "add", "exportLayout", "restoreLayout", "registerAdapter", "menu", "span", "place",
+  "minimized", "color", "blocks:resize"
 ];
 for (const apiName of documentedApi) {
   assert.ok(readme.includes(apiName), `README.md misses ${apiName}`);
@@ -145,7 +142,6 @@ for (const [file, content] of [["README.md", readme], ["README_NL.md", readmeNl]
   assert.match(content, /import \{ createBlocksSystem \}/, `${file} must show the configurable factory`);
   assert.doesNotMatch(content, /const\s+(?!block)[A-Za-z_$][\w$]*\s*=\s*blocks(?:\.system)?\.add\(/, `${file} must prefix returned controllers with block`);
   assert.match(content, /\[Home\]\(https:\/\/seb-prjcts-be\.github\.io\/blocks\.system\/\)/, `${file} must link to the public homepage`);
-  assert.match(content, /https:\/\/seb-prjcts-be\.github\.io\/blocks\.system\/examples\//, `${file} examples link must land on the standalone example index`);
   assert.match(content, /block(?:Canvas|Canvas)\.place\(3, 1\)/, `${file} sequential Start and Middle snippets must not overlap`);
 }
 assert.doesNotMatch(readmeNl, /\b(?:DOM-)?node\b/i, "README_NL beginnerstaal must say object or element instead of node");
@@ -156,7 +152,7 @@ assert.equal(packageData.private, true, "the package must remain private because
 assert.match(developmentGuide, /`private`: true[\s\S]*niet via npm publiceren/i, "development docs must explain the private npm boundary");
 assert.match(developmentGuide, /GitHub-release-tag[\s\S]*jsDelivr/i, "development docs must name the public tag-and-CDN distribution channel");
 assert.equal(packageData.scripts["test:presentation"], "node tests/site-presentation.mjs", "presentation locks must remain available outside the core gate");
-for (const declaration of ["BlocksSystem", "BlockController", "BlocksReorderDetail", "BlocksChangeDetail", "createBlocksSystem"]) {
+for (const declaration of ["BlocksSystem", "BlockController", "BlocksLayout", "BlocksReorderDetail", "BlocksResizeDetail", "BlocksChangeDetail", "createBlocksSystem"]) {
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);
 }
 assert.match(declarations, /readonly columns:\s*number;[\s\S]*readonly rows:\s*number;/, "grid dimensions must stay read-only in TypeScript");
@@ -176,17 +172,10 @@ for (const [file, anchor] of Object.entries(aliasTargets)) {
   assert.ok(alias.includes(`location.replace(new URL("./#${anchor}"`), `${file} must replace history with #${anchor}`);
   assert.ok(alias.includes(`href="./#${anchor}"`), `${file} must retain a no-script link`);
 }
-const examplesAlias = pageHtml["docs/examples.html"];
-assert.match(examplesAlias, /rel="canonical" href="\.\.\/examples\/"/, "examples.html must declare the standalone examples index as canonical");
-assert.ok(examplesAlias.includes('location.replace(new URL("../examples/"'), "examples.html must redirect to the standalone examples index");
-assert.ok(examplesAlias.includes('href="../examples/"'), "examples.html must retain a no-script link to the standalone examples index");
-
 const navigationPages = [
   ["home", homeHtml, "home"],
   ["manual", manualHtml, "manual"],
-  ["reference", apiHtml, "reference"],
-  ["examples index", exampleIndexHtml, null],
-  ...Object.entries(standaloneExamples).map(([name, html]) => [`example ${name}`, html, null])
+  ["reference", apiHtml, "reference"]
 ];
 for (const [page, html, currentLabel] of navigationPages) {
   const navigation = html.match(/<nav id="navbar"[\s\S]*?<\/nav>/)?.[0] || "";
@@ -204,39 +193,18 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
   assert.match(html, new RegExp(`skip to ${label}`), `${page} skiplink must name its destination`);
 }
 const styleVersions = new Set(Object.entries(pageHtml)
-  .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html" || page.startsWith("examples/"))
+  .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html")
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.46"], "one consumer stylesheet must use one cache version across all pages");
-const examplesCss = siteCss.slice(siteCss.indexOf("/* Examples */"));
-assert.match(examplesCss, /var\(--system-field\)/, "example pages must use the shared system field token");
-assert.match(examplesCss, /var\(--ink\)/, "example pages must use the shared ink token");
+assert.deepEqual([...styleVersions], ["0.2.20260817"], "one consumer stylesheet must use one cache version across all pages");
 for (const [page, html] of [["home", homeHtml], ["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /class="nav-hamburger"[^>]*aria-controls="primary-navigation"/, `${page} hamburger must identify its navigation`);
   assert.match(html, /id="primary-navigation" class="nav-links"/, `${page} navigation must expose the controlled id`);
 }
 
-for (const file of ["examples/basic-grid/demo.mjs", "examples/mixed-content/demo.mjs", "examples/custom-adapter/demo.mjs"]) {
-  const source = siteDemos[file];
-  assert.match(source, /import \{ createBlocksSystem \}/, `${file} must import the factory`);
-  assert.match(source, /blocks\.system\.mjs\?v=\d+\.\d+\.\d+/, `${file} must cache-bust the library source`);
-  assert.match(source, /const blocks = createBlocksSystem\(/, `${file} must name its configured system blocks`);
-  assert.doesNotMatch(source, /blockDefaults|menu:\s*\{/, `${file} must demonstrate the standard menu actions without redundant settings`);
-  assert.doesNotMatch(source, /const\s+[A-Za-z_$][\w$]*Block\s*=/, `${file} must use block as a prefix`);
-}
-for (const example of exampleDirectories) {
-  const html = standaloneExamples[example];
-  assert.doesNotMatch(html, /href="demo\.mjs" download/, `${example} must not offer a module download that cannot run on its own`);
-  assert.match(html, /href="\.\.\/\.\.\/docs\/">← manual<\/a>/, `${example} must return to the manual`);
-  assert.match(html, /src="\.\.\/\.\.\/docs\/shell\.mjs\?v=\d+\.\d+\.\d+/, `${example} must load cache-busted shared navigation behavior`);
-}
-const customAdapterSource = siteDemos["examples/custom-adapter/demo.mjs"];
-assert.match(customAdapterSource, /snippet\(\{ settings \}\)[\s\S]*document\.createElement\("button"\)[\s\S]*button\.textContent[\s\S]*return button\.outerHTML/, "custom adapter snippets must serialize text through a DOM element");
-assert.doesNotMatch(customAdapterSource, /return\s+`<button>[\s\S]*\$\{settings\./, "custom adapter snippets must not interpolate settings directly into HTML");
-
 const retiredAssets = [
   "demo.mjs", "docs/board.mjs", "docs/board.css", "docs/system.mjs", "docs/system.css",
   "docs/examples.mjs", "docs/examples.css", "docs/nav.mjs", "docs/home.css", "docs/manual.css",
-  "docs/reference.css", "examples/example.css", "docs/references/micrographic-drag-snap-reference.png"
+  "docs/reference.css", "docs/examples.html", "docs/references/micrographic-drag-snap-reference.png"
 ];
 for (const file of retiredAssets) {
   await assert.rejects(access(resolve(root, file)), { code: "ENOENT" }, `${file} must remain retired`);
@@ -380,7 +348,7 @@ for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fix
 }
 assert.equal(docsContent.manual["manual-drag-movable"].title, "block", "manual 04 must restore the draggable puzzle block");
 assert.equal(docsContent.manual["manual-drag-locked"].title, "I'm not draggable!", "manual 04 must name its only drag exception clearly");
-assert.deepEqual(docsContent.manual["manual-drag-code"].code, ["blocks.snap = true;", "blocks.add(\"block\");", "blocks.add(\"I'm not draggable!\", {", "  draggable: false", "});"], "manual 04 must contrast the default draggable block with its sole exception");
+assert.deepEqual(docsContent.manual["manual-drag-code"].code, ["const blocks = createBlocksSystem({ layout: \"fixed-grid\" });", "blocks.add(\"block\");", "blocks.add(\"I'm not draggable!\", {", "  draggable: false", "});"], "manual 04 must choose fixed-grid once and contrast the default draggable block with its sole exception");
 assert.equal("manual-compact" in docsContent.manual, false, "compact() must stay in the API reference instead of the beginner manual");
 assert.equal("manual-compact-code" in docsContent.manual, false, "the beginner manual must not carry a separate compact() code lesson");
 assert.deepEqual(docsContent.manual["manual-base-colors"].layout, { place: [1, 30], span: [2, 2] }, "manual 05 base-color explanation must be 2×2");
@@ -470,23 +438,24 @@ assert.ok(referenceOrder.every((id, index) => index === 0 || referenceSectionsSo
 const serializedReference = JSON.stringify(docsContent.reference);
 for (const apiName of [
   "createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "compact()",
-  "columns", "rows", "draggable", "labels", "colorArray", "colorVariation", "inversionVariation",
+  "columns", "rows", "layout", "draggable", "resizable", "labels", "colorArray", "colorVariation", "inversionVariation",
   "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)",
-  "flow()", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",
-  "unmount(target)", "address(id)", "blocks:reorder", "blocks:change"
+  "exportLayout()", "restoreLayout(layout)", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",
+  "unmount(target)", "address(id)", "blocks:reorder", "blocks:resize", "blocks:change"
 ]) {
   assert.ok(serializedReference.includes(apiName), `reference misses ${apiName}`);
 }
 assert.match(serializedReference, /columns[\s\S]*readonly number[\s\S]*rows[\s\S]*may also grow after dragging/i, "reference must explain readable grid dimensions");
 assert.match(serializedReference, /Do not call element\.remove\(\); use remove\(\)/, "reference must prevent direct DOM removal that leaves a stale layout");
-assert.match(serializedReference, /snap true[\s\S]*place\(\)[\s\S]*span\(\)[\s\S]*compact\(\)[\s\S]*visual grid layout/i, "reference must explain snap-dependent layout");
+assert.match(serializedReference, /layout[\s\S]*free \| fixed-grid \| flow-grid[\s\S]*cannot change[\s\S]*compact\(\)[\s\S]*fixed grid/i, "reference must explain the single immutable layout contract");
+assert.match(serializedReference, /Fixed-grid keeps a minimized block's assigned footprint[\s\S]*flow-grid reduces it to one titlebar row[\s\S]*Fixed-grid leaves its address empty until an explicit compact\(\)/i, "reference must explain empty rows and minimized ordering without implicit compaction");
 assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textContent/i, "reference must warn about trusted string HTML");
 
 const typedReferenceRows = Object.values(docsContent.reference).flatMap((entry) => entry.rows || []);
 for (const row of typedReferenceRows) {
   assert.match(row.cells[0], /^(?:method|property|event|option|content|hook|filter|adapter|lifecycle|override) · /, `reference row must name its contract kind: ${row.cells[0]}`);
 }
-assert.match(docsContent.reference["reference-system-create"].code.join("\n"), /createBlocksSystem\(\{[\s\S]*catalogUrl[\s\S]*random[\s\S]*snap[\s\S]*draggable[\s\S]*font[\s\S]*labels[\s\S]*variant[\s\S]*colorArray[\s\S]*colorVariation[\s\S]*inversionVariation[\s\S]*blockDefaults[\s\S]*blocks/, "createBlocksSystem(options?) must show every supported option beside the call");
+assert.match(docsContent.reference["reference-system-create"].code.join("\n"), /createBlocksSystem\(\{[\s\S]*catalogUrl[\s\S]*random[\s\S]*layout[\s\S]*draggable[\s\S]*resizable[\s\S]*font[\s\S]*labels[\s\S]*variant[\s\S]*colorArray[\s\S]*colorVariation[\s\S]*inversionVariation[\s\S]*blockDefaults[\s\S]*blocks/, "createBlocksSystem(options?) must show every supported option beside the call");
 assert.match(docsContent.reference["reference-block-create"].code.join("\n"), /blocks\.add\(content, \{[\s\S]*id[\s\S]*title[\s\S]*menu[\s\S]*variant[\s\S]*minimized/, "add(content, options?) must show every supported option beside the call");
 assert.match(docsContent.reference["reference-titlebar"].code.join("\n"), /block\.menu\("hello", \{[\s\S]*minimize[\s\S]*close/, "menu(name, options?) must show its complete options object");
 assert.match(docsContent.reference["reference-block-controller"].code.join("\n"), /block\.describe\(\{[\s\S]*url/, "describe(options?) must show its complete options object");
@@ -500,7 +469,7 @@ const mainCdnBase = DOCS_RELEASE.stableCdnBase;
 const manualStartContent = JSON.stringify([docsContent.manual["manual-start-a"], docsContent.manual["manual-start-b"]]);
 assert.ok(manualStartContent.includes(mainCdnBase), "manual installation snippets must use the immutable stable ref");
 assert.match(siteDemos["docs/shell.mjs"], /docsSourceLabel\(\)/, "the shared shell must render canonical source metadata");
-assert.doesNotMatch(apiHtml, /v0\.2\.0 · released/, "the current main reference must not claim to be the stable release");
+assert.doesNotMatch(apiHtml, /main · unreleased/, "the released reference must identify the immutable v0.4.0 source");
 assert.deepEqual(packageData.exports["."], {
   types: "./blocks.system.d.ts",
   default: "./blocks.system.mjs"
@@ -551,16 +520,25 @@ assert.match(eli10Source, /container[\s\S]*blocks[\s\S]*grid[\s\S]*block/i, "ELI
 assert.doesNotMatch(libraryCss, /\.(?:home|manual|reference)-/, "library CSS must not own docs composition");
 assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "base CSS must remain separate from motion");
 assert.doesNotMatch(libraryCss, /data-block-variant="(?:red|green|blue|cyan|magenta|yellow)"/, "library CSS must not own an RGB or CMY palette");
+assert.match(libraryCss, /\.blocks-system-object:hover,\s*[^\{]+\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*0;/, "hover must strengthen every block with the same exterior black frame");
+assert.match(libraryCss, /\[data-layout="flow-grid"\]\s*\{[^}]*grid-auto-flow:\s*row;/, "flow-grid must preserve DOM order without dense backfilling");
+assert.match(libraryCss, /\[data-layout="flow-grid"\][^\{]+\[data-block-minimized="true"\]\s*\{[^}]*grid-row:\s*auto \/ span 1;/, "minimized flow-grid blocks must release their extra rows");
+assert.match(libraryCss, /\.blocks-system-resize--inline\s*\{[^}]*cursor:\s*ew-resize;/, "flow blocks must expose a horizontal resize line");
+assert.match(libraryCss, /\.blocks-system-resize--block\s*\{[^}]*cursor:\s*ns-resize;/, "flow blocks must expose a vertical resize line");
+assert.match(libraryCss, /\.blocks-system-object\s*\{[^}]*border:\s*1px solid var\(--blocks-ink-color\);/, "every block must keep one thin black boundary independent of its appearance");
+assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*border-bottom:\s*1px solid var\(--blocks-ink-color\);[^}]*background:\s*var\(--block-color\);/, "block color must remain inside a black-bounded titlebar");
+assert.match(libraryCss, /\[data-block-variant="inverse"\]\s*\{[^}]*--block-paper-color:\s*var\(--blocks-ink-color\);[^}]*--block-content-color:\s*var\(--blocks-paper-color\);/, "inverse must extend its monochrome treatment through the content surface");
+assert.match(docsContent.manual["manual-colors"].intro, /fills its titlebar[\s\S]*black border[\s\S]*black hover frame[\s\S]*inverse/i, "manual color guidance must match the titlebar-only standard and full inverse content");
 assert.match(librarySource, /new CustomEvent\("blocks:reorder"/, "core must expose reorder events");
+assert.match(librarySource, /new CustomEvent\("blocks:resize"/, "core must expose resize events");
 assert.match(siteCss, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*scroll-behavior:\s*auto/, "site motion must respect reduced motion");
 
 const pureBlockColor = /(?:#(?:ff0000|00ff00|0000ff|00ffff|ff00ff|ffff00)|rgb\(\s*(?:255\s*,\s*0\s*,\s*0|0\s*,\s*255\s*,\s*0|0\s*,\s*0\s*,\s*255|0\s*,\s*255\s*,\s*255|255\s*,\s*0\s*,\s*255|255\s*,\s*255\s*,\s*0)\s*\))/i;
 for (const [owner, source] of [
   ["consumer CSS", siteCss],
-  ["manual composition", siteDemos["docs/manual.mjs"]],
-  ["mixed-content canvas", siteDemos["examples/mixed-content/demo.mjs"]]
+  ["manual composition", siteDemos["docs/manual.mjs"]]
 ]) {
   assert.doesNotMatch(source, pureBlockColor, `${owner} must keep rendered content neutral`);
 }
 
-console.log(`blocks.system site structure — ok (${pages.length} pages, ${exampleDirectories.length} examples)`);
+console.log(`blocks.system site structure — ok (${pages.length} pages)`);

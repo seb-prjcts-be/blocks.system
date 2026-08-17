@@ -128,7 +128,7 @@ async function measureUserColor() {
       document.body.append(field);
       try {
         const blocks = createBlocksSystem({
-          snap: true,
+          layout: "fixed-grid",
           draggable: false,
           colorArray: ["yellow"],
           colorVariation: 1,
@@ -205,7 +205,7 @@ async function measureCompactLayout() {
       document.body.append(field);
       try {
         const blocks = createBlocksSystem({
-          snap: true,
+          layout: "fixed-grid",
           draggable: false,
           variant: "regular"
         });
@@ -249,7 +249,7 @@ async function measureCompactOrderPreservation() {
       document.body.append(field);
       try {
         const blocks = createBlocksSystem({
-          snap: true,
+          layout: "fixed-grid",
           draggable: false,
           variant: "regular"
         });
@@ -290,7 +290,7 @@ async function measureCompactSpanOrderPreservation() {
       document.body.append(field);
       try {
         const blocks = createBlocksSystem({
-          snap: true,
+          layout: "fixed-grid",
           draggable: false,
           variant: "regular"
         });
@@ -322,7 +322,7 @@ async function measureCloseCollapse() {
       field.style.cssText = "position:fixed;left:0;top:0;width:120px;height:360px";
       document.body.append(field);
       try {
-        const blocks = createBlocksSystem({ snap: true, draggable: false, variant: "regular" });
+        const blocks = createBlocksSystem({ layout: "fixed-grid", draggable: false, variant: "regular" });
         const changes = [];
         field.addEventListener("blocks:change", function (event) { changes.push(event.detail); });
         blocks.attach(field).setGrid(1, 6);
@@ -353,7 +353,7 @@ async function measureCloseRowCollapse() {
       field.style.cssText = "position:fixed;left:0;top:0;width:360px;height:360px";
       document.body.append(field);
       try {
-        const blocks = createBlocksSystem({ snap: true, draggable: false, variant: "regular" });
+        const blocks = createBlocksSystem({ layout: "fixed-grid", draggable: false, variant: "regular" });
         const changes = [];
         field.addEventListener("blocks:change", function (event) { changes.push(event.detail); });
         blocks.attach(field).setGrid(3, 6);
@@ -384,7 +384,7 @@ async function measurePointerCaptureFallback() {
       field.style.cssText = "position:fixed;left:0;top:0;width:240px;height:240px";
       document.body.append(field);
       try {
-        const blocks = createBlocksSystem({ snap: false, variant: "regular" });
+        const blocks = createBlocksSystem({ layout: "free", variant: "regular" });
         blocks.attach(field);
         const block = blocks.add("drag", { id: "pointer-fallback-block", title: "drag", menu: true });
         const handle = block.element.querySelector(".blocks-system-title");
@@ -1824,7 +1824,7 @@ try {
     dataBlockColor: "yellow",
     objectBackground: "rgb(239, 238, 232)",
     objectColor: "rgb(20, 20, 15)",
-    borderColor: "rgb(255, 255, 0)",
+    borderColor: "rgb(0, 0, 0)",
     menuBackground: "rgb(255, 255, 0)",
     menuColor: "rgb(0, 0, 0)",
     contentBackground: "rgba(0, 0, 0, 0)",
@@ -1833,7 +1833,7 @@ try {
     lightDirectRestoredMenuColor: "rgb(239, 238, 232)",
     darkDirectMenuColor: "rgb(239, 238, 232)",
     darkArrayMenuColor: "rgb(239, 238, 232)"
-  }, "een kleur uit de gebruikersarray moet alleen het blockkader en menu kleuren en de inhoud neutraal laten");
+  }, "een kleur uit de gebruikersarray moet alleen de titelbalk kleuren en de inhoud neutraal laten");
 
   const compactLayout = await measureCompactLayout();
   assert.deepEqual(compactLayout.rows, ["1", "2", "3"], "compact() vult verticale gaten niet in echte Chromium-layout");
@@ -1872,24 +1872,24 @@ try {
   const closeCollapse = await measureCloseCollapse();
   assert.deepEqual(closeCollapse.rows, {
     "close-collapse-top": "1",
-    "close-collapse-lower": "2"
-  }, "de ×-knop moet een later block in de vrijgekomen rasterplaats laten klappen");
+    "close-collapse-lower": "4"
+  }, "de ×-knop moet vaste adressen van resterende blocks behouden");
   assert.deepEqual(closeCollapse.change, {
     type: "remove",
     id: "close-collapse-gap",
-    ids: ["close-collapse-gap", "close-collapse-lower"]
-  }, "een close-event moet ook melden welk block in de vrijgekomen plaats is geklapt");
+    ids: ["close-collapse-gap"]
+  }, "een close-event mag geen impliciete compactie melden");
 
   const closeRowCollapse = await measureCloseRowCollapse();
   assert.deepEqual(closeRowCollapse.rows, {
     "close-row-top": "1",
-    "close-row-lower": "2"
-  }, "na het sluiten van de enige bewoner moet ook een breder block in de volledig vrijgekomen rij omhoog springen");
+    "close-row-lower": "4"
+  }, "ook een volledig vrijgekomen vaste rij moet bewust leeg blijven");
   assert.deepEqual(closeRowCollapse.change, {
     type: "remove",
     id: "close-row-gap",
-    ids: ["close-row-gap", "close-row-lower"]
-  }, "de echte rij-instorting moet het breder omhooggeschoven block melden");
+    ids: ["close-row-gap"]
+  }, "de verwijdering moet zonder verborgen rijverschuiving in het change-event staan");
 
   assert.deepEqual(await measurePointerCaptureFallback(), {
     afterDown: "pointer-fallback-block",
@@ -1915,7 +1915,7 @@ try {
   assert.equal(afterHover.canvasVisual.outlineColor, "rgb(0, 0, 0)", "hover gebruikt niet het zwarte volledige kader");
   assert.equal(afterHover.canvasVisual.outlineStyle, "solid", "hover toont geen volledig kader");
   assert.equal(afterHover.canvasVisual.outlineWidth, "3px", "hoverkader heeft niet dezelfde kracht als het referentievoorbeeld");
-  assert.equal(afterHover.canvasVisual.outlineOffset, "-3px", "hoverkader moet binnen het block blijven");
+  assert.equal(afterHover.canvasVisual.outlineOffset, "0px", "hoverkader moet de dunne buitenrand zichtbaar versterken");
   assert.equal(afterHover.canvasVisual.boxShadow, beforeHover.canvasVisual.boxShadow, "hover mag geen onverwachte schaduw toevoegen");
   assert.equal(afterHover.canvasVisual.transform, beforeHover.canvasVisual.transform, "hover mag het block niet verplaatsen");
   assertBlockActions(await exerciseBlockActions("#home-board"), "home", 3);
@@ -1923,7 +1923,7 @@ try {
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const desktopManual = await measureManual(1280, 900, 2);
-  assert.equal(desktopManual.mastheadSourceLabel, "manual / ELI10 + nine steps · main · unreleased", "manual mag de gedeelde bronmetadata maar één keer in de masthead zetten");
+  assert.equal(desktopManual.mastheadSourceLabel, "manual / ELI10 + nine steps · v0.4.0 · released", "manual mag de gedeelde bronmetadata maar één keer in de masthead zetten");
   if (desktopManual.blockCount === 64) {
     assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
     assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
@@ -1978,8 +1978,8 @@ try {
       bodyWhiteSpace: "nowrap",
       bodyFits: true,
       urls: [
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.css",
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.mjs"
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.css",
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.mjs"
       ]
     }, "de CDN-uitleg staat niet op één regel met beide echte release-URL's");
     assert.deepEqual(desktopManual.startPair.steps, [
@@ -2287,11 +2287,11 @@ try {
   });
   const afterManualHover = await manualHoverSignature();
   assert.deepEqual(afterManualHover.rect, beforeManualHover.rect, "manual-hover mag het block niet verplaatsen of vergroten");
-  assert.equal(afterManualHover.borderColor, "rgb(0, 255, 255)", "de hoverrepro gebruikt geen block met gekozen cyaankleur");
-  assert.equal(afterManualHover.outlineColor, afterManualHover.borderColor, "manual-hover gebruikt niet exact de gekozen kleur van het blockkader");
+  assert.equal(afterManualHover.borderColor, "rgb(0, 0, 0)", "een gekleurd block behoudt niet zijn dunne zwarte buitenrand");
+  assert.equal(afterManualHover.outlineColor, afterManualHover.borderColor, "manual-hover versterkt niet exact de zwarte blockrand");
   assert.equal(afterManualHover.outlineStyle, "solid", "manual-hover toont geen volledig librarykader");
   assert.equal(afterManualHover.outlineWidth, "3px", "manual-hover heeft niet de kracht van het librarykader");
-  assert.equal(afterManualHover.outlineOffset, "-3px", "manual-hover moet binnen het block blijven");
+  assert.equal(afterManualHover.outlineOffset, "0px", "manual-hover moet de dunne buitenrand zichtbaar versterken");
   assert.equal(afterManualHover.cursor, "grab", "de manualheader toont geen echte dragcursor");
   await protocol.send("CSS.forcePseudoState", { nodeId: manualRandomNode.nodeId, forcedPseudoClasses: [] });
 
@@ -2305,8 +2305,8 @@ try {
   });
   const inverseHover = await manualHoverSignature("manual-appearance-inverse");
   assert.equal(inverseHover.variant, "inverse", "de inverse-hoverrepro gebruikt geen inverse block");
-  assert.equal(inverseHover.borderColor, "rgb(239, 238, 232)", "het inverse block gebruikt niet zijn lichte randkleur");
-  assert.equal(inverseHover.outlineColor, inverseHover.borderColor, "inverse-hover gebruikt niet exact de lichte kleur van het blockkader");
+  assert.equal(inverseHover.borderColor, "rgb(0, 0, 0)", "het inverse block behoudt niet dezelfde dunne zwarte buitenrand");
+  assert.equal(inverseHover.outlineColor, inverseHover.borderColor, "inverse-hover versterkt niet exact de zwarte blockrand");
   assert.equal(inverseHover.outlineWidth, "3px", "inverse-hover verliest de volledige kadersterkte");
   await protocol.send("CSS.forcePseudoState", { nodeId: inverseNode.nodeId, forcedPseudoClasses: [] });
   const mobileManual = await measureManualMatrix(390, 844);
@@ -2402,9 +2402,9 @@ try {
       assert.ok(Math.abs(manual.randomMiniGrids.combined[0].left - manual.randomMiniGrids.color[0].left) <= 0.5 && Math.abs(manual.randomMiniGrids.combined[5].right - manual.randomMiniGrids.inverse[2].right) <= 0.5, `de gecombineerde zesdelige proef vult niet de volledige rasterrij op ${width}px`);
       assert.ok([...manual.randomMiniGrids.color, ...manual.randomMiniGrids.inverse, ...manual.randomMiniGrids.combined].every(function (item) { return Math.abs(item.height - manual.rowHeight) <= 0.5; }), `de chance-resultaten zijn geen echte 1×1-gridcellen op ${width}px`);
     }
-    const expectedShellColors = ["rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)", "rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(0, 255, 255)", "rgb(255, 255, 0)"];
-    assert.deepEqual(manual.colorBlockStyles.map((style) => style.border), expectedShellColors, `manual zet de gebruikerskleur niet op het blockkader op ${width}px`);
-    assert.deepEqual(manual.colorBlockStyles.map((style) => style.menuBackground), expectedShellColors, `manual zet de gebruikerskleur niet op de blockheader op ${width}px`);
+    const expectedTitlebarColors = ["rgb(0, 255, 255)", "rgb(255, 0, 255)", "rgb(255, 255, 0)"];
+    assert.deepEqual(manual.colorBlockStyles.map((style) => style.border), ["rgb(0, 0, 0)", "rgb(0, 0, 0)", "rgb(0, 0, 0)"], `manual bewaart niet dezelfde zwarte blockrand op ${width}px`);
+    assert.deepEqual(manual.colorBlockStyles.map((style) => style.menuBackground), expectedTitlebarColors, `manual zet de gebruikerskleur niet uitsluitend op de blockheader op ${width}px`);
     assert.ok(manual.colorBlockStyles.every((style) => style.objectBackground === "rgb(239, 238, 232)" && style.contentBackground === "rgb(239, 238, 232)"), `manual laat gebruikerskleur in het inhoudsvlak lekken op ${width}px`);
     assert.ok(manual.colorBlockStyles.every((style) => style.menuColor === "rgb(0, 0, 0)" && style.contentColor === "rgb(20, 20, 15)"), `manual bewaart geen neutrale inkt in gekleurde blocks op ${width}px`);
     assert.deepEqual(manual.menuExamples, [
@@ -2583,68 +2583,6 @@ try {
 
   }
 
-  for (const example of ["basic-grid", "mixed-content", "custom-adapter"]) {
-    for (const [width, height] of [[1280, 900], [390, 844]]) {
-      await protocol.send("Emulation.setDeviceMetricsOverride", {
-        width,
-        height,
-        deviceScaleFactor: 1,
-        mobile: false
-      });
-      await navigateTo(`${pageUrl}examples/${example}/?navigation-test=${width}`);
-      const navigation = await measureMainNavigation();
-      assertMainNavigation(navigation, `${example} op ${width}px`);
-      assert.ok(navigation.contentTop >= navigation.navbarBottom - 0.5, `${example} schuift onder het vaste menu op ${width}px`);
-      const styleResult = await protocol.send("Runtime.evaluate", {
-        expression: `(async function () {
-          await document.fonts.ready;
-          for (let attempt = 0; attempt < 60 && !document.querySelector(".blocks-system-menu"); attempt += 1) {
-            await new Promise(function (done) { requestAnimationFrame(done); });
-          }
-          const field = document.querySelector("#field");
-          return {
-            stylesheets: Array.from(document.styleSheets).map(function (sheet) {
-              return new URL(sheet.href).pathname;
-            }),
-            bodyFont: getComputedStyle(document.body).fontFamily,
-            headingFont: getComputedStyle(document.querySelector("h1")).fontFamily,
-            navigationFont: getComputedStyle(document.querySelector(".nav-logo")).fontFamily,
-            blockFont: getComputedStyle(field.querySelector(".blocks-system-menu")).fontFamily,
-            configuredBlockFont: getComputedStyle(field).getPropertyValue("--blocks-font-family").trim(),
-            variants: Array.from(field.querySelectorAll(":scope > .blocks-system-object"), function (block) {
-              return block.dataset.blockVariant;
-            }),
-            colors: Array.from(field.querySelectorAll(":scope > .blocks-system-object"), function (block) {
-              return block.getAttribute("data-block-color");
-            }),
-            minimizeCount: field.querySelectorAll(".blocks-system-minimize").length,
-            closeCount: field.querySelectorAll(".blocks-system-close").length
-          };
-        })()`,
-        awaitPromise: true,
-        returnByValue: true
-      });
-      const exampleStyle = styleResult.result.value;
-      assert.deepEqual(exampleStyle.stylesheets, ["/blocks.system.css", "/docs/style.css"], `${example} laadt niet exact library-CSS en de canonieke sitecascade`);
-      for (const [part, font] of Object.entries({
-        body: exampleStyle.bodyFont,
-        heading: exampleStyle.headingFont,
-        navigation: exampleStyle.navigationFont,
-        block: exampleStyle.blockFont
-      })) {
-        assert.match(font, /Instrument Sans/, `${example} gebruikt Instrument Sans niet voor ${part} op ${width}px`);
-      }
-      assert.equal(exampleStyle.configuredBlockFont, '"Instrument Sans"', `${example} configureert de librarytypografie niet via haar publieke CSS-hook`);
-      assert.equal(exampleStyle.minimizeCount, exampleStyle.variants.length, `${example} toont niet op elk block minimaliseren op ${width}px`);
-      assert.equal(exampleStyle.closeCount, exampleStyle.variants.length, `${example} toont niet op elk block sluiten op ${width}px`);
-      if (example === "basic-grid") {
-        assert.deepEqual(exampleStyle.variants, ["regular", "inverse", "color", "regular"], `basic-grid gebruikt niet de generieke variant voor de gebruikerskleur op ${width}px`);
-        assert.deepEqual(exampleStyle.colors, [null, null, "magenta", null], `basic-grid bewaart de geselecteerde gebruikerskleur niet afzonderlijk op ${width}px`);
-      }
-      assertBlockActions(await exerciseBlockActions("#field"), `${example} op ${width}px`, exampleStyle.variants.length);
-    }
-  }
-
   const aliases = {
     "manual.html": "start",
     "system.html": "start",
@@ -2665,16 +2603,6 @@ try {
     assert.equal(aliasResult.result.value.search, "", `${file} laat de legacy query in de canonieke URL staan`);
   }
 
-  await navigateTo(`${pageUrl}docs/examples.html?legacy=1`);
-  await new Promise(function (resolveAlias) { setTimeout(resolveAlias, 60); });
-  const examplesAliasResult = await protocol.send("Runtime.evaluate", {
-    expression: `({ pathname: location.pathname, hash: location.hash, search: location.search })`,
-    returnByValue: true
-  });
-  assert.equal(examplesAliasResult.result.value.pathname, "/examples/", "examples.html komt niet op de echte voorbeeldenindex uit");
-  assert.equal(examplesAliasResult.result.value.hash, "", "examples.html houdt een verouderd manualfragment bij");
-  assert.equal(examplesAliasResult.result.value.search, "", "examples.html laat de legacy query in de canonieke URL staan");
-
   for (const [route, readySelector, anchor] of [
     ["docs/#next", "#manual-board[data-manual-ready]", "#next"],
     ["docs/api.html#colors", "#reference-board[data-reference-ready]", "#colors"]
@@ -2694,7 +2622,7 @@ try {
     assert.ok(hashPosition.result.value.top < hashPosition.result.value.viewport && hashPosition.result.value.bottom > 0, `${route} maakt het dynamische doel niet zichtbaar: ${JSON.stringify(hashPosition.result.value)}`);
   }
 
-  console.log("browser-layout: gedeelde cascade, drie examples, routes op 1440–320px @1x/@2x en zeven legacy aliases — OK");
+  console.log("browser-layout: gedeelde cascade, routes op 1440–320px @1x/@2x en zes legacy aliases — OK");
 } finally {
   await browser.close();
 }

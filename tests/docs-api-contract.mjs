@@ -80,6 +80,8 @@ try {
 const referenceSectionsByInterface = {
   BlocksFont: ["reference-system-create"],
   BlocksLabels: ["reference-system-create"],
+  BlocksLayoutEntry: ["reference-block-layout"],
+  BlocksLayout: ["reference-block-layout"],
   BlockDefinition: ["reference-definition-create"],
   BlockAdapterContext: ["reference-adapter-methods"],
   MountedBlock: ["reference-adapter-methods"],
@@ -92,9 +94,11 @@ const referenceSectionsByInterface = {
   BlockDescribeOptions: ["reference-block-controller"],
   BlocksReorderPosition: ["reference-dragging"],
   BlocksReorderDetail: ["reference-dragging"],
+  BlocksResizeSize: ["reference-block-layout"],
+  BlocksResizeDetail: ["reference-dragging", "reference-field-signals"],
   BlocksChangeDetail: ["reference-field-signals"],
   BlocksSystemOptions: ["reference-system-create", "reference-grid", "reference-titlebar", "reference-dragging", "reference-appearance", "reference-color", "reference-chance"],
-  BlocksSystem: ["reference-system-create", "reference-container", "reference-grid", "reference-block-create", "reference-dragging", "reference-appearance", "reference-color", "reference-chance", "reference-definition-create", "reference-adapter-methods", "reference-block-controller"]
+  BlocksSystem: ["reference-system-create", "reference-container", "reference-grid", "reference-block-create", "reference-block-layout", "reference-dragging", "reference-appearance", "reference-color", "reference-chance", "reference-definition-create", "reference-adapter-methods", "reference-block-controller"]
 };
 
 for (const [interfaceName, sectionIds] of Object.entries(referenceSectionsByInterface)) {

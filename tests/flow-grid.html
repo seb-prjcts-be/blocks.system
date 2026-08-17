@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>flow grid proof · blocks.system</title>
+  <link rel="stylesheet" href="../blocks.system.css?flow-grid-proof=20260817">
+  <style>
+    body {
+      margin: 16px;
+      color: #14140f;
+      background: #fff;
+      font-family: "Segoe UI", Arial, sans-serif;
+    }
+
+    #proof-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    #proof-field {
+      width: 480px;
+      height: 480px;
+    }
+
+    #proof-state {
+      display: block;
+      max-width: 72ch;
+      margin-top: 12px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="proof-controls">
+    <button id="mutate-layout" type="button">layout wijzigen</button>
+    <button id="restore-layout" type="button">layout herstellen</button>
+  </div>
+  <div id="proof-field"></div>
+  <output id="proof-state" aria-live="polite"></output>
+
+  <script type="module">
+    import { createBlocksSystem } from "../blocks.system.mjs?flow-grid-proof=20260817";
+
+    const field = document.querySelector("#proof-field");
+    const state = document.querySelector("#proof-state");
+    const events = [];
+    const blocks = createBlocksSystem({
+      layout: "flow-grid",
+      draggable: true,
+      resizable: true,
+      variant: "regular"
+    });
+    blocks.attach(field).setGrid(4, 4);
+
+    const definitions = [
+      { id: "charlie", title: "Charlie", span: [2, 1] },
+      { id: "alpha", title: "Alpha", span: [4, 2] },
+      { id: "bravo", title: "Bravo", span: [2, 1] }
+    ];
+    const collator = new Intl.Collator(document.documentElement.lang, {
+      numeric: true,
+      sensitivity: "base"
+    });
+    const controllers = new Map();
+    for (const definition of definitions.toSorted((first, second) => collator.compare(first.title, second.title))) {
+      const block = blocks.add(`<p>inhoud ${definition.title}</p>`, {
+        id: definition.id,
+        title: definition.title
+      });
+      block.span(...definition.span);
+      controllers.set(definition.id, block);
+    }
+    const initialLayout = blocks.exportLayout();
+
+    function snapshot() {
+      const fieldRect = field.getBoundingClientRect();
+      const objects = Array.from(field.querySelectorAll(":scope > .blocks-system-object"));
+      return {
+        layout: field.dataset.layout,
+        resizable: field.dataset.resizable,
+        order: objects.map((object) => object.dataset.blockObject),
+        blocks: objects.map((object) => {
+          const rect = object.getBoundingClientRect();
+          const content = object.querySelector(".blocks-system-content");
+          return {
+            id: object.dataset.blockObject,
+            columns: Number(object.style.getPropertyValue("--block-span-columns")),
+            rows: Number(object.style.getPropertyValue("--block-span-rows")),
+            minimized: object.dataset.blockMinimized,
+            contentDisplay: getComputedStyle(content).display,
+            left: Math.round(rect.left - fieldRect.left),
+            top: Math.round(rect.top - fieldRect.top),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height)
+          };
+        }),
+        handles: Array.from(field.querySelectorAll(".blocks-system-resize")).map((handle) => ({
+          label: handle.getAttribute("aria-label"),
+          cursor: getComputedStyle(handle).cursor
+        })),
+        events
+      };
+    }
+
+    function renderState(event) {
+      if (event) events.push({ type: event.type, detail: event.detail });
+      const writeState = () => {
+        state.value = JSON.stringify(snapshot(), null, 2);
+      };
+      requestAnimationFrame(writeState);
+      setTimeout(writeState, 220);
+    }
+
+    for (const eventName of ["blocks:reorder", "blocks:resize", "blocks:change"]) {
+      field.addEventListener(eventName, renderState);
+    }
+    document.querySelector("#mutate-layout").addEventListener("click", () => {
+      field.insertBefore(controllers.get("charlie").element, controllers.get("alpha").element);
+      controllers.get("alpha").span(2, 1);
+      controllers.get("alpha").minimized = true;
+      renderState();
+    });
+    document.querySelector("#restore-layout").addEventListener("click", () => {
+      blocks.restoreLayout(initialLayout);
+      renderState();
+    });
+
+    renderState();
+    document.documentElement.dataset.proofReady = "true";
+  </script>
+</body>
+</html>

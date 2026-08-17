@@ -8,9 +8,25 @@ export interface BlocksFont {
 
 export interface BlocksLabels {
   move: string;
+  resize: string;
   restore: string;
   minimize: string;
   close: string;
+}
+
+export type BlocksLayoutMode = "free" | "fixed-grid" | "flow-grid";
+
+export interface BlocksLayoutEntry {
+  id: string;
+  span: readonly [columns: number, rows: number];
+  place: readonly [column: number, row: number] | null;
+  minimized: boolean;
+}
+
+export interface BlocksLayout {
+  version: 1;
+  layout: BlocksLayoutMode;
+  blocks: readonly BlocksLayoutEntry[];
 }
 
 export interface BlockDefinition {
@@ -83,7 +99,6 @@ export interface BlockController {
   menu(name: string, options?: boolean | BlockMenuOptions): BlockController;
   span(columns: number, rows: number): BlockController;
   place(column: number, row: number): BlockController;
-  flow(): BlockController;
   /** Serialize this live block into a registerable definition for the built-in "html" adapter. */
   describe(options?: BlockDescribeOptions): BlockDefinition;
   remove(): true;
@@ -111,6 +126,19 @@ export interface BlocksReorderDetail {
   direction: "up" | "right" | "down" | "left" | "still";
 }
 
+export interface BlocksResizeSize {
+  columns: number;
+  rows: number;
+}
+
+export interface BlocksResizeDetail {
+  id: string;
+  input: "pointer" | "keyboard";
+  axis: "inline" | "block";
+  from: BlocksResizeSize;
+  to: BlocksResizeSize;
+}
+
 export type BlocksChangeType = "compact" | "minimize" | "restore" | "remove";
 
 export interface BlocksChangeDetail {
@@ -122,8 +150,11 @@ export interface BlocksChangeDetail {
 export interface BlocksSystemOptions {
   catalogUrl?: string | URL | null;
   random?: () => number;
-  snap?: boolean;
+  /** Choose one complete layout model. Defaults to free. */
+  layout?: BlocksLayoutMode;
   draggable?: boolean;
+  /** Show resize lines in flow-grid. Defaults to false and is rejected in other layouts. */
+  resizable?: boolean;
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
   variant?: string;
@@ -139,8 +170,9 @@ export interface BlocksSystemOptions {
 export interface BlocksSystem {
   readonly columns: number;
   readonly rows: number;
-  snap: boolean;
+  readonly layout: BlocksLayoutMode;
   draggable: boolean;
+  resizable: boolean;
   font: Readonly<BlocksFont> | null;
   variant: string;
   readonly variants: readonly string[];
@@ -160,6 +192,10 @@ export interface BlocksSystem {
   setGrid(columns: number, rows: number): BlocksSystem;
   compact(): BlocksSystem;
   add(content: BlockContent, options?: AddBlockOptions): BlockController;
+  /** Export content-free layout state in current DOM order. */
+  exportLayout(): BlocksLayout;
+  /** Restore known block order, spans, optional fixed positions and minimized state. */
+  restoreLayout(layout: BlocksLayout): BlocksSystem;
   mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
   unmount(target: string | Element): boolean;
   remount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
@@ -177,11 +213,13 @@ declare global {
 
   interface HTMLElementEventMap {
     "blocks:reorder": CustomEvent<BlocksReorderDetail>;
+    "blocks:resize": CustomEvent<BlocksResizeDetail>;
     "blocks:change": CustomEvent<BlocksChangeDetail>;
   }
 
   interface ElementEventMap {
     "blocks:reorder": CustomEvent<BlocksReorderDetail>;
+    "blocks:resize": CustomEvent<BlocksResizeDetail>;
     "blocks:change": CustomEvent<BlocksChangeDetail>;
   }
 }

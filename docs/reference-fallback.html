@@ -6,8 +6,8 @@
   <meta name="description" content="Linear blocks.system API reference without JavaScript.">
   <title>linear reference · blocks.system</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="../blocks.system.css?v=0.1.15">
-  <link rel="stylesheet" href="style.css?v=0.2.46">
+  <link rel="stylesheet" href="../blocks.system.css?v=0.1.20260817">
+  <link rel="stylesheet" href="style.css?v=0.2.20260817">
 </head>
 <body class="docs-page reference-page reference-fallback-page">
   <main class="reference-fallback-main">
@@ -25,8 +25,9 @@
 const blocks = createBlocksSystem({
   catalogUrl: null,
   random: Math.random,
-  snap: false,
+  layout: &quot;free&quot;,
   draggable: true,
+  resizable: false,
   font: null,
   labels: {},
   variant: &quot;random&quot;,
@@ -41,7 +42,7 @@ const blocks = createBlocksSystem({
 <tr id="api-window"><td data-label="kind + contract">property · window.blocks.system</td><td data-label="returns / type / default">BlocksSystem</td><td data-label="purpose">The same shared instance exposed in a browser.</td></tr>
 <tr><td data-label="kind + contract">option · catalogUrl</td><td data-label="returns / type / default">string | URL | null · null</td><td data-label="purpose">Base URL used by address() when a block has no url of its own.</td></tr>
 <tr><td data-label="kind + contract">option · font</td><td data-label="returns / type / default">{ family, href? } | null · null</td><td data-label="purpose">Set a family and optional stylesheet URL; blocks.font remains writable.</td></tr>
-<tr><td data-label="kind + contract">option · labels</td><td data-label="returns / type / default">Partial&lt;{ move, restore, minimize, close }&gt;</td><td data-label="purpose">Override resolved accessible labels; blocks.labels is readonly.</td></tr>
+<tr><td data-label="kind + contract">option · labels</td><td data-label="returns / type / default">Partial&lt;{ move, resize, restore, minimize, close }&gt;</td><td data-label="purpose">Override resolved accessible labels; blocks.labels is readonly.</td></tr>
 <tr><td data-label="kind + contract">option · blocks</td><td data-label="returns / type / default">BlockDefinition[] · []</td><td data-label="purpose">Register definitions during creation.</td></tr></tbody></table></div>
 </section>
 
@@ -55,13 +56,13 @@ const blocks = createBlocksSystem({
 
 <section id="grid" class="reference-fallback-entry">
   <h2>set the grid</h2><span id="system-state" class="reference-anchor-alias" aria-hidden="true"></span>
-  <p class="reference-intro">Define the field dimensions before placing blocks. Columns come first; all dimensions and positions use positive whole numbers.</p>
-  <pre class="reference-code"><code>blocks.snap = true;
+  <p class="reference-intro">Choose one layout when creating the system. Fixed-grid uses explicit addresses; flow-grid uses DOM order and only each block's starting size.</p>
+  <pre class="reference-code"><code>const blocks = createBlocksSystem({ layout: &quot;flow-grid&quot; });
 blocks.setGrid(4, 4);</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type / default</th><th>purpose</th></tr></thead><tbody><tr id="api-set-grid"><td data-label="kind + contract">method · setGrid(columns, rows)</td><td data-label="returns / type / default">blocks</td><td data-label="purpose">Set positive whole grid dimensions.</td></tr>
 <tr><td data-label="kind + contract">property · columns</td><td data-label="returns / type / default">readonly number</td><td data-label="purpose">Current column count; starts at 1 and changes through setGrid().</td></tr>
 <tr><td data-label="kind + contract">property · rows</td><td data-label="returns / type / default">readonly number</td><td data-label="purpose">Current row count; starts at 1 and may also grow after dragging.</td></tr>
-<tr><td data-label="kind + contract">property · snap</td><td data-label="returns / type / default">boolean · false</td><td data-label="purpose">Set snap true before relying on place(), span() or compact() for visual grid layout; false keeps blocks in flow layout.</td></tr>
+<tr><td data-label="kind + contract">property · layout</td><td data-label="returns / type / default">readonly free | fixed-grid | flow-grid · free</td><td data-label="purpose">One complete layout model chosen at creation; it cannot change afterwards.</td></tr>
 <tr id="api-compact"><td data-label="kind + contract">method · compact()</td><td data-label="returns / type / default">blocks</td><td data-label="purpose">Move fixed grid blocks upward to fill vertical gaps.</td></tr></tbody></table></div>
 </section>
 
@@ -87,12 +88,18 @@ blocks.setGrid(4, 4);</code></pre>
 
 <section id="block-layout" class="reference-fallback-entry">
   <h2>size and position</h2><span id="block-methods" class="reference-anchor-alias" aria-hidden="true"></span>
-  <p class="reference-intro">Size the returned block, then place it. Coordinates start at 1 and columns come before rows.</p>
+  <p class="reference-intro">Set a block span in whole grid units. Fixed-grid also accepts coordinates; flow-grid always follows DOM order and automatically shifts later blocks.</p>
   <pre class="reference-code"><code>block.span(4, 2);
-block.place(1, 1);</code></pre>
+block.place(1, 1);
+
+const layout = blocks.exportLayout();
+blocks.restoreLayout(layout);</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-span"><td data-label="kind + contract">method · span(columns, rows)</td><td data-label="returns">block</td><td data-label="purpose">Set the size in whole grid units.</td></tr>
-<tr id="api-place"><td data-label="kind + contract">method · place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based grid coordinates.</td></tr>
-<tr id="api-flow"><td data-label="kind + contract">method · flow()</td><td data-label="returns">block</td><td data-label="purpose">Return this block to CSS automatic order.</td></tr></tbody></table></div>
+<tr id="api-place"><td data-label="kind + contract">method · place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based coordinates in fixed-grid; other modes reject the call.</td></tr>
+<tr><td data-label="kind + contract">method · exportLayout()</td><td data-label="returns">{ version, layout, blocks }</td><td data-label="purpose">Export the mode, content-free DOM order and each block's span, place and minimized state.</td></tr>
+<tr><td data-label="kind + contract">method · restoreLayout(layout)</td><td data-label="returns">blocks</td><td data-label="purpose">Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones.</td></tr>
+<tr><td data-label="kind + contract">property · resize size</td><td data-label="returns">{ columns, rows }</td><td data-label="purpose">Resize event sizes use positive whole grid units.</td></tr></tbody></table></div>
+  <p class="reference-details">In flow-grid, add blocks in the desired initial order—for example after sorting titles by name—and call span() without place().</p>
 </section>
 
 <section id="content" class="reference-fallback-entry">
@@ -106,7 +113,7 @@ block.place(1, 1);</code></pre>
 
 <section id="titlebar-controls" class="reference-fallback-entry">
   <h2>titlebar controls</h2>
-  <p class="reference-intro">Configure minimize and close when the system or block is created, or update one block later through its controller.</p>
+  <p class="reference-intro">Configure minimize and close when the system or block is created, or update one block later through its controller. Fixed-grid keeps a minimized block's assigned footprint; flow-grid reduces it to one titlebar row without changing DOM order.</p>
   <pre class="reference-code"><code>block.menu(&quot;hello&quot;, {
   minimize: true,
   close: true
@@ -118,12 +125,12 @@ block.place(1, 1);</code></pre>
 <tr><td data-label="kind + contract">option · minimized</td><td data-label="type or returns">boolean</td><td data-label="purpose">Set the initial minimized state.</td></tr>
 <tr><td data-label="kind + contract">property · block.minimized</td><td data-label="type or returns">boolean</td><td data-label="purpose">Read or change the current minimized state.</td></tr>
 <tr id="api-menu"><td data-label="kind + contract">method · menu(name, options?)</td><td data-label="type or returns">block</td><td data-label="purpose">Add or update the titlebar; options accepts minimize and close.</td></tr>
-<tr><td data-label="kind + contract">method · remove()</td><td data-label="type or returns">true</td><td data-label="purpose">Remove the block and release its layout.</td></tr></tbody></table></div>
+<tr><td data-label="kind + contract">method · remove()</td><td data-label="type or returns">true</td><td data-label="purpose">Remove the block. Fixed-grid leaves its address empty until an explicit compact(); flow-grid closes the gap automatically through DOM order.</td></tr></tbody></table></div>
 </section>
 
 <section id="dragging" class="reference-fallback-entry">
   <h2>dragging and order</h2><span id="reorder-event" class="reference-anchor-alias" aria-hidden="true"></span>
-  <p class="reference-intro">draggable enables pointer and keyboard movement. snap keeps moves on the configured grid; otherwise blocks move through flow order.</p>
+  <p class="reference-intro">draggable enables pointer and keyboard movement. Fixed-grid moves coordinates; free and flow-grid change DOM order. Optional resize lines change every non-minimized flow-grid block's span.</p>
   <pre class="reference-code"><code>field.addEventListener(&quot;blocks:reorder&quot;, (event) =&gt; {
   const {
     id, input, mode, key,
@@ -133,8 +140,9 @@ block.place(1, 1);</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>type or initial value</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">property · blocks.draggable</td><td data-label="type or initial value">boolean · true</td><td data-label="purpose">Allow pointer and keyboard reordering for the whole system.</td></tr>
 <tr><td data-label="kind + contract">option · draggable</td><td data-label="type or initial value">boolean · true</td><td data-label="purpose">Set the initial drag state for one new block.</td></tr>
 <tr><td data-label="kind + contract">property · block.draggable</td><td data-label="type or initial value">boolean · true</td><td data-label="purpose">Read or change whether one block can move.</td></tr>
-<tr><td data-label="kind + contract">property · snap</td><td data-label="type or initial value">boolean · false</td><td data-label="purpose">Use grid positions instead of flow order while moving.</td></tr>
-<tr><td data-label="kind + contract">event · blocks:reorder</td><td data-label="type or initial value">CustomEvent</td><td data-label="purpose">Fires after a pointer or keyboard move.</td></tr></tbody></table></div>
+<tr><td data-label="kind + contract">property · blocks.resizable</td><td data-label="type or initial value">boolean · false</td><td data-label="purpose">Enable resize lines in flow-grid; other layouts reject true.</td></tr>
+<tr><td data-label="kind + contract">event · blocks:reorder</td><td data-label="type or initial value">CustomEvent</td><td data-label="purpose">Fires after a pointer or keyboard move.</td></tr>
+<tr><td data-label="kind + contract">event · blocks:resize</td><td data-label="type or initial value">CustomEvent</td><td data-label="purpose">Fires with id, input, axis, from and to after a pointer or keyboard resize.</td></tr></tbody></table></div>
   <p class="reference-details">input is pointer or keyboard; mode is grid or flow; from and to are { column, row } or null. direction is up, right, down, left or still.</p>
 </section>
 
@@ -240,11 +248,12 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
 
 <section id="field-dom" class="reference-fallback-entry">
   <h2>field events + DOM hooks</h2><span id="css-hooks" class="reference-anchor-alias" aria-hidden="true"></span>
-  <p class="reference-intro">The attached field exposes stable DOM hooks and dispatches blocks:change after explicit state changes. Reordering is documented with dragging above.</p>
+  <p class="reference-intro">The attached field exposes stable DOM hooks and dispatches state, reorder and resize events.</p>
   <pre class="reference-code"><code>field.addEventListener(&quot;blocks:change&quot;, (event) =&gt; {
   const { type, id, ids } = event.detail;
 });</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + hook</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + hook">event · blocks:change</td><td data-label="purpose">Fires after an explicit compact, minimize, restore or remove state change.</td></tr>
+<tr><td data-label="kind + hook">event · blocks:resize</td><td data-label="purpose">Fires after pointer or keyboard resizing with id, input, axis, from and to.</td></tr>
 <tr><td data-label="kind + hook">hook · .blocks-system-surface</td><td data-label="purpose">The attached field and its layout tokens.</td></tr>
 <tr><td data-label="kind + hook">hook · .blocks-system-object</td><td data-label="purpose">One outer block.</td></tr>
 <tr><td data-label="kind + hook">hook · .blocks-system-menu</td><td data-label="purpose">Structural title bar and pointer drag area.</td></tr>
@@ -255,6 +264,9 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
 <tr><td data-label="kind + hook">hook · [data-block-variant]</td><td data-label="purpose">Resolved appearance. Custom variant names pass validation and land here for consumer styling — for example a light footnote weight.</td></tr>
 <tr><td data-label="kind + hook">hook · [data-block-color]</td><td data-label="purpose">Color selected from the user's array.</td></tr>
 <tr><td data-label="kind + hook">hook · [data-block-minimized]</td><td data-label="purpose">Minimized state.</td></tr>
+<tr><td data-label="kind + hook">hook · [data-layout]</td><td data-label="purpose">The single free, fixed-grid or flow-grid layout mode.</td></tr>
+<tr><td data-label="kind + hook">hook · [data-resizable]</td><td data-label="purpose">System resize state.</td></tr>
+<tr><td data-label="kind + hook">hook · [data-block-resizable]</td><td data-label="purpose">Effective resize state for one block.</td></tr>
 <tr><td data-label="kind + hook">hook · [data-draggable]</td><td data-label="purpose">Surface drag state.</td></tr>
 <tr><td data-label="kind + hook">hook · [data-block-draggable]</td><td data-label="purpose">Effective drag state for one block.</td></tr>
 <tr><td data-label="kind + hook">hook · CSS custom properties</td><td data-label="purpose">--blocks-gap · --blocks-field-color · --blocks-paper-color · --blocks-ink-color · --blocks-text-color · --blocks-font-family · --blocks-content-padding</td></tr></tbody></table></div>

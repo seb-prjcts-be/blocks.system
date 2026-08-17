@@ -17,17 +17,22 @@
     gap: var(--blocks-gap);
 }
 
-.blocks-system-surface[data-snap="false"] {
+.blocks-system-surface[data-layout="free"] {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
     align-content: flex-start;
 }
 
-.blocks-system-surface[data-snap="true"] {
+.blocks-system-surface:is([data-layout="fixed-grid"], [data-layout="flow-grid"]) {
     display: grid;
     grid-template-columns: repeat(var(--blocks-columns), minmax(0, 1fr));
     grid-template-rows: repeat(var(--blocks-rows), minmax(0, 1fr));
+}
+
+.blocks-system-surface[data-layout="flow-grid"] {
+    grid-auto-flow: row;
+    grid-auto-rows: minmax(0, 1fr);
 }
 
 .blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"] > .blocks-system-menu {
@@ -40,14 +45,10 @@
     cursor: grabbing;
 }
 
-.blocks-system-object:hover {
-    outline: 3px solid var(--block-color);
-    outline-offset: -3px;
-}
-
+.blocks-system-object:hover,
 .blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"]:has(> .blocks-system-menu > .blocks-system-title:focus-visible) {
     outline: 3px solid var(--blocks-ink-color);
-    outline-offset: -3px;
+    outline-offset: 0;
 }
 
 .blocks-system-title:focus-visible {
@@ -113,7 +114,7 @@
     min-width: 0;
     min-height: 0;
     overflow: hidden;
-    border: 1px solid var(--block-color);
+    border: 1px solid var(--blocks-ink-color);
     background: var(--block-paper-color);
     color: var(--block-content-color);
 }
@@ -121,6 +122,10 @@
 .blocks-system-object[data-block-minimized="true"] {
     align-self: start;
     min-height: 0;
+}
+
+.blocks-system-surface[data-layout="flow-grid"] > .blocks-system-object[data-block-minimized="true"] {
+    grid-row: auto / span 1;
 }
 
 .blocks-system-object[data-block-minimized="true"] .blocks-system-content {
@@ -148,7 +153,7 @@
     gap: 6px;
     height: 22px;
     min-height: 22px;
-    border-bottom: 1px solid var(--block-color);
+    border-bottom: 1px solid var(--blocks-ink-color);
     background: var(--block-color);
     color: var(--block-menu-color);
     padding: 3px 7px;
@@ -210,4 +215,45 @@
 .blocks-system-content > svg {
     display: block;
     max-width: 100%;
+}
+
+.blocks-system-resize {
+    box-sizing: border-box;
+    position: absolute;
+    z-index: 2;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: var(--blocks-ink-color);
+    opacity: 0;
+    padding: 0;
+    touch-action: none;
+}
+
+.blocks-system-resize--inline {
+    top: 22px;
+    right: 0;
+    bottom: 0;
+    width: 7px;
+    cursor: ew-resize;
+}
+
+.blocks-system-resize--block {
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 7px;
+    cursor: ns-resize;
+}
+
+.blocks-system-resize:focus-visible {
+    opacity: 1;
+    outline: 2px solid currentColor;
+    outline-offset: -2px;
+}
+
+.blocks-system-object[data-block-resizing="true"] {
+    outline: 3px solid var(--blocks-ink-color);
+    outline-offset: 0;
 }

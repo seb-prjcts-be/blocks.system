@@ -2,8 +2,7 @@
 
 **[Home](https://seb-prjcts-be.github.io/blocks.system/)** ·
 **[Manual](https://seb-prjcts-be.github.io/blocks.system/docs/)** ·
-**[API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)** ·
-**[Examples](https://seb-prjcts-be.github.io/blocks.system/examples/)**
+**[API](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)**
 
 `blocks.system` is a dependency-free ESM browser core for individually
 addressable HTML, SVG, canvas, custom elements and adapter-driven content.
@@ -18,7 +17,7 @@ addressable HTML, SVG, canvas, custom elements and adapter-driven content.
   import { createBlocksSystem } from "./blocks.system.mjs";
 
   const blocks = createBlocksSystem({
-    snap: true,
+    layout: "fixed-grid",
     colorArray: ["cyan", "magenta", "yellow"],
     colorVariation: 0.2,
     inversionVariation: 0.5
@@ -74,14 +73,75 @@ blockCanvas.color = "#222";
 blockCanvas.remove();
 ```
 
-The built-in variants are `regular` and `inverse`. A colour selected from your
-array uses one generic `color` state: the chosen colour draws the block frame
-and menu bar, while the block paper and rendered content stay neutral. The menu
-automatically uses whichever system neutral—ink or paper—has the stronger
-contrast against the chosen colour. On every block, the hover frame reuses
-the current block frame colour, including inverse and user-selected colours.
-Other explicit variant names remain available as hooks for your own CSS, but
-the library does not style them as named colours.
+### Automatic flow and personal layout
+
+Use `layout: "flow-grid"` when blocks need a starting size but no fixed address.
+The browser then lays them out in DOM order without dense backfilling. Add them
+in the wanted initial order—sorting by title remains an application decision:
+
+```js
+const blocks = createBlocksSystem({
+  layout: "flow-grid",
+  resizable: true,
+  variant: "regular"
+});
+
+blocks.attach("#blocks-field").setGrid(4, 6);
+
+const collator = new Intl.Collator(document.documentElement.lang, {
+  numeric: true,
+  sensitivity: "base"
+});
+
+for (const item of [...items].sort((a, b) => collator.compare(a.title, b.title))) {
+  blocks.add(item.content, { id: item.id, title: item.title }).span(...item.span);
+}
+```
+
+In this mode, dragging changes order. Dragging the thin right or bottom edge
+changes the span in whole grid units; the same controls work with arrow keys
+when focused. Minimizing keeps the titlebar and releases the block's extra rows,
+so later blocks move up automatically.
+
+`exportLayout()` returns only layout state—the selected mode, ids, order, spans,
+fixed positions where applicable and minimized state, never block content. That makes `localStorage`
+the simple fit for a personal layout on one browser. Keep role defaults in the
+application, then restore the local override with a role-specific key:
+
+```js
+const role = document.body.dataset.role || "student";
+const storageKey = `blocks.system:dashboard:${role}`;
+
+try {
+  const storedLayout = localStorage.getItem(storageKey);
+  if (storedLayout) blocks.restoreLayout(JSON.parse(storedLayout));
+} catch (error) {
+  console.warn("Stored block layout was ignored.", error);
+}
+
+function saveLayout() {
+  localStorage.setItem(storageKey, JSON.stringify(blocks.exportLayout()));
+}
+
+for (const eventName of ["blocks:reorder", "blocks:resize", "blocks:change"]) {
+  blocks.field.addEventListener(eventName, saveLayout);
+}
+```
+
+`localStorage` is browser/profile-specific, not an account database. Use a
+server store such as SQLite only when layouts or content must follow authenticated
+people across devices or be shared and administered centrally. The core stays
+storage-agnostic in both cases.
+
+The built-in variants are `regular` and `inverse`; inverse exchanges paper and
+ink across the content surface. A colour selected from your array uses one
+generic `color` state and fills only the titlebar, while the block paper and
+rendered content stay neutral. The menu automatically uses whichever system
+neutral—ink or paper—has the stronger contrast against the chosen colour.
+Every block keeps the same thin black boundary and gains the same stronger
+black frame on hover or keyboard focus. Other explicit variant names remain
+available as hooks for your own CSS, but the library does not style them as
+named colours.
 
 ## End
 
@@ -119,15 +179,15 @@ blocks.register({
 
 ## API map
 
-- Creation: `createBlocksSystem({ snap, draggable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Shared system: `attach`, `setGrid`, `compact`, `columns`, `rows`, `snap`, `draggable`, `font`, `variant`,
+- Creation: `createBlocksSystem({ layout, draggable, resizable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Shared system: `attach`, `setGrid`, `compact`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- One block: `menu`, `minimized`, `draggable`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
+- One block: `menu`, `minimized`, `draggable`, `span`, `place`, `describe`, `variant`, `color`, `remove`.
 
 Accessible menu labels follow the document language (`nl` or English) and can
-be overridden with `createBlocksSystem({ labels: { move, minimize, restore,
+be overridden with `createBlocksSystem({ labels: { move, resize, minimize, restore,
 close } })`. A locked layout removes menu headers from the keyboard tab order;
 their minimize and close buttons remain available.
 
@@ -138,23 +198,24 @@ titlebar, or `blockDefaults.menu` and a local `menu` object for exceptions.
 
 Dragging by a block's menu bar is enabled by default. During pointer dragging,
 a magnetic preview marks the block's landing position while the other blocks
-stay still. With `snap = true`, a free cell stays dashed; an occupied downward
+stay still. In `fixed-grid`, a free cell stays dashed; an occupied downward
 target becomes solid with a `↓`, and the colliding blocks keep their columns
-while settling downward together on drop. `flow()` returns a spatially moved
-block to CSS auto-flow. Focus the same header and use the arrow keys for the
+while settling downward together on drop. In `flow-grid`, dragging changes DOM
+order and blocks never gain fixed addresses. Focus the same header and use the arrow keys for the
 same grid movement without a pointer. The surface emits `blocks:reorder` after
 pointer and keyboard moves with one stable detail shape: `id`, `input`, `mode`,
 `key`, indices, grid positions and direction. Set `blocks.draggable = false` to
 lock the whole layout, or `block.draggable = false` to lock one block.
 
-Use `blocks.compact()` only when you explicitly want gap filling. It keeps each
+Use `blocks.compact()` only when you explicitly want gap filling in
+`fixed-grid`. It keeps each
 placed block in its column and preserves the vertical order of blocks whose
 columns overlap; it does not shrink the configured grid. `block.minimized`
-remains collapse-in-place.
-Removing a placed block releases its former grid area. If that leaves a row
-entirely unoccupied, a later block that fits may move into that row; deliberately
-empty composition space remains untouched. Use `compact()` when you explicitly
-want to close other remaining vertical gaps.
+remains collapse-in-place there. In `flow-grid` it keeps one titlebar row
+and lets later blocks reflow upward.
+Removing a placed block never changes another fixed address; the gap remains
+intentional until the application calls `compact()`. Removing a flow-grid block
+reflows naturally because DOM order is the layout.
 The field emits `blocks:change` for `compact`, `minimize`, `restore` and
 `remove`.
 Trackpad and wheel input over ordinary block content continues scrolling the
@@ -162,29 +223,31 @@ page; only genuinely overflowing inner content scrolls locally first.
 The measured mechanics and boundaries are recorded in
 [`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
-See the [API reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
-for arguments and return values. Public installation snippets remain pinned to
-immutable `v0.3.0`; the current `main` runtime, types and reference are explicitly
-marked unreleased while they move beyond that tag.
+See the [v0.4.0 API reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
+for arguments and return values. Installation snippets, runtime, types and
+reference use the same immutable release.
 
 ## Verified status
 
-As checked on 2026-08-10, release `v0.3.0` implements the
-documented public surface: block creation and lifecycle, menus, grid layout,
-snap/keyboard movement, `compact()`, variants and random colour,
-adapters, events, TypeScript declarations, the homepage, manual, reference and
-three runnable examples.
+As checked on 2026-08-17, release `v0.4.0` implements the documented public
+surface: one immutable layout model, fixed- and flow-grid movement, flow-grid
+resizing, layout persistence, minimization, `compact()`, adapters, events,
+TypeScript declarations, the homepage, manual and reference.
 
 The following checks passed locally:
 
-- `npm run check`: minified ESM, contracts, TypeScript, pages, links,
-  examples and responsive browser-layout checks.
-- `npm run test:presentation`: presentation and public-page structure checks.
-- Apache/XAMPP: `/`, `/docs/` and `/examples/` each returned HTTP 200.
+- Minified ESM, runtime contracts, TypeScript, docs/API contracts, presentation,
+  generated fallback and package contents.
+- Apache/XAMPP: home, manual, reference and the flow-grid proof each returned
+  HTTP 200.
+- Targeted browser checks covered fixed-grid documentation and flow-grid order,
+  resize, minimize and layout restore.
 
-`v0.3.0` is the latest immutable public release. Its breaking changes and
-migration notes are recorded in [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md).
-Current `main` is identified as unreleased because it has diverged from this tag.
+`v0.4.0` is the latest immutable public release. Its breaking changes and
+migration notes are recorded in [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md).
+The release replaces `snap` plus `placement` with one immutable `layout`:
+`free`, `fixed-grid` or `flow-grid`. Retired options fail early with their exact
+replacement instead of creating a hybrid layout.
 
 ## Develop
 
@@ -194,7 +257,7 @@ npm run check
 ```
 
 `npm run check` rebuilds the minified module, then checks the API,
-docs, examples, local links and the real showcase layout in headless Chrome.
+docs, local links and the real showcase layout in headless Chrome.
 Set `CHROME_PATH` when Chrome or Edge is not installed in a standard location.
 
 MIT License. Developed by Sebastien Vanblaere.
