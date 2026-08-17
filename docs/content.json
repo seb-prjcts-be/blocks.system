@@ -44,8 +44,8 @@
       "title": "01 / set up the CDN",
       "body": "Start by loading the latest release. The CDN brings the library's stylesheet and JavaScript module into your page.",
       "code": [
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.css",
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.mjs"
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.css",
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.mjs"
       ],
       "layout": {
         "place": [3, 4],
@@ -79,14 +79,14 @@
     "manual-start-b": {
       "title": "setup code",
       "code": [
-        "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.css\">",
+        "<link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.css\">",
         "<div id=\"blocks-field\"></div>",
         "",
         "<script type=\"module\">",
-        "import { createBlocksSystem } from \"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.mjs\";",
+        "import { createBlocksSystem } from \"https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.mjs\";",
         "",
         "const blocks = createBlocksSystem({",
-        "  snap: true,",
+        "  layout: \"fixed-grid\",",
         "  variant: \"regular\"",
         "});",
         "",
@@ -296,7 +296,7 @@
     },
     "manual-drag": {
       "title": "04 / dragging",
-      "intro": "Every block moves by its titlebar. Snap keeps each move on the grid; set draggable false only for a block that must keep its place.",
+      "intro": "Every block moves by its titlebar. Fixed-grid keeps each move on the grid; set draggable false only for a block that must keep its place.",
       "layout": {
         "place": [1, 26],
         "span": [2, 1]
@@ -305,7 +305,7 @@
     "manual-drag-code": {
       "title": "dragging code",
       "code": [
-        "blocks.snap = true;",
+        "const blocks = createBlocksSystem({ layout: \"fixed-grid\" });",
         "blocks.add(\"block\");",
         "blocks.add(\"I'm not draggable!\", {",
         "  draggable: false",
@@ -554,8 +554,7 @@
         "const blocks = createBlocksSystem({",
         "  catalogUrl: null,",
         "  random: Math.random,",
-        "  snap: false,",
-        "  placement: \"fixed\",",
+        "  layout: \"free\",",
         "  draggable: true,",
         "  resizable: false,",
         "  font: null,",
@@ -593,10 +592,9 @@
     },
     "reference-grid": {
       "title": "set the grid",
-      "intro": "Define the field dimensions before placing blocks. Fixed placement keeps explicit addresses; flow placement uses DOM order and needs only each block's starting size.",
+      "intro": "Choose one layout when creating the system. Fixed-grid uses explicit addresses; flow-grid uses DOM order and only each block's starting size.",
       "code": [
-        "blocks.snap = true;",
-        "blocks.placement = \"flow\";",
+        "const blocks = createBlocksSystem({ layout: \"flow-grid\" });",
         "blocks.setGrid(4, 4);"
       ],
       "headers": ["kind + contract", "returns / type / default", "purpose"],
@@ -604,8 +602,7 @@
         { "id": "api-set-grid", "cells": ["method · setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
         { "cells": ["property · columns", "readonly number", "Current column count; starts at 1 and changes through setGrid()."] },
         { "cells": ["property · rows", "readonly number", "Current row count; starts at 1 and may also grow after dragging."] },
-        { "cells": ["property · snap", "boolean · false", "Set snap true before relying on place(), span() or compact() for visual grid layout; false keeps blocks in flow layout."] },
-        { "cells": ["property · placement", "fixed | flow · fixed", "Use fixed for explicit coordinates or flow for automatic placement in DOM order; flow never uses dense backfilling."] },
+        { "cells": ["property · layout", "readonly free | fixed-grid | flow-grid · free", "One complete layout model chosen at creation; it cannot change afterwards."] },
         { "id": "api-compact", "cells": ["method · compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] }
       ]
     },
@@ -619,8 +616,7 @@
         "  menu: { minimize: true, close: true },",
         "  variant: \"regular\",",
         "  minimized: false,",
-        "  draggable: true,",
-        "  resizable: true",
+        "  draggable: true",
         "});"
       ],
       "headers": ["kind + contract", "returns / type", "purpose"],
@@ -631,13 +627,12 @@
         { "cells": ["option · menu", "boolean | { minimize?, close? }", "Configure titlebar controls for this block."] },
         { "cells": ["option · variant", "string", "Override the system appearance for this block."] },
         { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
-        { "cells": ["option · draggable", "boolean · true", "Allow this block to move while the system remains draggable."] },
-        { "cells": ["option · resizable", "boolean · true", "Allow resize lines when the system has resizable flow placement enabled."] }
+        { "cells": ["option · draggable", "boolean · true", "Allow this block to move while the system remains draggable."] }
       ]
     },
     "reference-block-layout": {
       "title": "size and position",
-      "intro": "Set a block span in whole grid units. Fixed placement may add coordinates; flow placement follows DOM order and automatically shifts later blocks.",
+      "intro": "Set a block span in whole grid units. Fixed-grid also accepts coordinates; flow-grid always follows DOM order and automatically shifts later blocks.",
       "code": [
         "block.span(4, 2);",
         "block.place(1, 1);",
@@ -648,14 +643,12 @@
       "headers": ["kind + contract", "returns", "purpose"],
       "rows": [
         { "id": "api-span", "cells": ["method · span(columns, rows)", "block", "Set the size in whole grid units."] },
-        { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based grid coordinates."] },
-        { "id": "api-flow", "cells": ["method · flow()", "block", "Return this block to CSS automatic order."] },
-        { "cells": ["property · block.resizable", "boolean", "Read or change whether one flow block exposes resize lines."] },
-        { "cells": ["method · exportLayout()", "{ version, blocks }", "Export content-free DOM order plus each block id, span, place and minimized state."] },
-        { "cells": ["method · restoreLayout(layout)", "blocks", "Restore a version 1 layout; unknown ids are ignored and unsaved blocks follow the saved ones."] },
+        { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based coordinates in fixed-grid; other modes reject the call."] },
+        { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place and minimized state."] },
+        { "cells": ["method · restoreLayout(layout)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones."] },
         { "cells": ["property · resize size", "{ columns, rows }", "Resize event sizes use positive whole grid units."] }
       ],
-      "details": "In flow placement, add blocks in the desired initial order—for example after sorting titles by name—and call span() without place()."
+      "details": "In flow-grid, add blocks in the desired initial order—for example after sorting titles by name—and call span() without place()."
     },
     "reference-content": {
       "title": "choose the content",
@@ -670,7 +663,7 @@
     },
     "reference-titlebar": {
       "title": "titlebar controls",
-      "intro": "Configure minimize and close when the system or block is created, or update one block later through its controller.",
+      "intro": "Configure minimize and close when the system or block is created, or update one block later through its controller. Fixed-grid keeps a minimized block's assigned footprint; flow-grid reduces it to one titlebar row without changing DOM order.",
       "code": [
         "block.menu(\"hello\", {",
         "  minimize: true,",
@@ -686,12 +679,12 @@
         { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
         { "cells": ["property · block.minimized", "boolean", "Read or change the current minimized state."] },
         { "id": "api-menu", "cells": ["method · menu(name, options?)", "block", "Add or update the titlebar; options accepts minimize and close."] },
-        { "cells": ["method · remove()", "true", "Remove the block and release its layout."] }
+        { "cells": ["method · remove()", "true", "Remove the block. Fixed-grid leaves its address empty until an explicit compact(); flow-grid closes the gap automatically through DOM order."] }
       ]
     },
     "reference-dragging": {
       "title": "dragging and order",
-      "intro": "draggable enables pointer and keyboard movement. Fixed placement moves grid coordinates; flow placement changes DOM order. Optional resize lines change a flow block's span.",
+      "intro": "draggable enables pointer and keyboard movement. Fixed-grid moves coordinates; free and flow-grid change DOM order. Optional resize lines change every non-minimized flow-grid block's span.",
       "code": [
         "field.addEventListener(\"blocks:reorder\", (event) => {",
         "  const {",
@@ -705,8 +698,7 @@
         { "cells": ["property · blocks.draggable", "boolean · true", "Allow pointer and keyboard reordering for the whole system."] },
         { "cells": ["option · draggable", "boolean · true", "Set the initial drag state for one new block."] },
         { "cells": ["property · block.draggable", "boolean · true", "Read or change whether one block can move."] },
-        { "cells": ["property · snap", "boolean · false", "Use grid positions instead of flow order while moving."] },
-        { "cells": ["property · blocks.resizable", "boolean · false", "Enable resize lines for snap + flow placement."] },
+        { "cells": ["property · blocks.resizable", "boolean · false", "Enable resize lines in flow-grid; other layouts reject true."] },
         { "cells": ["event · blocks:reorder", "CustomEvent", "Fires after a pointer or keyboard move."] },
         { "cells": ["event · blocks:resize", "CustomEvent", "Fires with id, input, axis, from and to after a pointer or keyboard resize."] }
       ],
@@ -758,7 +750,6 @@
         { "cells": ["property · element", "readonly HTMLElement", "The outer block element. Do not call element.remove(); use remove() so the system releases its layout."] },
         { "cells": ["property · content", "readonly HTMLDivElement", "The content host inside the block."] },
         { "cells": ["property · draggable", "boolean", "Read or change whether this block can move."] },
-        { "cells": ["property · resizable", "boolean", "Read or change whether this block can resize in flow placement."] },
         { "cells": ["method · describe(options?)", "definition", "Serialize this live block for the built-in html adapter."] },
         { "cells": ["option · options.url", "string | URL", "Name the page in the serialized definition."] },
         { "id": "api-address", "cells": ["method · address(id)", "string", "Build ?block=id from definition.url or the system catalogUrl."] }
@@ -854,7 +845,7 @@
         { "cells": ["hook · [data-block-variant]", "Resolved appearance. Custom variant names pass validation and land here for consumer styling — for example a light footnote weight."] },
         { "cells": ["hook · [data-block-color]", "Color selected from the user's array."] },
         { "cells": ["hook · [data-block-minimized]", "Minimized state."] },
-        { "cells": ["hook · [data-placement]", "Fixed or flow placement mode."] },
+        { "cells": ["hook · [data-layout]", "The single free, fixed-grid or flow-grid layout mode."] },
         { "cells": ["hook · [data-resizable]", "System resize state."] },
         { "cells": ["hook · [data-block-resizable]", "Effective resize state for one block."] },
         { "cells": ["hook · [data-draggable]", "Surface drag state."] },

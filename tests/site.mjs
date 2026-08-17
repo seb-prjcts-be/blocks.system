@@ -76,10 +76,10 @@ const homeHtml = pageHtml["index.html"];
 const manualHtml = pageHtml["docs/index.html"];
 const apiHtml = pageHtml["docs/api.html"];
 for (const page of ["index.html", "docs/index.html", "docs/api.html", "docs/reference-fallback.html"]) {
-  assert.match(pageHtml[page], /blocks\.system\.css\?v=0\.1\.16/, `${page} must load the current block appearance stylesheet`);
+  assert.match(pageHtml[page], /blocks\.system\.css\?v=0\.1\.20260817/, `${page} must load the current block appearance stylesheet`);
 }
 const developmentGuide = await read("docs/development.md");
-const releaseNotes = await read("docs/releases/v0.3.0.md");
+const releaseNotes = await read("docs/releases/v0.4.0.md");
 const eli10Source = await read("docs/eli10-schema.mjs");
 const vanillaWavesSource = await read("docs/vanilla-waves-demo.mjs");
 const siteDemoFiles = [
@@ -111,18 +111,18 @@ for (const [page, entry] of docsShellEntries) {
 }
 
 assert.deepEqual(DOCS_RELEASE, {
-  sourceRef: "main",
-  releaseStatus: "unreleased",
-  packageVersion: "0.3.0",
-  stableRef: "v0.3.0",
+  sourceRef: "v0.4.0",
+  releaseStatus: "released",
+  packageVersion: "0.4.0",
+  stableRef: "v0.4.0",
   nextRelease: null,
-  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0"
-}, "docs release metadata must distinguish the current main branch from stable v0.3.0");
+  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0"
+}, "docs release metadata must identify the complete v0.4.0 release line");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
-for (const contractChange of ["margin", "listAdapters()", "replace: true", "definition.url", "describe({ url })", "fully occupied grid row"]) {
-  assert.ok(releaseNotes.includes(contractChange), `v0.3.0 release notes miss ${contractChange}`);
+for (const contractChange of ["layout", "snap", "placement", "flow-grid", "resizable", "exportLayout()", "localStorage", "Instrument Sans"]) {
+  assert.ok(releaseNotes.includes(contractChange), `v0.4.0 release notes miss ${contractChange}`);
 }
 for (const [page, html] of [["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /data-docs-source-prefix/, `${page} must visibly identify its current source line`);
@@ -130,8 +130,8 @@ for (const [page, html] of [["manual", manualHtml], ["reference", apiHtml]]) {
 
 const documentedApi = [
   "createBlocksSystem", "blockDefaults", "attach", "setGrid", "compact", "columns", "rows",
-  "snap", "placement", "draggable", "resizable", "variant", "variants", "colorArray", "colorVariation",
-  "inversionVariation", "add", "exportLayout", "restoreLayout", "registerAdapter", "menu", "span", "place", "flow",
+  "layout", "draggable", "resizable", "variant", "variants", "colorArray", "colorVariation",
+  "inversionVariation", "add", "exportLayout", "restoreLayout", "registerAdapter", "menu", "span", "place",
   "minimized", "color", "blocks:resize"
 ];
 for (const apiName of documentedApi) {
@@ -195,7 +195,7 @@ for (const [page, html, label] of [["manual", manualHtml, "manual"], ["reference
 const styleVersions = new Set(Object.entries(pageHtml)
   .filter(([page]) => page === "index.html" || page === "docs/index.html" || page === "docs/api.html")
   .flatMap(([, html]) => [...html.matchAll(/<link rel="stylesheet" href="(?:[^"]*\/)?style\.css\?v=([\d.]+)"/g)].map((match) => match[1])));
-assert.deepEqual([...styleVersions], ["0.2.47"], "one consumer stylesheet must use one cache version across all pages");
+assert.deepEqual([...styleVersions], ["0.2.20260817"], "one consumer stylesheet must use one cache version across all pages");
 for (const [page, html] of [["home", homeHtml], ["manual", manualHtml], ["reference", apiHtml]]) {
   assert.match(html, /class="nav-hamburger"[^>]*aria-controls="primary-navigation"/, `${page} hamburger must identify its navigation`);
   assert.match(html, /id="primary-navigation" class="nav-links"/, `${page} navigation must expose the controlled id`);
@@ -348,7 +348,7 @@ for (const id of ["manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fix
 }
 assert.equal(docsContent.manual["manual-drag-movable"].title, "block", "manual 04 must restore the draggable puzzle block");
 assert.equal(docsContent.manual["manual-drag-locked"].title, "I'm not draggable!", "manual 04 must name its only drag exception clearly");
-assert.deepEqual(docsContent.manual["manual-drag-code"].code, ["blocks.snap = true;", "blocks.add(\"block\");", "blocks.add(\"I'm not draggable!\", {", "  draggable: false", "});"], "manual 04 must contrast the default draggable block with its sole exception");
+assert.deepEqual(docsContent.manual["manual-drag-code"].code, ["const blocks = createBlocksSystem({ layout: \"fixed-grid\" });", "blocks.add(\"block\");", "blocks.add(\"I'm not draggable!\", {", "  draggable: false", "});"], "manual 04 must choose fixed-grid once and contrast the default draggable block with its sole exception");
 assert.equal("manual-compact" in docsContent.manual, false, "compact() must stay in the API reference instead of the beginner manual");
 assert.equal("manual-compact-code" in docsContent.manual, false, "the beginner manual must not carry a separate compact() code lesson");
 assert.deepEqual(docsContent.manual["manual-base-colors"].layout, { place: [1, 30], span: [2, 2] }, "manual 05 base-color explanation must be 2×2");
@@ -438,23 +438,24 @@ assert.ok(referenceOrder.every((id, index) => index === 0 || referenceSectionsSo
 const serializedReference = JSON.stringify(docsContent.reference);
 for (const apiName of [
   "createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "compact()",
-  "columns", "rows", "placement", "draggable", "resizable", "labels", "colorArray", "colorVariation", "inversionVariation",
+  "columns", "rows", "layout", "draggable", "resizable", "labels", "colorArray", "colorVariation", "inversionVariation",
   "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)",
-  "flow()", "exportLayout()", "restoreLayout(layout)", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",
+  "exportLayout()", "restoreLayout(layout)", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",
   "unmount(target)", "address(id)", "blocks:reorder", "blocks:resize", "blocks:change"
 ]) {
   assert.ok(serializedReference.includes(apiName), `reference misses ${apiName}`);
 }
 assert.match(serializedReference, /columns[\s\S]*readonly number[\s\S]*rows[\s\S]*may also grow after dragging/i, "reference must explain readable grid dimensions");
 assert.match(serializedReference, /Do not call element\.remove\(\); use remove\(\)/, "reference must prevent direct DOM removal that leaves a stale layout");
-assert.match(serializedReference, /snap true[\s\S]*place\(\)[\s\S]*span\(\)[\s\S]*compact\(\)[\s\S]*visual grid layout/i, "reference must explain snap-dependent layout");
+assert.match(serializedReference, /layout[\s\S]*free \| fixed-grid \| flow-grid[\s\S]*cannot change[\s\S]*compact\(\)[\s\S]*fixed grid/i, "reference must explain the single immutable layout contract");
+assert.match(serializedReference, /Fixed-grid keeps a minimized block's assigned footprint[\s\S]*flow-grid reduces it to one titlebar row[\s\S]*Fixed-grid leaves its address empty until an explicit compact\(\)/i, "reference must explain empty rows and minimized ordering without implicit compaction");
 assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textContent/i, "reference must warn about trusted string HTML");
 
 const typedReferenceRows = Object.values(docsContent.reference).flatMap((entry) => entry.rows || []);
 for (const row of typedReferenceRows) {
   assert.match(row.cells[0], /^(?:method|property|event|option|content|hook|filter|adapter|lifecycle|override) · /, `reference row must name its contract kind: ${row.cells[0]}`);
 }
-assert.match(docsContent.reference["reference-system-create"].code.join("\n"), /createBlocksSystem\(\{[\s\S]*catalogUrl[\s\S]*random[\s\S]*snap[\s\S]*draggable[\s\S]*font[\s\S]*labels[\s\S]*variant[\s\S]*colorArray[\s\S]*colorVariation[\s\S]*inversionVariation[\s\S]*blockDefaults[\s\S]*blocks/, "createBlocksSystem(options?) must show every supported option beside the call");
+assert.match(docsContent.reference["reference-system-create"].code.join("\n"), /createBlocksSystem\(\{[\s\S]*catalogUrl[\s\S]*random[\s\S]*layout[\s\S]*draggable[\s\S]*resizable[\s\S]*font[\s\S]*labels[\s\S]*variant[\s\S]*colorArray[\s\S]*colorVariation[\s\S]*inversionVariation[\s\S]*blockDefaults[\s\S]*blocks/, "createBlocksSystem(options?) must show every supported option beside the call");
 assert.match(docsContent.reference["reference-block-create"].code.join("\n"), /blocks\.add\(content, \{[\s\S]*id[\s\S]*title[\s\S]*menu[\s\S]*variant[\s\S]*minimized/, "add(content, options?) must show every supported option beside the call");
 assert.match(docsContent.reference["reference-titlebar"].code.join("\n"), /block\.menu\("hello", \{[\s\S]*minimize[\s\S]*close/, "menu(name, options?) must show its complete options object");
 assert.match(docsContent.reference["reference-block-controller"].code.join("\n"), /block\.describe\(\{[\s\S]*url/, "describe(options?) must show its complete options object");
@@ -468,7 +469,7 @@ const mainCdnBase = DOCS_RELEASE.stableCdnBase;
 const manualStartContent = JSON.stringify([docsContent.manual["manual-start-a"], docsContent.manual["manual-start-b"]]);
 assert.ok(manualStartContent.includes(mainCdnBase), "manual installation snippets must use the immutable stable ref");
 assert.match(siteDemos["docs/shell.mjs"], /docsSourceLabel\(\)/, "the shared shell must render canonical source metadata");
-assert.doesNotMatch(apiHtml, /v0\.2\.0 · released/, "the current main reference must not claim to be the stable release");
+assert.doesNotMatch(apiHtml, /main · unreleased/, "the released reference must identify the immutable v0.4.0 source");
 assert.deepEqual(packageData.exports["."], {
   types: "./blocks.system.d.ts",
   default: "./blocks.system.mjs"
@@ -520,8 +521,8 @@ assert.doesNotMatch(libraryCss, /\.(?:home|manual|reference)-/, "library CSS mus
 assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "base CSS must remain separate from motion");
 assert.doesNotMatch(libraryCss, /data-block-variant="(?:red|green|blue|cyan|magenta|yellow)"/, "library CSS must not own an RGB or CMY palette");
 assert.match(libraryCss, /\.blocks-system-object:hover,\s*[^\{]+\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*0;/, "hover must strengthen every block with the same exterior black frame");
-assert.match(libraryCss, /\[data-placement="flow"\]\s*\{[^}]*grid-auto-flow:\s*row;/, "flow placement must preserve DOM order without dense backfilling");
-assert.match(libraryCss, /\[data-placement="flow"\][^\{]+\[data-block-minimized="true"\]\s*\{[^}]*grid-row:\s*auto \/ span 1;/, "minimized flow blocks must release their extra rows");
+assert.match(libraryCss, /\[data-layout="flow-grid"\]\s*\{[^}]*grid-auto-flow:\s*row;/, "flow-grid must preserve DOM order without dense backfilling");
+assert.match(libraryCss, /\[data-layout="flow-grid"\][^\{]+\[data-block-minimized="true"\]\s*\{[^}]*grid-row:\s*auto \/ span 1;/, "minimized flow-grid blocks must release their extra rows");
 assert.match(libraryCss, /\.blocks-system-resize--inline\s*\{[^}]*cursor:\s*ew-resize;/, "flow blocks must expose a horizontal resize line");
 assert.match(libraryCss, /\.blocks-system-resize--block\s*\{[^}]*cursor:\s*ns-resize;/, "flow blocks must expose a vertical resize line");
 assert.match(libraryCss, /\.blocks-system-object\s*\{[^}]*border:\s*1px solid var\(--blocks-ink-color\);/, "every block must keep one thin black boundary independent of its appearance");

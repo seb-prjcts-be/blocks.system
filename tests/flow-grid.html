@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>flow grid proof · blocks.system</title>
-  <link rel="stylesheet" href="../blocks.system.css?flow-grid-proof=1">
+  <link rel="stylesheet" href="../blocks.system.css?flow-grid-proof=20260817">
   <style>
     body {
       margin: 16px;
@@ -41,14 +41,13 @@
   <output id="proof-state" aria-live="polite"></output>
 
   <script type="module">
-    import { createBlocksSystem } from "../blocks.system.mjs?flow-grid-proof=2";
+    import { createBlocksSystem } from "../blocks.system.mjs?flow-grid-proof=20260817";
 
     const field = document.querySelector("#proof-field");
     const state = document.querySelector("#proof-state");
     const events = [];
     const blocks = createBlocksSystem({
-      snap: true,
-      placement: "flow",
+      layout: "flow-grid",
       draggable: true,
       resizable: true,
       variant: "regular"
@@ -79,7 +78,7 @@
       const fieldRect = field.getBoundingClientRect();
       const objects = Array.from(field.querySelectorAll(":scope > .blocks-system-object"));
       return {
-        placement: field.dataset.placement,
+        layout: field.dataset.layout,
         resizable: field.dataset.resizable,
         order: objects.map((object) => object.dataset.blockObject),
         blocks: objects.map((object) => {

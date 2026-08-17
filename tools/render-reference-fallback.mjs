@@ -55,8 +55,8 @@ export function renderReferenceFallback(content) {
   <meta name="description" content="Linear blocks.system API reference without JavaScript.">
   <title>linear reference · blocks.system</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="../blocks.system.css?v=0.1.16">
-  <link rel="stylesheet" href="style.css?v=0.2.47">
+  <link rel="stylesheet" href="../blocks.system.css?v=0.1.20260817">
+  <link rel="stylesheet" href="style.css?v=0.2.20260817">
 </head>
 <body class="docs-page reference-page reference-fallback-page">
   <main class="reference-fallback-main">

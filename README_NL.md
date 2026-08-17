@@ -17,7 +17,7 @@ adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
   import { createBlocksSystem } from "./blocks.system.mjs";
 
   const blocks = createBlocksSystem({
-    snap: true,
+    layout: "fixed-grid",
     colorArray: ["cyan", "magenta", "yellow"],
     colorVariation: 0.2,
     inversionVariation: 0.5
@@ -77,15 +77,14 @@ blockCanvas.remove();
 
 ### Automatische flow en persoonlijke layout
 
-Gebruik `placement: "flow"` wanneer blocks wel een startgrootte maar geen vast
+Gebruik `layout: "flow-grid"` wanneer blocks wel een startgrootte maar geen vast
 adres nodig hebben. De browser plaatst ze dan in DOM-volgorde zonder gaten
 achteraf dicht te vullen. Voeg ze in de gewenste startvolgorde toe; sorteren op
 titel blijft een keuze van de toepassing:
 
 ```js
 const blocks = createBlocksSystem({
-  snap: true,
-  placement: "flow",
+  layout: "flow-grid",
   resizable: true,
   variant: "regular"
 });
@@ -107,8 +106,8 @@ onderrand om de span in volledige rastereenheden aan te passen; met focus doen
 de pijltjestoetsen hetzelfde. Minimaliseren behoudt de titelbalk maar geeft de
 extra rijen vrij, zodat volgende blocks automatisch opschuiven.
 
-`exportLayout()` geeft alleen layoutstatus terug—id's, volgorde, spans,
-eventuele vaste plaatsen en minimaliseerstatus, nooit blockinhoud. Daarom past
+`exportLayout()` geeft alleen layoutstatus terug—de gekozen modus, id's,
+volgorde, spans, vaste plaatsen waar van toepassing en minimaliseerstatus, nooit blockinhoud. Daarom past
 `localStorage` goed voor een persoonlijke layout in één browser. Bewaar de
 standaard per rol in de toepassing en herstel daarna de lokale afwijking met
 een sleutel per rol:
@@ -187,12 +186,12 @@ blocks.register({
 
 ## API-overzicht
 
-- Aanmaak: `createBlocksSystem({ snap, placement, draggable, resizable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Gedeeld systeem: `attach`, `setGrid`, `compact`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `snap`, `placement`, `draggable`, `resizable`, `font`, `variant`,
+- Aanmaak: `createBlocksSystem({ layout, draggable, resizable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Gedeeld systeem: `attach`, `setGrid`, `compact`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- Eén block: `menu`, `minimized`, `draggable`, `resizable`, `span`, `place`, `flow`, `describe`, `variant`, `color`, `remove`.
+- Eén block: `menu`, `minimized`, `draggable`, `span`, `place`, `describe`, `variant`, `color`, `remove`.
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
 overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, restore,
@@ -207,55 +206,55 @@ een lokaal `menu`-object voor uitzonderingen.
 
 Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen
 toont een magnetische preview waar het block zal landen, terwijl de andere
-blocks stilstaan. Met `snap = true` blijft een vrije doelcel gestippeld; een
+blocks stilstaan. In `fixed-grid` blijft een vrije doelcel gestippeld; een
 bezette neerwaartse doelcel wordt vol met een `↓`. Bij loslaten behouden de
-verdrongen blocks hun kolom en settelen ze samen omlaag. `flow()` zet een
-ruimtelijk verplaatst block terug in CSS auto-flow. Focus dezelfde header en
+verdrongen blocks hun kolom en settelen ze samen omlaag. In `flow-grid`
+verandert slepen alleen de DOM-volgorde en krijgen blocks nooit vaste adressen. Focus dezelfde header en
 gebruik de pijltjestoetsen voor dezelfde rasterbeweging zonder pointer. Na een
 pointer- of toetsverplaatsing vuurt de surface `blocks:reorder` met één vaste
 detailvorm: `id`, `input`, `mode`, `key`, indices, rasterposities en richting.
 Zet `blocks.draggable = false` om de hele layout te vergrendelen, of
 `block.draggable = false` om één block vast te zetten.
 
-Gebruik `blocks.compact()` alleen wanneer je in vaste plaatsing expliciet gaten
+Gebruik `blocks.compact()` alleen wanneer je in `fixed-grid` expliciet gaten
 wil vullen. De
 methode houdt ieder geplaatst block in zijn kolom en bewaart de verticale
 volgorde van blocks met overlappende kolommen; het ingestelde raster verkleint
 niet stilzwijgend. Daar blijft `block.minimized` inklappen op dezelfde plaats;
-in flowplaatsing behoudt het één titelbalkrij en schuiven latere blocks omhoog.
-Bij `remove()` komt de vroegere rasterruimte van het geplaatste block vrij. Als
-daardoor een rij volledig onbewoond wordt, mag een later passend block naar die
-rij opschuiven; bewust lege compositieruimte blijft leeg. Gebruik `compact()`
-wanneer je andere resterende verticale gaten expliciet wil sluiten. Het veld vuurt
+in `flow-grid` behoudt het één titelbalkrij en schuiven latere blocks omhoog.
+Bij `remove()` veranderen de adressen van andere fixed-grid-blocks nooit; het
+gat blijft bewust bestaan totdat de toepassing `compact()` aanroept. In
+flow-grid herschikt verwijdering vanzelf door de DOM-volgorde. Het veld vuurt
 `blocks:change` voor `compact`, `minimize`, `restore` en `remove`.
 Trackpad- en wheelscroll boven gewone blockinhoud blijft de pagina scrollen;
 alleen echt overlopende binneninhoud scrollt eerst lokaal.
 De gemeten werking en grenzen staan duurzaam in
 [`docs/DRAG-BEHAVIOR.md`](docs/DRAG-BEHAVIOR.md).
 
-Bekijk de [API-reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
-voor argumenten en returnwaarden. Publieke installatiesnippets blijven op de
-onveranderlijke `v0.3.0` vastgezet; de huidige runtime, types en reference op
-`main` zijn expliciet als niet uitgebracht aangeduid zolang ze van die tag afwijken.
+Bekijk de [v0.4.0 API-reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
+voor argumenten en returnwaarden. Installatiesnippets, runtime, types en
+reference gebruiken dezelfde onveranderlijke release.
 
 ## Gecontroleerde status
 
-Op 2026-08-10 bevat release `v0.3.0` de gedocumenteerde publieke
-werking: blocks aanmaken en beheren, menu's, gridlayout,
-snap- en toetsenbordbeweging, `compact()`, varianten en toevalskleur,
-adapters, events, TypeScript-declaraties, home, manual, reference en drie
-bijhorende controles.
+Op 2026-08-17 bevat release `v0.4.0` de gedocumenteerde publieke werking: één
+onveranderlijk layoutmodel, beweging in fixed- en flow-grid, flow-grid-resize,
+layoutopslag, minimalisering, `compact()`, adapters, events,
+TypeScript-declaraties, home, manual en reference.
 
 Lokaal geslaagd:
 
-- `npm run check`: minified ESM, contracten, TypeScript, pagina's,
-  links en responsieve browser-layoutchecks.
-- `npm run test:presentation`: presentatie- en publieke paginastructuurchecks.
-- Apache/XAMPP: `/` en `/docs/` geven elk HTTP 200.
+- Minified ESM, runtimecontracten, TypeScript, docs/API-contracten, presentatie,
+  gegenereerde fallback en package-inhoud.
+- Apache/XAMPP: home, manual, reference en de flow-grid-proef geven elk HTTP 200.
+- Gerichte browserchecks dekken de fixed-grid-documentatie en flow-grid-volgorde,
+  resize, minimalisering en layoutherstel.
 
-`v0.3.0` is de recentste onveranderlijke publieke release. Breaking changes en
-migratienotities staan in [`docs/releases/v0.3.0.md`](docs/releases/v0.3.0.md).
-De huidige `main` is als niet uitgebracht aangeduid omdat hij van deze tag afwijkt.
+`v0.4.0` is de recentste onveranderlijke publieke release. Breaking changes en
+migratienotities staan in [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md).
+De release vervangt `snap` plus `placement` door één onveranderlijke `layout`:
+`free`, `fixed-grid` of `flow-grid`. Verwijderde opties stoppen meteen
+met hun exacte vervanging, zodat geen hybride layout meer kan ontstaan.
 
 ## Ontwikkelen
 

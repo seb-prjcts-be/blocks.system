@@ -128,7 +128,7 @@ async function measureUserColor() {
       document.body.append(field);
       try {
         const blocks = createBlocksSystem({
-          snap: true,
+          layout: "fixed-grid",
           draggable: false,
           colorArray: ["yellow"],
           colorVariation: 1,
@@ -205,7 +205,7 @@ async function measureCompactLayout() {
       document.body.append(field);
       try {
         const blocks = createBlocksSystem({
-          snap: true,
+          layout: "fixed-grid",
           draggable: false,
           variant: "regular"
         });
@@ -249,7 +249,7 @@ async function measureCompactOrderPreservation() {
       document.body.append(field);
       try {
         const blocks = createBlocksSystem({
-          snap: true,
+          layout: "fixed-grid",
           draggable: false,
           variant: "regular"
         });
@@ -290,7 +290,7 @@ async function measureCompactSpanOrderPreservation() {
       document.body.append(field);
       try {
         const blocks = createBlocksSystem({
-          snap: true,
+          layout: "fixed-grid",
           draggable: false,
           variant: "regular"
         });
@@ -322,7 +322,7 @@ async function measureCloseCollapse() {
       field.style.cssText = "position:fixed;left:0;top:0;width:120px;height:360px";
       document.body.append(field);
       try {
-        const blocks = createBlocksSystem({ snap: true, draggable: false, variant: "regular" });
+        const blocks = createBlocksSystem({ layout: "fixed-grid", draggable: false, variant: "regular" });
         const changes = [];
         field.addEventListener("blocks:change", function (event) { changes.push(event.detail); });
         blocks.attach(field).setGrid(1, 6);
@@ -353,7 +353,7 @@ async function measureCloseRowCollapse() {
       field.style.cssText = "position:fixed;left:0;top:0;width:360px;height:360px";
       document.body.append(field);
       try {
-        const blocks = createBlocksSystem({ snap: true, draggable: false, variant: "regular" });
+        const blocks = createBlocksSystem({ layout: "fixed-grid", draggable: false, variant: "regular" });
         const changes = [];
         field.addEventListener("blocks:change", function (event) { changes.push(event.detail); });
         blocks.attach(field).setGrid(3, 6);
@@ -384,7 +384,7 @@ async function measurePointerCaptureFallback() {
       field.style.cssText = "position:fixed;left:0;top:0;width:240px;height:240px";
       document.body.append(field);
       try {
-        const blocks = createBlocksSystem({ snap: false, variant: "regular" });
+        const blocks = createBlocksSystem({ layout: "free", variant: "regular" });
         blocks.attach(field);
         const block = blocks.add("drag", { id: "pointer-fallback-block", title: "drag", menu: true });
         const handle = block.element.querySelector(".blocks-system-title");
@@ -1872,24 +1872,24 @@ try {
   const closeCollapse = await measureCloseCollapse();
   assert.deepEqual(closeCollapse.rows, {
     "close-collapse-top": "1",
-    "close-collapse-lower": "2"
-  }, "de ×-knop moet een later block in de vrijgekomen rasterplaats laten klappen");
+    "close-collapse-lower": "4"
+  }, "de ×-knop moet vaste adressen van resterende blocks behouden");
   assert.deepEqual(closeCollapse.change, {
     type: "remove",
     id: "close-collapse-gap",
-    ids: ["close-collapse-gap", "close-collapse-lower"]
-  }, "een close-event moet ook melden welk block in de vrijgekomen plaats is geklapt");
+    ids: ["close-collapse-gap"]
+  }, "een close-event mag geen impliciete compactie melden");
 
   const closeRowCollapse = await measureCloseRowCollapse();
   assert.deepEqual(closeRowCollapse.rows, {
     "close-row-top": "1",
-    "close-row-lower": "2"
-  }, "na het sluiten van de enige bewoner moet ook een breder block in de volledig vrijgekomen rij omhoog springen");
+    "close-row-lower": "4"
+  }, "ook een volledig vrijgekomen vaste rij moet bewust leeg blijven");
   assert.deepEqual(closeRowCollapse.change, {
     type: "remove",
     id: "close-row-gap",
-    ids: ["close-row-gap", "close-row-lower"]
-  }, "de echte rij-instorting moet het breder omhooggeschoven block melden");
+    ids: ["close-row-gap"]
+  }, "de verwijdering moet zonder verborgen rijverschuiving in het change-event staan");
 
   assert.deepEqual(await measurePointerCaptureFallback(), {
     afterDown: "pointer-fallback-block",
@@ -1923,7 +1923,7 @@ try {
   await navigateTo(`${pageUrl}docs/`);
   assertMainNavigation(await measureMainNavigation(), "manual", "manual");
   const desktopManual = await measureManual(1280, 900, 2);
-  assert.equal(desktopManual.mastheadSourceLabel, "manual / ELI10 + nine steps · main · unreleased", "manual mag de gedeelde bronmetadata maar één keer in de masthead zetten");
+  assert.equal(desktopManual.mastheadSourceLabel, "manual / ELI10 + nine steps · v0.4.0 · released", "manual mag de gedeelde bronmetadata maar één keer in de masthead zetten");
   if (desktopManual.blockCount === 64) {
     assert.equal(desktopManual.devicePixelRatio, 2, "manual test niet werkelijk op DPR 2");
     assert.equal(desktopManual.columnCount, 6, "manual herstelt de zes-koloms documentgrid niet");
@@ -1978,8 +1978,8 @@ try {
       bodyWhiteSpace: "nowrap",
       bodyFits: true,
       urls: [
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.css",
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.3.0/blocks.system.mjs"
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.css",
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.0/blocks.system.mjs"
       ]
     }, "de CDN-uitleg staat niet op één regel met beide echte release-URL's");
     assert.deepEqual(desktopManual.startPair.steps, [

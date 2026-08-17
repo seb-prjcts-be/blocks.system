@@ -4,6 +4,7 @@ import {
   type BlockController,
   type BlocksChangeDetail,
   type BlocksLayout,
+  type BlocksLayoutMode,
   type BlocksResizeDetail,
   type BlocksReorderDetail,
   type BlocksSystem
@@ -12,8 +13,7 @@ import { createBlocksSystem as createMinBlocksSystem } from "blocks.system/min";
 
 const blocks: BlocksSystem = createBlocksSystem({
   catalogUrl: null,
-  snap: true,
-  placement: "flow",
+  layout: "flow-grid",
   draggable: true,
   resizable: true,
   blockDefaults: { menu: { minimize: true, close: true } }
@@ -21,14 +21,12 @@ const blocks: BlocksSystem = createBlocksSystem({
 
 blocks.attach(document.body).setGrid(6, 4);
 const block: BlockController = blocks
-  .add(document.createElement("article"), { id: "typed-block", title: "typed", draggable: false, resizable: true })
+  .add(document.createElement("article"), { id: "typed-block", title: "typed", draggable: false })
   .span(2, 1)
-  .place(1, 1)
   .menu("typed", { close: true });
 block.draggable = true;
-block.resizable = true;
 const blockDraggable: boolean = block.draggable;
-const blockResizable: boolean = block.resizable;
+const layoutMode: BlocksLayoutMode = blocks.layout;
 const savedLayout: BlocksLayout = blocks.exportLayout();
 blocks.restoreLayout(savedLayout);
 
@@ -69,4 +67,7 @@ blocks.columns = 9;
 // @ts-expect-error Per-block dragging accepts booleans only.
 blocks.add("invalid", { draggable: "no" });
 
-void [block, blockDraggable, blockResizable, savedLayout, columns, rows, minified, shared, typedAddress, typedSnippet, describedUrl];
+// @ts-expect-error snap was replaced by one canonical layout mode.
+createBlocksSystem({ snap: true });
+
+void [block, blockDraggable, layoutMode, savedLayout, columns, rows, minified, shared, typedAddress, typedSnippet, describedUrl];

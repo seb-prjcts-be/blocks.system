@@ -14,7 +14,7 @@ export interface BlocksLabels {
   close: string;
 }
 
-export type BlocksPlacement = "fixed" | "flow";
+export type BlocksLayoutMode = "free" | "fixed-grid" | "flow-grid";
 
 export interface BlocksLayoutEntry {
   id: string;
@@ -25,6 +25,7 @@ export interface BlocksLayoutEntry {
 
 export interface BlocksLayout {
   version: 1;
+  layout: BlocksLayoutMode;
   blocks: readonly BlocksLayoutEntry[];
 }
 
@@ -76,8 +77,6 @@ export interface AddBlockOptions {
   minimized?: boolean;
   /** Allow this block to move while the system remains draggable. Defaults to true. */
   draggable?: boolean;
-  /** Allow this block to resize when the system uses resizable flow placement. Defaults to true. */
-  resizable?: boolean;
 }
 
 export interface BlockMenuOptions {
@@ -97,11 +96,9 @@ export interface BlockController {
   variant: string;
   minimized: boolean;
   draggable: boolean;
-  resizable: boolean;
   menu(name: string, options?: boolean | BlockMenuOptions): BlockController;
   span(columns: number, rows: number): BlockController;
   place(column: number, row: number): BlockController;
-  flow(): BlockController;
   /** Serialize this live block into a registerable definition for the built-in "html" adapter. */
   describe(options?: BlockDescribeOptions): BlockDefinition;
   remove(): true;
@@ -153,11 +150,10 @@ export interface BlocksChangeDetail {
 export interface BlocksSystemOptions {
   catalogUrl?: string | URL | null;
   random?: () => number;
-  snap?: boolean;
-  /** Keep explicit grid addresses or let blocks follow DOM order. Defaults to fixed. */
-  placement?: BlocksPlacement;
+  /** Choose one complete layout model. Defaults to free. */
+  layout?: BlocksLayoutMode;
   draggable?: boolean;
-  /** Show resize lines for flow-grid blocks. Defaults to false. */
+  /** Show resize lines in flow-grid. Defaults to false and is rejected in other layouts. */
   resizable?: boolean;
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
@@ -174,8 +170,7 @@ export interface BlocksSystemOptions {
 export interface BlocksSystem {
   readonly columns: number;
   readonly rows: number;
-  snap: boolean;
-  placement: BlocksPlacement;
+  readonly layout: BlocksLayoutMode;
   draggable: boolean;
   resizable: boolean;
   font: Readonly<BlocksFont> | null;

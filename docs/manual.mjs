@@ -1,5 +1,5 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.16";
-import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.90";
+import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.20260817";
+import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.20260817";
 import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.6";
 import { mountVanillaWavesDemo } from "./vanilla-waves-demo.mjs?v=0.1.3";
 
@@ -7,7 +7,7 @@ const board = document.querySelector("#manual-board");
 const reader = document.querySelector("#manual-reader");
 const blocks = createBlocksSystem({
   variant: "regular",
-  snap: true,
+  layout: "fixed-grid",
   labels: { move: "move" }
 });
 
@@ -416,10 +416,7 @@ function addChanceResult(id, column, row, index) {
 
 function rerollChanceResults() {
   if (chanceResults.length > 0) {
-    const snap = blocks.snap;
-    blocks.snap = false;
     for (const block of chanceResults) block.remove();
-    blocks.snap = snap;
     chanceResults = [];
   }
 

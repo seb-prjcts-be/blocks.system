@@ -14,8 +14,9 @@ const minified = await readFile(minPath, "utf8");
 assert.doesNotMatch(source, /vanilla\.waves|p5\.waves|VanillaWaves|WavesLoader|P5WindowSketches|\bWEL\b/, "the core must not know a local runtime");
 assert.ok(["attach", "setGrid", "compact", "add", "exportLayout", "restoreLayout", "register", "registerAdapter", "mount", "unmount"]
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
-assert.equal(singleton.snap, false, "snap must be disabled by default");
-assert.equal(singleton.placement, "fixed", "fixed placement must preserve the existing default");
+assert.equal(singleton.layout, "free", "free layout must remain the dependency-free default");
+assert.equal("snap" in singleton, false, "snap must not remain as a second layout switch");
+assert.equal("placement" in singleton, false, "placement must not remain as a second layout switch");
 assert.equal(singleton.columns, 1, "grid columns must be readable from the default system");
 assert.equal(singleton.rows, 1, "grid rows must be readable from the default system");
 assert.equal(singleton.draggable, true, "dragging must be enabled by default");
@@ -42,7 +43,7 @@ assert.deepEqual(Object.keys(minSingleton).sort(), Object.keys(singleton).sort()
 assert.ok(minified.length < source.length, "the minified module must be smaller than the source");
 
 let adapterUnmounts = 0;
-const local = createBlocksSystem({ catalogUrl: "https://example.test/catalog.html", random: () => 0.99 });
+const local = createBlocksSystem({ catalogUrl: "https://example.test/catalog.html", layout: "fixed-grid", random: () => 0.99 });
 const adapterRegistration = local.registerAdapter("html", {
   mount({ host, settings }) {
     const node = document.createElement("p");
@@ -230,7 +231,7 @@ assert.throws(
 );
 
 const configured = createBlocksSystem({
-  snap: true,
+  layout: "fixed-grid",
   draggable: false,
   variant: "regular",
   colorArray: ["yellow", "blue", "yellow"],
@@ -240,7 +241,8 @@ const configured = createBlocksSystem({
     menu: { close: true, minimize: true }
   }
 });
-assert.equal(configured.snap, true, "snap must be configurable when a system is created");
+assert.equal(configured.layout, "fixed-grid", "one immutable layout mode must configure the system");
+assert.throws(function () { configured.layout = "flow-grid"; }, TypeError, "layout mode must remain immutable after creation");
 assert.equal(configured.draggable, false, "dragging must be configurable when a system is created");
 assert.deepEqual(configured.colorArray, ["yellow", "blue"], "creation-time color arrays must normalize and deduplicate CSS colors");
 assert.equal(configured.colorVariation, 0.2, "creation-time color variation must remain readable");
@@ -292,38 +294,56 @@ assert.throws(function () {
 }, /blockDefaults\.menu/, "blockDefaults.menu must be boolean or an options object");
 
 assert.throws(function () {
-  createBlocksSystem({ placement: "dense" });
-}, /placement/, "unknown placement modes must fail early");
+  createBlocksSystem({ layout: "dense" });
+}, /layout/, "unknown layout modes must fail early");
+assert.throws(function () {
+  createBlocksSystem({ snap: true });
+}, /layout.*fixed-grid/, "the retired snap option must fail with one exact replacement");
+assert.throws(function () {
+  createBlocksSystem({ placement: "flow" });
+}, /layout.*flow-grid/, "the retired placement option must fail with one exact replacement");
+assert.throws(function () {
+  createBlocksSystem({ layout: "fixed-grid", resizable: true });
+}, /resizable.*flow-grid/, "resize must reject every layout where it cannot work");
+const freeLayout = createBlocksSystem({ layout: "free", variant: "regular" });
+const freeLayoutField = new TestElement();
+freeLayout.attach(freeLayoutField);
+const freeBlock = freeLayout.add("free", { id: "free-block" });
+assert.throws(function () { freeLayout.setGrid(2, 2); }, /layout/, "free layout must reject unused grid dimensions");
+assert.throws(function () { freeLayout.compact(); }, /fixed-grid/, "free layout must reject unused compaction");
+assert.throws(function () { freeBlock.span(2, 1); }, /layout/, "free blocks must reject unused grid spans");
+assert.throws(function () { freeBlock.place(1, 1); }, /fixed-grid/, "free blocks must reject fixed addresses");
 
 const flowing = createBlocksSystem({
-  snap: true,
-  placement: "flow",
+  layout: "flow-grid",
   resizable: true,
   variant: "regular"
 });
 const flowingField = new TestElement();
 flowing.attach(flowingField).setGrid(4, 6);
-assert.equal(flowing.placement, "flow", "flow placement must be readable");
+assert.equal(flowing.layout, "flow-grid", "flow-grid layout must be readable");
 assert.equal(flowing.resizable, true, "interactive resizing must be configurable");
-assert.equal(flowingField.getAttribute("data-placement"), "flow", "flow placement must be exposed to CSS");
+assert.equal(flowingField.getAttribute("data-layout"), "flow-grid", "one layout mode must be exposed to CSS");
 assert.equal(flowingField.getAttribute("data-resizable"), "true", "resize state must be exposed to CSS");
 const flowBravo = flowing.add("bravo", { id: "flow-bravo", title: "Bravo" }).span(2, 2);
+assert.throws(function () {
+  flowing.add("local resize", { id: "local-resize", resizable: false });
+}, /options\.resizable/, "per-block resize must not remain as a second switch");
 const flowAlpha = flowing.add("alpha", { id: "flow-alpha", title: "Alpha" }).span(1, 3);
 flowAlpha.minimized = true;
-assert.equal(flowBravo.element.getAttribute("data-block-flow"), "true", "an unplaced block must expose CSS auto-flow state");
-assert.equal(flowBravo.resizable, true, "blocks must inherit active resize behavior");
+assert.equal("flow" in flowBravo, false, "a flow-grid block must not expose a redundant flow switch");
+assert.equal("resizable" in flowBravo, false, "resizing must not have overlapping system and block switches");
 assert.equal(flowBravo.element.getAttribute("data-block-resizable"), "true", "effective resize state must be exposed to CSS");
 assert.equal(flowAlpha.element.getAttribute("data-block-resizable"), "false", "a minimized titlebar must not retain overlapping resize controls");
 assert.equal(flowBravo.element.style.getPropertyValue("--block-column"), "", "flow-grid blocks must remain addressless");
 assert.equal(flowBravo.element.style.getPropertyValue("--block-row"), "", "flow-grid blocks must remain addressless");
-flowBravo.place(1, 1);
-assert.equal(flowBravo.element.getAttribute("data-block-resizable"), "false", "an explicitly placed block must not expose flow resize controls");
-flowBravo.flow();
-assert.equal(flowBravo.element.getAttribute("data-block-resizable"), "true", "flow() must restore resize controls for an addressless block");
+assert.throws(function () { flowBravo.place(1, 1); }, /fixed-grid/, "flow-grid must reject fixed block addresses");
+assert.throws(function () { flowing.compact(); }, /fixed-grid/, "flow-grid must reject fixed-grid compaction");
 
 const savedFlowLayout = flowing.exportLayout();
 assert.deepEqual(savedFlowLayout, {
   version: 1,
+  layout: "flow-grid",
   blocks: [
     { id: "flow-bravo", span: [2, 2], place: null, minimized: false },
     { id: "flow-alpha", span: [1, 3], place: null, minimized: true }
@@ -342,9 +362,11 @@ assert.deepEqual(
 assert.equal(flowBravo.element.style.getPropertyValue("--block-span-columns"), "2", "layout restore must recover column spans");
 assert.equal(flowBravo.element.style.getPropertyValue("--block-span-rows"), "2", "layout restore must recover row spans");
 assert.equal(flowAlpha.minimized, true, "layout restore must recover minimized state");
-assert.throws(function () { flowing.restoreLayout({ version: 2, blocks: [] }); }, /version/, "unknown layout versions must fail early");
+assert.throws(function () { flowing.restoreLayout({ version: 2, layout: "flow-grid", blocks: [] }); }, /version/, "unknown layout versions must fail early");
+assert.throws(function () { flowing.restoreLayout({ version: 1, blocks: [] }); }, /layoutmodus/, "a snapshot must name its layout mode explicitly");
+assert.throws(function () { flowing.restoreLayout({ version: 1, layout: "fixed-grid", blocks: [] }); }, /layout/, "a snapshot from another layout mode must fail early");
 
-const compacting = createBlocksSystem({ variant: "regular" });
+const compacting = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
 const compactingField = new TestElement();
 const compactChanges = [];
 compactingField.addEventListener("blocks:change", function (event) {
@@ -367,7 +389,7 @@ assert.deepEqual(compactChanges.pop(), {
 compacting.compact();
 assert.equal(compactChanges.length, 0, "a no-op compact must not publish a change event");
 
-const closingCollapse = createBlocksSystem({ snap: true, variant: "regular" });
+const closingCollapse = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
 const closingCollapseField = new TestElement();
 closingCollapse.attach(closingCollapseField).setGrid(1, 6);
 closingCollapse.add("top", { id: "close-collapse-top" }).place(1, 1);
@@ -376,11 +398,11 @@ const closingLower = closingCollapse.add("lower", { id: "close-collapse-lower" }
 closingGap.remove();
 assert.equal(
   closingLower.element.style.getPropertyValue("--block-row"),
-  "2",
-  "closing a placed block must pull a later block into its released grid cell"
+  "4",
+  "removing a fixed-grid block must preserve every remaining address"
 );
 
-const closingRowCollapse = createBlocksSystem({ snap: true, variant: "regular" });
+const closingRowCollapse = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
 const closingRowCollapseField = new TestElement();
 const closingRowChanges = [];
 closingRowCollapseField.addEventListener("blocks:change", function (event) {
@@ -393,12 +415,12 @@ const closingWideLower = closingRowCollapse.add("lower", { id: "close-row-lower"
 closingPartialRow.remove();
 assert.equal(
   closingWideLower.element.style.getPropertyValue("--block-row"),
-  "2",
-  "closing the only block on a row must let a wider later block jump into that now-empty row"
+  "4",
+  "removing the only block on a row must still preserve later fixed addresses"
 );
-assert.deepEqual(closingRowChanges[0].ids, ["close-row-gap", "close-row-lower"], "row collapse must report the wider block that moved upward");
+assert.deepEqual(closingRowChanges[0].ids, ["close-row-gap"], "remove must report removal without implicit compaction");
 
-const intentionalSpace = createBlocksSystem({ snap: true, variant: "regular" });
+const intentionalSpace = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
 const intentionalSpaceField = new TestElement();
 intentionalSpace.attach(intentionalSpaceField).setGrid(1, 6);
 const intentionalLower = intentionalSpace.add("lower", { id: "intentional-lower" }).place(1, 4);
@@ -441,7 +463,7 @@ assert.throws(function () {
   createBlocksSystem({ colorVary: 0.2 });
 }, /colorVary heet nu colorVariation/, "the retired colorVary option must fail with its replacement name");
 const minConfigured = createMinBlocksSystem({
-  snap: true,
+  layout: "fixed-grid",
   draggable: false,
   variant: "regular",
   colorArray: ["yellow", "blue", "yellow"],
@@ -457,7 +479,7 @@ const minDefaultMenuBlock = minConfigured.add("<p>min default menu</p>", {
 });
 defaultMenuBlock.color = "cyan";
 minDefaultMenuBlock.color = "cyan";
-assert.equal(minConfigured.snap, configured.snap, "source and minified creation-time snap must match");
+assert.equal(minConfigured.layout, configured.layout, "source and minified creation-time layout must match");
 assert.equal(minConfigured.draggable, configured.draggable, "source and minified creation-time dragging must match");
 assert.deepEqual(minConfigured.colorArray, configured.colorArray, "source and minified creation-time color arrays must match");
 assert.equal(minConfigured.colorVariation, configured.colorVariation, "source and minified creation-time color variation must match");
@@ -475,7 +497,6 @@ const colorful = createBlocksSystem({
 });
 const colorfulField = new TestElement();
 colorful.attach(colorfulField);
-colorful.setGrid(5, 1);
 const yellowRandom = colorful.add("<p>yellow</p>", { id: "yellow-random" });
 const blueRandom = colorful.add("<p>blue</p>", { id: "blue-random" });
 const regularRandom = colorful.add("<p>regular</p>", { id: "regular-random" });
@@ -596,10 +617,7 @@ assert.equal(object.element.style.getPropertyValue("--block-span-rows"), "1", "s
 assert.equal(object.place(2, 2), object, "place must remain chainable");
 assert.equal(object.element.style.getPropertyValue("--block-column"), "2", "place x must set a one-based column");
 assert.equal(object.element.style.getPropertyValue("--block-row"), "2", "place y must set a one-based row");
-assert.equal(object.flow(), object, "flow must remain chainable");
-assert.equal(object.element.style.getPropertyValue("--block-column"), "", "flow must clear the fixed column");
-assert.equal(object.element.style.getPropertyValue("--block-row"), "", "flow must clear the fixed row");
-object.place(2, 2);
+assert.equal("flow" in object, false, "fixed-grid blocks must not expose a second placement mode");
 object.menu("span");
 assert.equal(object.element.children[0].children[1].children.length, 2, "menu() must use the same minimize and close defaults as add()");
 assert.equal(object.element.children[0].children[0].tabIndex, 0, "a draggable title handle must be keyboard-focusable");

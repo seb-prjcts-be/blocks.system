@@ -28,7 +28,7 @@ for (const [label, html, current] of [
   assert.match(html, /<meta name="viewport"/, label + " needs a viewport declaration");
   assert.match(html, /<nav id="navbar"/, label + " needs the shared navigation");
   assert.match(html, new RegExp('aria-current="page">\\s*' + current), label + " needs its current navigation state");
-  assert.match(html, /style\.css\?v=0\.2\.47/, label + " must load the current docs stylesheet");
+  assert.match(html, /style\.css\?v=0\.2\.20260817/, label + " must load the current docs stylesheet");
 }
 
 assert.match(homeHtml, /id="home-board"/, "home keeps its live proof field");
@@ -97,6 +97,7 @@ assert.doesNotMatch(css, /manual-layout-sandbox|manual-drag-status/, "retired le
 assert.doesNotMatch(css, /manual-next-links/, "the Swiss closing block must not retain examples-link styling");
 assert.doesNotMatch(css, /manual-next-block \.manual-result/, "the Swiss closing block must not inherit the old result-card typography");
 assert.doesNotMatch(css, /\.manual-matrix|\.reference-map|\.reference-axis|\.reference-focus/, "matrix styling must not remain active");
+assert.doesNotMatch(css, /\.(?:docs-chapters|reference-introduction|manual-full|manual-content-code|manual-field-preview|manual-compact-preview|manual-demo-block|manual-explanation-block|reference-cell)(?![\w-])/, "docs CSS must not retain selectors without a live docs element");
 assert.doesNotMatch(libraryCss, /\.(?:manual|reference)-/, "the library stylesheet must not absorb docs composition");
 await access(resolve(root, "docs", "img", "skatepark.jpg"));
 
