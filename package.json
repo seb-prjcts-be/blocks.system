@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "build:min": "terser blocks.system.mjs --module --compress --mangle --output blocks.system.min.mjs",
-    "test": "node tests/contract.mjs && node tests/site.mjs && npm run test:types && npm run test:docs-contract && node tests/browser-harness.mjs && node tests/browser-layout.mjs && node tests/docs-layout.mjs",
+    "test": "node tests/contract.mjs && node tests/site.mjs && npm run test:types && npm run test:docs-contract && node tests/browser-harness.mjs && node tests/menu-link.mjs && node tests/browser-layout.mjs && node tests/docs-layout.mjs",
     "test:types": "tsc --project tests/types/tsconfig.node16.json && tsc --project tests/types/tsconfig.bundler.json",
     "test:docs-contract": "node tests/docs-api-contract.mjs",
     "test:presentation": "node tests/site-presentation.mjs",

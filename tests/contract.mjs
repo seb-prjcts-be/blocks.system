@@ -33,7 +33,10 @@ assert.deepEqual(singleton.labels, {
   resize: "resize",
   restore: "restore",
   minimize: "minimize",
-  close: "close"
+  close: "close",
+  link: "copy link",
+  copied: "link copied",
+  copyFailed: "copy failed"
 }, "the environment-neutral singleton must expose English UI labels");
 
 const minUrl = pathToFileURL(minPath);
@@ -276,6 +279,12 @@ const overriddenMenuBlock = configured.add("<p>overridden menu</p>", {
   menu: { minimize: false }
 });
 assert.equal(overriddenMenuBlock.element.children[0].children[1].children.length, 1, "a local menu override must inherit close while disabling minimize");
+const linkedMenuBlock = configured.add("<p>linked menu</p>", {
+  id: "linked-menu",
+  title: "linked menu",
+  menu: { minimize: false, close: false, link: true }
+});
+assert.equal(linkedMenuBlock.element.children[0].children[1].children[0].className, "blocks-system-link", "a menu link must remain opt-in");
 const menuFreeBlock = configured.add("<p>no menu</p>", {
   id: "no-menu",
   menu: false
@@ -705,10 +714,14 @@ const dutch = createBlocksSystem({
     move: "bewegen",
     restore: "openen",
     minimize: "inklappen",
-    close: "verwijderen"
+    close: "verwijderen",
+    link: "link delen",
+    copied: "link klaar",
+    copyFailed: "link mislukt"
   }
 });
 assert.equal(dutch.labels.close, "verwijderen", "consumers must be able to configure accessible labels");
+assert.equal(dutch.labels.link, "link delen", "consumers must be able to configure link feedback labels");
 assert.throws(function () { createBlocksSystem({ labels: { close: "" } }); }, /labels\.close mag niet leeg/, "empty accessible labels must fail early");
 assert.match(source, /mode:\s*detail\.mode[\s\S]*fromIndex:[\s\S]*toIndex:[\s\S]*direction:/, "reorder events must expose one stable detail shape");
 

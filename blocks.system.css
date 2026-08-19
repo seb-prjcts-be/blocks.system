@@ -175,6 +175,7 @@
     margin-left: auto;
 }
 
+.blocks-system-link,
 .blocks-system-minimize,
 .blocks-system-close {
     align-self: center;
@@ -192,6 +193,7 @@
     cursor: pointer;
 }
 
+.blocks-system-link:hover,
 .blocks-system-minimize:hover,
 .blocks-system-close:hover {
     opacity: 1;

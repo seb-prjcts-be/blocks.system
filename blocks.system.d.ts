@@ -12,6 +12,9 @@ export interface BlocksLabels {
   restore: string;
   minimize: string;
   close: string;
+  link: string;
+  copied: string;
+  copyFailed: string;
 }
 
 export type BlocksLayoutMode = "free" | "fixed-grid" | "flow-grid";
@@ -82,6 +85,8 @@ export interface AddBlockOptions {
 export interface BlockMenuOptions {
   close?: boolean;
   minimize?: boolean;
+  /** Show a button that copies address(id) for this block. Defaults to false. */
+  link?: boolean;
 }
 
 export interface BlockDefaults {

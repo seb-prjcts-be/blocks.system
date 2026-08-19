@@ -113,13 +113,13 @@ for (const [page, entry] of docsShellEntries) {
 }
 
 assert.deepEqual(DOCS_RELEASE, {
-  sourceRef: "v0.4.2",
-  releaseStatus: "released",
+  sourceRef: "main",
+  releaseStatus: "unreleased",
   packageVersion: "0.4.2",
   stableRef: "v0.4.2",
   nextRelease: null,
   stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.2"
-}, "docs release metadata must keep the v0.4.2 release surfaces in lockstep");
+}, "docs release metadata must distinguish current main from stable v0.4.2");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
@@ -160,6 +160,7 @@ assert.equal(packageData.private, true, "the package must remain private because
 assert.match(developmentGuide, /`private`: true[\s\S]*niet via npm publiceren/i, "development docs must explain the private npm boundary");
 assert.match(developmentGuide, /GitHub-release-tag[\s\S]*jsDelivr/i, "development docs must name the public tag-and-CDN distribution channel");
 assert.match(packageData.scripts.test, /node tests\/browser-harness\.mjs/, "the core gate must prove that browser runtime and console errors are observable");
+assert.match(packageData.scripts.test, /node tests\/menu-link\.mjs/, "the core gate must keep the block link action under real-browser coverage");
 assert.equal(packageData.scripts["test:presentation"], "node tests/site-presentation.mjs", "presentation locks must remain available outside the core gate");
 for (const declaration of ["BlocksSystem", "BlockController", "BlocksLayout", "BlocksReorderDetail", "BlocksResizeDetail", "BlocksChangeDetail", "createBlocksSystem"]) {
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);

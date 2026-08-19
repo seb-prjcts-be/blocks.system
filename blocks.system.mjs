@@ -12,21 +12,27 @@ const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const LAYOUT_VERSION = 1;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
-const DEFAULT_MENU_OPTIONS = Object.freeze({ close: true, minimize: true });
+const DEFAULT_MENU_OPTIONS = Object.freeze({ close: true, minimize: true, link: false });
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
         move: "move with the arrow keys",
         resize: "resize",
         restore: "restore",
         minimize: "minimize",
-        close: "close"
+        close: "close",
+        link: "copy link",
+        copied: "link copied",
+        copyFailed: "copy failed"
     }),
     nl: Object.freeze({
         move: "verplaatsen met de pijltjestoetsen",
         resize: "formaat wijzigen",
         restore: "herstellen",
         minimize: "minimaliseren",
-        close: "sluiten"
+        close: "sluiten",
+        link: "link kopiëren",
+        copied: "link gekopieerd",
+        copyFailed: "kopiëren mislukt"
     })
 });
 
@@ -36,11 +42,12 @@ function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.b
     const fallback = inherited || DEFAULT_MENU_OPTIONS;
     if (value === true) return fallback;
     if (!value || typeof value !== "object") {
-        throw new TypeError(`${path} verwacht true, false of een object met close en minimize.`);
+        throw new TypeError(`${path} verwacht true, false of een object met close, minimize en link.`);
     }
     return Object.freeze({
         close: value.close === undefined ? fallback.close : Boolean(value.close),
-        minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize)
+        minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize),
+        link: value.link === undefined ? fallback.link : Boolean(value.link)
     });
 }
 
@@ -1324,8 +1331,10 @@ export function createBlocksSystem(options = {}) {
         let menuNode = null;
         let titleNode = null;
         let actionsNode = null;
+        let linkNode = null;
         let minimizeNode = null;
         let closeNode = null;
+        let linkFeedbackTimer = null;
         const resizeHandles = new Map();
         let resizeState = null;
         let resizeFallbackTarget = null;
@@ -1404,7 +1413,43 @@ export function createBlocksSystem(options = {}) {
                 titleNode.removeAttribute("aria-label");
                 titleNode.removeAttribute("aria-keyshortcuts");
             }
+            if (linkNode && linkNode.getAttribute("data-state") === null) {
+                linkNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.link}`);
+            }
             if (closeNode) closeNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.close}`);
+        }
+
+        function resetLinkFeedback() {
+            if (linkFeedbackTimer !== null) {
+                clearTimeout(linkFeedbackTimer);
+                linkFeedbackTimer = null;
+            }
+            if (!linkNode) return;
+            linkNode.textContent = "⧉";
+            linkNode.removeAttribute("data-state");
+            linkNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${labels.link}`);
+        }
+
+        function showLinkFeedback(state) {
+            if (!linkNode) return;
+            if (linkFeedbackTimer !== null) clearTimeout(linkFeedbackTimer);
+            const copied = state === "copied";
+            linkNode.textContent = copied ? "✓" : "!";
+            linkNode.setAttribute("data-state", state);
+            linkNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${copied ? labels.copied : labels.copyFailed}`);
+            linkFeedbackTimer = setTimeout(resetLinkFeedback, 1600);
+        }
+
+        async function copyBlockAddress() {
+            try {
+                if (!globalThis.navigator?.clipboard?.writeText) {
+                    throw new Error("Clipboard API niet beschikbaar.");
+                }
+                await globalThis.navigator.clipboard.writeText(address(id));
+                showLinkFeedback("copied");
+            } catch {
+                showLinkFeedback("failed");
+            }
         }
 
         function removeResizeFallback() {
@@ -1581,6 +1626,7 @@ export function createBlocksSystem(options = {}) {
             assertActive();
             drag.stop();
             stopResize();
+            if (linkFeedbackTimer !== null) clearTimeout(linkFeedbackTimer);
             objects.delete(id);
             objectLayouts.delete(id);
             objectLayoutSetters.delete(id);
@@ -1644,9 +1690,10 @@ export function createBlocksSystem(options = {}) {
             const menuOptions = close && typeof close === "object"
                 ? {
                     close: close.close === undefined ? DEFAULT_MENU_OPTIONS.close : Boolean(close.close),
-                    minimize: close.minimize === undefined ? DEFAULT_MENU_OPTIONS.minimize : Boolean(close.minimize)
+                    minimize: close.minimize === undefined ? DEFAULT_MENU_OPTIONS.minimize : Boolean(close.minimize),
+                    link: close.link === undefined ? DEFAULT_MENU_OPTIONS.link : Boolean(close.link)
                 }
-                : { close: Boolean(close), minimize: true };
+                : { close: Boolean(close), minimize: true, link: false };
             if (!menuNode) {
                 menuNode = document.createElement("header");
                 menuNode.className = "blocks-system-menu";
@@ -1659,6 +1706,18 @@ export function createBlocksSystem(options = {}) {
                 shell.insertBefore(menuNode, contentNode);
             }
             titleNode.textContent = String(name || "");
+            if (menuOptions.link && !linkNode) {
+                linkNode = document.createElement("button");
+                linkNode.type = "button";
+                linkNode.className = "blocks-system-link";
+                linkNode.textContent = "⧉";
+                linkNode.addEventListener("click", copyBlockAddress);
+                actionsNode.appendChild(linkNode);
+            } else if (!menuOptions.link && linkNode) {
+                resetLinkFeedback();
+                linkNode.remove();
+                linkNode = null;
+            }
             if (menuOptions.minimize && !minimizeNode) {
                 minimizeNode = document.createElement("button");
                 minimizeNode.type = "button";

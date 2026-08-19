@@ -188,13 +188,15 @@ blocks.register({
 
 Accessible menu labels follow the document language (`nl` or English) and can
 be overridden with `createBlocksSystem({ labels: { move, resize, minimize, restore,
-close } })`. A locked layout removes menu headers from the keyboard tab order;
-their minimize and close buttons remain available.
+close, link, copied, copyFailed } })`. A locked layout removes menu headers from
+the keyboard tab order; their action buttons remain available.
 
 Every new block starts with minimize and close controls. `title` is optional:
 when omitted, the titlebar has no visible text while the block `id` remains the
 accessible fallback name for its controls. Use `menu: false` to remove the whole
 titlebar, or `blockDefaults.menu` and a local `menu` object for exceptions.
+Set `menu.link: true` to add an opt-in button that copies the registered
+`address(id)` deep link and briefly confirms success or failure in the button.
 
 Dragging by a block's menu bar is enabled by default. During pointer dragging,
 a magnetic preview marks the block's landing position while the other blocks

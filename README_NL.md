@@ -195,14 +195,16 @@ blocks.register({
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
 overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, restore,
-close } })`. Bij een vergrendelde layout verdwijnen menuheaders uit de
-toetsenbordvolgorde; hun minimaliseer- en sluitknoppen blijven bereikbaar.
+close, link, copied, copyFailed } })`. Bij een vergrendelde layout verdwijnen
+menuheaders uit de toetsenbordvolgorde; hun actieknoppen blijven bereikbaar.
 
 Ieder nieuw block krijgt standaard minimaliseren en sluiten. `title` is
 optioneel: zonder titel heeft de titelbalk geen zichtbare tekst, terwijl het
 block-`id` de toegankelijke fallbacknaam voor de knoppen blijft. Gebruik
 `menu: false` om de volledige titelbalk weg te laten, of `blockDefaults.menu` en
 een lokaal `menu`-object voor uitzonderingen.
+Met `menu.link: true` verschijnt optioneel een knop die de geregistreerde
+`address(id)`-deeplink kopieert en succes of mislukking kort in de knop meldt.
 
 Verslepen via de menubalk van een block staat standaard aan. Tijdens het slepen
 toont een magnetische preview waar het block zal landen, terwijl de andere
