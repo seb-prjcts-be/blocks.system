@@ -796,16 +796,17 @@ async function measureManual(width, height, dpr = 1) {
         inverse: [],
         combined: measureMiniGrid(Array.from({ length: 12 }, function (_, index) { return "manual-random-mix-" + (index + 1); }))
       };
-      const menuExamples = ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"].map(function (id) {
+      const menuExamples = ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-link"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         return {
           id,
           actions: Array.from(block.querySelectorAll(":scope > .blocks-system-menu button"), function (button) {
+            if (button.classList.contains("blocks-system-link")) return "link";
             return button.classList.contains("blocks-system-minimize") ? "minimize" : "close";
           })
         };
       });
-      const menuExampleGeometry = ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"].map(function (id) {
+      const menuExampleGeometry = ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-link"].map(function (id) {
         const block = board.querySelector('[data-block-object="' + id + '"]');
         return {
           id,
@@ -1267,10 +1268,22 @@ async function exerciseManualReset() {
       const title = draggable.querySelector(".blocks-system-title");
       title.focus();
       title.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown", bubbles: true }));
+      let copied = null;
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: async function (value) { copied = value; } }
+      });
+      const link = document.querySelector('[data-block-object="manual-menu-link"] .blocks-system-link');
+      link.click();
+      await new Promise(function (resolve) { setTimeout(resolve, 20); });
+      const expectedLink = new URL(location.href);
+      expectedLink.searchParams.set("block", "manual-menu-link");
       document.querySelector('[data-block-object="manual-menu-both"] .blocks-system-close').click();
       return {
         movedRow: draggable.style.getPropertyValue("--block-row"),
-        closed: !document.querySelector('[data-block-object="manual-menu-both"]')
+        closed: !document.querySelector('[data-block-object="manual-menu-both"]'),
+        copied: copied === expectedLink.href,
+        copyState: link.dataset.state
       };
     })()`,
     awaitPromise: true,
@@ -2056,7 +2069,7 @@ try {
       { id: "manual-menu-both", column: "1", row: "23", spanColumns: "3", spanRows: "1" },
       { id: "manual-menu-minimize", column: "4", row: "23", spanColumns: "3", spanRows: "1" },
       { id: "manual-menu-close", column: "1", row: "24", spanColumns: "3", spanRows: "1" },
-      { id: "manual-menu-none", column: "4", row: "24", spanColumns: "3", spanRows: "1" }
+      { id: "manual-menu-link", column: "4", row: "24", spanColumns: "3", spanRows: "1" }
     ], "manual 03 gebruikt niet vier compacte 3×1-vensters in twee rijen");
     assert.deepEqual(desktopManual.layoutLesson, {
       column: "1", row: "8", spanColumns: "2", spanRows: "1"
@@ -2068,7 +2081,9 @@ try {
     assert.match(desktopManual.reader.text, /anything the browser can render/i, "de doorlopende leesroute mist de kernuitleg");
     assert.equal(desktopManual.protectedBlocks.length, 64, "manual test niet elk libraryblok op zijn standaardinteractie");
     assert.deepEqual(desktopManual.protectedBlocks.filter(function (block) { return block.draggable === "false"; }).map(function (block) { return block.id; }), ["manual-drag-locked"], "manual moet exact één niet-versleepbaar block hebben");
-    assert.ok(desktopManual.protectedBlocks.every(function (block) { return block.actions === 2; }), "elk manualblock moet standaard minimaliseren en sluiten tonen");
+    assert.ok(desktopManual.protectedBlocks.every(function (block) {
+      return block.actions === (block.id === "manual-menu-link" ? 3 : 2);
+    }), "alleen het copy-linkvoorbeeld mag naast minimaliseren en sluiten een derde actie tonen");
     assert.ok(desktopManual.protectedBlocks.filter(function (block) { return block.id !== "manual-drag-locked"; }).every(function (block) {
       return block.draggable === "true" && block.tabIndex === 0 && block.role === "button" && block.ariaLabel;
     }), `standaardinteractie ontbreekt op manualblocks: ${JSON.stringify(desktopManual.protectedBlocks)}`);
@@ -2341,7 +2356,7 @@ try {
       "manual-content-html-code", "manual-content-html",
       "manual-content-object-code", "manual-content-object",
       "manual-content-factory-code", "manual-content-factory",
-      "manual-menu", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none", "manual-menu-title",
+      "manual-menu", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-link", "manual-menu-title",
       "manual-layout", "manual-layout-wide", "manual-layout-small",
       "manual-compact",
       "manual-appearance", "manual-appearance-regular", "manual-appearance-inverse",
@@ -2351,7 +2366,7 @@ try {
       "manual-random-mix-1", "manual-random-mix-2", "manual-random-mix-3", "manual-random-mix-4", "manual-next"
     ], `manual bewaart zijn beginnersroute niet op ${width}px @${dpr}x`);
     assert.deepEqual(manual.untitledIds, [
-      "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none", "manual-menu-title",
+      "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-link", "manual-menu-title",
       "manual-layout-small",
       "manual-appearance-regular", "manual-appearance-inverse",
       "manual-color-cyan", "manual-color-magenta", "manual-color-yellow"
@@ -2430,7 +2445,7 @@ try {
       { id: "manual-menu-both", actions: ["minimize", "close"] },
       { id: "manual-menu-minimize", actions: ["minimize", "close"] },
       { id: "manual-menu-close", actions: ["minimize", "close"] },
-      { id: "manual-menu-none", actions: ["minimize", "close"] }
+      { id: "manual-menu-link", actions: ["link", "minimize", "close"] }
     ], `manual toont de standaard titelbalkacties niet op elk voorbeeld op ${width}px`);
     assert.ok(manual.randomExamples.every(function (example) { return /^\d{2}$/.test(example.marker) && example.childCount === 1; }), `manual gebruikt nog generieke kaartinhoud in de kanscellen op ${width}px`);
     assert.equal(manual.contentExamples.trusted.tag, "ARTICLE", `manual toont trusted HTML niet als echte inhoud op ${width}px`);
@@ -2464,6 +2479,8 @@ try {
   assert.deepEqual(await exerciseManualReset(), {
     movedRow: "2",
     closed: true,
+    copied: true,
+    copyState: "copied",
     restored: true,
     resetRow: "1"
   }, "reset manual herstelt gesloten demo's en verplaatste sandboxblokken niet");

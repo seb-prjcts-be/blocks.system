@@ -76,7 +76,7 @@ const homeHtml = pageHtml["index.html"];
 const manualHtml = pageHtml["docs/index.html"];
 const apiHtml = pageHtml["docs/api.html"];
 for (const page of ["index.html", "docs/index.html", "docs/api.html", "docs/reference-fallback.html"]) {
-  assert.match(pageHtml[page], /blocks\.system\.css\?v=0\.1\.20260817/, `${page} must load the current block appearance stylesheet`);
+  assert.match(pageHtml[page], /blocks\.system\.css\?v=main-20260819-01/, `${page} must load the current block appearance stylesheet`);
 }
 const developmentGuide = await read("docs/development.md");
 const releaseNotes = await read("docs/releases/v0.4.0.md");
@@ -320,21 +320,25 @@ assert.deepEqual(docsContent.manual["manual-menu"].layout, { place: [1, 21], spa
 assert.deepEqual(docsContent.manual["manual-menu-code"].layout, { place: [3, 21], span: [4, 2] }, "manual 03 code must be 4×2");
 assert.equal(docsContent.manual["manual-menu"].title, "03 / titlebar controls", "manual 03 must use the human-facing titlebar term");
 assert.match(docsContent.manual["manual-menu"].intro, /top-right corner[\s\S]*API[\s\S]*menu/, "manual 03 must locate the buttons and bridge to the real menu API term");
-for (const id of ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"]) {
+for (const id of ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-link"]) {
   assert.equal("eyebrow" in docsContent.manual[id], false, `${id} must not repeat the titlebar label inside its compact result`);
   assert.equal("statement" in docsContent.manual[id], false, `${id} must not repeat its title inside its compact result`);
   assert.match(docsContent.manual[id].body, /^(?:Use|Reset)/, `${id} must explain one visible titlebar action in plain language`);
 }
-assert.match(siteDemos["docs/manual.mjs"], /\["manual-menu-both", 1, 23[\s\S]*\["manual-menu-minimize", 4, 23[\s\S]*\["manual-menu-close", 1, 24[\s\S]*\["manual-menu-none", 4, 24[\s\S]*span: \[3, 1\]/, "manual 03 must compare four compact 3×1 titlebar examples in two rows");
+assert.match(siteDemos["docs/manual.mjs"], /\["manual-menu-both", 1, 23[\s\S]*\["manual-menu-minimize", 4, 23[\s\S]*\["manual-menu-close", 1, 24[\s\S]*span: \[3, 1\]/, "manual 03 must keep three compact default-action examples");
+assert.match(siteDemos["docs/manual.mjs"], /id: "manual-menu-link"[\s\S]*span: \[3, 1\][\s\S]*place: \[4, 24\][\s\S]*menu: \{ link: true \}/, "manual 03 must place the copy-link example in the fourth 3×1 cell");
+assert.match(docsContent.manual["manual-menu"].intro, /copy link[\s\S]*opt-in/i, "manual 03 must explain that copy link is opt-in");
+assert.match(siteDemos["docs/manual.mjs"], /manual-menu-link[\s\S]*menu:\s*\{\s*link:\s*true[\s\S]*blocks\.register\([\s\S]*describe/, "manual 03 must render and register a working copy-link example");
 assert.deepEqual(docsContent.manual["manual-menu-code"].code, [
   "const block = blocks.add(content, {",
-  '  title: "hello"',
+  '  title: "hello",',
+  "  menu: { link: true }",
   "});",
   "",
   "block.minimized = true;",
   "block.minimized = false;",
   "block.remove();"
-], "manual 03 must show the default controls without redundant menu settings");
+], "manual 03 must show default controls and the opt-in copy-link setting");
 assert.deepEqual(docsContent.manual["manual-layout"].layout, { place: [1, 8], span: [2, 1] }, "size and position must be one row high under setup");
 assert.equal(docsContent.manual["manual-layout"].title, "block size and position", "the setup sublesson must name the block that span and place control");
 assert.equal("manual-layout-code" in docsContent.manual, false, "size and position must not duplicate setup code in a separate block");

@@ -248,7 +248,7 @@
     },
     "manual-menu": {
       "title": "03 / titlebar controls",
-      "intro": "Every block starts with minimize and close in its top-right corner. The API calls the titlebar configuration menu. A controller can also minimize, restore or remove its own block. Close removes an example; reset restores the full manual.",
+      "intro": "Every block starts with minimize and close in its top-right corner. Copy link is opt-in and copies the registered address for that block. The API calls the titlebar configuration menu. A controller can also minimize, restore or remove its own block. Close removes an example; reset restores the full manual.",
       "layout": {
         "place": [1, 21],
         "span": [2, 2]
@@ -258,7 +258,8 @@
       "title": "menu code",
       "code": [
         "const block = blocks.add(content, {",
-        "  title: \"hello\"",
+        "  title: \"hello\",",
+        "  menu: { link: true }",
         "});",
         "",
         "block.minimized = true;",
@@ -282,9 +283,9 @@
       "title": "close",
       "body": "Use × to remove one block."
     },
-    "manual-menu-none": {
-      "title": "reset",
-      "body": "Use reset above to restore the lesson."
+    "manual-menu-link": {
+      "title": "copy link",
+      "body": "Use ⧉ to copy this block's registered address."
     },
     "manual-layout": {
       "title": "block size and position",

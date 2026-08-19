@@ -1,5 +1,5 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=0.1.20260817";
-import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.20260817.3";
+import { createBlocksSystem } from "../blocks.system.mjs?v=main-20260819-01";
+import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.20260819.1";
 import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.6";
 import { mountVanillaWavesDemo } from "./vanilla-waves-demo.mjs?v=0.1.3";
 
@@ -18,7 +18,7 @@ const manualIds = [
   "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory",
   "manual-content-waves-intro", "manual-content-waves-code", "manual-content-waves",
   "manual-menu", "manual-menu-code", "manual-menu-both", "manual-menu-minimize",
-  "manual-menu-close", "manual-menu-none",
+  "manual-menu-close", "manual-menu-link",
   "manual-layout",
   "manual-drag", "manual-drag-code",
   "manual-drag-fixed-1", "manual-drag-fixed-2", "manual-drag-fixed-3", "manual-drag-fixed-4", "manual-drag-fixed-5",
@@ -207,16 +207,18 @@ function titlebarTitle(title) {
   return typeof title === "string" && /\b(?:code|result)\b/i.test(title) ? "" : title;
 }
 
-function add({ id, title, blockContent, span, place, variant = "regular", useSystemVariant = false, draggable, anchor = "", classes = [] }) {
+function add({ id, title, blockContent, span, place, variant = "regular", useSystemVariant = false, draggable, menu, anchor = "", classes = [] }) {
   if (anchor && blockContent instanceof Node) blockContent.prepend(text("h2", title, "manual-chapter-heading"));
   const options = {
     id,
     title: titlebarTitle(title),
     variant,
-    draggable
+    draggable,
+    menu
   };
   if (useSystemVariant) delete options.variant;
   if (options.draggable === undefined) delete options.draggable;
+  if (options.menu === undefined) delete options.menu;
   const block = blocks.add(blockContent, options);
   block.span(...span);
   block.place(...place);
@@ -259,7 +261,7 @@ function createReaderArticle() {
     ["manual-eli10", []],
     ["manual-start-a", ["manual-start-div", "manual-start-blocks", "manual-start-grid", "manual-start-b", "manual-layout"]],
     ["manual-finish", ["manual-content-html-intro", "manual-content-html-code", "manual-content-html", "manual-content-object-intro", "manual-content-object-code", "manual-content-object", "manual-content-factory-intro", "manual-content-factory-code", "manual-content-factory", "manual-content-waves-intro", "manual-content-waves-code", "manual-content-waves"]],
-    ["manual-menu", ["manual-menu-code", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-none"]],
+    ["manual-menu", ["manual-menu-code", "manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-link"]],
     ["manual-drag", ["manual-drag-code", "manual-drag-movable", "manual-drag-locked"]],
     ["manual-base-colors", ["manual-base-colors-code"]],
     ["manual-appearance", ["manual-appearance-code", "manual-appearance-regular", "manual-appearance-inverse"]],
@@ -357,9 +359,18 @@ add({ id: "manual-menu-code", title: content["manual-menu-code"].title, blockCon
 for (const [id, column, row] of [
   ["manual-menu-both", 1, 23],
   ["manual-menu-minimize", 4, 23],
-  ["manual-menu-close", 1, 24],
-  ["manual-menu-none", 4, 24]
+  ["manual-menu-close", 1, 24]
 ]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 1], place: [column, row], classes: ["manual-half"] });
+const menuLinkBlock = add({
+  id: "manual-menu-link",
+  title: content["manual-menu-link"].title,
+  blockContent: specimen(content["manual-menu-link"]),
+  span: [3, 1],
+  place: [4, 24],
+  menu: { link: true },
+  classes: ["manual-half"]
+});
+blocks.register(menuLinkBlock.describe());
 add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: introCard(content["manual-layout"]), span: content["manual-layout"].layout.span, place: content["manual-layout"].layout.place });
 add({ id: "manual-drag", title: content["manual-drag"].title, blockContent: introCard(content["manual-drag"]), span: content["manual-drag"].layout.span, place: content["manual-drag"].layout.place, anchor: "dragging", classes: ["manual-chapter-start"] });
 add({ id: "manual-drag-code", title: content["manual-drag-code"].title, blockContent: codeOnlyCard(content["manual-drag-code"]), span: content["manual-drag-code"].layout.span, place: content["manual-drag-code"].layout.place });
