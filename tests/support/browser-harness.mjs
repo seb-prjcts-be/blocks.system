@@ -76,6 +76,7 @@ class Protocol {
     this.id = 0;
     this.pending = new Map();
     this.events = new Map();
+    this.listeners = new Map();
     socket.addEventListener("message", (event) => this.receive(event));
   }
 
@@ -88,6 +89,7 @@ class Protocol {
       else pending.resolve(message.result);
       return;
     }
+    for (const listener of this.listeners.get(message.method) || []) listener(message.params);
     const waiters = this.events.get(message.method);
     if (waiters?.length) waiters.shift()(message.params);
   }
@@ -107,6 +109,18 @@ class Protocol {
       this.events.set(method, waiters);
     });
   }
+
+  on(method, listener) {
+    const listeners = this.listeners.get(method) || [];
+    listeners.push(listener);
+    this.listeners.set(method, listeners);
+  }
+}
+
+function remoteValue(value) {
+  if (value?.description) return value.description;
+  if (Object.hasOwn(value || {}, "value")) return String(value.value);
+  return value?.type || "onbekende waarde";
 }
 
 async function listen(server) {
@@ -171,9 +185,25 @@ export async function startBrowserHarness(root, viewport = {}) {
     });
 
     protocol = new Protocol(socket);
+    const pageErrors = [];
+    const recordPageError = (message) => {
+      const normalized = String(message || "onbekende paginafout").trim();
+      if (!pageErrors.includes(normalized)) pageErrors.push(normalized);
+    };
+    protocol.on("Runtime.exceptionThrown", ({ exceptionDetails }) => {
+      recordPageError(exceptionDetails?.exception?.description || exceptionDetails?.text);
+    });
+    protocol.on("Runtime.consoleAPICalled", ({ type, args }) => {
+      if (type === "error" || type === "assert") recordPageError(args.map(remoteValue).join(" "));
+    });
+    protocol.on("Log.entryAdded", ({ entry }) => {
+      if (entry?.level === "error" && entry.source !== "network") recordPageError(entry.text);
+    });
     await protocol.send("Page.enable");
     await protocol.send("DOM.enable");
     await protocol.send("CSS.enable");
+    await protocol.send("Runtime.enable");
+    await protocol.send("Log.enable");
     await protocol.send("Emulation.setDeviceMetricsOverride", {
       width: viewport.width || 1280,
       height: viewport.height || 1000,
@@ -183,7 +213,11 @@ export async function startBrowserHarness(root, viewport = {}) {
     const loaded = protocol.once("Page.loadEventFired");
     await protocol.send("Page.navigate", { url: pageUrl });
     await loaded;
-    return Object.freeze({ close, pageUrl, protocol });
+    const assertNoPageErrors = () => {
+      if (pageErrors.length) throw new Error(`Browserpagina meldde fouten:\n- ${pageErrors.join("\n- ")}`);
+    };
+    const clearPageErrors = () => { pageErrors.length = 0; };
+    return Object.freeze({ assertNoPageErrors, clearPageErrors, close, pageUrl, protocol });
   } catch (error) {
     await close();
     throw error;

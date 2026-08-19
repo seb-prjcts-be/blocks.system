@@ -159,6 +159,7 @@ assert.ok(packageData.files.includes("blocks.system.d.ts"), "package files must 
 assert.equal(packageData.private, true, "the package must remain private because npm is not its distribution channel");
 assert.match(developmentGuide, /`private`: true[\s\S]*niet via npm publiceren/i, "development docs must explain the private npm boundary");
 assert.match(developmentGuide, /GitHub-release-tag[\s\S]*jsDelivr/i, "development docs must name the public tag-and-CDN distribution channel");
+assert.match(packageData.scripts.test, /node tests\/browser-harness\.mjs/, "the core gate must prove that browser runtime and console errors are observable");
 assert.equal(packageData.scripts["test:presentation"], "node tests/site-presentation.mjs", "presentation locks must remain available outside the core gate");
 for (const declaration of ["BlocksSystem", "BlockController", "BlocksLayout", "BlocksReorderDetail", "BlocksResizeDetail", "BlocksChangeDetail", "createBlocksSystem"]) {
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);

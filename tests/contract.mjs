@@ -366,6 +366,37 @@ assert.throws(function () { flowing.restoreLayout({ version: 2, layout: "flow-gr
 assert.throws(function () { flowing.restoreLayout({ version: 1, blocks: [] }); }, /layoutmodus/, "a snapshot must name its layout mode explicitly");
 assert.throws(function () { flowing.restoreLayout({ version: 1, layout: "fixed-grid", blocks: [] }); }, /layout/, "a snapshot from another layout mode must fail early");
 
+const responsiveFixed = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
+const responsiveFixedField = new TestElement();
+responsiveFixed.attach(responsiveFixedField).setGrid(3, 8);
+const responsiveLead = responsiveFixed.add("lead", { id: "responsive-lead" }).span(3, 2);
+const responsiveDetail = responsiveFixed.add("detail", { id: "responsive-detail" }).span(1, 2);
+responsiveDetail.minimized = true;
+const wideFixedLayout = responsiveFixed.exportLayout();
+assert.deepEqual(wideFixedLayout.blocks.map(({ id, place }) => ({ id, place })), [
+  { id: "responsive-lead", place: null },
+  { id: "responsive-detail", place: null }
+], "addressless fixed-grid export must preserve DOM order without inventing positions");
+responsiveFixed.restoreLayout({
+  version: 1,
+  layout: "fixed-grid",
+  blocks: wideFixedLayout.blocks.map((block) => ({
+    ...block,
+    span: block.id === "responsive-lead" ? [1, 4] : [1, 2],
+    place: null
+  }))
+});
+responsiveFixed.setGrid(1, 8);
+assert.deepEqual(responsiveFixed.exportLayout(), {
+  version: 1,
+  layout: "fixed-grid",
+  blocks: [
+    { id: "responsive-lead", span: [1, 4], place: null, minimized: false },
+    { id: "responsive-detail", span: [1, 2], place: null, minimized: true }
+  ]
+}, "fixed-grid restore must support a consumer breakpoint change while preserving order and state");
+assert.equal(responsiveLead.element.style.getPropertyValue("--block-span-columns"), "1", "responsive restore must apply the compact lead span");
+
 const compacting = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
 const compactingField = new TestElement();
 const compactChanges = [];

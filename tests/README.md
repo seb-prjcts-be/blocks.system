@@ -32,3 +32,7 @@ en laadt de onveranderlijke tag achter de stabiele installatiesnippets. Alleen
 vóór het maken van een lokale releasetag mag de releasecommit zichzelf testen
 met `BLOCKS_RELEASE_CANDIDATE=vX.Y.Z`; zodra de tag bestaat, werkt die bypass
 bewust niet meer.
+
+`browser-harness.mjs` bewijst vóór de brede browserlayouttest dat asynchrone
+runtime-exceptions en `console.error` de gate werkelijk rood maken. De gedeelde
+harness bewaakt die fouten vervolgens tijdens de volledige browserproef.

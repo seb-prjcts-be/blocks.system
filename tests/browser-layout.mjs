@@ -2641,6 +2641,7 @@ try {
     assert.ok(hashPosition.result.value.top < hashPosition.result.value.viewport && hashPosition.result.value.bottom > 0, `${route} maakt het dynamische doel niet zichtbaar: ${JSON.stringify(hashPosition.result.value)}`);
   }
 
+  browser.assertNoPageErrors();
   console.log("browser-layout: gedeelde cascade, routes op 1440–320px @1x/@2x en zes legacy aliases — OK");
 } finally {
   await browser.close();
