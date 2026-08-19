@@ -164,30 +164,24 @@ function normalizeColorArray(value) {
         throw new TypeError("blocks.system.colorArray verwacht een array met CSS-kleuren.");
     }
     const colors = [];
+    const seen = new Set();
     for (const value of source) {
         if (typeof value !== "string" || value.trim() === "") {
             throw new TypeError("blocks.system.colorArray verwacht niet-lege CSS-kleuren als strings.");
         }
         const color = value.trim();
-        if (!colors.includes(color)) colors.push(color);
+        if (!seen.has(color)) {
+            seen.add(color);
+            colors.push(color);
+        }
     }
     return Object.freeze(colors);
 }
 
-function resolveColorChannels(host, value) {
-    if (typeof document === "undefined" || typeof globalThis.getComputedStyle !== "function") return null;
-    const probe = document.createElement("span");
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext?.("2d", { willReadFrequently: true });
-    if (!context) return null;
-    probe.hidden = true;
+function resolveColorChannels(value, probe, context) {
     probe.style.color = String(value);
     if (!probe.style.color) return null;
-    host.appendChild(probe);
     const resolved = globalThis.getComputedStyle(probe).color;
-    probe.remove();
-    canvas.width = 1;
-    canvas.height = 1;
     context.clearRect(0, 0, 1, 1);
     context.fillStyle = resolved;
     context.fillRect(0, 0, 1, 1);
@@ -221,15 +215,28 @@ function colorContrast(first, second) {
 }
 
 function resolveReadableMenuColor(host, backgroundValue) {
-    const background = resolveColorChannels(host, backgroundValue);
-    const blockPaper = resolveColorChannels(host, "var(--block-paper-color)");
-    const ink = resolveColorChannels(host, "var(--blocks-ink-color)");
-    const paper = resolveColorChannels(host, "var(--blocks-paper-color)");
-    if (!background || !blockPaper || !ink || !paper) return null;
-    const opaqueBackground = compositeColor(background, blockPaper);
-    return colorContrast(ink, opaqueBackground) >= colorContrast(paper, opaqueBackground)
-        ? "var(--blocks-ink-color)"
-        : "var(--blocks-paper-color)";
+    if (typeof document === "undefined" || typeof globalThis.getComputedStyle !== "function") return null;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext?.("2d", { willReadFrequently: true });
+    if (!context) return null;
+    canvas.width = 1;
+    canvas.height = 1;
+    const probe = document.createElement("span");
+    probe.hidden = true;
+    host.appendChild(probe);
+    try {
+        const background = resolveColorChannels(backgroundValue, probe, context);
+        const blockPaper = resolveColorChannels("var(--block-paper-color)", probe, context);
+        const ink = resolveColorChannels("var(--blocks-ink-color)", probe, context);
+        const paper = resolveColorChannels("var(--blocks-paper-color)", probe, context);
+        if (!background || !blockPaper || !ink || !paper) return null;
+        const opaqueBackground = compositeColor(background, blockPaper);
+        return colorContrast(ink, opaqueBackground) >= colorContrast(paper, opaqueBackground)
+            ? "var(--blocks-ink-color)"
+            : "var(--blocks-paper-color)";
+    } finally {
+        probe.remove();
+    }
 }
 
 function normalizeVariation(value, property, fallback) {
