@@ -16,14 +16,14 @@ const blocks: BlocksSystem = createBlocksSystem({
   layout: "flow-grid",
   draggable: true,
   resizable: true,
-  blockDefaults: { menu: { minimize: true, close: true, link: true } }
+  blockDefaults: { menu: { minimize: true, close: true, copy: true } }
 });
 
 blocks.attach(document.body).setGrid(6, 4);
 const block: BlockController = blocks
   .add(document.createElement("article"), { id: "typed-block", title: "typed", draggable: false })
   .span(2, 1)
-  .menu("typed", { close: true, link: true });
+  .menu("typed", { close: true, copy: true });
 block.draggable = true;
 const blockDraggable: boolean = block.draggable;
 const layoutMode: BlocksLayoutMode = blocks.layout;

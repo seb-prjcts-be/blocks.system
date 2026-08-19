@@ -175,7 +175,7 @@
     margin-left: auto;
 }
 
-.blocks-system-link,
+.blocks-system-copy,
 .blocks-system-minimize,
 .blocks-system-close {
     align-self: center;
@@ -193,10 +193,28 @@
     cursor: pointer;
 }
 
-.blocks-system-link:hover,
+.blocks-system-copy:hover,
 .blocks-system-minimize:hover,
 .blocks-system-close:hover {
     opacity: 1;
+}
+
+.blocks-system-copy {
+    display: grid;
+    place-items: center;
+}
+
+.blocks-system-copy svg {
+    display: block;
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+    pointer-events: none;
+}
+
+.blocks-system-copy[data-state] {
+    font-size: 13px;
+    line-height: 1;
 }
 
 .blocks-system-content {

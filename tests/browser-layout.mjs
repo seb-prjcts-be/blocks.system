@@ -801,7 +801,7 @@ async function measureManual(width, height, dpr = 1) {
         return {
           id,
           actions: Array.from(block.querySelectorAll(":scope > .blocks-system-menu button"), function (button) {
-            if (button.classList.contains("blocks-system-link")) return "link";
+            if (button.classList.contains("blocks-system-copy")) return "copy";
             return button.classList.contains("blocks-system-minimize") ? "minimize" : "close";
           })
         };
@@ -1273,17 +1273,17 @@ async function exerciseManualReset() {
         configurable: true,
         value: { writeText: async function (value) { copied = value; } }
       });
-      const link = document.querySelector('[data-block-object="manual-menu-link"] .blocks-system-link');
-      link.click();
+      const copyBlock = document.querySelector('[data-block-object="manual-menu-link"]');
+      const copy = copyBlock.querySelector('.blocks-system-copy');
+      const expectedContent = copyBlock.querySelector('.blocks-system-content').innerText.trim();
+      copy.click();
       await new Promise(function (resolve) { setTimeout(resolve, 20); });
-      const expectedLink = new URL(location.href);
-      expectedLink.searchParams.set("block", "manual-menu-link");
       document.querySelector('[data-block-object="manual-menu-both"] .blocks-system-close').click();
       return {
         movedRow: draggable.style.getPropertyValue("--block-row"),
         closed: !document.querySelector('[data-block-object="manual-menu-both"]'),
-        copied: copied === expectedLink.href,
-        copyState: link.dataset.state
+        copied: copied === expectedContent,
+        copyState: copy.dataset.state
       };
     })()`,
     awaitPromise: true,
@@ -2083,7 +2083,7 @@ try {
     assert.deepEqual(desktopManual.protectedBlocks.filter(function (block) { return block.draggable === "false"; }).map(function (block) { return block.id; }), ["manual-drag-locked"], "manual moet exact één niet-versleepbaar block hebben");
     assert.ok(desktopManual.protectedBlocks.every(function (block) {
       return block.actions === (block.id === "manual-menu-link" ? 3 : 2);
-    }), "alleen het copy-linkvoorbeeld mag naast minimaliseren en sluiten een derde actie tonen");
+    }), "alleen het copy-contentvoorbeeld mag naast minimaliseren en sluiten een derde actie tonen");
     assert.ok(desktopManual.protectedBlocks.filter(function (block) { return block.id !== "manual-drag-locked"; }).every(function (block) {
       return block.draggable === "true" && block.tabIndex === 0 && block.role === "button" && block.ariaLabel;
     }), `standaardinteractie ontbreekt op manualblocks: ${JSON.stringify(desktopManual.protectedBlocks)}`);
@@ -2445,7 +2445,7 @@ try {
       { id: "manual-menu-both", actions: ["minimize", "close"] },
       { id: "manual-menu-minimize", actions: ["minimize", "close"] },
       { id: "manual-menu-close", actions: ["minimize", "close"] },
-      { id: "manual-menu-link", actions: ["link", "minimize", "close"] }
+      { id: "manual-menu-link", actions: ["copy", "minimize", "close"] }
     ], `manual toont de standaard titelbalkacties niet op elk voorbeeld op ${width}px`);
     assert.ok(manual.randomExamples.every(function (example) { return /^\d{2}$/.test(example.marker) && example.childCount === 1; }), `manual gebruikt nog generieke kaartinhoud in de kanscellen op ${width}px`);
     assert.equal(manual.contentExamples.trusted.tag, "ARTICLE", `manual toont trusted HTML niet als echte inhoud op ${width}px`);

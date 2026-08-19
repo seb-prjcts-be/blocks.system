@@ -6,7 +6,7 @@
   <meta name="description" content="Linear blocks.system API reference without JavaScript.">
   <title>linear reference · blocks.system</title>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="../blocks.system.css?v=main-20260819-01">
+  <link rel="stylesheet" href="../blocks.system.css?v=main-20260819-04">
   <link rel="stylesheet" href="style.css?v=0.2.20260817">
 </head>
 <body class="docs-page reference-page reference-fallback-page">
@@ -34,7 +34,7 @@ const blocks = createBlocksSystem({
   colorArray: [],
   colorVariation: 0,
   inversionVariation: 1 / 3,
-  blockDefaults: { menu: { minimize: true, close: true, link: false } },
+  blockDefaults: { menu: { minimize: true, close: true, copy: false } },
   blocks: []
 });</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type / default</th><th>purpose</th></tr></thead><tbody><tr id="api-create"><td data-label="kind + contract">method · createBlocksSystem(options?)</td><td data-label="returns / type / default">BlocksSystem</td><td data-label="purpose">Create an independent blocks system; the complete options object is shown above.</td></tr>
@@ -42,7 +42,7 @@ const blocks = createBlocksSystem({
 <tr id="api-window"><td data-label="kind + contract">property · window.blocks.system</td><td data-label="returns / type / default">BlocksSystem</td><td data-label="purpose">The same shared instance exposed in a browser.</td></tr>
 <tr><td data-label="kind + contract">option · catalogUrl</td><td data-label="returns / type / default">string | URL | null · null</td><td data-label="purpose">Base URL used by address() when a block has no url of its own.</td></tr>
 <tr><td data-label="kind + contract">option · font</td><td data-label="returns / type / default">{ family, href? } | null · null</td><td data-label="purpose">Set a family and optional stylesheet URL; blocks.font remains writable.</td></tr>
-<tr><td data-label="kind + contract">option · labels</td><td data-label="returns / type / default">Partial&lt;{ move, resize, restore, minimize, close, link, copied, copyFailed }&gt;</td><td data-label="purpose">Override resolved accessible labels; blocks.labels is readonly.</td></tr>
+<tr><td data-label="kind + contract">option · labels</td><td data-label="returns / type / default">Partial&lt;{ move, resize, restore, minimize, close, copy, copied, copyFailed }&gt;</td><td data-label="purpose">Override resolved accessible labels; blocks.labels is readonly.</td></tr>
 <tr><td data-label="kind + contract">option · blocks</td><td data-label="returns / type / default">BlockDefinition[] · []</td><td data-label="purpose">Register definitions during creation.</td></tr></tbody></table></div>
 </section>
 
@@ -72,7 +72,7 @@ blocks.setGrid(4, 4);</code></pre>
   <pre class="reference-code"><code>const block = blocks.add(content, {
   id: &quot;hello&quot;,
   title: &quot;hello&quot;,
-  menu: { minimize: true, close: true, link: false },
+  menu: { minimize: true, close: true, copy: false },
   variant: &quot;regular&quot;,
   minimized: false,
   draggable: true
@@ -80,7 +80,7 @@ blocks.setGrid(4, 4);</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type</th><th>purpose</th></tr></thead><tbody><tr id="api-add"><td data-label="kind + contract">method · add(content, options?)</td><td data-label="returns / type">block</td><td data-label="purpose">Add content and return one BlockController; every option is shown above.</td></tr>
 <tr><td data-label="kind + contract">option · id</td><td data-label="returns / type">string</td><td data-label="purpose">Stable id; generated when omitted.</td></tr>
 <tr><td data-label="kind + contract">option · title</td><td data-label="returns / type">string</td><td data-label="purpose">Optional visible titlebar text. Without it, id remains only the accessible fallback for actions.</td></tr>
-<tr><td data-label="kind + contract">option · menu</td><td data-label="returns / type">boolean | { minimize?, close?, link? }</td><td data-label="purpose">Configure titlebar controls for this block.</td></tr>
+<tr><td data-label="kind + contract">option · menu</td><td data-label="returns / type">boolean | { minimize?, close?, copy? }</td><td data-label="purpose">Configure titlebar controls for this block.</td></tr>
 <tr><td data-label="kind + contract">option · variant</td><td data-label="returns / type">string</td><td data-label="purpose">Override the system appearance for this block.</td></tr>
 <tr><td data-label="kind + contract">option · minimized</td><td data-label="returns / type">boolean</td><td data-label="purpose">Set the initial minimized state.</td></tr>
 <tr><td data-label="kind + contract">option · draggable</td><td data-label="returns / type">boolean · true</td><td data-label="purpose">Allow this block to move while the system remains draggable.</td></tr></tbody></table></div>
@@ -113,20 +113,20 @@ blocks.restoreLayout(layout);</code></pre>
 
 <section id="titlebar-controls" class="reference-fallback-entry">
   <h2>titlebar controls</h2>
-  <p class="reference-intro">Configure minimize, close and the opt-in copy-link action when the system or block is created, or update one block later through its controller. Fixed-grid keeps a minimized block's assigned footprint; flow-grid reduces it to one titlebar row without changing DOM order.</p>
+  <p class="reference-intro">Configure minimize, close and the opt-in copy-content action when the system or block is created, or update one block later through its controller. Fixed-grid keeps a minimized block's assigned footprint; flow-grid reduces it to one titlebar row without changing DOM order.</p>
   <pre class="reference-code"><code>block.menu(&quot;hello&quot;, {
   minimize: true,
   close: true,
-  link: true
+  copy: true
 });</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>type or returns</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">option · blockDefaults.menu</td><td data-label="type or returns">boolean | object</td><td data-label="purpose">Default titlebar controls for new blocks; minimize and close are both enabled initially.</td></tr>
 <tr><td data-label="kind + contract">option · menu</td><td data-label="type or returns">boolean | object</td><td data-label="purpose">Enable, disable or configure controls for one new block.</td></tr>
 <tr><td data-label="kind + contract">option · menu.minimize</td><td data-label="type or returns">boolean</td><td data-label="purpose">Show minimize and restore.</td></tr>
 <tr><td data-label="kind + contract">option · menu.close</td><td data-label="type or returns">boolean</td><td data-label="purpose">Show remove.</td></tr>
-<tr><td data-label="kind + contract">option · menu.link</td><td data-label="type or returns">boolean · false</td><td data-label="purpose">Copy address(id) and show brief success or failure feedback.</td></tr>
+<tr><td data-label="kind + contract">option · menu.copy</td><td data-label="type or returns">boolean · false</td><td data-label="purpose">Copy decoded visible block text and show brief success or failure feedback.</td></tr>
 <tr><td data-label="kind + contract">option · minimized</td><td data-label="type or returns">boolean</td><td data-label="purpose">Set the initial minimized state.</td></tr>
 <tr><td data-label="kind + contract">property · block.minimized</td><td data-label="type or returns">boolean</td><td data-label="purpose">Read or change the current minimized state.</td></tr>
-<tr id="api-menu"><td data-label="kind + contract">method · menu(name, options?)</td><td data-label="type or returns">block</td><td data-label="purpose">Add or update the titlebar; options accepts minimize, close and link.</td></tr>
+<tr id="api-menu"><td data-label="kind + contract">method · menu(name, options?)</td><td data-label="type or returns">block</td><td data-label="purpose">Add or update the titlebar; options accepts minimize, close and copy.</td></tr>
 <tr><td data-label="kind + contract">method · remove()</td><td data-label="type or returns">true</td><td data-label="purpose">Remove the block. Fixed-grid leaves its address empty until an explicit compact(); flow-grid closes the gap automatically through DOM order.</td></tr></tbody></table></div>
 </section>
 

@@ -1,5 +1,5 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=main-20260819-01";
-import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.20260819.1";
+import { createBlocksSystem } from "../blocks.system.mjs?v=main-20260819-02";
+import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.20260819.3";
 import { mountEli10Schema } from "./eli10-schema.mjs?v=0.1.6";
 import { mountVanillaWavesDemo } from "./vanilla-waves-demo.mjs?v=0.1.3";
 
@@ -361,16 +361,15 @@ for (const [id, column, row] of [
   ["manual-menu-minimize", 4, 23],
   ["manual-menu-close", 1, 24]
 ]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 1], place: [column, row], classes: ["manual-half"] });
-const menuLinkBlock = add({
+add({
   id: "manual-menu-link",
   title: content["manual-menu-link"].title,
   blockContent: specimen(content["manual-menu-link"]),
   span: [3, 1],
   place: [4, 24],
-  menu: { link: true },
+  menu: { copy: true },
   classes: ["manual-half"]
 });
-blocks.register(menuLinkBlock.describe());
 add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: introCard(content["manual-layout"]), span: content["manual-layout"].layout.span, place: content["manual-layout"].layout.place });
 add({ id: "manual-drag", title: content["manual-drag"].title, blockContent: introCard(content["manual-drag"]), span: content["manual-drag"].layout.span, place: content["manual-drag"].layout.place, anchor: "dragging", classes: ["manual-chapter-start"] });
 add({ id: "manual-drag-code", title: content["manual-drag-code"].title, blockContent: codeOnlyCard(content["manual-drag-code"]), span: content["manual-drag-code"].layout.span, place: content["manual-drag-code"].layout.place });

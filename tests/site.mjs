@@ -76,7 +76,7 @@ const homeHtml = pageHtml["index.html"];
 const manualHtml = pageHtml["docs/index.html"];
 const apiHtml = pageHtml["docs/api.html"];
 for (const page of ["index.html", "docs/index.html", "docs/api.html", "docs/reference-fallback.html"]) {
-  assert.match(pageHtml[page], /blocks\.system\.css\?v=main-20260819-01/, `${page} must load the current block appearance stylesheet`);
+  assert.match(pageHtml[page], /blocks\.system\.css\?v=main-20260819-04/, `${page} must load the current block appearance stylesheet`);
 }
 const developmentGuide = await read("docs/development.md");
 const releaseNotes = await read("docs/releases/v0.4.0.md");
@@ -160,7 +160,7 @@ assert.equal(packageData.private, true, "the package must remain private because
 assert.match(developmentGuide, /`private`: true[\s\S]*niet via npm publiceren/i, "development docs must explain the private npm boundary");
 assert.match(developmentGuide, /GitHub-release-tag[\s\S]*jsDelivr/i, "development docs must name the public tag-and-CDN distribution channel");
 assert.match(packageData.scripts.test, /node tests\/browser-harness\.mjs/, "the core gate must prove that browser runtime and console errors are observable");
-assert.match(packageData.scripts.test, /node tests\/menu-link\.mjs/, "the core gate must keep the block link action under real-browser coverage");
+assert.match(packageData.scripts.test, /node tests\/menu-copy\.mjs/, "the core gate must keep the block content copy action under real-browser coverage");
 assert.equal(packageData.scripts["test:presentation"], "node tests/site-presentation.mjs", "presentation locks must remain available outside the core gate");
 for (const declaration of ["BlocksSystem", "BlockController", "BlocksLayout", "BlocksReorderDetail", "BlocksResizeDetail", "BlocksChangeDetail", "createBlocksSystem"]) {
   assert.ok(declarations.includes(declaration), `blocks.system.d.ts misses ${declaration}`);
@@ -326,19 +326,19 @@ for (const id of ["manual-menu-both", "manual-menu-minimize", "manual-menu-close
   assert.match(docsContent.manual[id].body, /^(?:Use|Reset)/, `${id} must explain one visible titlebar action in plain language`);
 }
 assert.match(siteDemos["docs/manual.mjs"], /\["manual-menu-both", 1, 23[\s\S]*\["manual-menu-minimize", 4, 23[\s\S]*\["manual-menu-close", 1, 24[\s\S]*span: \[3, 1\]/, "manual 03 must keep three compact default-action examples");
-assert.match(siteDemos["docs/manual.mjs"], /id: "manual-menu-link"[\s\S]*span: \[3, 1\][\s\S]*place: \[4, 24\][\s\S]*menu: \{ link: true \}/, "manual 03 must place the copy-link example in the fourth 3×1 cell");
-assert.match(docsContent.manual["manual-menu"].intro, /copy link[\s\S]*opt-in/i, "manual 03 must explain that copy link is opt-in");
-assert.match(siteDemos["docs/manual.mjs"], /manual-menu-link[\s\S]*menu:\s*\{\s*link:\s*true[\s\S]*blocks\.register\([\s\S]*describe/, "manual 03 must render and register a working copy-link example");
+assert.match(siteDemos["docs/manual.mjs"], /id: "manual-menu-link"[\s\S]*span: \[3, 1\][\s\S]*place: \[4, 24\][\s\S]*menu: \{ copy: true \}/, "manual 03 must place the copy-content example in the fourth 3×1 cell");
+assert.match(docsContent.manual["manual-menu"].intro, /copy content[\s\S]*opt-in/i, "manual 03 must explain that copy content is opt-in");
+assert.match(siteDemos["docs/manual.mjs"], /manual-menu-link[\s\S]*menu:\s*\{\s*copy:\s*true/, "manual 03 must render a working copy-content example");
 assert.deepEqual(docsContent.manual["manual-menu-code"].code, [
   "const block = blocks.add(content, {",
   '  title: "hello",',
-  "  menu: { link: true }",
+  "  menu: { copy: true }",
   "});",
   "",
   "block.minimized = true;",
   "block.minimized = false;",
   "block.remove();"
-], "manual 03 must show default controls and the opt-in copy-link setting");
+], "manual 03 must show default controls and the opt-in copy-content setting");
 assert.deepEqual(docsContent.manual["manual-layout"].layout, { place: [1, 8], span: [2, 1] }, "size and position must be one row high under setup");
 assert.equal(docsContent.manual["manual-layout"].title, "block size and position", "the setup sublesson must name the block that span and place control");
 assert.equal("manual-layout-code" in docsContent.manual, false, "size and position must not duplicate setup code in a separate block");

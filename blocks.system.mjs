@@ -12,7 +12,8 @@ const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const LAYOUT_VERSION = 1;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
-const DEFAULT_MENU_OPTIONS = Object.freeze({ close: true, minimize: true, link: false });
+const DEFAULT_MENU_OPTIONS = Object.freeze({ close: true, minimize: true, copy: false });
+const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h9c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H9Zm0-2h9V4H9v12ZM5 22c-1.1 0-2-.9-2-2V6h2v14h11v2H5Z"/></svg>';
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
         move: "move with the arrow keys",
@@ -20,8 +21,8 @@ const UI_LABELS = Object.freeze({
         restore: "restore",
         minimize: "minimize",
         close: "close",
-        link: "copy link",
-        copied: "link copied",
+        copy: "copy content",
+        copied: "content copied",
         copyFailed: "copy failed"
     }),
     nl: Object.freeze({
@@ -30,8 +31,8 @@ const UI_LABELS = Object.freeze({
         restore: "herstellen",
         minimize: "minimaliseren",
         close: "sluiten",
-        link: "link kopiëren",
-        copied: "link gekopieerd",
+        copy: "inhoud kopiëren",
+        copied: "inhoud gekopieerd",
         copyFailed: "kopiëren mislukt"
     })
 });
@@ -42,12 +43,12 @@ function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.b
     const fallback = inherited || DEFAULT_MENU_OPTIONS;
     if (value === true) return fallback;
     if (!value || typeof value !== "object") {
-        throw new TypeError(`${path} verwacht true, false of een object met close, minimize en link.`);
+        throw new TypeError(`${path} verwacht true, false of een object met close, minimize en copy.`);
     }
     return Object.freeze({
         close: value.close === undefined ? fallback.close : Boolean(value.close),
         minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize),
-        link: value.link === undefined ? fallback.link : Boolean(value.link)
+        copy: value.copy === undefined ? fallback.copy : Boolean(value.copy)
     });
 }
 
@@ -1331,10 +1332,10 @@ export function createBlocksSystem(options = {}) {
         let menuNode = null;
         let titleNode = null;
         let actionsNode = null;
-        let linkNode = null;
+        let copyNode = null;
         let minimizeNode = null;
         let closeNode = null;
-        let linkFeedbackTimer = null;
+        let copyFeedbackTimer = null;
         const resizeHandles = new Map();
         let resizeState = null;
         let resizeFallbackTarget = null;
@@ -1413,42 +1414,51 @@ export function createBlocksSystem(options = {}) {
                 titleNode.removeAttribute("aria-label");
                 titleNode.removeAttribute("aria-keyshortcuts");
             }
-            if (linkNode && linkNode.getAttribute("data-state") === null) {
-                linkNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.link}`);
+            if (copyNode && copyNode.getAttribute("data-state") === null) {
+                copyNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.copy}`);
             }
             if (closeNode) closeNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.close}`);
         }
 
-        function resetLinkFeedback() {
-            if (linkFeedbackTimer !== null) {
-                clearTimeout(linkFeedbackTimer);
-                linkFeedbackTimer = null;
+        function resetCopyFeedback() {
+            if (copyFeedbackTimer !== null) {
+                clearTimeout(copyFeedbackTimer);
+                copyFeedbackTimer = null;
             }
-            if (!linkNode) return;
-            linkNode.textContent = "⧉";
-            linkNode.removeAttribute("data-state");
-            linkNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${labels.link}`);
+            if (!copyNode) return;
+            copyNode.innerHTML = COPY_ICON;
+            copyNode.removeAttribute("data-state");
+            copyNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${labels.copy}`);
         }
 
-        function showLinkFeedback(state) {
-            if (!linkNode) return;
-            if (linkFeedbackTimer !== null) clearTimeout(linkFeedbackTimer);
+        function showCopyFeedback(state) {
+            if (!copyNode) return;
+            if (copyFeedbackTimer !== null) clearTimeout(copyFeedbackTimer);
             const copied = state === "copied";
-            linkNode.textContent = copied ? "✓" : "!";
-            linkNode.setAttribute("data-state", state);
-            linkNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${copied ? labels.copied : labels.copyFailed}`);
-            linkFeedbackTimer = setTimeout(resetLinkFeedback, 1600);
+            copyNode.textContent = copied ? "✓" : "!";
+            copyNode.setAttribute("data-state", state);
+            copyNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${copied ? labels.copied : labels.copyFailed}`);
+            copyFeedbackTimer = setTimeout(resetCopyFeedback, 1600);
         }
 
-        async function copyBlockAddress() {
+        async function copyBlockContent() {
             try {
                 if (!globalThis.navigator?.clipboard?.writeText) {
                     throw new Error("Clipboard API niet beschikbaar.");
                 }
-                await globalThis.navigator.clipboard.writeText(address(id));
-                showLinkFeedback("copied");
+                const visibleText = typeof contentNode.innerText === "string"
+                    ? contentNode.innerText
+                    : contentNode.textContent;
+                const readableText = String(visibleText || "")
+                    .replace(/\r\n?/g, "\n")
+                    .replace(/[ \t]+\n/g, "\n")
+                    .replace(/\n{3,}/g, "\n\n")
+                    .trim();
+                if (!readableText) throw new Error("Geen leesbare blockinhoud.");
+                await globalThis.navigator.clipboard.writeText(readableText);
+                showCopyFeedback("copied");
             } catch {
-                showLinkFeedback("failed");
+                showCopyFeedback("failed");
             }
         }
 
@@ -1626,7 +1636,7 @@ export function createBlocksSystem(options = {}) {
             assertActive();
             drag.stop();
             stopResize();
-            if (linkFeedbackTimer !== null) clearTimeout(linkFeedbackTimer);
+            if (copyFeedbackTimer !== null) clearTimeout(copyFeedbackTimer);
             objects.delete(id);
             objectLayouts.delete(id);
             objectLayoutSetters.delete(id);
@@ -1691,9 +1701,9 @@ export function createBlocksSystem(options = {}) {
                 ? {
                     close: close.close === undefined ? DEFAULT_MENU_OPTIONS.close : Boolean(close.close),
                     minimize: close.minimize === undefined ? DEFAULT_MENU_OPTIONS.minimize : Boolean(close.minimize),
-                    link: close.link === undefined ? DEFAULT_MENU_OPTIONS.link : Boolean(close.link)
+                    copy: close.copy === undefined ? DEFAULT_MENU_OPTIONS.copy : Boolean(close.copy)
                 }
-                : { close: Boolean(close), minimize: true, link: false };
+                : { close: Boolean(close), minimize: true, copy: false };
             if (!menuNode) {
                 menuNode = document.createElement("header");
                 menuNode.className = "blocks-system-menu";
@@ -1706,17 +1716,17 @@ export function createBlocksSystem(options = {}) {
                 shell.insertBefore(menuNode, contentNode);
             }
             titleNode.textContent = String(name || "");
-            if (menuOptions.link && !linkNode) {
-                linkNode = document.createElement("button");
-                linkNode.type = "button";
-                linkNode.className = "blocks-system-link";
-                linkNode.textContent = "⧉";
-                linkNode.addEventListener("click", copyBlockAddress);
-                actionsNode.appendChild(linkNode);
-            } else if (!menuOptions.link && linkNode) {
-                resetLinkFeedback();
-                linkNode.remove();
-                linkNode = null;
+            if (menuOptions.copy && !copyNode) {
+                copyNode = document.createElement("button");
+                copyNode.type = "button";
+                copyNode.className = "blocks-system-copy";
+                copyNode.innerHTML = COPY_ICON;
+                copyNode.addEventListener("click", copyBlockContent);
+                actionsNode.appendChild(copyNode);
+            } else if (!menuOptions.copy && copyNode) {
+                resetCopyFeedback();
+                copyNode.remove();
+                copyNode = null;
             }
             if (menuOptions.minimize && !minimizeNode) {
                 minimizeNode = document.createElement("button");

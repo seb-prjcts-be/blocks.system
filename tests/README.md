@@ -37,5 +37,5 @@ bewust niet meer.
 runtime-exceptions en `console.error` de gate werkelijk rood maken. De gedeelde
 harness bewaakt die fouten vervolgens tijdens de volledige browserproef.
 
-`menu-link.mjs` controleert in een echte browser de optionele kopieerknop, de
-geregistreerde deeplink en de zichtbare succesfeedback.
+`menu-copy.mjs` controleert in een echte browser de optionele kopieerknop, de
+gedecodeerde zichtbare blockinhoud en de zichtbare succesfeedback.
