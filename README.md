@@ -133,6 +133,40 @@ server store such as SQLite only when layouts or content must follow authenticat
 people across devices or be shared and administered centrally. The core stays
 storage-agnostic in both cases.
 
+### Optional content storage
+
+The separate `blocks.system/storage` entry point keeps content out of the block
+core while giving local JSON and HTTP backends one contract. `load(keys)`
+returns documents with an opaque revision; `commit()` writes documents and new
+assets against that revision. A stale revision throws
+`BlocksStorageConflictError` instead of overwriting newer editorial work.
+
+```js
+import { createJsonStorage } from "blocks.system/storage";
+
+const directory = await showDirectoryPicker({ mode: "readwrite" });
+const storage = createJsonStorage({
+  directory,
+  documents: {
+    page: "content/pages/contact.json",
+    composition: "content/composition.json"
+  }
+});
+
+const snapshot = await storage.load(["page", "composition"]);
+await storage.commit({
+  revision: snapshot.revision,
+  documents: snapshot.documents,
+  assets: [{ path: "images/editor/photo.jpg", file }]
+});
+```
+
+`createHttpStorage({ endpoint })` exposes the same browser contract using JSON
+for reads and multipart for documents plus files. A server can implement it
+transactionally with PHP and SQLite; authentication, authorization, schema
+validation and document meaning remain application concerns.
+`createBlocksStorage(adapter)` supports additional backends.
+
 The built-in variants are `regular` and `inverse`; inverse exchanges paper and
 ink across the content surface. A colour selected from your array uses one
 generic `color` state and fills only the titlebar, while the block paper and

@@ -9,7 +9,17 @@ import {
   type BlocksReorderDetail,
   type BlocksSystem
 } from "blocks.system";
+import { createBlocksStorage, createHttpStorage, createJsonStorage } from "blocks.system/storage";
 import { createBlocksSystem as createMinBlocksSystem } from "blocks.system/min";
+
+declare const projectDirectory: FileSystemDirectoryHandle;
+const jsonStorage = createJsonStorage({ directory: projectDirectory, documents: { page: "content/page.json" } });
+const httpStorage = createHttpStorage({ endpoint: "/beheer.php" });
+const customStorage = createBlocksStorage({
+  async load() { return { documents: {}, revision: null }; },
+  async commit() { return { revision: null }; }
+});
+void Promise.all([jsonStorage.load(["page"]), httpStorage.load(["page"]), customStorage.load(["page"])]);
 
 const blocks: BlocksSystem = createBlocksSystem({
   catalogUrl: null,

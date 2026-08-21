@@ -137,6 +137,42 @@ pas een serveropslag zoals SQLite wanneer layout of inhoud aangemelde personen
 over meerdere apparaten moet volgen, gedeeld wordt of centraal beheer nodig
 heeft. De kern blijft in beide gevallen opslagneutraal.
 
+### Optionele inhoudsopslag
+
+De aparte entrypoint `blocks.system/storage` bewaart geen inhoud in de
+blockkern. Hij geeft lokale JSON en een HTTP-backend wel hetzelfde kleine
+contract: `load(keys)` levert documenten plus een revisie; `commit()` bewaart
+een set documenten en nieuwe assets tegen die revisie. Een verouderde revisie
+stopt met `BlocksStorageConflictError` in plaats van nieuwer redactiewerk te
+overschrijven.
+
+```js
+import { createJsonStorage } from "blocks.system/storage";
+
+const projectmap = await showDirectoryPicker({ mode: "readwrite" });
+const storage = createJsonStorage({
+  directory: projectmap,
+  documents: {
+    page: "content/pages/contact.json",
+    composition: "content/composition.json"
+  }
+});
+
+const snapshot = await storage.load(["page", "composition"]);
+await storage.commit({
+  revision: snapshot.revision,
+  documents: snapshot.documents,
+  assets: [{ path: "images/beheer/foto.jpg", file }]
+});
+```
+
+`createHttpStorage({ endpoint })` biedt exact hetzelfde browsercontract via
+JSON voor lezen en multipart voor documenten plus bestanden. De server mag dat
+bijvoorbeeld met PHP en SQLite transactioneel uitvoeren; authenticatie,
+autorisatie, validatie en de concrete documentschema's blijven bewust bij de
+toepassing. `createBlocksStorage(adapter)` laat een derde backend hetzelfde
+contract implementeren.
+
 De ingebouwde varianten zijn `regular` en `inverse`; inverse wisselt papier en
 inkt over het inhoudsvlak. Een kleur uit je array gebruikt één generieke
 `color`-state en vult alleen de titelbalk, terwijl het blockpapier en de
