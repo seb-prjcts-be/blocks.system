@@ -223,11 +223,11 @@ blocks.register({
 ## API-overzicht
 
 - Aanmaak: `createBlocksSystem({ layout, draggable, resizable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Gedeeld systeem: `attach`, `setGrid`, `compact`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
+- Gedeeld systeem: `attach`, `setGrid`, `compact`, `fitHeight`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- Eén block: `menu`, `minimized`, `draggable`, `span`, `place`, `describe`, `variant`, `color`, `remove`.
+- Eén block: `menu`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `describe`, `variant`, `color`, `remove`.
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
 overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, restore,
@@ -264,6 +264,14 @@ Bij `remove()` veranderen de adressen van andere fixed-grid-blocks nooit; het
 gat blijft bewust bestaan totdat de toepassing `compact()` aanroept. In
 flow-grid herschikt verwijdering vanzelf door de DOM-volgorde. Het veld vuurt
 `blocks:change` voor `compact`, `minimize`, `restore` en `remove`.
+Gebruik `block.fitHeight()` na een inhoudswijziging om de werkelijk gerenderde
+hoogte op de huidige breedte te meten en de kleinste volledige rijspan toe te
+passen. `blocks.fitHeight()` doet dat voor alle levende blocks; geef in een
+gemengde compositie een iterable met levende block-ID's aan
+`blocks.fitHeight(ids)`. De consumer blijft verantwoordelijk voor het opnieuw
+packen of vergroten van het totale raster. Meet alleen inhoudsgedreven blocks:
+media die bewust een door de toepassing gekozen span vullen, behouden die span
+en horen niet in de geselecteerde meting.
 Trackpad- en wheelscroll boven gewone blockinhoud blijft de pagina scrollen;
 alleen echt overlopende binneninhoud scrollt eerst lokaal.
 De gemeten werking en grenzen staan duurzaam in

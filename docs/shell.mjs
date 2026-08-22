@@ -5,7 +5,7 @@ let docsContentRequest;
 
 async function readDocsContent() {
   if (!docsContentRequest) {
-    docsContentRequest = fetch(new URL("./content.json?v=0.5.20260819.2", import.meta.url)).then(async (response) => {
+    docsContentRequest = fetch(new URL("./content.json?v=0.5.20260821.3", import.meta.url)).then(async (response) => {
       if (!response.ok) throw new Error(`Could not load docs content (${response.status}).`);
       const content = await response.json();
       if (content.schema !== DOCS_CONTENT_SCHEMA) {

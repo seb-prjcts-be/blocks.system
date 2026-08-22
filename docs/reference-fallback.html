@@ -90,11 +90,16 @@ blocks.setGrid(4, 4);</code></pre>
   <h2>size and position</h2><span id="block-methods" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">Set a block span in whole grid units. Fixed-grid also accepts coordinates; flow-grid always follows DOM order and automatically shifts later blocks.</p>
   <pre class="reference-code"><code>block.span(4, 2);
+block.fitHeight();
+blocks.fitHeight();
+blocks.fitHeight([&quot;article&quot;, &quot;notes&quot;]);
 block.place(1, 1);
 
 const layout = blocks.exportLayout();
 blocks.restoreLayout(layout);</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-span"><td data-label="kind + contract">method · span(columns, rows)</td><td data-label="returns">block</td><td data-label="purpose">Set the size in whole grid units.</td></tr>
+<tr id="api-fit-height-block"><td data-label="kind + contract">method · block.fitHeight()</td><td data-label="returns">{ columns, rows, changed }</td><td data-label="purpose">Measure one content-driven block at its current width; application-owned fixed media spans remain untouched when not called.</td></tr>
+<tr id="api-fit-height-system"><td data-label="kind + contract">method · blocks.fitHeight(ids?)</td><td data-label="returns">measurement[]</td><td data-label="purpose">Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span.</td></tr>
 <tr id="api-place"><td data-label="kind + contract">method · place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based coordinates in fixed-grid; other modes reject the call.</td></tr>
 <tr><td data-label="kind + contract">method · exportLayout()</td><td data-label="returns">{ version, layout, blocks }</td><td data-label="purpose">Export the mode, content-free DOM order and each block's span, place and minimized state.</td></tr>
 <tr><td data-label="kind + contract">method · restoreLayout(layout)</td><td data-label="returns">blocks</td><td data-label="purpose">Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones.</td></tr>

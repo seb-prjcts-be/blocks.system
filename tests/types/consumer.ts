@@ -30,6 +30,8 @@ const blocks: BlocksSystem = createBlocksSystem({
 });
 
 blocks.attach(document.body).setGrid(6, 4);
+blocks.fitHeight();
+blocks.fitHeight(new Set(["one"]));
 const block: BlockController = blocks
   .add(document.createElement("article"), { id: "typed-block", title: "typed", draggable: false })
   .span(2, 1)

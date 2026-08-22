@@ -12,7 +12,7 @@ const source = await readFile(sourcePath, "utf8");
 const minified = await readFile(minPath, "utf8");
 
 assert.doesNotMatch(source, /vanilla\.waves|p5\.waves|VanillaWaves|WavesLoader|P5WindowSketches|\bWEL\b/, "the core must not know a local runtime");
-assert.ok(["attach", "setGrid", "compact", "add", "exportLayout", "restoreLayout", "register", "registerAdapter", "mount", "unmount"]
+assert.ok(["attach", "setGrid", "compact", "fitHeight", "add", "exportLayout", "restoreLayout", "register", "registerAdapter", "mount", "unmount"]
   .every(function (name) { return typeof singleton[name] === "function"; }), "the approved public API is incomplete");
 assert.equal(singleton.layout, "free", "free layout must remain the dependency-free default");
 assert.equal("snap" in singleton, false, "snap must not remain as a second layout switch");
@@ -651,6 +651,7 @@ object.variant = "random";
 assert.equal(object.variant, "inverse", "an explicit random assignment must reroll the block");
 assert.throws(function () { object.variant = "not valid"; }, /Ongeldige blockvariant/, "invalid variant names must fail early");
 assert.equal(typeof object.span, "function", "every block must expose span(x, y)");
+assert.equal(typeof object.fitHeight, "function", "every grid block must expose fitHeight()");
 assert.equal(object.span(2, 1), object, "span must remain chainable");
 assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2", "span x must set whole column units");
 assert.equal(object.element.style.getPropertyValue("--block-span-rows"), "1", "span y must set whole row units");
@@ -706,6 +707,7 @@ assert.equal(local.rows, 1, "shrinking the grid must update readable rows");
 assert.throws(function () { object.remove(); }, /verwijderd/, "removed blocks cannot publish duplicate remove events");
 assert.throws(function () { object.menu("removed", true); }, /verwijderd/, "removed blocks cannot recreate menus");
 assert.throws(function () { object.span(1, 1); }, /verwijderd/, "removed blocks cannot re-enter span state");
+assert.throws(function () { object.fitHeight(); }, /verwijderd/, "removed blocks cannot measure stale content");
 assert.throws(function () { object.place(1, 1); }, /verwijderd/, "removed blocks cannot re-enter position state");
 assert.throws(function () { object.minimized = false; }, /verwijderd/, "removed blocks cannot change minimized state");
 

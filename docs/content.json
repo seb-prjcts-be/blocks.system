@@ -636,6 +636,9 @@
       "intro": "Set a block span in whole grid units. Fixed-grid also accepts coordinates; flow-grid always follows DOM order and automatically shifts later blocks.",
       "code": [
         "block.span(4, 2);",
+        "block.fitHeight();",
+        "blocks.fitHeight();",
+        "blocks.fitHeight([\"article\", \"notes\"]);",
         "block.place(1, 1);",
         "",
         "const layout = blocks.exportLayout();",
@@ -644,6 +647,8 @@
       "headers": ["kind + contract", "returns", "purpose"],
       "rows": [
         { "id": "api-span", "cells": ["method · span(columns, rows)", "block", "Set the size in whole grid units."] },
+        { "id": "api-fit-height-block", "cells": ["method · block.fitHeight()", "{ columns, rows, changed }", "Measure one content-driven block at its current width; application-owned fixed media spans remain untouched when not called."] },
+        { "id": "api-fit-height-system", "cells": ["method · blocks.fitHeight(ids?)", "measurement[]", "Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span."] },
         { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based coordinates in fixed-grid; other modes reject the call."] },
         { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place and minimized state."] },
         { "cells": ["method · restoreLayout(layout)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones."] },

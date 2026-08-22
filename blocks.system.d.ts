@@ -103,6 +103,8 @@ export interface BlockController {
   draggable: boolean;
   menu(name: string, options?: boolean | BlockMenuOptions): BlockController;
   span(columns: number, rows: number): BlockController;
+  /** Fit the row span to the block's rendered content at its current width. */
+  fitHeight(): Readonly<{ columns: number; rows: number; changed: boolean }>;
   place(column: number, row: number): BlockController;
   /** Serialize this live block into a registerable definition for the built-in "html" adapter. */
   describe(options?: BlockDescribeOptions): BlockDefinition;
@@ -196,6 +198,8 @@ export interface BlocksSystem {
   attach(target: string | Element): BlocksSystem;
   setGrid(columns: number, rows: number): BlocksSystem;
   compact(): BlocksSystem;
+  /** Fit every live block's row span to its rendered content at the current widths. */
+  fitHeight(ids?: Iterable<string>): ReadonlyArray<Readonly<{ id: string; columns: number; rows: number; changed: boolean }>>;
   add(content: BlockContent, options?: AddBlockOptions): BlockController;
   /** Export content-free layout state in current DOM order. */
   exportLayout(): BlocksLayout;

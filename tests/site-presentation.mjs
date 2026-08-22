@@ -54,7 +54,7 @@ assert.doesNotMatch(apiHtml, /class="reference-index"/, "reference masthead must
 assert.doesNotMatch(apiHtml, /class="reference-introduction"/, "reference masthead must not explain the visible learning route twice");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");
 assert.doesNotMatch(css, /\.docs-masthead\s*\{[^}]*border-bottom/, "manual and reference mastheads must not draw a horizontal rule below their titles");
-assert.match(reference, /blocks\.setGrid\(6, 83\)/, "reference must use the wide thematic field without internal table scrolling");
+assert.match(reference, /blocks\.setGrid\(6, 84\)/, "reference must use the wide thematic field without internal table scrolling");
 assert.equal((reference.match(/createBlocksSystem\(/g) || []).length, 1, "reference must use one shared lookup field");
 assert.doesNotMatch(reference + sections, /reference-matrix|REFERENCE_COLUMNS|reference-axis|setFocusedColumn/, "reference must not compress contracts into a matrix");
 for (const id of Object.keys(content.reference)) {

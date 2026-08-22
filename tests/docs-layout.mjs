@@ -22,7 +22,7 @@ assert.match(chanceHelper, /padStart\(2, "0"\)/, "chance examples must retain th
 assert.doesNotMatch(chanceHelper, /small/, "chance examples must not restore redundant specimen labels");
 assert.doesNotMatch(manual, /manual-matrix/, "manual must not restore the five-column lesson matrix");
 
-assert.match(reference, /blocks\.setGrid\(6, 83\)/, "reference must use the wide thematic lookup field without internal table scrolling");
+assert.match(reference, /blocks\.setGrid\(6, 84\)/, "reference must use the wide thematic lookup field without internal table scrolling");
 assert.doesNotMatch(reference, /reference-matrix|REFERENCE_COLUMNS|setFocusedColumn|reference-axis/, "reference must not compress contracts into a colour matrix");
 assert.doesNotMatch(apiHtml, /class="reference-index"/, "reference masthead must not repeat the thematic sequence as a TOC");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");

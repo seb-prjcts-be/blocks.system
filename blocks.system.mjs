@@ -1281,6 +1281,30 @@ export function createBlocksSystem(options = {}) {
         return api;
     }
 
+    function fitHeight(ids) {
+        if (layoutMode === "free") {
+            throw new TypeError("blocks.system.fitHeight() vereist layout: fixed-grid of flow-grid.");
+        }
+        let selected = null;
+        if (ids !== undefined) {
+            if (typeof ids === "string" || ids === null || typeof ids[Symbol.iterator] !== "function") {
+                throw new TypeError("blocks.system.fitHeight(ids) verwacht een iterable met block-id's.");
+            }
+            selected = new Set();
+            for (const id of ids) {
+                if (typeof id !== "string") {
+                    throw new TypeError("blocks.system.fitHeight(ids) verwacht alleen block-id's als strings.");
+                }
+                selected.add(id);
+            }
+        }
+        return directObjectElements().flatMap((element) => {
+            const id = element.getAttribute("data-block-object");
+            if (selected && !selected.has(id)) return [];
+            return [{ id, ...objects.get(id).fitHeight() }];
+        });
+    }
+
     function appendContent(container, content) {
         const resolved = typeof content === "function" ? content() : content;
         if (typeof resolved === "string") {
@@ -1678,6 +1702,67 @@ export function createBlocksSystem(options = {}) {
             return block;
         }
 
+        /* Meet de echte inhoud op haar huidige breedte. De tijdelijke vaste
+           positie leeft maar binnen deze synchrone meting en wordt nooit
+           geschilderd; zo hoeven consumers geen padding, menuhoogte of
+           typografie uit de library na te bouwen. */
+        function intrinsicHeight() {
+            const shellStyle = shell.getAttribute("style");
+            const contentStyle = contentNode.getAttribute("style");
+            const width = shell.getBoundingClientRect().width;
+            try {
+                shell.style.position = "fixed";
+                shell.style.left = "-100000px";
+                shell.style.top = "0";
+                shell.style.width = `${width}px`;
+                shell.style.height = "max-content";
+                shell.style.minHeight = "0";
+                shell.style.overflow = "visible";
+                shell.style.visibility = "hidden";
+                contentNode.style.flex = "none";
+                contentNode.style.height = "max-content";
+                contentNode.style.minHeight = "0";
+                contentNode.style.overflow = "visible";
+                return shell.getBoundingClientRect().height;
+            } finally {
+                if (shellStyle === null) shell.removeAttribute("style");
+                else shell.setAttribute("style", shellStyle);
+                if (contentStyle === null) contentNode.removeAttribute("style");
+                else contentNode.setAttribute("style", contentStyle);
+            }
+        }
+
+        function fitHeight() {
+            assertActive();
+            drag.stop();
+            if (layoutMode === "free") {
+                throw new TypeError("block.fitHeight() vereist layout: fixed-grid of flow-grid.");
+            }
+            if (minimizedValue) {
+                return Object.freeze({ columns: spanColumns, rows: spanRows, changed: false });
+            }
+            const style = getComputedStyle(surface);
+            const rowGap = Number.parseFloat(style.rowGap) || 0;
+            const rowStep = gridMetrics().rowStep;
+            if (!(rowStep > rowGap)) {
+                throw new RangeError("block.fitHeight() kan de rijhoogte van het gekoppelde raster niet meten.");
+            }
+            const nextRows = Math.max(1, Math.ceil((intrinsicHeight() + rowGap) / rowStep));
+            const changed = nextRows !== spanRows;
+            if (changed) {
+                const nextLayout = {
+                    columns: spanColumns,
+                    rows: nextRows,
+                    column: placeColumn,
+                    row: placeRow
+                };
+                assertLayoutFits(id, nextLayout);
+                applyLayout(nextLayout);
+                syncResizeInteractionState();
+            }
+            return Object.freeze({ columns: spanColumns, rows: spanRows, changed });
+        }
+
         function place(x, y) {
             assertActive();
             drag.stop();
@@ -1768,6 +1853,7 @@ export function createBlocksSystem(options = {}) {
             content: contentNode,
             menu,
             span,
+            fitHeight,
             place,
             describe,
             remove
@@ -1837,6 +1923,7 @@ export function createBlocksSystem(options = {}) {
         attach,
         setGrid,
         compact,
+        fitHeight,
         add,
         exportLayout,
         restoreLayout,

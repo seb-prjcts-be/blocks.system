@@ -451,7 +451,7 @@ assert.ok(referenceOrder.every((id, index) => index === 0 || referenceSectionsSo
 
 const serializedReference = JSON.stringify(docsContent.reference);
 for (const apiName of [
-  "createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "compact()",
+  "createBlocksSystem(options?)", "system", "attach(target)", "setGrid(columns, rows)", "compact()", "fitHeight()",
   "columns", "rows", "layout", "draggable", "resizable", "labels", "colorArray", "colorVariation", "inversionVariation",
   "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)",
   "exportLayout()", "restoreLayout(layout)", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",

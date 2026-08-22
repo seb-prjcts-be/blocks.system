@@ -214,11 +214,11 @@ blocks.register({
 ## API map
 
 - Creation: `createBlocksSystem({ layout, draggable, resizable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
-- Shared system: `attach`, `setGrid`, `compact`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
+- Shared system: `attach`, `setGrid`, `compact`, `fitHeight`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- One block: `menu`, `minimized`, `draggable`, `span`, `place`, `describe`, `variant`, `color`, `remove`.
+- One block: `menu`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `describe`, `variant`, `color`, `remove`.
 
 Accessible menu labels follow the document language (`nl` or English) and can
 be overridden with `createBlocksSystem({ labels: { move, resize, minimize, restore,
@@ -254,6 +254,13 @@ intentional until the application calls `compact()`. Removing a flow-grid block
 reflows naturally because DOM order is the layout.
 The field emits `blocks:change` for `compact`, `minimize`, `restore` and
 `remove`.
+Use `block.fitHeight()` after content changes to measure its real rendered
+height at the current width and apply the smallest whole-row span. Use
+`blocks.fitHeight()` to fit all live blocks, or pass an iterable of live block
+IDs to `blocks.fitHeight(ids)` in a mixed composition. The consumer remains
+responsible for repacking or resizing the total grid afterwards. Measure only
+content-driven blocks: media that deliberately fills an application-owned span
+must keep that span instead of being included in the selected measurement.
 Trackpad and wheel input over ordinary block content continues scrolling the
 page; only genuinely overflowing inner content scrolls locally first.
 The measured mechanics and boundaries are recorded in
