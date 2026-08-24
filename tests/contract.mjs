@@ -33,6 +33,7 @@ assert.deepEqual(singleton.labels, {
   resize: "resize",
   restore: "restore",
   minimize: "minimize",
+  dock: "close to the left dock",
   close: "close",
   copy: "copy content",
   copied: "content copied",
@@ -257,7 +258,7 @@ const defaultMenuBlock = configured.add("<p>default menu</p>", {
   title: "default menu"
 });
 assert.equal(defaultMenuBlock.element.children[0].children[0].textContent, "default menu", "an automatic menu must use the block title");
-assert.equal(defaultMenuBlock.element.children[0].children[1].children.length, 2, "blockDefaults.menu must apply shared minimize and close controls");
+assert.equal(defaultMenuBlock.element.children[0].children[1].children.length, 3, "explicit minimize and close controls must augment the standard dock control");
 assert.equal(defaultMenuBlock.element.children[0].children[0].tabIndex, -1, "an initially locked system must keep automatic menu handles outside the tab order");
 assert.equal(defaultMenuBlock.element.children[0].getAttribute("role"), null, "a menu containing action buttons must remain a structural header");
 const untitledMenuBlock = configured.add("<p>untitled menu</p>", {
@@ -269,7 +270,7 @@ assert.equal(
   "an omitted title must not turn the block id into visible menu text"
 );
 assert.match(
-  untitledMenuBlock.element.children[0].children[1].children[1].getAttribute("aria-label"),
+  untitledMenuBlock.element.children[0].children[1].children[2].getAttribute("aria-label"),
   /untitled-menu.*close/,
   "an untitled menu must retain the id as its accessible action name"
 );
@@ -278,7 +279,7 @@ const overriddenMenuBlock = configured.add("<p>overridden menu</p>", {
   title: "overridden menu",
   menu: { minimize: false }
 });
-assert.equal(overriddenMenuBlock.element.children[0].children[1].children.length, 1, "a local menu override must inherit close while disabling minimize");
+assert.equal(overriddenMenuBlock.element.children[0].children[1].children.length, 2, "a local menu override must inherit dock and close while disabling minimize");
 const copiedMenuBlock = configured.add("<p>copied menu</p>", {
   id: "copied-menu",
   title: "copied menu",
@@ -354,8 +355,8 @@ assert.deepEqual(savedFlowLayout, {
   version: 1,
   layout: "flow-grid",
   blocks: [
-    { id: "flow-bravo", span: [2, 2], place: null, minimized: false },
-    { id: "flow-alpha", span: [1, 3], place: null, minimized: true }
+    { id: "flow-bravo", span: [2, 2], place: null, minimized: false, docked: false },
+    { id: "flow-alpha", span: [1, 3], place: null, minimized: true, docked: false }
   ]
 }, "layout export must preserve DOM order, spans, placement and minimized state without content");
 
@@ -400,8 +401,8 @@ assert.deepEqual(responsiveFixed.exportLayout(), {
   version: 1,
   layout: "fixed-grid",
   blocks: [
-    { id: "responsive-lead", span: [1, 4], place: null, minimized: false },
-    { id: "responsive-detail", span: [1, 2], place: null, minimized: true }
+    { id: "responsive-lead", span: [1, 4], place: null, minimized: false, docked: false },
+    { id: "responsive-detail", span: [1, 2], place: null, minimized: true, docked: false }
   ]
 }, "fixed-grid restore must support a consumer breakpoint change while preserving order and state");
 assert.equal(responsiveLead.element.style.getPropertyValue("--block-span-columns"), "1", "responsive restore must apply the compact lead span");
@@ -509,7 +510,7 @@ const minConfigured = createMinBlocksSystem({
   colorArray: ["yellow", "blue", "yellow"],
   colorVariation: 0.2,
   inversionVariation: 0.5,
-  blockDefaults: { menu: { close: true } }
+  blockDefaults: { menu: { close: true, minimize: true } }
 });
 const minConfiguredField = new TestElement();
 minConfigured.attach(minConfiguredField);
@@ -524,7 +525,7 @@ assert.equal(minConfigured.draggable, configured.draggable, "source and minified
 assert.deepEqual(minConfigured.colorArray, configured.colorArray, "source and minified creation-time color arrays must match");
 assert.equal(minConfigured.colorVariation, configured.colorVariation, "source and minified creation-time color variation must match");
 assert.equal(minConfigured.inversionVariation, configured.inversionVariation, "source and minified creation-time inversion variation must match");
-assert.equal(minDefaultMenuBlock.element.children[0].children[1].children.length, 2, "source and minified block menu defaults must match");
+assert.equal(minDefaultMenuBlock.element.children[0].children[1].children.length, 3, "source and minified block menu defaults must match");
 assert.equal(minDefaultMenuBlock.element.style.getPropertyValue("--block-color"), defaultMenuBlock.element.style.getPropertyValue("--block-color"), "source and minified direct block colors must match");
 assert.equal(minDefaultMenuBlock.element.style.getPropertyValue("--block-menu-color"), "var(--blocks-ink-color)", "direct block colors must keep a readable neutral menu fallback outside a rendered browser");
 
@@ -639,7 +640,7 @@ assert.equal(local.rows, 4, "setGrid must expose the current row count");
 assert.throws(function () { local.columns = 9; }, TypeError, "grid columns must remain read-only");
 assert.throws(function () { local.rows = 9; }, TypeError, "grid rows must remain read-only");
 const object = local.add("<p>span</p>", { id: "span-test" });
-assert.equal(object.element.children[0].children[1].children.length, 2, "blocks must gain minimize and close controls by default");
+assert.equal(object.element.children[0].children[1].children.length, 1, "blocks must gain only the reversible dock control by default");
 assert.equal(object.draggable, true, "blocks must be individually draggable by default");
 assert.equal(object.element.getAttribute("data-block-draggable"), "true", "the effective per-block drag state must be exposed to CSS");
 assert.equal(object.minimized, false, "blocks must start restored unless configured otherwise");
@@ -660,14 +661,13 @@ assert.equal(object.element.style.getPropertyValue("--block-column"), "2", "plac
 assert.equal(object.element.style.getPropertyValue("--block-row"), "2", "place y must set a one-based row");
 assert.equal("flow" in object, false, "fixed-grid blocks must not expose a second placement mode");
 object.menu("span");
-assert.equal(object.element.children[0].children[1].children.length, 2, "menu() must use the same minimize and close defaults as add()");
+assert.equal(object.element.children[0].children[1].children.length, 1, "menu() must use the same dock-only default as add()");
 assert.equal(object.element.children[0].children[0].tabIndex, 0, "a draggable title handle must be keyboard-focusable");
 assert.equal(object.element.children[0].children[0].getAttribute("role"), "button", "a draggable title handle must expose its interaction role");
 assert.match(object.element.children[0].children[0].getAttribute("aria-label"), /arrow keys/, "a draggable title handle must explain its keyboard control in the configured language");
 assert.equal(object.element.children[0].children[0].getAttribute("aria-keyshortcuts"), "ArrowLeft ArrowUp ArrowRight ArrowDown", "a draggable title handle must publish its supported keys");
 assert.equal(object.element.children[0].getAttribute("role"), null, "the menu header must not wrap action buttons in an interactive role");
-assert.match(object.element.children[0].children[1].children[0].getAttribute("aria-label"), /minimize/, "the minimize control must use the configured label");
-assert.match(object.element.children[0].children[1].children[1].getAttribute("aria-label"), /close/, "the close control must use the configured label");
+assert.match(object.element.children[0].children[1].children[0].getAttribute("aria-label"), /left dock/, "the dock control must explain its reversible destination");
 local.draggable = false;
 assert.equal(object.element.children[0].children[0].tabIndex, -1, "a locked title handle must leave the keyboard tab order");
 assert.equal(object.element.children[0].children[0].getAttribute("role"), null, "a locked title must not promise a button interaction");
@@ -689,6 +689,15 @@ assert.equal(object.element.style.getPropertyValue("--block-span-columns"), "2",
 object.minimized = false;
 assert.equal(object.element.getAttribute("data-block-minimized"), "false", "restoring must expose the normal state");
 assert.equal(object.content.getAttribute("aria-hidden"), "false", "restoring must reveal content accessibly");
+object.docked = true;
+assert.equal(object.docked, true, "a block must expose its docked state");
+assert.equal(object.element.getAttribute("data-block-docked"), "true", "docked state must be exposed to CSS");
+assert.equal(object.content.getAttribute("aria-hidden"), "true", "docked content must leave the accessibility tree");
+assert.notEqual(object.element.parentElement, local.field, "a docked block must leave the grid surface's direct object children");
+assert.equal(local.exportLayout().blocks.find((entry) => entry.id === object.id).docked, true, "content-free layout export must retain dock state");
+object.dock(false);
+assert.equal(object.docked, false, "dock(false) must restore a block reversibly");
+assert.equal(object.element.parentElement, local.field, "restoring must return the block to the grid surface");
 assert.throws(function () { object.span(0, 1); }, /positieve gehele/, "invalid spans must fail early");
 assert.throws(function () { object.span(5, 1); }, /past niet/, "a block cannot span beyond its grid");
 assert.throws(function () { object.place(0, 1); }, /positieve gehele/, "invalid positions must fail early");
@@ -716,6 +725,7 @@ const dutch = createBlocksSystem({
     move: "bewegen",
     restore: "openen",
     minimize: "inklappen",
+    dock: "links bewaren",
     close: "verwijderen",
     copy: "inhoud meenemen",
     copied: "inhoud klaar",
@@ -723,6 +733,7 @@ const dutch = createBlocksSystem({
   }
 });
 assert.equal(dutch.labels.close, "verwijderen", "consumers must be able to configure accessible labels");
+assert.equal(dutch.labels.dock, "links bewaren", "consumers must be able to configure the dock label");
 assert.equal(dutch.labels.copy, "inhoud meenemen", "consumers must be able to configure copy feedback labels");
 assert.throws(function () { createBlocksSystem({ labels: { close: "" } }); }, /labels\.close mag niet leeg/, "empty accessible labels must fail early");
 assert.match(source, /mode:\s*detail\.mode[\s\S]*fromIndex:[\s\S]*toIndex:[\s\S]*direction:/, "reorder events must expose one stable detail shape");

@@ -57,7 +57,7 @@ async function measureHome(width, height, dpr = 1) {
       draggable: field.dataset.draggable,
       devicePixelRatio: window.devicePixelRatio,
       nestedSurfaces: field.querySelectorAll(".blocks-system-surface").length,
-      menuActionCount: field.querySelectorAll(".blocks-system-minimize, .blocks-system-close").length,
+      menuActionCount: field.querySelectorAll(".blocks-system-dock-toggle").length,
       outsideBoard: objects.filter(function (block) {
         const rect = block.getBoundingClientRect();
         return rect.left < fieldRect.left - 0.5 || rect.right > fieldRect.right + 0.5;
@@ -473,42 +473,34 @@ async function exerciseBlockActions(boardSelector) {
       const objects = Array.from(board.querySelectorAll(":scope > .blocks-system-object"));
       const block = objects[0];
       const content = block.querySelector(":scope > .blocks-system-content");
-      const minimize = block.querySelector(":scope > .blocks-system-menu .blocks-system-minimize");
-      const close = block.querySelector(":scope > .blocks-system-menu .blocks-system-close");
+      const dock = block.querySelector(":scope > .blocks-system-menu .blocks-system-dock-toggle");
       const initial = {
         blockCount: objects.length,
+        dockCount: board.querySelectorAll(".blocks-system-dock-toggle").length,
         minimizeCount: board.querySelectorAll(".blocks-system-minimize").length,
         closeCount: board.querySelectorAll(".blocks-system-close").length,
-        minimizeLabel: minimize?.getAttribute("aria-label") || null,
-        closeLabel: close?.getAttribute("aria-label") || null
+        dockLabel: dock?.getAttribute("aria-label") || null
       };
-      minimize.click();
+      dock.click();
       await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
-      const minimized = {
-        state: block.getAttribute("data-block-minimized"),
+      const docked = {
+        state: block.getAttribute("data-block-docked"),
         contentHidden: content.getAttribute("aria-hidden"),
-        pressed: minimize.getAttribute("aria-pressed"),
-        symbol: minimize.textContent
+        pressed: dock.getAttribute("aria-pressed"),
+        symbol: dock.textContent,
+        outsideGrid: block.parentElement.classList.contains("blocks-system-dock"),
+        directCount: board.querySelectorAll(":scope > .blocks-system-object").length
       };
-      minimize.click();
+      dock.click();
       await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
       const restored = {
-        state: block.getAttribute("data-block-minimized"),
+        state: block.getAttribute("data-block-docked"),
         contentHidden: content.getAttribute("aria-hidden"),
-        pressed: minimize.getAttribute("aria-pressed"),
-        symbol: minimize.textContent
+        pressed: dock.getAttribute("aria-pressed"),
+        symbol: dock.textContent,
+        directCount: board.querySelectorAll(":scope > .blocks-system-object").length
       };
-      const removedId = block.dataset.blockObject;
-      close.click();
-      await new Promise(function (resolveFrame) { requestAnimationFrame(resolveFrame); });
-      return {
-        initial,
-        minimized,
-        restored,
-        removedId,
-        blockCountAfterClose: board.querySelectorAll(":scope > .blocks-system-object").length,
-        removedFromDom: !board.querySelector('[data-block-object="' + removedId + '"]')
-      };
+      return { initial, docked, restored };
     })()`,
     awaitPromise: true,
     returnByValue: true
@@ -516,29 +508,30 @@ async function exerciseBlockActions(boardSelector) {
   return result.result.value;
 }
 
-function assertBlockActions(state, page, expectedBlockCount, expectedMinimizeCount = expectedBlockCount, expectedCloseCount = expectedBlockCount) {
-  const { minimizeLabel, closeLabel, ...initialCounts } = state.initial;
+function assertBlockActions(state, page, expectedBlockCount) {
+  const { dockLabel, ...initialCounts } = state.initial;
   assert.deepEqual(initialCounts, {
     blockCount: expectedBlockCount,
-    minimizeCount: expectedMinimizeCount,
-    closeCount: expectedCloseCount
-  }, `${page} toont niet op elk block beide toegankelijke acties`);
-  assert.match(minimizeLabel, / minimize$/, `${page} benoemt de minimaliseeractie niet toegankelijk`);
-  assert.match(closeLabel, / close$/, `${page} benoemt de sluitactie niet toegankelijk`);
-  assert.deepEqual(state.minimized, {
+    dockCount: expectedBlockCount,
+    minimizeCount: 0,
+    closeCount: 0
+  }, `${page} toont niet uitsluitend de omkeerbare dockactie`);
+  assert.match(dockLabel, /left dock$/, `${page} benoemt de dockactie niet toegankelijk`);
+  assert.deepEqual(state.docked, {
     state: "true",
     contentHidden: "true",
     pressed: "true",
-    symbol: "+"
-  }, `${page} minimaliseert het block niet volledig`);
+    symbol: "+",
+    outsideGrid: true,
+    directCount: expectedBlockCount - 1
+  }, `${page} dockt het block niet compact buiten het raster`);
   assert.deepEqual(state.restored, {
     state: "false",
     contentHidden: "false",
     pressed: "false",
-    symbol: "−"
-  }, `${page} herstelt het block niet volledig`);
-  assert.equal(state.blockCountAfterClose, expectedBlockCount - 1, `${page} verwijdert geen block met sluiten`);
-  assert.equal(state.removedFromDom, true, `${page} laat het gesloten block in de DOM staan`);
+    symbol: "×",
+    directCount: expectedBlockCount
+  }, `${page} herstelt het gedockte block niet volledig`);
 }
 
 async function measureMainNavigation() {
@@ -802,6 +795,7 @@ async function measureManual(width, height, dpr = 1) {
           id,
           actions: Array.from(block.querySelectorAll(":scope > .blocks-system-menu button"), function (button) {
             if (button.classList.contains("blocks-system-copy")) return "copy";
+            if (button.classList.contains("blocks-system-dock-toggle")) return "dock";
             return button.classList.contains("blocks-system-minimize") ? "minimize" : "close";
           })
         };
@@ -1809,7 +1803,7 @@ try {
       assert.match(home.backgroundImage, /linear-gradient/, `home toont zijn constructieve raster niet op ${width}px @${dpr}x`);
       assert.equal(home.draggable, "true", `home start niet versleepbaar op ${width}px @${dpr}x`);
       assert.equal(home.nestedSurfaces, 0, `home bevat ${home.nestedSurfaces} geneste blocks-grids op ${width}px @${dpr}x`);
-      assert.equal(home.menuActionCount, 6, `home toont niet op elk block minimaliseren en sluiten op ${width}px @${dpr}x`);
+      assert.equal(home.menuActionCount, 3, `home toont niet op elk block één omkeerbare dockactie op ${width}px @${dpr}x`);
       assert.deepEqual(home.outsideBoard, [], `home plaatst blocks buiten het board op ${width}px @${dpr}x: ${home.outsideBoard.join(", ")}`);
       assert.deepEqual(home.clippedContent, [], `home knipt inhoud af op ${width}px @${dpr}x: ${home.clippedContent.join(", ")}`);
       assert.deepEqual(home.ids, ["home-title", "home-photo", "home-intro"], `home bewaart titel, foto en actie niet in leesvolgorde op ${width}px @${dpr}x`);
@@ -2082,8 +2076,8 @@ try {
     assert.equal(desktopManual.protectedBlocks.length, 64, "manual test niet elk libraryblok op zijn standaardinteractie");
     assert.deepEqual(desktopManual.protectedBlocks.filter(function (block) { return block.draggable === "false"; }).map(function (block) { return block.id; }), ["manual-drag-locked"], "manual moet exact één niet-versleepbaar block hebben");
     assert.ok(desktopManual.protectedBlocks.every(function (block) {
-      return block.actions === (block.id === "manual-menu-link" ? 3 : 2);
-    }), "alleen het copy-contentvoorbeeld mag naast minimaliseren en sluiten een derde actie tonen");
+      return block.actions === 1;
+    }), "ieder manualblock moet exact één doelgerichte titelbalkactie tonen");
     assert.ok(desktopManual.protectedBlocks.filter(function (block) { return block.id !== "manual-drag-locked"; }).every(function (block) {
       return block.draggable === "true" && block.tabIndex === 0 && block.role === "button" && block.ariaLabel;
     }), `standaardinteractie ontbreekt op manualblocks: ${JSON.stringify(desktopManual.protectedBlocks)}`);
@@ -2234,8 +2228,8 @@ try {
     });
     assert.equal(referenceInteractionsResult.result.value.length, 16, "reference mist blocks in de interactie-audit");
     assert.ok(referenceInteractionsResult.result.value.every(function (block) {
-      return block.actions === 2 && block.draggable === "true" && block.tabIndex === 0 && block.role === "button";
-    }), "reference gebruikt niet op elk block de standaardknoppen en sleepinteractie");
+      return block.actions === 1 && block.draggable === "true" && block.tabIndex === 0 && block.role === "button";
+    }), "reference gebruikt niet op elk block de standaard dock- en sleepinteractie");
     assert.ok(Math.abs(linearReference.boardTop - desktopManual.boardTop) <= 0.5, "manual en reference starten hun desktopgrid niet op dezelfde y-positie");
     const referenceDocumentNode = await protocol.send("DOM.getDocument");
     const referenceBlockNode = await protocol.send("DOM.querySelector", {
@@ -2442,11 +2436,11 @@ try {
     assert.ok(manual.colorBlockStyles.every((style) => style.objectBackground === "rgb(239, 238, 232)" && style.contentBackground === "rgb(239, 238, 232)"), `manual laat gebruikerskleur in het inhoudsvlak lekken op ${width}px`);
     assert.ok(manual.colorBlockStyles.every((style) => style.menuColor === "rgb(0, 0, 0)" && style.contentColor === "rgb(20, 20, 15)"), `manual bewaart geen neutrale inkt in gekleurde blocks op ${width}px`);
     assert.deepEqual(manual.menuExamples, [
-      { id: "manual-menu-both", actions: ["minimize", "close"] },
-      { id: "manual-menu-minimize", actions: ["minimize", "close"] },
-      { id: "manual-menu-close", actions: ["minimize", "close"] },
-      { id: "manual-menu-link", actions: ["copy", "minimize", "close"] }
-    ], `manual toont de standaard titelbalkacties niet op elk voorbeeld op ${width}px`);
+      { id: "manual-menu-both", actions: ["dock"] },
+      { id: "manual-menu-minimize", actions: ["minimize"] },
+      { id: "manual-menu-close", actions: ["close"] },
+      { id: "manual-menu-link", actions: ["copy"] }
+    ], `manual onderscheidt standaard dock en expliciete titelbalkacties niet op ${width}px`);
     assert.ok(manual.randomExamples.every(function (example) { return /^\d{2}$/.test(example.marker) && example.childCount === 1; }), `manual gebruikt nog generieke kaartinhoud in de kanscellen op ${width}px`);
     assert.equal(manual.contentExamples.trusted.tag, "ARTICLE", `manual toont trusted HTML niet als echte inhoud op ${width}px`);
     assert.match(manual.contentExamples.trusted.text, /Structure makes movement visible\./, `manual mist de typografische HTML-inhoud op ${width}px`);

@@ -104,7 +104,7 @@ when focused. Minimizing keeps the titlebar and releases the block's extra rows,
 so later blocks move up automatically.
 
 `exportLayout()` returns only layout state—the selected mode, ids, order, spans,
-fixed positions where applicable and minimized state, never block content. That makes `localStorage`
+fixed positions where applicable and minimized and docked state, never block content. That makes `localStorage`
 the simple fit for a personal layout on one browser. Keep role defaults in the
 application, then restore the local override with a role-specific key:
 
@@ -218,17 +218,21 @@ blocks.register({
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- One block: `menu`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `describe`, `variant`, `color`, `remove`.
+- One block: `menu`, `docked`, `dock`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `describe`, `variant`, `color`, `remove`.
 
 Accessible menu labels follow the document language (`nl` or English) and can
-be overridden with `createBlocksSystem({ labels: { move, resize, minimize, restore,
+be overridden with `createBlocksSystem({ labels: { move, resize, minimize, dock, restore,
 close, copy, copied, copyFailed } })`. A locked layout removes menu headers from
 the keyboard tab order; their action buttons remain available.
 
-Every new block starts with minimize and close controls. `title` is optional:
+Every new block starts with one reversible close action. It moves the block to
+a compact rail on the left, shows only its titlebar there and leaves no grid
+footprint; `block.dock(false)` restores its previous position. `title` is optional:
 when omitted, the titlebar has no visible text while the block `id` remains the
 accessible fallback name for its controls. Use `menu: false` to remove the whole
 titlebar, or `blockDefaults.menu` and a local `menu` object for exceptions.
+Destructive removal remains explicit through `remove()` or `menu.close: true`;
+in-place minimizing is opt-in through `menu.minimize: true`.
 Set `menu.copy: true` to add an opt-in button that copies the block's decoded,
 visible text and briefly confirms success or failure in the button.
 
@@ -252,8 +256,8 @@ and lets later blocks reflow upward.
 Removing a placed block never changes another fixed address; the gap remains
 intentional until the application calls `compact()`. Removing a flow-grid block
 reflows naturally because DOM order is the layout.
-The field emits `blocks:change` for `compact`, `minimize`, `restore` and
-`remove`.
+The field emits `blocks:change` for `compact`, `dock`, `undock`, `minimize`,
+`restore` and `remove`.
 Use `block.fitHeight()` after content changes to measure its real rendered
 height at the current width and apply the smallest whole-row span. Use
 `blocks.fitHeight()` to fit all live blocks, or pass an iterable of live block

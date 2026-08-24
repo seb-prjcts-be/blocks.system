@@ -248,7 +248,7 @@
     },
     "manual-menu": {
       "title": "03 / titlebar controls",
-      "intro": "Every block starts with minimize and close in its top-right corner. Copy content is opt-in and copies the decoded, visible text of that block. The API calls the titlebar configuration menu. A controller can also minimize, restore or remove its own block. Close removes an example; reset restores the full manual.",
+      "intro": "Every block starts with one reversible close-to-dock action. The compact left rail keeps only its titlebar and releases all grid space. Copy content, minimize and destructive remove controls are opt-in. The API calls the titlebar configuration menu. A controller can dock, restore, minimize or explicitly remove its own block. Reset restores the full manual.",
       "layout": {
         "place": [1, 21],
         "span": [2, 2]
@@ -259,11 +259,11 @@
       "code": [
         "const block = blocks.add(content, {",
         "  title: \"hello\",",
-        "  menu: { copy: true }",
+        "  menu: { dock: true, copy: true }",
         "});",
         "",
-        "block.minimized = true;",
-        "block.minimized = false;",
+        "block.dock(true);",
+        "block.dock(false);",
         "block.remove();"
       ],
       "layout": {
@@ -272,16 +272,16 @@
       }
     },
     "manual-menu-both": {
-      "title": "minimize",
-      "body": "Use − to collapse the content."
+      "title": "dock",
+      "body": "Use × to close the block reversibly into the left rail."
     },
     "manual-menu-minimize": {
-      "title": "restore",
-      "body": "Use + to show the content again."
+      "title": "minimize opt-in",
+      "body": "Use − only when menu.minimize is enabled explicitly."
     },
     "manual-menu-close": {
-      "title": "close",
-      "body": "Use × to remove one block."
+      "title": "remove opt-in",
+      "body": "Use remove only when menu.close is enabled explicitly."
     },
     "manual-menu-link": {
       "title": "copy content",
@@ -564,7 +564,7 @@
         "  colorArray: [],",
         "  colorVariation: 0,",
         "  inversionVariation: 1 / 3,",
-        "  blockDefaults: { menu: { minimize: true, close: true, copy: false } },",
+        "  blockDefaults: { menu: { dock: true, minimize: false, close: false, copy: false } },",
         "  blocks: []",
         "});"
       ],
@@ -575,7 +575,7 @@
         { "id": "api-window", "cells": ["property · window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] },
         { "cells": ["option · catalogUrl", "string | URL | null · null", "Base URL used by address() when a block has no url of its own."] },
         { "cells": ["option · font", "{ family, href? } | null · null", "Set a family and optional stylesheet URL; blocks.font remains writable."] },
-        { "cells": ["option · labels", "Partial<{ move, resize, restore, minimize, close, copy, copied, copyFailed }>", "Override resolved accessible labels; blocks.labels is readonly."] },
+        { "cells": ["option · labels", "Partial<{ move, resize, restore, minimize, dock, close, copy, copied, copyFailed }>", "Override resolved accessible labels; blocks.labels is readonly."] },
         { "cells": ["option · blocks", "BlockDefinition[] · []", "Register definitions during creation."] }
       ]
     },
@@ -614,7 +614,7 @@
         "const block = blocks.add(content, {",
         "  id: \"hello\",",
         "  title: \"hello\",",
-        "  menu: { minimize: true, close: true, copy: false },",
+        "  menu: { dock: true, minimize: false, close: false, copy: false },",
         "  variant: \"regular\",",
         "  minimized: false,",
         "  draggable: true",
@@ -625,7 +625,7 @@
         { "id": "api-add", "cells": ["method · add(content, options?)", "block", "Add content and return one BlockController; every option is shown above."] },
         { "cells": ["option · id", "string", "Stable id; generated when omitted."] },
         { "cells": ["option · title", "string", "Optional visible titlebar text. Without it, id remains only the accessible fallback for actions."] },
-        { "cells": ["option · menu", "boolean | { minimize?, close?, copy? }", "Configure titlebar controls for this block."] },
+        { "cells": ["option · menu", "boolean | { dock?, minimize?, close?, copy? }", "Configure titlebar controls for this block."] },
         { "cells": ["option · variant", "string", "Override the system appearance for this block."] },
         { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
         { "cells": ["option · draggable", "boolean · true", "Allow this block to move while the system remains draggable."] }
@@ -650,7 +650,7 @@
         { "id": "api-fit-height-block", "cells": ["method · block.fitHeight()", "{ columns, rows, changed }", "Measure one content-driven block at its current width; application-owned fixed media spans remain untouched when not called."] },
         { "id": "api-fit-height-system", "cells": ["method · blocks.fitHeight(ids?)", "measurement[]", "Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span."] },
         { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based coordinates in fixed-grid; other modes reject the call."] },
-        { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place and minimized state."] },
+        { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place, minimized and docked state."] },
         { "cells": ["method · restoreLayout(layout)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones."] },
         { "cells": ["property · resize size", "{ columns, rows }", "Resize event sizes use positive whole grid units."] }
       ],
@@ -669,7 +669,7 @@
     },
     "reference-titlebar": {
       "title": "titlebar controls",
-      "intro": "Configure minimize, close and the opt-in copy-content action when the system or block is created, or update one block later through its controller. Fixed-grid keeps a minimized block's assigned footprint; flow-grid reduces it to one titlebar row without changing DOM order.",
+      "intro": "The default titlebar closes reversibly to a compact left dock without retaining grid space. Configure opt-in minimize, destructive close and copy-content actions when the system or block is created, or update one block later through its controller. Fixed-grid keeps a minimized block's assigned footprint; flow-grid reduces it to one titlebar row. Fixed-grid leaves its address empty until an explicit compact() after destructive removal.",
       "code": [
         "block.menu(\"hello\", {",
         "  minimize: true,",
@@ -679,14 +679,17 @@
       ],
       "headers": ["kind + contract", "type or returns", "purpose"],
       "rows": [
-        { "cells": ["option · blockDefaults.menu", "boolean | object", "Default titlebar controls for new blocks; minimize and close are both enabled initially."] },
+        { "cells": ["option · blockDefaults.menu", "boolean | object", "Default titlebar controls for new blocks; reversible dock is enabled initially, while minimize and destructive close are opt-in."] },
         { "cells": ["option · menu", "boolean | object", "Enable, disable or configure controls for one new block."] },
+        { "cells": ["option · menu.dock", "boolean · true", "Show reversible close to and restore from the compact left dock."] },
         { "cells": ["option · menu.minimize", "boolean", "Show minimize and restore."] },
         { "cells": ["option · menu.close", "boolean", "Show remove."] },
         { "cells": ["option · menu.copy", "boolean · false", "Copy decoded visible block text and show brief success or failure feedback."] },
         { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
         { "cells": ["property · block.minimized", "boolean", "Read or change the current minimized state."] },
-        { "id": "api-menu", "cells": ["method · menu(name, options?)", "block", "Add or update the titlebar; options accepts minimize, close and copy."] },
+        { "cells": ["property · block.docked", "boolean", "Read or change whether the block lives in the compact dock."] },
+        { "cells": ["method · block.dock(value?)", "void", "Dock the block by default, or pass false to restore it."] },
+        { "id": "api-menu", "cells": ["method · menu(name, options?)", "block", "Add or update the titlebar; options accepts dock, minimize, close and copy."] },
         { "cells": ["method · remove()", "true", "Remove the block. Fixed-grid leaves its address empty until an explicit compact(); flow-grid closes the gap automatically through DOM order."] }
       ]
     },

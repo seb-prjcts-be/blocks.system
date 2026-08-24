@@ -350,24 +350,24 @@ const wavesHost = document.createElement("div");
 wavesHost.className = "manual-content-demo manual-content-waves-demo";
 add({ id: "manual-content-waves-intro", title: content["manual-content-waves-intro"].title, blockContent: introCard(content["manual-content-waves-intro"]), span: content["manual-content-waves-intro"].layout.span, place: content["manual-content-waves-intro"].layout.place });
 add({ id: "manual-content-waves-code", title: content["manual-content-waves-code"].title, blockContent: codeOnlyCard(content["manual-content-waves-code"]), span: content["manual-content-waves-code"].layout.span, place: content["manual-content-waves-code"].layout.place, classes: ["manual-content-code-block"] });
-const wavesBlock = add({ id: "manual-content-waves", title: content["manual-content-waves"].title, blockContent: wavesHost, span: content["manual-content-waves"].layout.span, place: content["manual-content-waves"].layout.place, classes: ["manual-content-result-block"] });
+const wavesBlock = add({ id: "manual-content-waves", title: content["manual-content-waves"].title, blockContent: wavesHost, span: content["manual-content-waves"].layout.span, place: content["manual-content-waves"].layout.place, menu: { dock: false, close: true }, classes: ["manual-content-result-block"] });
 wavesBlock.element.style.setProperty("--blocks-content-padding", "0px");
 mountVanillaWavesDemo(wavesHost);
 
 add({ id: "manual-menu", title: content["manual-menu"].title, blockContent: introCard(content["manual-menu"]), span: content["manual-menu"].layout.span, place: content["manual-menu"].layout.place, anchor: "menu", classes: ["manual-chapter-start"] });
 add({ id: "manual-menu-code", title: content["manual-menu-code"].title, blockContent: codeOnlyCard(content["manual-menu-code"]), span: content["manual-menu-code"].layout.span, place: content["manual-menu-code"].layout.place });
-for (const [id, column, row] of [
-  ["manual-menu-both", 1, 23],
-  ["manual-menu-minimize", 4, 23],
-  ["manual-menu-close", 1, 24]
-]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 1], place: [column, row], classes: ["manual-half"] });
+for (const [id, column, row, menu] of [
+  ["manual-menu-both", 1, 23, undefined],
+  ["manual-menu-minimize", 4, 23, { dock: false, minimize: true }],
+  ["manual-menu-close", 1, 24, { dock: false, close: true }]
+]) add({ id, title: content[id].title, blockContent: specimen(content[id]), span: [3, 1], place: [column, row], menu, classes: ["manual-half"] });
 add({
   id: "manual-menu-link",
   title: content["manual-menu-link"].title,
   blockContent: specimen(content["manual-menu-link"]),
   span: [3, 1],
   place: [4, 24],
-  menu: { copy: true },
+  menu: { dock: false, copy: true },
   classes: ["manual-half"]
 });
 add({ id: "manual-layout", title: content["manual-layout"].title, blockContent: introCard(content["manual-layout"]), span: content["manual-layout"].layout.span, place: content["manual-layout"].layout.place });

@@ -132,6 +132,35 @@
     display: none;
 }
 
+/* Gesloten blocks leven buiten het raster in een compacte, omkeerbare rail.
+   Daardoor blijft geen lege gridcel achter en blijft remove() gereserveerd
+   voor een expliciet destructieve consumeractie. */
+.blocks-system-dock {
+    box-sizing: border-box;
+    position: absolute;
+    z-index: 900;
+    inset-block-start: var(--blocks-gap);
+    inset-inline-start: var(--blocks-gap);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: min(180px, calc(100% - 2 * var(--blocks-gap)));
+    pointer-events: none;
+}
+
+.blocks-system-dock > .blocks-system-object[data-block-docked="true"] {
+    width: 100%;
+    min-height: 22px;
+    height: 22px;
+    pointer-events: auto;
+    box-shadow: 3px 3px 0 rgb(0 0 0 / 16%);
+}
+
+.blocks-system-object[data-block-docked="true"] .blocks-system-content,
+.blocks-system-object[data-block-docked="true"] .blocks-system-minimize {
+    display: none;
+}
+
 .blocks-system-object[data-block-variant="inverse"] {
     --block-color: var(--blocks-paper-color);
     --block-paper-color: var(--blocks-ink-color);
@@ -176,6 +205,7 @@
 }
 
 .blocks-system-copy,
+.blocks-system-dock-toggle,
 .blocks-system-minimize,
 .blocks-system-close {
     align-self: center;
@@ -194,6 +224,7 @@
 }
 
 .blocks-system-copy:hover,
+.blocks-system-dock-toggle:hover,
 .blocks-system-minimize:hover,
 .blocks-system-close:hover {
     opacity: 1;

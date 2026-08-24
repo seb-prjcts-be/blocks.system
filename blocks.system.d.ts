@@ -11,6 +11,7 @@ export interface BlocksLabels {
   resize: string;
   restore: string;
   minimize: string;
+  dock: string;
   close: string;
   copy: string;
   copied: string;
@@ -24,6 +25,7 @@ export interface BlocksLayoutEntry {
   span: readonly [columns: number, rows: number];
   place: readonly [column: number, row: number] | null;
   minimized: boolean;
+  docked: boolean;
 }
 
 export interface BlocksLayout {
@@ -83,6 +85,8 @@ export interface AddBlockOptions {
 }
 
 export interface BlockMenuOptions {
+  /** Show the reversible close-to-dock action. Defaults to true. */
+  dock?: boolean;
   close?: boolean;
   minimize?: boolean;
   /** Show a button that copies the block's decoded visible text. Defaults to false. */
@@ -100,8 +104,11 @@ export interface BlockController {
   color: string;
   variant: string;
   minimized: boolean;
+  docked: boolean;
   draggable: boolean;
   menu(name: string, options?: boolean | BlockMenuOptions): BlockController;
+  /** Move the block to or from the compact dock without deleting it. */
+  dock(value?: boolean): void;
   span(columns: number, rows: number): BlockController;
   /** Fit the row span to the block's rendered content at its current width. */
   fitHeight(): Readonly<{ columns: number; rows: number; changed: boolean }>;
@@ -203,7 +210,7 @@ export interface BlocksSystem {
   add(content: BlockContent, options?: AddBlockOptions): BlockController;
   /** Export content-free layout state in current DOM order. */
   exportLayout(): BlocksLayout;
-  /** Restore known block order, spans, optional fixed positions and minimized state. */
+  /** Restore known block order, spans, optional fixed positions, minimized and docked state. */
   restoreLayout(layout: BlocksLayout): BlocksSystem;
   mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
   unmount(target: string | Element): boolean;

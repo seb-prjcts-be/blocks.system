@@ -319,33 +319,33 @@ assert.match(manualHtml, /vendor\/vanilla\.waves-0\.3\.1\.min\.js[\s\S]*manual\.
 assert.deepEqual(docsContent.manual["manual-menu"].layout, { place: [1, 21], span: [2, 2] }, "manual 03 explanation must be 2×2");
 assert.deepEqual(docsContent.manual["manual-menu-code"].layout, { place: [3, 21], span: [4, 2] }, "manual 03 code must be 4×2");
 assert.equal(docsContent.manual["manual-menu"].title, "03 / titlebar controls", "manual 03 must use the human-facing titlebar term");
-assert.match(docsContent.manual["manual-menu"].intro, /top-right corner[\s\S]*API[\s\S]*menu/, "manual 03 must locate the buttons and bridge to the real menu API term");
+assert.match(docsContent.manual["manual-menu"].intro, /left rail[\s\S]*API[\s\S]*menu/, "manual 03 must locate the dock and bridge to the real menu API term");
 for (const id of ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-link"]) {
   assert.equal("eyebrow" in docsContent.manual[id], false, `${id} must not repeat the titlebar label inside its compact result`);
   assert.equal("statement" in docsContent.manual[id], false, `${id} must not repeat its title inside its compact result`);
   assert.match(docsContent.manual[id].body, /^(?:Use|Reset)/, `${id} must explain one visible titlebar action in plain language`);
 }
 assert.match(siteDemos["docs/manual.mjs"], /\["manual-menu-both", 1, 23[\s\S]*\["manual-menu-minimize", 4, 23[\s\S]*\["manual-menu-close", 1, 24[\s\S]*span: \[3, 1\]/, "manual 03 must keep three compact default-action examples");
-assert.match(siteDemos["docs/manual.mjs"], /id: "manual-menu-link"[\s\S]*span: \[3, 1\][\s\S]*place: \[4, 24\][\s\S]*menu: \{ copy: true \}/, "manual 03 must place the copy-content example in the fourth 3×1 cell");
+assert.match(siteDemos["docs/manual.mjs"], /id: "manual-menu-link"[\s\S]*span: \[3, 1\][\s\S]*place: \[4, 24\][\s\S]*menu: \{ dock: false, copy: true \}/, "manual 03 must place the copy-content example in the fourth 3×1 cell");
 assert.match(docsContent.manual["manual-menu"].intro, /copy content[\s\S]*opt-in/i, "manual 03 must explain that copy content is opt-in");
-assert.match(siteDemos["docs/manual.mjs"], /manual-menu-link[\s\S]*menu:\s*\{\s*copy:\s*true/, "manual 03 must render a working copy-content example");
+assert.match(siteDemos["docs/manual.mjs"], /manual-menu-link[\s\S]*menu:\s*\{\s*dock:\s*false,\s*copy:\s*true/, "manual 03 must render a working copy-content example");
 assert.deepEqual(docsContent.manual["manual-menu-code"].code, [
   "const block = blocks.add(content, {",
   '  title: "hello",',
-  "  menu: { copy: true }",
+  "  menu: { dock: true, copy: true }",
   "});",
   "",
-  "block.minimized = true;",
-  "block.minimized = false;",
+  "block.dock(true);",
+  "block.dock(false);",
   "block.remove();"
-], "manual 03 must show default controls and the opt-in copy-content setting");
+], "manual 03 must show reversible docking and the opt-in copy-content setting");
 assert.deepEqual(docsContent.manual["manual-layout"].layout, { place: [1, 8], span: [2, 1] }, "size and position must be one row high under setup");
 assert.equal(docsContent.manual["manual-layout"].title, "block size and position", "the setup sublesson must name the block that span and place control");
 assert.equal("manual-layout-code" in docsContent.manual, false, "size and position must not duplicate setup code in a separate block");
 assert.equal("manual-layout-result" in docsContent.manual, false, "setup must not show a result whose documentation-grid position obscures the example position");
 assert.ok(docsContent.manual["manual-start-b"].code.includes("block.span(4, 2);"), "setup code must own the size example");
 assert.ok(docsContent.manual["manual-start-b"].code.includes("block.place(1, 1);"), "setup code must own the position example");
-assert.ok(docsContent.manual["manual-start-b"].code.every((line) => !line.includes("menu:")), "setup code must rely on the standard minimize and close actions");
+assert.ok(docsContent.manual["manual-start-b"].code.every((line) => !line.includes("menu:")), "setup code must rely on the standard reversible dock action");
 assert.deepEqual(docsContent.manual["manual-drag"].layout, { place: [1, 26], span: [2, 1] }, "manual 04 dragging explanation must be compact 2×1");
 assert.deepEqual(docsContent.manual["manual-drag-code"].layout, { place: [3, 26], span: [4, 1] }, "manual 04 dragging code must be compact 4×1");
 assert.deepEqual([

@@ -107,7 +107,7 @@ de pijltjestoetsen hetzelfde. Minimaliseren behoudt de titelbalk maar geeft de
 extra rijen vrij, zodat volgende blocks automatisch opschuiven.
 
 `exportLayout()` geeft alleen layoutstatus terug—de gekozen modus, id's,
-volgorde, spans, vaste plaatsen waar van toepassing en minimaliseerstatus, nooit blockinhoud. Daarom past
+volgorde, spans, vaste plaatsen waar van toepassing en minimaliseer- en dockstatus, nooit blockinhoud. Daarom past
 `localStorage` goed voor een persoonlijke layout in één browser. Bewaar de
 standaard per rol in de toepassing en herstel daarna de lokale afwijking met
 een sleutel per rol:
@@ -227,18 +227,22 @@ blocks.register({
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- Eén block: `menu`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `describe`, `variant`, `color`, `remove`.
+- Eén block: `menu`, `docked`, `dock`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `describe`, `variant`, `color`, `remove`.
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
-overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, restore,
+overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, dock, restore,
 close, copy, copied, copyFailed } })`. Bij een vergrendelde layout verdwijnen
 menuheaders uit de toetsenbordvolgorde; hun actieknoppen blijven bereikbaar.
 
-Ieder nieuw block krijgt standaard minimaliseren en sluiten. `title` is
+Ieder nieuw block krijgt standaard één omkeerbare sluitactie. Die verplaatst het
+block naar een compacte rail links, toont daar alleen de titelbalk en laat geen
+rasterruimte achter; `block.dock(false)` herstelt het op zijn vorige positie. `title` is
 optioneel: zonder titel heeft de titelbalk geen zichtbare tekst, terwijl het
 block-`id` de toegankelijke fallbacknaam voor de knoppen blijft. Gebruik
 `menu: false` om de volledige titelbalk weg te laten, of `blockDefaults.menu` en
-een lokaal `menu`-object voor uitzonderingen.
+een lokaal `menu`-object voor uitzonderingen. Destructief verwijderen blijft
+een expliciete `remove()`-actie of `menu.close: true`; minimaliseren is alleen
+nog beschikbaar via `menu.minimize: true`.
 Met `menu.copy: true` verschijnt optioneel een knop die de gedecodeerde,
 zichtbare tekst van het block kopieert en succes of mislukking kort meldt.
 
@@ -263,7 +267,7 @@ in `flow-grid` behoudt het één titelbalkrij en schuiven latere blocks omhoog.
 Bij `remove()` veranderen de adressen van andere fixed-grid-blocks nooit; het
 gat blijft bewust bestaan totdat de toepassing `compact()` aanroept. In
 flow-grid herschikt verwijdering vanzelf door de DOM-volgorde. Het veld vuurt
-`blocks:change` voor `compact`, `minimize`, `restore` en `remove`.
+`blocks:change` voor `compact`, `dock`, `undock`, `minimize`, `restore` en `remove`.
 Gebruik `block.fitHeight()` na een inhoudswijziging om de werkelijk gerenderde
 hoogte op de huidige breedte te meten en de kleinste volledige rijspan toe te
 passen. `blocks.fitHeight()` doet dat voor alle levende blocks; geef in een

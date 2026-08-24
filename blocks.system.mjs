@@ -12,7 +12,7 @@ const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const LAYOUT_VERSION = 1;
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
-const DEFAULT_MENU_OPTIONS = Object.freeze({ close: true, minimize: true, copy: false });
+const DEFAULT_MENU_OPTIONS = Object.freeze({ dock: true, close: false, minimize: false, copy: false });
 const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h9c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H9Zm0-2h9V4H9v12ZM5 22c-1.1 0-2-.9-2-2V6h2v14h11v2H5Z"/></svg>';
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
@@ -20,6 +20,7 @@ const UI_LABELS = Object.freeze({
         resize: "resize",
         restore: "restore",
         minimize: "minimize",
+        dock: "close to the left dock",
         close: "close",
         copy: "copy content",
         copied: "content copied",
@@ -30,6 +31,7 @@ const UI_LABELS = Object.freeze({
         resize: "formaat wijzigen",
         restore: "herstellen",
         minimize: "minimaliseren",
+        dock: "links sluiten",
         close: "sluiten",
         copy: "inhoud kopiëren",
         copied: "inhoud gekopieerd",
@@ -43,9 +45,10 @@ function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.b
     const fallback = inherited || DEFAULT_MENU_OPTIONS;
     if (value === true) return fallback;
     if (!value || typeof value !== "object") {
-        throw new TypeError(`${path} verwacht true, false of een object met close, minimize en copy.`);
+        throw new TypeError(`${path} verwacht true, false of een object met dock, close, minimize en copy.`);
     }
     return Object.freeze({
+        dock: value.dock === undefined ? fallback.dock : Boolean(value.dock),
         close: value.close === undefined ? fallback.close : Boolean(value.close),
         minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize),
         copy: value.copy === undefined ? fallback.copy : Boolean(value.copy)
@@ -161,7 +164,7 @@ function normalizeLayoutSnapshot(value) {
         if (place !== null && (place.length !== 2 || place.some((unit) => !Number.isInteger(unit) || unit < 1))) {
             throw new TypeError(`Opgeslagen plaats van ${id} verwacht null of twee positieve gehele rastercoördinaten.`);
         }
-        return Object.freeze({ id, span, place, minimized: Boolean(entry.minimized) });
+        return Object.freeze({ id, span, place, minimized: Boolean(entry.minimized), docked: Boolean(entry.docked) });
     });
     return Object.freeze({ layout, entries });
 }
@@ -474,8 +477,10 @@ export function createBlocksSystem(options = {}) {
     const objectLayoutSetters = new Map();
     const menuInteractionSetters = new Map();
     const resizeInteractionSetters = new Map();
+    const dockedReturnIndices = new Map();
     const randomSource = typeof options.random === "function" ? options.random : Math.random;
     let surface = null;
+    let dock = null;
     let columns = 1;
     let rows = 1;
     const layoutMode = normalizeLayout(options.layout);
@@ -1128,11 +1133,32 @@ export function createBlocksSystem(options = {}) {
         return Array.from(surface.children).filter((element) => element.matches?.(".blocks-system-object"));
     }
 
+    function ensureDock() {
+        if (dock?.parentElement === surface) return dock;
+        dock = document.createElement("aside");
+        dock.className = "blocks-system-dock";
+        dock.setAttribute("aria-label", labels.dock);
+        surface.insertBefore(dock, surface.firstChild);
+        return dock;
+    }
+
+    function orderedObjectElements() {
+        const ordered = directObjectElements();
+        const docked = Array.from(objects.values())
+            .filter((block) => block.docked)
+            .sort((first, second) => (dockedReturnIndices.get(first.id) ?? ordered.length) - (dockedReturnIndices.get(second.id) ?? ordered.length));
+        for (const block of docked) {
+            const index = Math.max(0, Math.min(dockedReturnIndices.get(block.id) ?? ordered.length, ordered.length));
+            ordered.splice(index, 0, block.element);
+        }
+        return ordered;
+    }
+
     function exportLayout() {
         return {
             version: LAYOUT_VERSION,
             layout: layoutMode,
-            blocks: directObjectElements().map((element) => {
+            blocks: orderedObjectElements().map((element) => {
                 const id = element.getAttribute("data-block-object");
                 const layout = objectLayouts.get(id);
                 const block = objects.get(id);
@@ -1141,6 +1167,7 @@ export function createBlocksSystem(options = {}) {
                     span: [layout.columns, layout.rows],
                     place: layout.column === null || layout.row === null ? null : [layout.column, layout.row],
                     minimized: block.minimized,
+                    docked: block.docked,
                 };
             }),
         };
@@ -1181,6 +1208,7 @@ export function createBlocksSystem(options = {}) {
         }
 
         const savedIds = new Set(knownEntries.map((entry) => entry.id));
+        for (const entry of knownEntries) objects.get(entry.id).docked = false;
         const ordered = [
             ...knownEntries.map((entry) => objects.get(entry.id).element),
             ...directObjectElements().filter((element) => !savedIds.has(element.getAttribute("data-block-object"))),
@@ -1195,6 +1223,7 @@ export function createBlocksSystem(options = {}) {
             if (entry.place) block.place(...entry.place);
             block.minimized = entry.minimized;
         }
+        for (const entry of knownEntries) objects.get(entry.id).docked = entry.docked;
         return api;
     }
 
@@ -1349,11 +1378,13 @@ export function createBlocksSystem(options = {}) {
         let appearanceValue = resolveAppearance(addOptions.variant ?? variantMode);
         let variantValue = appearanceValue.variant;
         let minimizedValue = Boolean(addOptions.minimized);
+        let dockedValue = false;
         let draggableValue = addOptions.draggable === undefined ? true : Boolean(addOptions.draggable);
         const shell = document.createElement("section");
         shell.className = "blocks-system-object";
         shell.setAttribute("data-block-object", id);
         shell.setAttribute("data-block-minimized", String(minimizedValue));
+        shell.setAttribute("data-block-docked", "false");
         const contentNode = document.createElement("div");
         contentNode.className = "blocks-system-content";
         appendContent(contentNode, content);
@@ -1365,6 +1396,7 @@ export function createBlocksSystem(options = {}) {
         let actionsNode = null;
         let copyNode = null;
         let minimizeNode = null;
+        let dockNode = null;
         let closeNode = null;
         let copyFeedbackTimer = null;
         const resizeHandles = new Map();
@@ -1422,15 +1454,50 @@ export function createBlocksSystem(options = {}) {
 
         function syncMinimizedState() {
             shell.setAttribute("data-block-minimized", String(minimizedValue));
-            contentNode.setAttribute("aria-hidden", String(minimizedValue));
+            contentNode.setAttribute("aria-hidden", String(minimizedValue || dockedValue));
             if (!minimizeNode) return;
             minimizeNode.textContent = minimizedValue ? "+" : "−";
             minimizeNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${minimizedValue ? labels.restore : labels.minimize}`);
             minimizeNode.setAttribute("aria-pressed", String(minimizedValue));
         }
 
+        function syncDockedState() {
+            shell.setAttribute("data-block-docked", String(dockedValue));
+            contentNode.setAttribute("aria-hidden", String(dockedValue || minimizedValue));
+            if (!dockNode) return;
+            dockNode.textContent = dockedValue ? "+" : "×";
+            dockNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${dockedValue ? labels.restore : labels.dock}`);
+            dockNode.setAttribute("aria-pressed", String(dockedValue));
+        }
+
+        function setDocked(value) {
+            assertActive();
+            const nextValue = Boolean(value);
+            if (dockedValue === nextValue) return;
+            drag.stop();
+            stopResize();
+            if (nextValue) {
+                dockedReturnIndices.set(id, directObjectElements().indexOf(shell));
+                ensureDock().appendChild(shell);
+            } else {
+                const live = directObjectElements();
+                const index = Math.max(0, Math.min(dockedReturnIndices.get(id) ?? live.length, live.length));
+                surface.insertBefore(shell, live[index] || null);
+                dockedReturnIndices.delete(id);
+                if (dock && dock.children.length === 0) {
+                    dock.remove();
+                    dock = null;
+                }
+            }
+            dockedValue = nextValue;
+            syncDockedState();
+            syncMenuInteractionState();
+            syncResizeInteractionState();
+            emitChange({ type: dockedValue ? "dock" : "undock", id });
+        }
+
         function syncMenuInteractionState() {
-            const effectiveDraggable = draggableEnabled && draggableValue;
+            const effectiveDraggable = draggableEnabled && draggableValue && !dockedValue;
             shell.setAttribute("data-block-draggable", String(effectiveDraggable));
             if (!menuNode || !titleNode) return;
             menuNode.removeAttribute("tabindex");
@@ -1448,6 +1515,7 @@ export function createBlocksSystem(options = {}) {
             if (copyNode && copyNode.getAttribute("data-state") === null) {
                 copyNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.copy}`);
             }
+            if (dockNode) dockNode.setAttribute("aria-label", `${titleNode.textContent || id} ${dockedValue ? labels.restore : labels.dock}`);
             if (closeNode) closeNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.close}`);
         }
 
@@ -1612,7 +1680,8 @@ export function createBlocksSystem(options = {}) {
             const effectiveResizable =
                 resizableEnabled &&
                 layoutMode === "flow-grid" &&
-                !minimizedValue;
+                !minimizedValue &&
+                !dockedValue;
             shell.setAttribute("data-block-resizable", String(effectiveResizable));
             if (effectiveResizable) {
                 for (const axis of ["inline", "block"]) {
@@ -1673,7 +1742,12 @@ export function createBlocksSystem(options = {}) {
             objectLayoutSetters.delete(id);
             menuInteractionSetters.delete(id);
             resizeInteractionSetters.delete(id);
+            dockedReturnIndices.delete(id);
             shell.remove();
+            if (dock && dock.children.length === 0) {
+                dock.remove();
+                dock = null;
+            }
             emitChange({ type: "remove", id });
             return true;
         }
@@ -1738,7 +1812,7 @@ export function createBlocksSystem(options = {}) {
             if (layoutMode === "free") {
                 throw new TypeError("block.fitHeight() vereist layout: fixed-grid of flow-grid.");
             }
-            if (minimizedValue) {
+            if (minimizedValue || dockedValue) {
                 return Object.freeze({ columns: spanColumns, rows: spanRows, changed: false });
             }
             const style = getComputedStyle(surface);
@@ -1787,15 +1861,18 @@ export function createBlocksSystem(options = {}) {
             return block;
         }
 
-        function menu(name, close = true) {
+        function menu(name, close = undefined) {
             assertActive();
-            const menuOptions = close && typeof close === "object"
+            const menuOptions = close === undefined
+                ? DEFAULT_MENU_OPTIONS
+                : close && typeof close === "object"
                 ? {
+                    dock: close.dock === undefined ? DEFAULT_MENU_OPTIONS.dock : Boolean(close.dock),
                     close: close.close === undefined ? DEFAULT_MENU_OPTIONS.close : Boolean(close.close),
                     minimize: close.minimize === undefined ? DEFAULT_MENU_OPTIONS.minimize : Boolean(close.minimize),
                     copy: close.copy === undefined ? DEFAULT_MENU_OPTIONS.copy : Boolean(close.copy)
                 }
-                : { close: Boolean(close), minimize: true, copy: false };
+                : { dock: false, close: Boolean(close), minimize: true, copy: false };
             if (!menuNode) {
                 menuNode = document.createElement("header");
                 menuNode.className = "blocks-system-menu";
@@ -1830,6 +1907,16 @@ export function createBlocksSystem(options = {}) {
                 minimizeNode.remove();
                 minimizeNode = null;
             }
+            if (menuOptions.dock && !dockNode) {
+                dockNode = document.createElement("button");
+                dockNode.type = "button";
+                dockNode.className = "blocks-system-dock-toggle";
+                dockNode.addEventListener("click", () => setDocked(!dockedValue));
+                actionsNode.appendChild(dockNode);
+            } else if (!menuOptions.dock && dockNode) {
+                dockNode.remove();
+                dockNode = null;
+            }
             if (menuOptions.close && !closeNode) {
                 closeNode = document.createElement("button");
                 closeNode.type = "button";
@@ -1842,6 +1929,7 @@ export function createBlocksSystem(options = {}) {
                 closeNode = null;
             }
             syncMinimizedState();
+            syncDockedState();
             syncMenuInteractionState();
             syncResizeInteractionState();
             return block;
@@ -1855,6 +1943,7 @@ export function createBlocksSystem(options = {}) {
             span,
             fitHeight,
             place,
+            dock: setDocked,
             describe,
             remove
         };
@@ -1881,6 +1970,11 @@ export function createBlocksSystem(options = {}) {
             get: () => minimizedValue,
             set: setMinimized
         });
+        Object.defineProperty(controller, "docked", {
+            enumerable: true,
+            get: () => dockedValue,
+            set: setDocked
+        });
         Object.defineProperty(controller, "draggable", {
             enumerable: true,
             get: () => draggableValue,
@@ -1893,6 +1987,7 @@ export function createBlocksSystem(options = {}) {
         });
         syncAppearance();
         syncMinimizedState();
+        syncDockedState();
         block = Object.freeze(controller);
         objects.set(id, block);
         applyLayout({
