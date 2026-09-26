@@ -1511,7 +1511,7 @@ export function createBlocksSystem(options = {}) {
             dockNode.setAttribute("aria-pressed", String(dockedValue));
         }
 
-        function setDocked(value) {
+        function setDocked(value = true) {
             assertActive();
             const nextValue = Boolean(value);
             if (dockedValue === nextValue) return;
@@ -1525,6 +1525,14 @@ export function createBlocksSystem(options = {}) {
                 const index = Math.max(0, Math.min(dockedReturnIndices.get(id) ?? live.length, live.length));
                 surface.insertBefore(shell, live[index] || null);
                 dockedReturnIndices.delete(id);
+                if (layoutMode === "fixed-grid" && placeColumn !== null && placeRow !== null) {
+                    // Is de oude plaats intussen ingenomen, dan laat het block zijn vaste
+                    // adres los en stroomt het naar de eerstvolgende vrije cel.
+                    const mine = { columns: spanColumns, rows: spanRows, column: placeColumn, row: placeRow };
+                    const taken = Array.from(objectLayouts).some(([otherId, other]) =>
+                        otherId !== id && other.column !== null && other.row !== null && layoutsOverlap(mine, other));
+                    if (taken) applyLayout({ columns: spanColumns, rows: spanRows, column: null, row: null });
+                }
                 if (dock && dock.children.length === 0) {
                     dock.remove();
                     dock = null;
@@ -1538,7 +1546,8 @@ export function createBlocksSystem(options = {}) {
         }
 
         function syncMenuInteractionState() {
-            const effectiveDraggable = draggableEnabled && draggableValue && !dockedValue;
+            // De titelbalk is de sleepgreep; zonder menu is een block niet sleepbaar.
+            const effectiveDraggable = draggableEnabled && draggableValue && !dockedValue && Boolean(menuNode);
             shell.setAttribute("data-block-draggable", String(effectiveDraggable));
             if (!menuNode || !titleNode) return;
             menuNode.removeAttribute("tabindex");

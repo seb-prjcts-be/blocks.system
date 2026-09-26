@@ -309,7 +309,7 @@
     outline-offset: -2px;
 }
 
-.blocks-system-object[data-block-resizing="true"] {
+.blocks-system-object[data-block-resizing] {
     outline: 3px solid var(--blocks-ink-color);
     outline-offset: 0;
 }

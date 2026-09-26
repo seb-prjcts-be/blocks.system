@@ -72,9 +72,10 @@ library-API.
   papier en veldgrijs. Dat CMY-voorbeeld is geen library-palet.
 - Paginaspecifieke compositie, kwantisering en mediagedrag blijven buiten de
   librarycore.
-- Minimaliseren, sluiten en slepen staan in de library standaard aan. Een
-  consumer configureert alleen afwijkingen; ids, titels en layout blijven
-  eigendom van ieder block.
+- Slepen en het omkeerbare sluiten naar de dock staan in de library standaard
+  aan; minimaliseren, definitief sluiten en kopiëren zijn opt-in. Een consumer
+  configureert alleen afwijkingen; ids, titels en layout blijven eigendom van
+  ieder block.
 - `colorArray` en `colorVariation` bepalen het kleurdeel van nieuwe `random`
   blocks. `inversionVariation` verdeelt daarna alleen het overblijvende
   monochrome deel tussen `regular` en `inverse`. Ze verkleuren bestaande blocks

@@ -682,6 +682,11 @@ assert.equal(object.element.children[0].children[0].tabIndex, -1, "an individual
 assert.equal(object.element.children[0].children[0].getAttribute("role"), null, "an individually locked title must not promise movement");
 object.draggable = true;
 assert.equal(object.element.children[0].children[0].tabIndex, 0, "unlocking one block must restore its keyboard handle");
+const handleless = local.add("<p>no handle</p>", { id: "no-handle", menu: false });
+assert.equal(handleless.element.getAttribute("data-block-draggable"), "false", "without a titlebar there is no drag handle, so the block must not announce itself draggable");
+handleless.menu("late handle");
+assert.equal(handleless.element.getAttribute("data-block-draggable"), "true", "adding a titlebar later must restore the drag handle");
+handleless.remove();
 object.minimized = true;
 assert.equal(object.element.getAttribute("data-block-minimized"), "true", "minimize state must be exposed to CSS");
 assert.equal(object.content.getAttribute("aria-hidden"), "true", "minimized content must leave the accessibility tree");
@@ -698,6 +703,9 @@ assert.equal(local.exportLayout().blocks.find((entry) => entry.id === object.id)
 object.dock(false);
 assert.equal(object.docked, false, "dock(false) must restore a block reversibly");
 assert.equal(object.element.parentElement, local.field, "restoring must return the block to the grid surface");
+object.dock();
+assert.equal(object.docked, true, "dock() without an argument must dock, as the types and reference promise");
+object.dock(false);
 assert.throws(function () { object.span(0, 1); }, /positieve gehele/, "invalid spans must fail early");
 assert.throws(function () { object.span(5, 1); }, /past niet/, "a block cannot span beyond its grid");
 assert.throws(function () { object.place(0, 1); }, /positieve gehele/, "invalid positions must fail early");

@@ -242,7 +242,7 @@ the keyboard tab order; their action buttons remain available.
 
 Every new block starts with one reversible close action. It moves the block to
 a compact rail on the left, shows only its titlebar there and leaves no grid
-footprint; `block.dock(false)` restores its previous position. `title` is optional:
+footprint; `block.dock(false)` restores its previous position, or flows to the next free cell when that place was taken meanwhile. `title` is optional:
 when omitted, the titlebar has no visible text while the block `id` remains the
 accessible fallback name for its controls. Use `menu: false` to remove the whole
 titlebar, or `blockDefaults.menu` and a local `menu` object for exceptions.

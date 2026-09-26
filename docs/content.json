@@ -688,7 +688,7 @@
         { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
         { "cells": ["property · block.minimized", "boolean", "Read or change the current minimized state."] },
         { "cells": ["property · block.docked", "boolean", "Read or change whether the block lives in the compact dock."] },
-        { "cells": ["method · block.dock(value?)", "void", "Dock the block by default, or pass false to restore it."] },
+        { "cells": ["method · block.dock(value?)", "void", "Dock the block by default, or pass false to restore it to its previous place; a fixed-grid place taken meanwhile is released so the block flows to the next free cell."] },
         { "id": "api-menu", "cells": ["method · menu(name, options?)", "block", "Add or update the titlebar; options accepts dock, minimize, close and copy."] },
         { "cells": ["method · remove()", "true", "Remove the block. Fixed-grid leaves its address empty until an explicit compact(); flow-grid closes the gap automatically through DOM order."] }
       ]

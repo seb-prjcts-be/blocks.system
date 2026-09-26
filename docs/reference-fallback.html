@@ -133,7 +133,7 @@ blocks.restoreLayout(layout);</code></pre>
 <tr><td data-label="kind + contract">option · minimized</td><td data-label="type or returns">boolean</td><td data-label="purpose">Set the initial minimized state.</td></tr>
 <tr><td data-label="kind + contract">property · block.minimized</td><td data-label="type or returns">boolean</td><td data-label="purpose">Read or change the current minimized state.</td></tr>
 <tr><td data-label="kind + contract">property · block.docked</td><td data-label="type or returns">boolean</td><td data-label="purpose">Read or change whether the block lives in the compact dock.</td></tr>
-<tr><td data-label="kind + contract">method · block.dock(value?)</td><td data-label="type or returns">void</td><td data-label="purpose">Dock the block by default, or pass false to restore it.</td></tr>
+<tr><td data-label="kind + contract">method · block.dock(value?)</td><td data-label="type or returns">void</td><td data-label="purpose">Dock the block by default, or pass false to restore it to its previous place; a fixed-grid place taken meanwhile is released so the block flows to the next free cell.</td></tr>
 <tr id="api-menu"><td data-label="kind + contract">method · menu(name, options?)</td><td data-label="type or returns">block</td><td data-label="purpose">Add or update the titlebar; options accepts dock, minimize, close and copy.</td></tr>
 <tr><td data-label="kind + contract">method · remove()</td><td data-label="type or returns">true</td><td data-label="purpose">Remove the block. Fixed-grid leaves its address empty until an explicit compact(); flow-grid closes the gap automatically through DOM order.</td></tr></tbody></table></div>
 </section>

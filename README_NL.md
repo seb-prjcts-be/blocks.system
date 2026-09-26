@@ -251,7 +251,7 @@ menuheaders uit de toetsenbordvolgorde; hun actieknoppen blijven bereikbaar.
 
 Ieder nieuw block krijgt standaard één omkeerbare sluitactie. Die verplaatst het
 block naar een compacte rail links, toont daar alleen de titelbalk en laat geen
-rasterruimte achter; `block.dock(false)` herstelt het op zijn vorige positie. `title` is
+rasterruimte achter; `block.dock(false)` herstelt het op zijn vorige positie, of laat het naar de eerstvolgende vrije cel stromen als die plaats intussen bezet is. `title` is
 optioneel: zonder titel heeft de titelbalk geen zichtbare tekst, terwijl het
 block-`id` de toegankelijke fallbacknaam voor de knoppen blijft. Gebruik
 `menu: false` om de volledige titelbalk weg te laten, of `blockDefaults.menu` en

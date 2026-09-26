@@ -97,12 +97,52 @@ try {
       const hiddenAfterMove = placedBlocks.exportLayout().blocks.find((entry) => entry.id === "second");
       const movedPlace = placedBlocks.exportLayout().blocks.find((entry) => entry.id === "first").place;
 
+      // Undocking onto a cell that another block took meanwhile must not overlap.
+      const overlapField = document.createElement("section");
+      overlapField.style.width = "600px";
+      overlapField.style.height = "300px";
+      document.body.append(overlapField);
+      const dockBlocks = createBlocksSystem({ layout: "fixed-grid", draggable: true });
+      dockBlocks.attach(overlapField).setGrid(2, 2);
+      const left = dockBlocks.add("<p>L</p>", { id: "left", title: "L", menu }).span(1, 1).place(1, 1);
+      const right = dockBlocks.add("<p>R</p>", { id: "right", title: "R", menu }).span(1, 1).place(2, 1);
+      left.dock(true);
+      const rightTitle = right.element.querySelector(".blocks-system-title");
+      rightTitle.focus();
+      rightTitle.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true, cancelable: true }));
+      left.dock(false);
+      const undockEntries = Object.fromEntries(dockBlocks.exportLayout().blocks.map((entry) => [entry.id, entry.place]));
+      const undockOverlap = String(undockEntries.left) === String(undockEntries.right);
+      const undockPlaces = JSON.stringify(undockEntries);
+
+      // The resize outline must show while a flow-grid block is being resized.
+      const resizeField = document.createElement("section");
+      resizeField.style.width = "600px";
+      resizeField.style.height = "300px";
+      document.body.append(resizeField);
+      const resizeBlocks = createBlocksSystem({ layout: "flow-grid", resizable: true });
+      resizeBlocks.attach(resizeField).setGrid(2, 2);
+      const resizing = resizeBlocks.add("<p>S</p>", { id: "sized", title: "S", menu }).span(1, 1);
+      // Hover from the harness pointer can also draw the outline, so check which
+      // outline rules match instead of the computed width.
+      const outlineRules = () => [...document.styleSheets]
+        .flatMap((sheet) => { try { return [...sheet.cssRules]; } catch { return []; } })
+        .filter((rule) => rule.selectorText && rule.style?.outline && resizing.element.matches(rule.selectorText))
+        .map((rule) => rule.selectorText);
+      const outlineIdle = outlineRules();
+      const handle = resizing.element.querySelector(".blocks-system-resize--block");
+      handle.dispatchEvent(new PointerEvent("pointerdown", { pointerId: 7, clientX: 10, clientY: 10, bubbles: true, isPrimary: true, button: 0 }));
+      const resizingAttribute = resizing.element.getAttribute("data-block-resizing");
+      const outlineActive = outlineRules();
+      handle.dispatchEvent(new PointerEvent("pointerup", { pointerId: 7, clientX: 10, clientY: 10, bubbles: true, isPrimary: true, button: 0 }));
+
       // Measuring a hidden block must not collapse its span to one row.
       const hiddenBlock = blocks.add("<p>Verborgen</p>", { id: "hidden-fit", title: "Verborgen", menu }).span(1, 2);
       hiddenBlock.element.hidden = true;
       const hiddenFit = hiddenBlock.fitHeight();
 
       return {
+        undockOverlap, undockPlaces, resizingAttribute, outlineIdle, outlineActive,
         overlap, overlapUnchanged, placeBefore: second.place, hiddenAfterMove: hiddenAfterMove.place, movedPlace,
         hiddenFit: { rows: hiddenFit.rows, changed: hiddenFit.changed },
         switched, afterSwitch, tooSmall, afterRejected,
@@ -125,6 +165,10 @@ try {
   for (const name of ["spanOverflow", "gridOverflow", "restoreOverflow"]) {
     assert.deepEqual(value[name], { name: "RangeError", code: "BLOCKS_GRID_TOO_SMALL" }, `${name} must carry the stable grid-size code`);
   }
+  assert.equal(value.undockOverlap, false, `undocking must not land on an occupied cell (${value.undockPlaces})`);
+  assert.equal(value.resizingAttribute, "block", "a pointer resize must expose its axis while active");
+  assert.equal(value.outlineIdle.some((selector) => selector.includes("data-block-resizing")), false, "the resize outline rule must not match an idle block");
+  assert.equal(value.outlineActive.some((selector) => selector.includes("data-block-resizing")), true, `the resize outline rule must match while resizing (${value.outlineActive})`);
   assert.equal(value.overlap?.name, "RangeError", "an overlapping saved place must still be rejected");
   assert.equal(value.overlapUnchanged, true, "a rejected overlap must leave grid, order, spans and places untouched");
   assert.deepEqual(value.movedPlace, [2, 1], "the visible block must still move by keyboard");
