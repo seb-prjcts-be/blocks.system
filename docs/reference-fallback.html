@@ -102,7 +102,7 @@ blocks.restoreLayout(layout);</code></pre>
 <tr id="api-fit-height-system"><td data-label="kind + contract">method · blocks.fitHeight(ids?)</td><td data-label="returns">measurement[]</td><td data-label="purpose">Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span.</td></tr>
 <tr id="api-place"><td data-label="kind + contract">method · place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based coordinates in fixed-grid; other modes reject the call.</td></tr>
 <tr><td data-label="kind + contract">method · exportLayout()</td><td data-label="returns">{ version, layout, blocks }</td><td data-label="purpose">Export the mode, content-free DOM order and each block's span, place, minimized and docked state.</td></tr>
-<tr><td data-label="kind + contract">method · restoreLayout(layout)</td><td data-label="returns">blocks</td><td data-label="purpose">Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones.</td></tr>
+<tr><td data-label="kind + contract">method · restoreLayout(layout, options?)</td><td data-label="returns">blocks</td><td data-label="purpose">Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing.</td></tr>
 <tr><td data-label="kind + contract">property · resize size</td><td data-label="returns">{ columns, rows }</td><td data-label="purpose">Resize event sizes use positive whole grid units.</td></tr></tbody></table></div>
   <p class="reference-details">In flow-grid, add blocks in the desired initial order—for example after sorting titles by name—and call span() without place().</p>
 </section>
@@ -262,7 +262,7 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
   <pre class="reference-code"><code>field.addEventListener(&quot;blocks:change&quot;, (event) =&gt; {
   const { type, id, ids } = event.detail;
 });</code></pre>
-  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + hook</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + hook">event · blocks:change</td><td data-label="purpose">Fires after an explicit compact, minimize, restore or remove state change.</td></tr>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + hook</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + hook">event · blocks:change</td><td data-label="purpose">Fires after an explicit compact, dock, undock, minimize, restore or remove state change.</td></tr>
 <tr><td data-label="kind + hook">event · blocks:resize</td><td data-label="purpose">Fires after pointer or keyboard resizing with id, input, axis, from and to.</td></tr>
 <tr><td data-label="kind + hook">hook · .blocks-system-surface</td><td data-label="purpose">The attached field and its layout tokens.</td></tr>
 <tr><td data-label="kind + hook">hook · .blocks-system-object</td><td data-label="purpose">One outer block.</td></tr>
@@ -280,14 +280,14 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
 <tr><td data-label="kind + hook">hook · [data-draggable]</td><td data-label="purpose">Surface drag state.</td></tr>
 <tr><td data-label="kind + hook">hook · [data-block-draggable]</td><td data-label="purpose">Effective drag state for one block.</td></tr>
 <tr><td data-label="kind + hook">hook · CSS custom properties</td><td data-label="purpose">--blocks-gap · --blocks-field-color · --blocks-paper-color · --blocks-ink-color · --blocks-text-color · --blocks-font-family · --blocks-content-padding</td></tr></tbody></table></div>
-  <p class="reference-details">For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks.</p>
+  <p class="reference-details">For blocks:change, type is compact, dock, undock, minimize, restore or remove; id is one block or null, and ids lists affected blocks.</p>
 </section>
 
 <section id="errors" class="reference-fallback-entry">
   <h2>failures + boundaries</h2>
   <small>fail early</small>
   <strong>Invalid input throws.</strong>
-  <p class="reference-details">Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from.</p>
+  <p class="reference-details">Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. A span, place, grid or restored layout that does not fit throws a RangeError with code BLOCKS_GRID_TOO_SMALL. Catch only errors your interface can recover from.</p>
 </section>
   </main>
   <footer class="site-footer">

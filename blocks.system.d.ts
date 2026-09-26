@@ -34,6 +34,14 @@ export interface BlocksLayout {
   blocks: readonly BlocksLayoutEntry[];
 }
 
+export interface BlocksRestoreOptions {
+  /** Switch the grid together with the saved spans, e.g. at a responsive breakpoint. Nothing changes when the target grid is too small or a saved place overlaps a fixed block. */
+  grid?: { columns: number; rows: number };
+}
+
+/** Error code on the RangeError thrown when a span, place, grid or restored layout does not fit the grid. */
+export type BlocksGridTooSmallCode = "BLOCKS_GRID_TOO_SMALL";
+
 export interface BlockDefinition {
   id: string;
   adapter: string;
@@ -153,7 +161,7 @@ export interface BlocksResizeDetail {
   to: BlocksResizeSize;
 }
 
-export type BlocksChangeType = "compact" | "minimize" | "restore" | "remove";
+export type BlocksChangeType = "compact" | "dock" | "undock" | "minimize" | "restore" | "remove";
 
 export interface BlocksChangeDetail {
   type: BlocksChangeType;
@@ -211,7 +219,7 @@ export interface BlocksSystem {
   /** Export content-free layout state in current DOM order. */
   exportLayout(): BlocksLayout;
   /** Restore known block order, spans, optional fixed positions, minimized and docked state. */
-  restoreLayout(layout: BlocksLayout): BlocksSystem;
+  restoreLayout(layout: BlocksLayout, options?: BlocksRestoreOptions): BlocksSystem;
   mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
   unmount(target: string | Element): boolean;
   remount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;

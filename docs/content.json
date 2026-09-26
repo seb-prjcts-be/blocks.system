@@ -651,7 +651,7 @@
         { "id": "api-fit-height-system", "cells": ["method · blocks.fitHeight(ids?)", "measurement[]", "Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span."] },
         { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based coordinates in fixed-grid; other modes reject the call."] },
         { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place, minimized and docked state."] },
-        { "cells": ["method · restoreLayout(layout)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones."] },
+        { "cells": ["method · restoreLayout(layout, options?)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing."] },
         { "cells": ["property · resize size", "{ columns, rows }", "Resize event sizes use positive whole grid units."] }
       ],
       "details": "In flow-grid, add blocks in the desired initial order—for example after sorting titles by name—and call span() without place()."
@@ -841,10 +841,10 @@
         "  const { type, id, ids } = event.detail;",
         "});"
       ],
-      "details": "For blocks:change, type is compact, minimize, restore or remove; id is one block or null, and ids lists affected blocks.",
+      "details": "For blocks:change, type is compact, dock, undock, minimize, restore or remove; id is one block or null, and ids lists affected blocks.",
       "headers": ["kind + hook", "purpose"],
       "rows": [
-        { "cells": ["event · blocks:change", "Fires after an explicit compact, minimize, restore or remove state change."] },
+        { "cells": ["event · blocks:change", "Fires after an explicit compact, dock, undock, minimize, restore or remove state change."] },
         { "cells": ["event · blocks:resize", "Fires after pointer or keyboard resizing with id, input, axis, from and to."] },
         { "cells": ["hook · .blocks-system-surface", "The attached field and its layout tokens."] },
         { "cells": ["hook · .blocks-system-object", "One outer block."] },
@@ -868,7 +868,7 @@
       "title": "failures + boundaries",
       "eyebrow": "fail early",
       "statement": "Invalid input throws.",
-      "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Catch only errors your interface can recover from."
+      "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. A span, place, grid or restored layout that does not fit throws a RangeError with code BLOCKS_GRID_TOO_SMALL. Catch only errors your interface can recover from."
     }
   }
 }

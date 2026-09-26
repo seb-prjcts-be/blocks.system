@@ -10,6 +10,7 @@ const BUILT_IN_LAYOUTS = Object.freeze(["free", "fixed-grid", "flow-grid"]);
 const EMPTY_COLOR_ARRAY = Object.freeze([]);
 const DEFAULT_INVERSION_VARIATION = 1 / 3;
 const LAYOUT_VERSION = 1;
+const GRID_TOO_SMALL = "BLOCKS_GRID_TOO_SMALL";
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
 const DEFAULT_MENU_OPTIONS = Object.freeze({ dock: true, close: false, minimize: false, copy: false });
@@ -138,6 +139,26 @@ function rejectRetiredLayoutOptions(options) {
         const replacement = String(options.placement).trim().toLowerCase() === "flow" ? "flow-grid" : "fixed-grid";
         throw new TypeError(`blocks.system.placement is vervangen door layout: ${replacement}.`);
     }
+}
+
+function gridTooSmallError(message) {
+    const error = new RangeError(message);
+    error.code = GRID_TOO_SMALL;
+    return error;
+}
+
+function normalizeRestoreGrid(options) {
+    if (options === undefined) return null;
+    if (!options || typeof options !== "object") {
+        throw new TypeError("blocks.system.restoreLayout(layout, options) verwacht een optieobject.");
+    }
+    if (options.grid === undefined) return null;
+    const columns = Number(options.grid?.columns);
+    const rows = Number(options.grid?.rows);
+    if (!Number.isInteger(columns) || columns < 1 || !Number.isInteger(rows) || rows < 1) {
+        throw new TypeError("restoreLayout(layout, { grid }) verwacht positieve gehele aantallen kolommen en rijen.");
+    }
+    return { columns, rows };
 }
 
 function normalizeLayoutSnapshot(value) {
@@ -604,7 +625,8 @@ export function createBlocksSystem(options = {}) {
         }
 
         function gridLayoutSnapshot(elements, metrics) {
-            return elements.map((element) => {
+            // Een verborgen block heeft geen rastervak; het behoudt zijn eigen plaats.
+            return elements.filter((element) => !element.hidden).map((element) => {
                 const id = element.getAttribute("data-block-object");
                 const layout = objectLayouts.get(id) || { columns: 1, rows: 1 };
                 const bounds = element.getBoundingClientRect();
@@ -1173,12 +1195,18 @@ export function createBlocksSystem(options = {}) {
         };
     }
 
-    function restoreLayout(snapshot) {
+    function restoreLayout(snapshot, options) {
         drag.stop();
         const normalized = normalizeLayoutSnapshot(snapshot);
+        const targetGrid = normalizeRestoreGrid(options);
         if (normalized.layout !== layoutMode) {
             throw new TypeError(`Opgeslagen layout ${normalized.layout} past niet bij systeemlayout ${layoutMode}.`);
         }
+        if (targetGrid && layoutMode === "free") {
+            throw new TypeError("restoreLayout(layout, { grid }) vereist layout: fixed-grid of flow-grid.");
+        }
+        const gridColumns = targetGrid?.columns ?? columns;
+        const gridRows = targetGrid?.rows ?? rows;
         const entries = normalized.entries;
         const knownEntries = entries.filter((entry) => objects.has(entry.id));
         if (layoutMode === "flow-grid" && knownEntries.some((entry) => entry.place !== null)) {
@@ -1194,8 +1222,8 @@ export function createBlocksSystem(options = {}) {
         for (const layout of targetLayouts) {
             const lastColumn = layout.column === null ? layout.columns : layout.column + layout.columns - 1;
             const lastRow = layout.row === null ? layout.rows : layout.row + layout.rows - 1;
-            if (lastColumn > columns || lastRow > rows) {
-                throw new RangeError(`Opgeslagen layout van ${layout.id} past niet in raster ${columns}×${rows}.`);
+            if (lastColumn > gridColumns || lastRow > gridRows) {
+                throw gridTooSmallError(`Opgeslagen layout van ${layout.id} past niet in raster ${gridColumns}×${gridRows}.`);
             }
         }
         const placedTargets = targetLayouts.filter((layout) => layout.column !== null && layout.row !== null);
@@ -1208,6 +1236,19 @@ export function createBlocksSystem(options = {}) {
         }
 
         const savedIds = new Set(knownEntries.map((entry) => entry.id));
+        // Alles wat kan falen, faalt vóór de eerste wijziging.
+        for (const [id, layout] of objectLayouts) {
+            if (savedIds.has(id)) continue;
+            if (targetGrid) assertLayoutFits(id, layout, gridColumns, gridRows);
+            if (layout.column === null || layout.row === null) continue;
+            const overlapping = placedTargets.find((target) => layoutsOverlap(target, layout));
+            if (overlapping) throw new RangeError(`Opgeslagen plaats van ${overlapping.id} overlapt ${id}.`);
+        }
+        if (targetGrid) {
+            columns = gridColumns;
+            rows = gridRows;
+            applySurfaceState();
+        }
         for (const entry of knownEntries) objects.get(entry.id).docked = false;
         const ordered = [
             ...knownEntries.map((entry) => objects.get(entry.id).element),
@@ -1242,7 +1283,7 @@ export function createBlocksSystem(options = {}) {
             ? layout.rows
             : layout.row + layout.rows - 1;
         if (lastColumn > gridColumns || lastRow > gridRows) {
-            throw new RangeError(`Layout van ${id} past niet in raster ${gridColumns}×${gridRows}.`);
+            throw gridTooSmallError(`Layout van ${id} past niet in raster ${gridColumns}×${gridRows}.`);
         }
         if (layout.column === null || layout.row === null) return;
         for (const [otherId, other] of objectLayouts) {
@@ -1812,7 +1853,7 @@ export function createBlocksSystem(options = {}) {
             if (layoutMode === "free") {
                 throw new TypeError("block.fitHeight() vereist layout: fixed-grid of flow-grid.");
             }
-            if (minimizedValue || dockedValue) {
+            if (minimizedValue || dockedValue || shell.hidden) {
                 return Object.freeze({ columns: spanColumns, rows: spanRows, changed: false });
             }
             const style = getComputedStyle(surface);

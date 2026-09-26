@@ -133,6 +133,21 @@ server store such as SQLite only when layouts or content must follow authenticat
 people across devices or be shared and administered centrally. The core stays
 storage-agnostic in both cases.
 
+A responsive page often uses a different grid and different spans per
+breakpoint. Pass the target grid to `restoreLayout(layout, { grid })` so the
+spans and the grid switch in one step; restoring spans first, or resizing the
+grid first, would reject whichever set does not fit the other grid. When the
+target grid is too small or a saved place overlaps a fixed block, nothing
+changes.
+
+```js
+blocks.restoreLayout(compactLayout, { grid: { columns: 4, rows: 24 } });
+```
+
+Every span, place, grid or restored layout that does not fit throws a
+`RangeError` with `error.code === "BLOCKS_GRID_TOO_SMALL"`. Check that code, not
+the message text, when an application grows its grid and tries again.
+
 ### Optional content storage
 
 The separate `blocks.system/storage` entry point keeps content out of the block
@@ -265,6 +280,8 @@ IDs to `blocks.fitHeight(ids)` in a mixed composition. The consumer remains
 responsible for repacking or resizing the total grid afterwards. Measure only
 content-driven blocks: media that deliberately fills an application-owned span
 must keep that span instead of being included in the selected measurement.
+The native `hidden` attribute on a block's element removes it from the grid;
+measuring and dragging leave its span and place untouched until it returns.
 Trackpad and wheel input over ordinary block content continues scrolling the
 page; only genuinely overflowing inner content scrolls locally first.
 The measured mechanics and boundaries are recorded in

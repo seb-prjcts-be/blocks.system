@@ -119,6 +119,11 @@
     color: var(--block-content-color);
 }
 
+/* Het native hidden-attribuut blijft werken ondanks display: flex hierboven. */
+.blocks-system-object[hidden] {
+    display: none;
+}
+
 .blocks-system-object[data-block-minimized="true"] {
     align-self: start;
     min-height: 0;

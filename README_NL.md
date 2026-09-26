@@ -137,6 +137,21 @@ pas een serveropslag zoals SQLite wanneer layout of inhoud aangemelde personen
 over meerdere apparaten moet volgen, gedeeld wordt of centraal beheer nodig
 heeft. De kern blijft in beide gevallen opslagneutraal.
 
+Een responsieve pagina gebruikt per breakpoint vaak een ander raster en andere
+spans. Geef het doelraster mee aan `restoreLayout(layout, { grid })`, zodat spans
+en raster in één stap wisselen; eerst de spans of eerst het raster zetten
+weigert telkens de set die niet in het andere raster past. Is het doelraster te
+klein of overlapt een opgeslagen plaats een vast block, dan verandert er niets.
+
+```js
+blocks.restoreLayout(compacteLayout, { grid: { columns: 4, rows: 24 } });
+```
+
+Elke span, plaats, raster of herstelde layout die niet past, gooit een
+`RangeError` met `error.code === "BLOCKS_GRID_TOO_SMALL"`. Controleer die code,
+niet de meldingstekst, wanneer een toepassing haar raster vergroot en opnieuw
+probeert.
+
 ### Optionele inhoudsopslag
 
 De aparte entrypoint `blocks.system/storage` bewaart geen inhoud in de
@@ -276,6 +291,8 @@ gemengde compositie een iterable met levende block-ID's aan
 packen of vergroten van het totale raster. Meet alleen inhoudsgedreven blocks:
 media die bewust een door de toepassing gekozen span vullen, behouden die span
 en horen niet in de geselecteerde meting.
+Het native `hidden`-attribuut op het element van een block haalt het uit het
+raster; meten en slepen laten zijn span en plaats ongemoeid tot het terugkeert.
 Trackpad- en wheelscroll boven gewone blockinhoud blijft de pagina scrollen;
 alleen echt overlopende binneninhoud scrollt eerst lokaal.
 De gemeten werking en grenzen staan duurzaam in

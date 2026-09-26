@@ -3,6 +3,7 @@ import {
   system,
   type BlockController,
   type BlocksChangeDetail,
+  type BlocksGridTooSmallCode,
   type BlocksLayout,
   type BlocksLayoutMode,
   type BlocksResizeDetail,
@@ -41,6 +42,11 @@ const blockDraggable: boolean = block.draggable;
 const layoutMode: BlocksLayoutMode = blocks.layout;
 const savedLayout: BlocksLayout = blocks.exportLayout();
 blocks.restoreLayout(savedLayout);
+blocks.restoreLayout(savedLayout, { grid: { columns: 4, rows: 12 } });
+const gridCode: BlocksGridTooSmallCode = "BLOCKS_GRID_TOO_SMALL";
+void gridCode;
+// @ts-expect-error A grid switch needs both dimensions.
+blocks.restoreLayout(savedLayout, { grid: { columns: 4 } });
 
 blocks.register({ id: "typed-detail", adapter: "html", url: "detail.html", markup: "<p>typed</p>" });
 const typedAddress: string = blocks.address("typed-detail");
@@ -71,6 +77,8 @@ document.body.addEventListener("blocks:resize", (event) => {
 blocks.field?.addEventListener("blocks:change", (event) => {
   const detail: BlocksChangeDetail = event.detail;
   void detail.type;
+  // The runtime emits dock and undock for the default close-to-dock action.
+  if (detail.type === "dock" || detail.type === "undock") void detail.id;
 });
 
 // @ts-expect-error Grid dimensions are readable state, not writable settings.
