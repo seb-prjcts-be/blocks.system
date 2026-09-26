@@ -309,17 +309,18 @@ The measured mechanics and boundaries are recorded in
 
 See the [API reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
 for arguments and return values. Public installation snippets are pinned to
-immutable `v0.5.0`, the same source identified by the released documentation.
+immutable `v0.6.0`, the same source identified by the released documentation.
 
 ## Verified status
 
-As checked on 2026-09-26, release `v0.5.0` implements the documented public
+As checked on 2026-09-26, release `v0.6.0` implements the documented public
 surface: one immutable layout model, content-driven rows with an optional
 `rowHeight`, zero-config `startBlock()`, fixed- and flow-grid movement,
 flow-grid resizing, atomic layout persistence, minimization that releases rows,
-a dock rail with its own space, `compact()`, adapters, events, TypeScript
-declarations, the homepage, manual and reference. The first real consumer, the
-Lucas Gent site, runs on it without grid workarounds.
+favorites that stay in front, a dock rail above or below the grid with its own
+space and an optional summary per chip, `reset()`, `compact()`, adapters,
+events, TypeScript declarations, the homepage, manual and reference. The first
+real consumer, the Lucas Gent site, runs on it without grid workarounds.
 
 The following checks passed locally:
 
@@ -330,8 +331,9 @@ The following checks passed locally:
 - Targeted browser checks covered fixed-grid documentation and flow-grid order,
   resize, minimize and layout restore.
 
-`v0.5.0` is the latest immutable public release; its breaking changes and
-migration steps are recorded in
+`v0.6.0` is the latest immutable public release; its additions and migration
+notes are recorded in [`docs/releases/v0.6.0.md`](docs/releases/v0.6.0.md).
+The `v0.5.0` breaking changes and migration steps are recorded in
 [`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md). The `v0.4.2`
 release-boundary correction
 is recorded in [`docs/releases/v0.4.2.md`](docs/releases/v0.4.2.md); the
