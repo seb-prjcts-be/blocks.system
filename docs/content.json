@@ -576,7 +576,7 @@
         { "id": "api-window", "cells": ["property · window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] },
         { "cells": ["option · catalogUrl", "string | URL | null · null", "Base URL used by address() when a block has no url of its own."] },
         { "cells": ["option · font", "{ family, href? } | null · null", "Set a family and optional stylesheet URL; blocks.font remains writable."] },
-        { "cells": ["option · labels", "Partial<{ move, resize, restore, minimize, dock, close, copy, copied, copyFailed }>", "Override resolved accessible labels; blocks.labels is readonly."] },
+        { "cells": ["option · labels", "Partial<{ move, resize, restore, minimize, dock, undock, close, copy, copied, copyFailed }>", "Override resolved accessible labels; blocks.labels is readonly."] },
         { "cells": ["option · blocks", "BlockDefinition[] · []", "Register definitions during creation."] }
       ]
     },
@@ -730,6 +730,7 @@
         { "cells": ["option · variant", "string · regular", "Appearance used for new blocks; random draws from the chance settings."] },
         { "cells": ["property · blocks.variant", "string", "Read or change the default appearance."] },
         { "cells": ["property · blocks.variants", "readonly string[]", "The built-in fixed list: regular and inverse."] },
+        { "cells": ["option · variant aliases", "default · invert", "Accepted spellings for regular and inverse."] },
         { "cells": ["option · options.variant", "string", "Override the system appearance for one new block."] },
         { "cells": ["property · block.variant", "string", "Read or change the resolved appearance of one block."] }
       ]
@@ -848,10 +849,10 @@
         "  const { type, id, ids } = event.detail;",
         "});"
       ],
-      "details": "For blocks:change, type is compact, dock, undock, minimize, restore or remove; id is one block or null, and ids lists affected blocks.",
+      "details": "For blocks:change, type is compact, dock, undock, minimize, restore, remove, layout (one block's span, place or fitHeight changed) or grid (columns or rows changed); id is one block or null, and ids lists affected blocks.",
       "headers": ["kind + hook", "purpose"],
       "rows": [
-        { "cells": ["event · blocks:change", "Fires after an explicit compact, dock, undock, minimize, restore or remove state change."] },
+        { "cells": ["event · blocks:change", "Fires after a compact, dock, undock, minimize, restore or remove state change, after a layout change of one block and when the grid changes."] },
         { "cells": ["event · blocks:resize", "Fires after pointer or keyboard resizing with id, input, axis, from and to."] },
         { "cells": ["hook · .blocks-system-surface", "The attached field and its layout tokens."] },
         { "cells": ["hook · .blocks-system-object", "One outer block."] },
@@ -863,6 +864,9 @@
         { "cells": ["hook · [data-block-variant]", "Resolved appearance. Custom variant names pass validation and land here for consumer styling — for example a light footnote weight."] },
         { "cells": ["hook · [data-block-color]", "Color selected from the user's array."] },
         { "cells": ["hook · [data-block-minimized]", "Minimized state."] },
+        { "cells": ["hook · [data-block-docked] · .blocks-system-dock", "Docked state and the compact rail; [data-blocks-dock] marks a field that reserves space for it."] },
+        { "cells": ["hook · [data-dragging] · [data-drop-state] · [data-block-resizing]", "Live pointer states on the field, the drop preview and a resizing block."] },
+        { "cells": ["hook · [data-row-height]", "Field whose rows are fixed pixel tracks (rowHeight)."] },
         { "cells": ["hook · [data-layout]", "The single free, fixed-grid or flow-grid layout mode."] },
         { "cells": ["hook · [data-resizable]", "System resize state."] },
         { "cells": ["hook · [data-block-resizable]", "Effective resize state for one block."] },

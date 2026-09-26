@@ -256,7 +256,7 @@ blocks.register({
 
 ## API-overzicht
 
-- Aanmaak: `createBlocksSystem({ layout, draggable, resizable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Aanmaak: `createBlocksSystem({ catalogUrl, random, layout, draggable, resizable, rowHeight, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` op het gedeelde systeem.
 - Gedeeld systeem: `attach`, `setGrid`, `compact`, `fitHeight`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
@@ -301,7 +301,10 @@ in `flow-grid` behoudt het één titelbalkrij en schuiven latere blocks omhoog.
 Bij `remove()` veranderen de adressen van andere fixed-grid-blocks nooit; het
 gat blijft bewust bestaan totdat de toepassing `compact()` aanroept. In
 flow-grid herschikt verwijdering vanzelf door de DOM-volgorde. Het veld vuurt
-`blocks:change` voor `compact`, `dock`, `undock`, `minimize`, `restore` en `remove`.
+`blocks:change` voor `compact`, `dock`, `undock`, `minimize`, `restore` en `remove`,
+plus `layout` wanneer de span, plaats of gemeten hoogte van één block verandert en
+`grid` wanneer de kolommen of rijen veranderen. Samen dekken ze alles wat
+`exportLayout()` vastlegt.
 Gebruik `block.fitHeight()` na een inhoudswijziging om de werkelijk gerenderde
 hoogte op de huidige breedte te meten en de kleinste volledige rijspan toe te
 passen. `blocks.fitHeight()` doet dat voor alle levende blocks; geef in een

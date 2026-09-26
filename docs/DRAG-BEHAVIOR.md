@@ -64,12 +64,20 @@ scrollt eerst lokaal en ketent aan haar grens weer door naar de pagina.
 
 ## Regressiebewijs
 
-`tests/browser-layout.mjs` controleert in echte Chromium onder meer:
+Wat de testsuite in echte Chromium aantoont (`npm test`):
 
-- een monotone neerwaartse preview zonder target-jagen;
-- pixelvaste buren tijdens drag;
-- gestippelde vrije preview en volle `↓`-collisionpreview;
-- exacte landing op de getoonde cel;
-- kolomvaste neerwaartse collisioncascade;
-- gezamenlijke settlement, pointerevent, keyboardbeweging, cleanup en reset;
-- paginascroll met wheel/trackpad boven zowel blockinhoud als dragheader.
+- `tests/browser-layout.mjs`: keyboardbeweging in het manual-raster, de
+  pointer-capture-fallback in de vrije layout, dock en undock, minimize,
+  remove en compact, kopieerfeedback en de gedeelde cascade op 1440–320 px;
+- `tests/height-model.mjs`: rijen die groeien en krimpen bij spans, plaatsen,
+  toetsenbordverplaatsing, minimaliseren en docken, `rowHeight`, en een
+  dockrail die het eerste block niet bedekt;
+- `tests/consumer-grid.mjs`: de atomaire rasterwissel, de vaste foutcode,
+  verborgen blocks bij meten en slepen, en undocken op een bezette cel;
+- `tests/auto-fit.mjs`: de inhoudsmeting van `fitHeight()`.
+
+Nog niet in deze repo geautomatiseerd: de pointerdrag in fixed-grid zelf
+(preview, `↓`-collisionpreview, kolomvaste duwcascade, landing op de getoonde
+cel) en het wheel/trackpad-gedrag boven blockinhoud. De consument
+`lucasgent_clone_blocks` bewijst de pointerdrag wel in `scripts/probe-drag.mjs`;
+`tests/flow-grid.html` is een handmatige proef voor resize.

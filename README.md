@@ -246,7 +246,7 @@ blocks.register({
 
 ## API map
 
-- Creation: `createBlocksSystem({ layout, draggable, resizable, variant, colorArray, colorVariation, inversionVariation, blockDefaults })`.
+- Creation: `createBlocksSystem({ catalogUrl, random, layout, draggable, resizable, rowHeight, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` on the shared system.
 - Shared system: `attach`, `setGrid`, `compact`, `fitHeight`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
@@ -290,7 +290,9 @@ Removing a placed block never changes another fixed address; the gap remains
 intentional until the application calls `compact()`. Removing a flow-grid block
 reflows naturally because DOM order is the layout.
 The field emits `blocks:change` for `compact`, `dock`, `undock`, `minimize`,
-`restore` and `remove`.
+`restore` and `remove`, plus `layout` when one block's span, place or measured
+height changes and `grid` when the columns or rows change. Together they cover
+everything `exportLayout()` records.
 Use `block.fitHeight()` after content changes to measure its real rendered
 height at the current width and apply the smallest whole-row span. Use
 `blocks.fitHeight()` to fit all live blocks, or pass an iterable of live block

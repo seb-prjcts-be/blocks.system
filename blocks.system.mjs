@@ -14,6 +14,7 @@ const GRID_TOO_SMALL = "BLOCKS_GRID_TOO_SMALL";
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
 const DEFAULT_MENU_OPTIONS = Object.freeze({ dock: true, close: false, minimize: false, copy: false });
+const EMPTY_MENU_OPTIONS = Object.freeze({ dock: false, close: false, minimize: false, copy: false });
 const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h9c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H9Zm0-2h9V4H9v12ZM5 22c-1.1 0-2-.9-2-2V6h2v14h11v2H5Z"/></svg>';
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
@@ -22,6 +23,7 @@ const UI_LABELS = Object.freeze({
         restore: "restore",
         minimize: "minimize",
         dock: "close to the left dock",
+        undock: "return from the dock",
         close: "close",
         copy: "copy content",
         copied: "content copied",
@@ -33,6 +35,7 @@ const UI_LABELS = Object.freeze({
         restore: "herstellen",
         minimize: "minimaliseren",
         dock: "links sluiten",
+        undock: "terug uit de dock",
         close: "sluiten",
         copy: "inhoud kopiëren",
         copied: "inhoud gekopieerd",
@@ -697,8 +700,10 @@ export function createBlocksSystem(options = {}) {
     }
 
     function syncRows() {
+        const previousRows = rows;
         rows = Math.max(minRows, requiredRows());
         if (surface) surface.style.setProperty("--blocks-rows", String(rows));
+        if (rows !== previousRows) emitChange({ type: "grid" });
     }
 
     // De dockrail krijgt eigen ruimte boven het raster in plaats van eroverheen.
@@ -1377,9 +1382,11 @@ export function createBlocksSystem(options = {}) {
             if (overlapping) throw new RangeError(`Opgeslagen plaats van ${overlapping.id} overlapt ${id}.`);
         }
         if (targetGrid) {
+            const previous = { columns, rows };
             columns = gridColumns;
             minRows = gridRows;
             applySurfaceState();
+            if (columns !== previous.columns && rows === previous.rows) emitChange({ type: "grid" });
         }
         for (const entry of knownEntries) objects.get(entry.id).docked = false;
         const ordered = [
@@ -1434,9 +1441,11 @@ export function createBlocksSystem(options = {}) {
             throw new TypeError("setGrid(x, y) verwacht positieve gehele aantallen kolommen en rijen.");
         }
         for (const [id, layout] of objectLayouts) assertLayoutFits(id, layout, nextColumns);
+        const previous = { columns, rows };
         columns = nextColumns;
         minRows = nextRows;
         applySurfaceState();
+        if (columns !== previous.columns && rows === previous.rows) emitChange({ type: "grid" });
         return api;
     }
 
@@ -1653,7 +1662,7 @@ export function createBlocksSystem(options = {}) {
             contentNode.setAttribute("aria-hidden", String(dockedValue || minimizedValue));
             if (!dockNode) return;
             dockNode.textContent = dockedValue ? "+" : "×";
-            dockNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${dockedValue ? labels.restore : labels.dock}`);
+            dockNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${dockedValue ? labels.undock : labels.dock}`);
             dockNode.setAttribute("aria-pressed", String(dockedValue));
         }
 
@@ -1708,7 +1717,7 @@ export function createBlocksSystem(options = {}) {
             if (copyNode && copyNode.getAttribute("data-state") === null) {
                 copyNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.copy}`);
             }
-            if (dockNode) dockNode.setAttribute("aria-label", `${titleNode.textContent || id} ${dockedValue ? labels.restore : labels.dock}`);
+            if (dockNode) dockNode.setAttribute("aria-label", `${titleNode.textContent || id} ${dockedValue ? labels.undock : labels.dock}`);
             if (closeNode) closeNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.close}`);
         }
 
@@ -1970,8 +1979,10 @@ export function createBlocksSystem(options = {}) {
                 row: placeRow
             };
             assertLayoutFits(id, nextLayout);
+            const changed = nextColumns !== spanColumns || nextRows !== spanRows;
             applyLayout(nextLayout);
             syncResizeInteractionState();
+            if (changed) emitChange({ type: "layout", id });
             return block;
         }
 
@@ -2032,6 +2043,7 @@ export function createBlocksSystem(options = {}) {
                 assertLayoutFits(id, nextLayout);
                 applyLayout(nextLayout);
                 syncResizeInteractionState();
+                emitChange({ type: "layout", id });
             }
             return Object.freeze({ columns: spanColumns, rows: spanRows, changed });
         }
@@ -2055,23 +2067,21 @@ export function createBlocksSystem(options = {}) {
                 row: nextRow
             };
             assertLayoutFits(id, nextLayout);
+            const changed = nextColumn !== placeColumn || nextRow !== placeRow;
             applyLayout(nextLayout);
             syncResizeInteractionState();
+            if (changed) emitChange({ type: "layout", id });
             return block;
         }
 
-        function menu(name, close = undefined) {
+        function menu(name, menuValue = undefined) {
             assertActive();
-            const menuOptions = close === undefined
-                ? DEFAULT_MENU_OPTIONS
-                : close && typeof close === "object"
-                ? {
-                    dock: close.dock === undefined ? DEFAULT_MENU_OPTIONS.dock : Boolean(close.dock),
-                    close: close.close === undefined ? DEFAULT_MENU_OPTIONS.close : Boolean(close.close),
-                    minimize: close.minimize === undefined ? DEFAULT_MENU_OPTIONS.minimize : Boolean(close.minimize),
-                    copy: close.copy === undefined ? DEFAULT_MENU_OPTIONS.copy : Boolean(close.copy)
-                }
-                : { dock: false, close: Boolean(close), minimize: true, copy: false };
+            // Dezelfde betekenis als add(): true of niets is het overgeërfde
+            // standaardmenu, false is een titelbalk zonder knoppen, een object
+            // vult de ontbrekende knoppen uit blockDefaults.menu aan.
+            const menuOptions = menuValue === false
+                ? EMPTY_MENU_OPTIONS
+                : normalizeAutomaticMenu(menuValue === undefined ? true : menuValue, blockDefaults.menu, "block.menu() options");
             if (!menuNode) {
                 menuNode = document.createElement("header");
                 menuNode.className = "blocks-system-menu";
@@ -2120,7 +2130,7 @@ export function createBlocksSystem(options = {}) {
                 closeNode = document.createElement("button");
                 closeNode.type = "button";
                 closeNode.className = "blocks-system-close";
-                closeNode.textContent = "×";
+                closeNode.textContent = "⊗";
                 closeNode.addEventListener("click", remove);
                 actionsNode.appendChild(closeNode);
             } else if (!menuOptions.close && closeNode) {

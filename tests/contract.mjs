@@ -34,6 +34,7 @@ assert.deepEqual(singleton.labels, {
   restore: "restore",
   minimize: "minimize",
   dock: "close to the left dock",
+  undock: "return from the dock",
   close: "close",
   copy: "copy content",
   copied: "content copied",
@@ -428,7 +429,7 @@ assert.deepEqual(compactChanges.pop(), {
   ids: ["compact-second", "compact-third"]
 }, "compact must publish the moved block ids");
 compacting.compact();
-assert.equal(compactChanges.length, 0, "a no-op compact must not publish a change event");
+assert.equal(compactChanges.filter((change) => !["grid", "layout"].includes(change.type)).length, 0, "a no-op compact must not publish a change event");
 
 const closingCollapse = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
 const closingCollapseField = new TestElement();
@@ -459,7 +460,7 @@ assert.equal(
   "4",
   "removing the only block on a row must still preserve later fixed addresses"
 );
-assert.deepEqual(closingRowChanges[0].ids, ["close-row-gap"], "remove must report removal without implicit compaction");
+assert.deepEqual(closingRowChanges.find((change) => change.type === "remove").ids, ["close-row-gap"], "remove must report removal without implicit compaction");
 
 const intentionalSpace = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
 const intentionalSpaceField = new TestElement();
@@ -476,8 +477,42 @@ compactSecond.minimized = true;
 compactSecond.minimized = false;
 compactThird.remove();
 assert.throws(function () { compactThird.remove(); }, /verwijderd/, "removed blocks must not publish duplicate remove events");
-assert.deepEqual(compactChanges.map((change) => change.type), ["minimize", "restore", "remove"], "state changes must publish one stable change event");
-assert.deepEqual(compactChanges.map((change) => change.id), ["compact-second", "compact-second", "compact-third"], "state change events must identify their block");
+const compactStateChanges = compactChanges.filter((change) => !["grid", "layout"].includes(change.type));
+assert.deepEqual(compactStateChanges.map((change) => change.type), ["minimize", "restore", "remove"], "state changes must publish one stable change event");
+assert.deepEqual(compactStateChanges.map((change) => change.id), ["compact-second", "compact-second", "compact-third"], "state change events must identify their block");
+
+const signalling = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
+const signallingField = new TestElement();
+const signals = [];
+signalling.attach(signallingField).setGrid(2, 1);
+signallingField.addEventListener("blocks:change", function (event) { signals.push([event.detail.type, event.detail.id]); });
+const signalled = signalling.add("<p>signal</p>", { id: "signal" });
+signalled.span(1, 3);
+signalled.span(1, 3);
+signalled.place(2, 1);
+signalling.setGrid(3, 1);
+signalling.setGrid(3, 1);
+assert.deepEqual(signals, [["grid", null], ["layout", "signal"], ["layout", "signal"], ["grid", null]],
+  "span, place and grid changes must publish one stable change event per real change");
+
+const inheriting = createBlocksSystem({ variant: "regular", blockDefaults: { menu: { copy: true, dock: false } } });
+inheriting.attach(new TestElement());
+const inheritingBlock = inheriting.add("<p>inherit</p>", { id: "inherit", menu: false });
+const inheritingControls = () => [...inheritingBlock.element.children[0].children[1].children].map((button) => button.className);
+inheritingBlock.menu("later", true);
+assert.deepEqual(inheritingControls(), ["blocks-system-copy"], "menu(name, true) must apply the inherited block defaults like add()");
+inheritingBlock.menu("later", { minimize: true });
+assert.deepEqual(inheritingControls(), ["blocks-system-copy", "blocks-system-minimize"], "menu(name, options) must fill missing options from the block defaults");
+inheritingBlock.menu("later", false);
+assert.deepEqual(inheritingControls(), [], "menu(name, false) must keep the titlebar without controls");
+assert.throws(function () { inheritingBlock.menu("later", "yes"); }, TypeError, "menu(name, options) must reject anything but a boolean or an object");
+
+const glyphs = createBlocksSystem({ variant: "regular", blockDefaults: { menu: { dock: true, close: true } } });
+glyphs.attach(new TestElement());
+const glyphBlock = glyphs.add("<p>glyph</p>", { id: "glyph" });
+const glyphOf = (className) => [...glyphBlock.element.children[0].children[1].children].find((button) => button.className === className)?.textContent;
+assert.equal(glyphOf("blocks-system-dock-toggle"), "×", "the reversible dock action keeps the familiar close glyph");
+assert.equal(glyphOf("blocks-system-close"), "⊗", "destructive removal must not share the dock glyph");
 
 assert.deepEqual(createBlocksSystem({ colorArray: [] }).colorArray, [], "an empty user color array must be valid while color variation is disabled");
 assert.deepEqual(
@@ -707,6 +742,10 @@ assert.equal(object.docked, false, "dock(false) must restore a block reversibly"
 assert.equal(object.element.parentElement, local.field, "restoring must return the block to the grid surface");
 object.dock();
 assert.equal(object.docked, true, "dock() without an argument must dock, as the types and reference promise");
+assert.ok(
+  [...object.element.children[0].children[1].children].some((button) => String(button.getAttribute("aria-label")).endsWith(local.labels.undock)),
+  "a docked block must announce its own return-from-dock label instead of the minimize restore label"
+);
 object.dock(false);
 assert.throws(function () { object.span(0, 1); }, /positieve gehele/, "invalid spans must fail early");
 assert.throws(function () { object.span(5, 1); }, /past niet/, "a block cannot span beyond its grid");
@@ -744,6 +783,8 @@ const dutch = createBlocksSystem({
 });
 assert.equal(dutch.labels.close, "verwijderen", "consumers must be able to configure accessible labels");
 assert.equal(dutch.labels.dock, "links bewaren", "consumers must be able to configure the dock label");
+assert.equal(createBlocksSystem().labels.undock, "return from the dock", "undocking must have its own label; restore belongs to minimize");
+assert.equal(createBlocksSystem().labels.restore, "restore", "restore keeps its minimize meaning");
 assert.equal(dutch.labels.copy, "inhoud meenemen", "consumers must be able to configure copy feedback labels");
 assert.throws(function () { createBlocksSystem({ labels: { close: "" } }); }, /labels\.close mag niet leeg/, "empty accessible labels must fail early");
 assert.match(source, /mode:\s*detail\.mode[\s\S]*fromIndex:[\s\S]*toIndex:[\s\S]*direction:/, "reorder events must expose one stable detail shape");

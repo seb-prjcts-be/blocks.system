@@ -213,7 +213,7 @@ async function measureCompactLayout() {
         });
         const changes = [];
         field.addEventListener("blocks:change", function (event) {
-          changes.push(event.detail);
+          if (!["grid", "layout"].includes(event.detail.type)) changes.push(event.detail);
         });
         blocks.attach(field).setGrid(1, 6);
         blocks.add("first", { id: "compact-first" }).place(1, 1);
@@ -326,7 +326,7 @@ async function measureCloseCollapse() {
       try {
         const blocks = createBlocksSystem({ layout: "fixed-grid", draggable: false, variant: "regular" });
         const changes = [];
-        field.addEventListener("blocks:change", function (event) { changes.push(event.detail); });
+        field.addEventListener("blocks:change", function (event) { if (!["grid", "layout"].includes(event.detail.type)) changes.push(event.detail); });
         blocks.attach(field).setGrid(1, 6);
         blocks.add("top", { id: "close-collapse-top" }).place(1, 1);
         const gap = blocks.add("gap", { id: "close-collapse-gap", title: "gap", menu: { close: true } }).place(1, 2);
@@ -357,7 +357,7 @@ async function measureCloseRowCollapse() {
       try {
         const blocks = createBlocksSystem({ layout: "fixed-grid", draggable: false, variant: "regular" });
         const changes = [];
-        field.addEventListener("blocks:change", function (event) { changes.push(event.detail); });
+        field.addEventListener("blocks:change", function (event) { if (!["grid", "layout"].includes(event.detail.type)) changes.push(event.detail); });
         blocks.attach(field).setGrid(3, 6);
         blocks.add("top", { id: "close-row-top" }).span(3, 1).place(1, 1);
         const gap = blocks.add("gap", { id: "close-row-gap", title: "gap", menu: { close: true } }).span(2, 1).place(1, 2);

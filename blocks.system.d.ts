@@ -12,6 +12,7 @@ export interface BlocksLabels {
   restore: string;
   minimize: string;
   dock: string;
+  undock: string;
   close: string;
   copy: string;
   copied: string;
@@ -165,7 +166,8 @@ export interface BlocksResizeDetail {
   to: BlocksResizeSize;
 }
 
-export type BlocksChangeType = "compact" | "dock" | "undock" | "minimize" | "restore" | "remove";
+/** layout: a span, place or fitHeight change of one block; grid: the columns or rows changed. */
+export type BlocksChangeType = "compact" | "dock" | "undock" | "minimize" | "restore" | "remove" | "layout" | "grid";
 
 export interface BlocksChangeDetail {
   type: BlocksChangeType;

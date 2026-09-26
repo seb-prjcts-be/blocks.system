@@ -7,12 +7,12 @@ export const REFERENCE_SECTIONS = Object.freeze([
   Object.freeze({ id: "reference-content", anchor: "content", aliases: [], span: [6, 3], place: [1, 30] }),
   Object.freeze({ id: "reference-titlebar", anchor: "titlebar-controls", aliases: [], span: [6, 6], place: [1, 34] }),
   Object.freeze({ id: "reference-dragging", anchor: "dragging", aliases: ["reorder-event"], span: [6, 5], place: [1, 41] }),
-  Object.freeze({ id: "reference-appearance", anchor: "appearance", aliases: [], span: [6, 3], place: [1, 47] }),
-  Object.freeze({ id: "reference-color", anchor: "colors", aliases: [], span: [6, 2], place: [1, 51] }),
-  Object.freeze({ id: "reference-chance", anchor: "chance", aliases: [], span: [6, 3], place: [1, 54] }),
-  Object.freeze({ id: "reference-block-controller", anchor: "block-controller", aliases: [], span: [6, 4], place: [1, 58] }),
-  Object.freeze({ id: "reference-definition-create", anchor: "adapters", aliases: [], span: [6, 8], place: [1, 63] }),
-  Object.freeze({ id: "reference-adapter-methods", anchor: "adapter-methods", aliases: [], span: [6, 5], place: [1, 72] }),
-  Object.freeze({ id: "reference-field-signals", anchor: "field-dom", aliases: ["css-hooks"], span: [6, 8], place: [1, 78] }),
-  Object.freeze({ id: "reference-system-errors", anchor: "errors", aliases: [], span: [6, 2], place: [1, 87] })
+  Object.freeze({ id: "reference-appearance", anchor: "appearance", aliases: [], span: [6, 4], place: [1, 47] }),
+  Object.freeze({ id: "reference-color", anchor: "colors", aliases: [], span: [6, 2], place: [1, 52] }),
+  Object.freeze({ id: "reference-chance", anchor: "chance", aliases: [], span: [6, 3], place: [1, 55] }),
+  Object.freeze({ id: "reference-block-controller", anchor: "block-controller", aliases: [], span: [6, 4], place: [1, 59] }),
+  Object.freeze({ id: "reference-definition-create", anchor: "adapters", aliases: [], span: [6, 8], place: [1, 64] }),
+  Object.freeze({ id: "reference-adapter-methods", anchor: "adapter-methods", aliases: [], span: [6, 5], place: [1, 73] }),
+  Object.freeze({ id: "reference-field-signals", anchor: "field-dom", aliases: ["css-hooks"], span: [6, 10], place: [1, 79] }),
+  Object.freeze({ id: "reference-system-errors", anchor: "errors", aliases: [], span: [6, 2], place: [1, 90] })
 ]);
