@@ -322,15 +322,18 @@ De gemeten werking en grenzen staan duurzaam in
 
 Bekijk de [API-reference](https://seb-prjcts-be.github.io/blocks.system/docs/api.html)
 voor argumenten en returnwaarden. Publieke installatiesnippets zijn op de
-onveranderlijke `v0.4.2` vastgezet, dezelfde bron die de uitgebrachte docs
+onveranderlijke `v0.5.0` vastgezet, dezelfde bron die de uitgebrachte docs
 vermelden.
 
 ## Gecontroleerde status
 
-Op 2026-08-17 bevat release `v0.4.2` de gedocumenteerde publieke werking: één
-onveranderlijk layoutmodel, beweging in fixed- en flow-grid, flow-grid-resize,
-layoutopslag, minimalisering, `compact()`, adapters, events,
-TypeScript-declaraties, home, manual en reference.
+Op 2026-09-26 bevat release `v0.5.0` de gedocumenteerde publieke werking: één
+onveranderlijk layoutmodel, inhoudsgestuurde rijen met een optionele
+`rowHeight`, `startBlock()` zonder configuratie, beweging in fixed- en
+flow-grid, flow-grid-resize, atomaire layoutopslag, minimalisering die rijen
+vrijgeeft, een dockrail met eigen ruimte, `compact()`, adapters, events,
+TypeScript-declaraties, home, manual en reference. De eerste echte consument,
+de Lucas Gent-site, draait erop zonder rasteromwegen.
 
 Lokaal geslaagd:
 
@@ -340,8 +343,10 @@ Lokaal geslaagd:
 - Gerichte browserchecks dekken de fixed-grid-documentatie en flow-grid-volgorde,
   resize, minimalisering en layoutherstel.
 
-`v0.4.2` is de recentste onveranderlijke publieke release. De correctie van de
-releasegrens staat in [`docs/releases/v0.4.2.md`](docs/releases/v0.4.2.md); de
+`v0.5.0` is de recentste onveranderlijke publieke release; de breaking changes
+en migratiestappen staan in
+[`docs/releases/v0.5.0.md`](docs/releases/v0.5.0.md). De correctie van de
+`v0.4.2`-releasegrens staat in [`docs/releases/v0.4.2.md`](docs/releases/v0.4.2.md); de
 documentatiefixes staan in [`docs/releases/v0.4.1.md`](docs/releases/v0.4.1.md)
 en de eerdere breaking changes en migratienotities blijven in
 [`docs/releases/v0.4.0.md`](docs/releases/v0.4.0.md).

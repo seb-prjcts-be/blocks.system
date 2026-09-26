@@ -132,7 +132,7 @@ if (candidateMode) {
 }
 const stableModuleUrl = `data:text/javascript;base64,${Buffer.from(stableSource).toString("base64")}`;
 const stableModule = await import(stableModuleUrl);
-assert.deepEqual(Object.keys(stableModule).sort(), ["createBlocksSystem", "system"], "stable tag must expose the documented module entrypoints");
+assert.deepEqual(Object.keys(stableModule).sort(), ["createBlocksSystem", "startBlock", "system"], "stable tag must expose the documented module entrypoints");
 assert.ok(stableCss.includes(".blocks-system-surface"), "stable tag must contain the documented stylesheet");
 if (DOCS_RELEASE.releaseStatus === "released") {
   const currentCss = await readFile(resolve(root, "blocks.system.css"), "utf8");

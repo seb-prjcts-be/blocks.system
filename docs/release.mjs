@@ -1,10 +1,10 @@
 export const DOCS_RELEASE = Object.freeze({
-  sourceRef: "main",
-  releaseStatus: "unreleased",
-  packageVersion: "0.4.2",
-  stableRef: "v0.4.2",
+  sourceRef: "v0.5.0",
+  releaseStatus: "released",
+  packageVersion: "0.5.0",
+  stableRef: "v0.5.0",
   nextRelease: null,
-  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.4.2"
+  stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.5.0"
 });
 
 export function docsSourceLabel() {
