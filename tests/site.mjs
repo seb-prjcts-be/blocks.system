@@ -459,10 +459,10 @@ for (const apiName of [
 ]) {
   assert.ok(serializedReference.includes(apiName), `reference misses ${apiName}`);
 }
-assert.match(serializedReference, /columns[\s\S]*readonly number[\s\S]*rows[\s\S]*may also grow after dragging/i, "reference must explain readable grid dimensions");
+assert.match(serializedReference, /columns[\s\S]*readonly number[\s\S]*rows[\s\S]*setGrid\(\) minimum[\s\S]*shrinks back/i, "reference must explain readable, content-driven grid dimensions");
 assert.match(serializedReference, /Do not call element\.remove\(\); use remove\(\)/, "reference must prevent direct DOM removal that leaves a stale layout");
 assert.match(serializedReference, /layout[\s\S]*free \| fixed-grid \| flow-grid[\s\S]*cannot change[\s\S]*compact\(\)[\s\S]*fixed grid/i, "reference must explain the single immutable layout contract");
-assert.match(serializedReference, /Fixed-grid keeps a minimized block's assigned footprint[\s\S]*flow-grid reduces it to one titlebar row[\s\S]*Fixed-grid leaves its address empty until an explicit compact\(\)/i, "reference must explain empty rows and minimized ordering without implicit compaction");
+assert.match(serializedReference, /Both grid layouts reduce a minimized block to one row and release the rest[\s\S]*Fixed-grid leaves its address empty until an explicit compact\(\)/i, "reference must explain empty rows and minimized ordering without implicit compaction");
 assert.match(serializedReference, /Never pass untrusted text as HTML[\s\S]*textContent/i, "reference must warn about trusted string HTML");
 
 const typedReferenceRows = Object.values(docsContent.reference).flatMap((entry) => entry.rows || []);
@@ -536,7 +536,7 @@ assert.doesNotMatch(libraryCss, /\b(?:animation|transition)\s*:/, "base CSS must
 assert.doesNotMatch(libraryCss, /data-block-variant="(?:red|green|blue|cyan|magenta|yellow)"/, "library CSS must not own an RGB or CMY palette");
 assert.match(libraryCss, /\.blocks-system-object:hover,\s*[^\{]+\{[^}]*outline:\s*3px solid var\(--blocks-ink-color\);[^}]*outline-offset:\s*0;/, "hover must strengthen every block with the same exterior black frame");
 assert.match(libraryCss, /\[data-layout="flow-grid"\]\s*\{[^}]*grid-auto-flow:\s*row;/, "flow-grid must preserve DOM order without dense backfilling");
-assert.match(libraryCss, /\[data-layout="flow-grid"\][^\{]+\[data-block-minimized="true"\]\s*\{[^}]*grid-row:\s*auto \/ span 1;/, "minimized flow-grid blocks must release their extra rows");
+assert.match(libraryCss, /\[data-layout="fixed-grid"\], \[data-layout="flow-grid"\]\)[^\{]+\[data-block-minimized="true"\]\s*\{[^}]*grid-row:\s*var\(--block-row, auto\) \/ span 1;/, "minimized grid blocks must release their extra rows in both grid layouts");
 assert.match(libraryCss, /\.blocks-system-resize--inline\s*\{[^}]*cursor:\s*ew-resize;/, "flow blocks must expose a horizontal resize line");
 assert.match(libraryCss, /\.blocks-system-resize--block\s*\{[^}]*cursor:\s*ns-resize;/, "flow blocks must expose a vertical resize line");
 assert.match(libraryCss, /\.blocks-system-object\s*\{[^}]*border:\s*1px solid var\(--blocks-ink-color\);/, "every block must keep one thin black boundary independent of its appearance");

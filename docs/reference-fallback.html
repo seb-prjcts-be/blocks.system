@@ -28,6 +28,7 @@ const blocks = createBlocksSystem({
   layout: &quot;free&quot;,
   draggable: true,
   resizable: false,
+  rowHeight: null,
   font: null,
   labels: {},
   variant: &quot;random&quot;,
@@ -59,9 +60,10 @@ const blocks = createBlocksSystem({
   <p class="reference-intro">Choose one layout when creating the system. Fixed-grid uses explicit addresses; flow-grid uses DOM order and only each block's starting size.</p>
   <pre class="reference-code"><code>const blocks = createBlocksSystem({ layout: &quot;flow-grid&quot; });
 blocks.setGrid(4, 4);</code></pre>
-  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type / default</th><th>purpose</th></tr></thead><tbody><tr id="api-set-grid"><td data-label="kind + contract">method · setGrid(columns, rows)</td><td data-label="returns / type / default">blocks</td><td data-label="purpose">Set positive whole grid dimensions.</td></tr>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type / default</th><th>purpose</th></tr></thead><tbody><tr id="api-set-grid"><td data-label="kind + contract">method · setGrid(columns, rows)</td><td data-label="returns / type / default">blocks</td><td data-label="purpose">Fix the columns and set the minimum rows; the rows themselves follow the content.</td></tr>
 <tr><td data-label="kind + contract">property · columns</td><td data-label="returns / type / default">readonly number</td><td data-label="purpose">Current column count; starts at 1 and changes through setGrid().</td></tr>
-<tr><td data-label="kind + contract">property · rows</td><td data-label="returns / type / default">readonly number</td><td data-label="purpose">Current row count; starts at 1 and may also grow after dragging.</td></tr>
+<tr><td data-label="kind + contract">property · rows</td><td data-label="returns / type / default">readonly number</td><td data-label="purpose">Current row count: the setGrid() minimum, or more when spans, places, drops, minimizing, docking or hidden need it; it shrinks back when they no longer do.</td></tr>
+<tr><td data-label="kind + contract">property · rowHeight</td><td data-label="returns / type / default">number | null · null</td><td data-label="purpose">Fixed row height in pixels so the field follows its rows; null lets every row share the field height. Rejected in free layout.</td></tr>
 <tr><td data-label="kind + contract">property · layout</td><td data-label="returns / type / default">readonly free | fixed-grid | flow-grid · free</td><td data-label="purpose">One complete layout model chosen at creation; it cannot change afterwards.</td></tr>
 <tr id="api-compact"><td data-label="kind + contract">method · compact()</td><td data-label="returns / type / default">blocks</td><td data-label="purpose">Move fixed grid blocks upward to fill vertical gaps.</td></tr></tbody></table></div>
 </section>
@@ -118,7 +120,7 @@ blocks.restoreLayout(layout);</code></pre>
 
 <section id="titlebar-controls" class="reference-fallback-entry">
   <h2>titlebar controls</h2>
-  <p class="reference-intro">The default titlebar closes reversibly to a compact left dock without retaining grid space. Configure opt-in minimize, destructive close and copy-content actions when the system or block is created, or update one block later through its controller. Fixed-grid keeps a minimized block's assigned footprint; flow-grid reduces it to one titlebar row. Fixed-grid leaves its address empty until an explicit compact() after destructive removal.</p>
+  <p class="reference-intro">The default titlebar closes reversibly to a compact left dock without retaining grid space. Configure opt-in minimize, destructive close and copy-content actions when the system or block is created, or update one block later through its controller. Both grid layouts reduce a minimized block to one row and release the rest. Fixed-grid leaves its address empty until an explicit compact() after destructive removal.</p>
   <pre class="reference-code"><code>block.menu(&quot;hello&quot;, {
   minimize: true,
   close: true,
@@ -149,6 +151,7 @@ blocks.restoreLayout(layout);</code></pre>
 });</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>type or initial value</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">property · blocks.draggable</td><td data-label="type or initial value">boolean · true</td><td data-label="purpose">Allow pointer and keyboard reordering for the whole system.</td></tr>
 <tr><td data-label="kind + contract">option · draggable</td><td data-label="type or initial value">boolean · true</td><td data-label="purpose">Set the initial drag state for one new block.</td></tr>
+<tr><td data-label="kind + contract">option · rowHeight</td><td data-label="type or initial value">number | null · null</td><td data-label="purpose">Fixed row height in pixels; the field then grows and shrinks with its rows.</td></tr>
 <tr><td data-label="kind + contract">property · block.draggable</td><td data-label="type or initial value">boolean · true</td><td data-label="purpose">Read or change whether one block can move.</td></tr>
 <tr><td data-label="kind + contract">property · blocks.resizable</td><td data-label="type or initial value">boolean · false</td><td data-label="purpose">Enable resize lines in flow-grid; other layouts reject true.</td></tr>
 <tr><td data-label="kind + contract">event · blocks:reorder</td><td data-label="type or initial value">CustomEvent</td><td data-label="purpose">Fires after a pointer or keyboard move.</td></tr>

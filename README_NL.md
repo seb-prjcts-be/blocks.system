@@ -140,17 +140,24 @@ heeft. De kern blijft in beide gevallen opslagneutraal.
 Een responsieve pagina gebruikt per breakpoint vaak een ander raster en andere
 spans. Geef het doelraster mee aan `restoreLayout(layout, { grid })`, zodat spans
 en raster in één stap wisselen; eerst de spans of eerst het raster zetten
-weigert telkens de set die niet in het andere raster past. Is het doelraster te
-klein of overlapt een opgeslagen plaats een vast block, dan verandert er niets.
+weigert telkens de set die niet in het andere raster past. Heeft het doelraster te
+weinig kolommen of overlapt een opgeslagen plaats een vast block, dan verandert
+er niets.
 
 ```js
 blocks.restoreLayout(compacteLayout, { grid: { columns: 4, rows: 24 } });
 ```
 
-Elke span, plaats, raster of herstelde layout die niet past, gooit een
-`RangeError` met `error.code === "BLOCKS_GRID_TOO_SMALL"`. Controleer die code,
-niet de meldingstekst, wanneer een toepassing haar raster vergroot en opnieuw
-probeert.
+`setGrid(columns, rows)` legt de kolommen vast en zet het minimum aantal rijen.
+De rijen zelf volgen de inhoud: spans, plaatsen, drops, minimaliseren, docken en
+`hidden` laten ze groeien en krimpen, en `blocks.rows` geeft altijd het actuele
+aantal. Alleen een block breder dan het raster wordt geweigerd, met een
+`RangeError` waarvan `error.code === "BLOCKS_GRID_TOO_SMALL"`.
+
+Standaard delen alle rijen de veldhoogte (`1fr`), dus de pagina is eigenaar van
+de hoogte. Geef `rowHeight: 128` (pixels) mee om die eigenaarschap aan de
+library te geven: rijen worden vaste tracks en het veld groeit en krimpt met
+zijn rijen.
 
 ### Optionele inhoudsopslag
 

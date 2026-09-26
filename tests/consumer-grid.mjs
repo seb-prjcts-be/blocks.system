@@ -37,7 +37,8 @@ try {
         }
       };
 
-      // Growing a measurement grid needs a signal that is not the message text.
+      // A block wider than the grid needs a signal that is not the message text;
+      // rows are never too small, they follow the content.
       const compact = {
         version: 1,
         layout: "fixed-grid",
@@ -46,9 +47,17 @@ try {
           { id: "narrow", span: [4, 1], place: null, minimized: false, docked: false }
         ]
       };
-      const spanOverflow = failure(() => wide.span(4, 9));
+      const tooWide = {
+        version: 1,
+        layout: "fixed-grid",
+        blocks: [{ id: "wide", span: [13, 1], place: null, minimized: false, docked: false }]
+      };
+      const spanOverflow = failure(() => wide.span(13, 1));
       const gridOverflow = failure(() => blocks.setGrid(4, 2));
-      const restoreOverflow = failure(() => blocks.restoreLayout(compact));
+      const restoreOverflow = failure(() => blocks.restoreLayout(tooWide));
+      const rowsGrow = failure(() => wide.span(8, 9));
+      const rowsAfterGrow = blocks.rows;
+      wide.span(8, 1);
 
       // A wide-to-compact switch: the target spans only fit the target grid,
       // and the current spans only fit the current grid.
@@ -58,8 +67,8 @@ try {
         spans: blocks.exportLayout().blocks.map((entry) => entry.span)
       };
 
-      // A target grid that cannot hold the saved spans changes nothing.
-      const tooSmall = failure(() => blocks.restoreLayout(compact, { grid: { columns: 4, rows: 2 } }));
+      // A target grid with too few columns for the saved spans changes nothing.
+      const tooSmall = failure(() => blocks.restoreLayout(compact, { grid: { columns: 3, rows: 4 } }));
       const afterRejected = {
         grid: [blocks.columns, blocks.rows],
         spans: blocks.exportLayout().blocks.map((entry) => entry.span)
@@ -142,6 +151,7 @@ try {
       const hiddenFit = hiddenBlock.fitHeight();
 
       return {
+        rowsGrow, rowsAfterGrow,
         undockOverlap, undockPlaces, resizingAttribute, outlineIdle, outlineActive,
         overlap, overlapUnchanged, placeBefore: second.place, hiddenAfterMove: hiddenAfterMove.place, movedPlace,
         hiddenFit: { rows: hiddenFit.rows, changed: hiddenFit.changed },
@@ -162,6 +172,8 @@ try {
   assert.deepEqual(value.afterSwitch, { grid: [4, 4], spans: [[4, 3], [4, 1]] });
   assert.deepEqual(value.tooSmall, { name: "RangeError", code: "BLOCKS_GRID_TOO_SMALL" });
   assert.deepEqual(value.afterRejected, value.afterSwitch, "a rejected grid switch must leave grid and spans untouched");
+  assert.equal(value.rowsGrow, null, "a span taller than the grid grows the rows instead of throwing");
+  assert.equal(value.rowsAfterGrow, 9, "rows follow the tallest span");
   for (const name of ["spanOverflow", "gridOverflow", "restoreOverflow"]) {
     assert.deepEqual(value[name], { name: "RangeError", code: "BLOCKS_GRID_TOO_SMALL" }, `${name} must carry the stable grid-size code`);
   }

@@ -558,6 +558,7 @@
         "  layout: \"free\",",
         "  draggable: true,",
         "  resizable: false,",
+        "  rowHeight: null,",
         "  font: null,",
         "  labels: {},",
         "  variant: \"random\",",
@@ -600,9 +601,10 @@
       ],
       "headers": ["kind + contract", "returns / type / default", "purpose"],
       "rows": [
-        { "id": "api-set-grid", "cells": ["method · setGrid(columns, rows)", "blocks", "Set positive whole grid dimensions."] },
+        { "id": "api-set-grid", "cells": ["method · setGrid(columns, rows)", "blocks", "Fix the columns and set the minimum rows; the rows themselves follow the content."] },
         { "cells": ["property · columns", "readonly number", "Current column count; starts at 1 and changes through setGrid()."] },
-        { "cells": ["property · rows", "readonly number", "Current row count; starts at 1 and may also grow after dragging."] },
+        { "cells": ["property · rows", "readonly number", "Current row count: the setGrid() minimum, or more when spans, places, drops, minimizing, docking or hidden need it; it shrinks back when they no longer do."] },
+        { "cells": ["property · rowHeight", "number | null · null", "Fixed row height in pixels so the field follows its rows; null lets every row share the field height. Rejected in free layout."] },
         { "cells": ["property · layout", "readonly free | fixed-grid | flow-grid · free", "One complete layout model chosen at creation; it cannot change afterwards."] },
         { "id": "api-compact", "cells": ["method · compact()", "blocks", "Move fixed grid blocks upward to fill vertical gaps."] }
       ]
@@ -669,7 +671,7 @@
     },
     "reference-titlebar": {
       "title": "titlebar controls",
-      "intro": "The default titlebar closes reversibly to a compact left dock without retaining grid space. Configure opt-in minimize, destructive close and copy-content actions when the system or block is created, or update one block later through its controller. Fixed-grid keeps a minimized block's assigned footprint; flow-grid reduces it to one titlebar row. Fixed-grid leaves its address empty until an explicit compact() after destructive removal.",
+      "intro": "The default titlebar closes reversibly to a compact left dock without retaining grid space. Configure opt-in minimize, destructive close and copy-content actions when the system or block is created, or update one block later through its controller. Both grid layouts reduce a minimized block to one row and release the rest. Fixed-grid leaves its address empty until an explicit compact() after destructive removal.",
       "code": [
         "block.menu(\"hello\", {",
         "  minimize: true,",
@@ -708,6 +710,7 @@
       "rows": [
         { "cells": ["property · blocks.draggable", "boolean · true", "Allow pointer and keyboard reordering for the whole system."] },
         { "cells": ["option · draggable", "boolean · true", "Set the initial drag state for one new block."] },
+        { "cells": ["option · rowHeight", "number | null · null", "Fixed row height in pixels; the field then grows and shrinks with its rows."] },
         { "cells": ["property · block.draggable", "boolean · true", "Read or change whether one block can move."] },
         { "cells": ["property · blocks.resizable", "boolean · false", "Enable resize lines in flow-grid; other layouts reject true."] },
         { "cells": ["event · blocks:reorder", "CustomEvent", "Fires after a pointer or keyboard move."] },

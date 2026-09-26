@@ -137,16 +137,22 @@ A responsive page often uses a different grid and different spans per
 breakpoint. Pass the target grid to `restoreLayout(layout, { grid })` so the
 spans and the grid switch in one step; restoring spans first, or resizing the
 grid first, would reject whichever set does not fit the other grid. When the
-target grid is too small or a saved place overlaps a fixed block, nothing
+target grid has too few columns or a saved place overlaps a fixed block, nothing
 changes.
 
 ```js
 blocks.restoreLayout(compactLayout, { grid: { columns: 4, rows: 24 } });
 ```
 
-Every span, place, grid or restored layout that does not fit throws a
-`RangeError` with `error.code === "BLOCKS_GRID_TOO_SMALL"`. Check that code, not
-the message text, when an application grows its grid and tries again.
+`setGrid(columns, rows)` fixes the columns and sets the minimum rows. The rows
+themselves follow the content: spans, places, drops, minimizing, docking and
+`hidden` grow and shrink them, and `blocks.rows` always reports the current
+count. Only a block wider than the grid is refused, with a `RangeError` whose
+`error.code === "BLOCKS_GRID_TOO_SMALL"`.
+
+By default every row shares the field height (`1fr`), so the page owns the
+height. Pass `rowHeight: 128` (pixels) to let the library own it instead: rows
+become fixed tracks and the field grows and shrinks with its rows.
 
 ### Optional content storage
 

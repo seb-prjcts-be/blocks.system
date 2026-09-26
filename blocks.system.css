@@ -35,6 +35,17 @@
     grid-auto-rows: minmax(0, 1fr);
 }
 
+/* Met rowHeight bepaalt de library de rijhoogte en volgt het veld zijn rijen. */
+.blocks-system-surface[data-row-height] {
+    grid-template-rows: repeat(var(--blocks-rows), var(--blocks-row-height));
+    grid-auto-rows: var(--blocks-row-height);
+}
+
+/* Een gevulde dockrail krijgt eigen ruimte boven het raster. */
+.blocks-system-surface[data-blocks-dock="true"] {
+    padding-block-start: calc(var(--blocks-dock-height, 22px) + var(--blocks-gap));
+}
+
 .blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"] > .blocks-system-menu {
     cursor: grab;
     touch-action: none;
@@ -129,8 +140,9 @@
     min-height: 0;
 }
 
-.blocks-system-surface[data-layout="flow-grid"] > .blocks-system-object[data-block-minimized="true"] {
-    grid-row: auto / span 1;
+/* Een geminimaliseerd block houdt zijn kolommen maar geeft zijn extra rijen vrij. */
+.blocks-system-surface:is([data-layout="fixed-grid"], [data-layout="flow-grid"]) > .blocks-system-object[data-block-minimized="true"] {
+    grid-row: var(--block-row, auto) / span 1;
 }
 
 .blocks-system-object[data-block-minimized="true"] .blocks-system-content {
@@ -146,15 +158,16 @@
     z-index: 900;
     inset-block-start: var(--blocks-gap);
     inset-inline-start: var(--blocks-gap);
+    inset-inline-end: var(--blocks-gap);
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     gap: 3px;
-    width: min(180px, calc(100% - 2 * var(--blocks-gap)));
     pointer-events: none;
 }
 
 .blocks-system-dock > .blocks-system-object[data-block-docked="true"] {
-    width: 100%;
+    width: min(180px, 100%);
     min-height: 22px;
     height: 22px;
     pointer-events: auto;

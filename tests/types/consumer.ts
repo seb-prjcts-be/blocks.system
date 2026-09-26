@@ -56,6 +56,10 @@ const describedUrl: string | undefined = described.url;
 
 const columns: number = blocks.columns;
 const rows: number = blocks.rows;
+const rowHeight: number | null = blocks.rowHeight;
+blocks.rowHeight = 128;
+void rowHeight;
+createBlocksSystem({ layout: "fixed-grid", rowHeight: 128 });
 const minified: BlocksSystem = createMinBlocksSystem({ variant: "regular" });
 const shared: BlocksSystem = system;
 

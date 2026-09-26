@@ -35,11 +35,11 @@ export interface BlocksLayout {
 }
 
 export interface BlocksRestoreOptions {
-  /** Switch the grid together with the saved spans, e.g. at a responsive breakpoint. Nothing changes when the target grid is too small or a saved place overlaps a fixed block. */
+  /** Switch the grid together with the saved spans, e.g. at a responsive breakpoint. Nothing changes when the target grid has too few columns or a saved place overlaps a fixed block. */
   grid?: { columns: number; rows: number };
 }
 
-/** Error code on the RangeError thrown when a span, place, grid or restored layout does not fit the grid. */
+/** Error code on the RangeError thrown when a span, place, grid or restored layout is wider than the grid. */
 export type BlocksGridTooSmallCode = "BLOCKS_GRID_TOO_SMALL";
 
 export interface BlockDefinition {
@@ -177,6 +177,8 @@ export interface BlocksSystemOptions {
   draggable?: boolean;
   /** Show resize lines in flow-grid. Defaults to false and is rejected in other layouts. */
   resizable?: boolean;
+  /** Fixed row height in pixels; the field then follows its rows. Defaults to null: rows share the field height. Rejected in free layout. */
+  rowHeight?: number | null;
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
   variant?: string;
@@ -191,7 +193,10 @@ export interface BlocksSystemOptions {
 
 export interface BlocksSystem {
   readonly columns: number;
+  /** Current row count: the setGrid() minimum or more when the content needs it. */
   readonly rows: number;
+  /** Fixed row height in pixels, or null when rows share the field height. */
+  rowHeight: number | null;
   readonly layout: BlocksLayoutMode;
   draggable: boolean;
   resizable: boolean;
@@ -211,7 +216,8 @@ export interface BlocksSystem {
   list(filters?: { query?: string; adapter?: string; medium?: string; category?: string }): Readonly<BlockDefinition>[];
   get(id: string): Readonly<BlockDefinition> | null;
   attach(target: string | Element): BlocksSystem;
-  setGrid(columns: number, rows: number): BlocksSystem;
+  /** Fix the columns and set the minimum rows; rows grow and shrink with the content. */
+  setGrid(columns: number, minRows: number): BlocksSystem;
   compact(): BlocksSystem;
   /** Fit every live block's row span to its rendered content at the current widths. */
   fitHeight(ids?: Iterable<string>): ReadonlyArray<Readonly<{ id: string; columns: number; rows: number; changed: boolean }>>;

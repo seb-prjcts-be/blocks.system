@@ -141,6 +141,15 @@ function rejectRetiredLayoutOptions(options) {
     }
 }
 
+function normalizeRowHeight(value) {
+    if (value === undefined || value === null) return null;
+    const pixels = Number(value);
+    if (!Number.isFinite(pixels) || pixels <= 0) {
+        throw new TypeError("blocks.system.rowHeight verwacht een positief aantal pixels of null.");
+    }
+    return pixels;
+}
+
 function gridTooSmallError(message) {
     const error = new RangeError(message);
     error.code = GRID_TOO_SMALL;
@@ -503,8 +512,14 @@ export function createBlocksSystem(options = {}) {
     let surface = null;
     let dock = null;
     let columns = 1;
+    // setGrid() zet een minimum; de inhoud bepaalt het werkelijke aantal rijen.
+    let minRows = 1;
     let rows = 1;
     const layoutMode = normalizeLayout(options.layout);
+    let rowHeightState = normalizeRowHeight(options.rowHeight);
+    if (rowHeightState !== null && layoutMode === "free") {
+        throw new TypeError("blocks.system.rowHeight vereist layout: fixed-grid of flow-grid.");
+    }
     let draggableEnabled = options.draggable === undefined ? true : Boolean(options.draggable);
     let resizableEnabled = options.resizable === undefined ? false : Boolean(options.resizable);
     if (resizableEnabled && layoutMode !== "flow-grid") {
@@ -570,7 +585,15 @@ export function createBlocksSystem(options = {}) {
         surface.setAttribute("data-draggable", String(draggableEnabled));
         surface.setAttribute("data-resizable", String(resizableEnabled));
         surface.style.setProperty("--blocks-columns", String(columns));
-        surface.style.setProperty("--blocks-rows", String(rows));
+        if (rowHeightState === null) {
+            surface.style.removeProperty("--blocks-row-height");
+            surface.removeAttribute("data-row-height");
+        } else {
+            surface.style.setProperty("--blocks-row-height", `${rowHeightState}px`);
+            surface.setAttribute("data-row-height", "");
+        }
+        syncRows();
+        syncDockSpace();
         applyFontState();
         for (const syncMenuInteraction of menuInteractionSetters.values()) syncMenuInteraction();
         for (const syncResizeInteraction of resizeInteractionSetters.values()) syncResizeInteraction();
@@ -593,6 +616,107 @@ export function createBlocksSystem(options = {}) {
             columnStep: (columnTracks[0] || bounds.width / Math.max(1, columns)) + columnGap,
             rowStep: (rowTracks[0] || bounds.height / Math.max(1, rows)) + rowGap,
         };
+    }
+
+    // De rastervoetafdruk van een block zoals het raster hem nu ziet: een
+    // geminimaliseerd block houdt zijn kolommen maar bezet één rij.
+    function effectiveLayoutOf(id) {
+        const layout = objectLayouts.get(id);
+        if (!layout) return null;
+        const block = objects.get(id);
+        return { ...layout, rows: block?.minimized ? 1 : layout.rows };
+    }
+
+    // Alleen blocks die echt in het raster staan: niet gedockt, niet verborgen.
+    function occupiedLayoutOf(id) {
+        const block = objects.get(id);
+        if (!block || block.docked || block.element.hidden) return null;
+        return effectiveLayoutOf(id);
+    }
+
+    // Emuleert de spaarzame CSS-autoplaatsing in DOM-volgorde om te weten
+    // hoeveel rijen de inhoud werkelijk nodig heeft.
+    function requiredRows() {
+        if (!surface || layoutMode === "free") return 1;
+        const occupied = new Set();
+        const key = (column, row) => `${column}:${row}`;
+        let last = 1;
+        const occupy = (layout, column, row) => {
+            for (let y = row; y < row + layout.rows; y += 1) {
+                for (let x = column; x < column + layout.columns; x += 1) occupied.add(key(x, y));
+            }
+            last = Math.max(last, row + layout.rows - 1);
+        };
+        const items = directObjectElements()
+            .map((element) => occupiedLayoutOf(element.getAttribute("data-block-object")))
+            .filter(Boolean);
+        for (const layout of items) {
+            if (layout.column !== null && layout.row !== null) occupy(layout, layout.column, layout.row);
+        }
+        let cursorColumn = 1;
+        let cursorRow = 1;
+        for (const layout of items) {
+            if (layout.column !== null && layout.row !== null) continue;
+            const width = Math.min(layout.columns, columns);
+            let column = cursorColumn;
+            let row = cursorRow;
+            for (;;) {
+                if (column + width - 1 > columns) {
+                    column = 1;
+                    row += 1;
+                    continue;
+                }
+                let fits = true;
+                for (let y = row; y < row + layout.rows && fits; y += 1) {
+                    for (let x = column; x < column + width; x += 1) {
+                        if (occupied.has(key(x, y))) {
+                            fits = false;
+                            break;
+                        }
+                    }
+                }
+                if (fits) break;
+                column += 1;
+            }
+            occupy({ columns: width, rows: layout.rows }, column, row);
+            cursorColumn = column + width;
+            cursorRow = row;
+            if (cursorColumn > columns) {
+                cursorColumn = 1;
+                cursorRow += 1;
+            }
+        }
+        return last;
+    }
+
+    function syncRows() {
+        rows = Math.max(minRows, requiredRows());
+        if (surface) surface.style.setProperty("--blocks-rows", String(rows));
+    }
+
+    // De dockrail krijgt eigen ruimte boven het raster in plaats van eroverheen.
+    function syncDockSpace() {
+        if (!surface) return;
+        if (dock && dock.parentElement === surface && dock.children.length > 0) {
+            const height = dock.offsetHeight || 22;
+            surface.setAttribute("data-blocks-dock", "true");
+            surface.style.setProperty("--blocks-dock-height", `${height}px`);
+        } else {
+            surface.removeAttribute("data-blocks-dock");
+            surface.style.removeProperty("--blocks-dock-height");
+        }
+    }
+
+    // Een block dat naar zijn oude vaste adres terugkeert terwijl dat intussen
+    // bezet is, laat het adres los en stroomt naar de eerstvolgende vrije cel.
+    function releasePlaceWhenTaken(id, layout, applyLayout) {
+        if (layoutMode !== "fixed-grid" || layout.column === null || layout.row === null) return;
+        const taken = Array.from(objectLayouts.keys()).some((otherId) => {
+            if (otherId === id) return false;
+            const other = occupiedLayoutOf(otherId);
+            return other && other.column !== null && other.row !== null && layoutsOverlap(layout, other);
+        });
+        if (taken) applyLayout({ columns: layout.columns, rows: layout.rows, column: null, row: null });
     }
 
     function createDragController() {
@@ -703,7 +827,6 @@ export function createBlocksSystem(options = {}) {
             current.draggedLayout.col = current.targetCol;
             current.draggedLayout.row = current.targetRow;
             const placed = pushedGridLayouts(current.draggedLayout, current.gridLayouts);
-            rows = Math.max(rows, ...placed.map((layout) => layout.row + layout.height));
             for (const layout of placed) {
                 objectLayoutSetters.get(layout.id)?.(layout.col + 1, layout.row + 1);
             }
@@ -730,7 +853,6 @@ export function createBlocksSystem(options = {}) {
 
             const before = new Map(elements.map((element) => [element, element.getBoundingClientRect()]));
             const placed = pushedGridLayouts(dragged, layouts);
-            rows = Math.max(rows, ...placed.map((layout) => layout.row + layout.height));
             for (const layout of placed) objectLayoutSetters.get(layout.id)?.(layout.col + 1, layout.row + 1);
             placed.sort((first, second) => first.row - second.row || first.col - second.col);
             for (const layout of placed) surface.appendChild(layout.element);
@@ -1124,6 +1246,10 @@ export function createBlocksSystem(options = {}) {
             surface.removeAttribute("data-resizable");
             surface.style.removeProperty("--blocks-columns");
             surface.style.removeProperty("--blocks-rows");
+            surface.style.removeProperty("--blocks-row-height");
+            surface.removeAttribute("data-row-height");
+            surface.removeAttribute("data-blocks-dock");
+            surface.style.removeProperty("--blocks-dock-height");
             surface.style.removeProperty("--blocks-font-family");
         }
         if (surface !== nextSurface) drag.bind(nextSurface);
@@ -1221,9 +1347,8 @@ export function createBlocksSystem(options = {}) {
         }));
         for (const layout of targetLayouts) {
             const lastColumn = layout.column === null ? layout.columns : layout.column + layout.columns - 1;
-            const lastRow = layout.row === null ? layout.rows : layout.row + layout.rows - 1;
-            if (lastColumn > gridColumns || lastRow > gridRows) {
-                throw gridTooSmallError(`Opgeslagen layout van ${layout.id} past niet in raster ${gridColumns}×${gridRows}.`);
+            if (lastColumn > gridColumns) {
+                throw gridTooSmallError(`Opgeslagen layout van ${layout.id} past niet in ${gridColumns} kolommen.`);
             }
         }
         const placedTargets = targetLayouts.filter((layout) => layout.column !== null && layout.row !== null);
@@ -1246,7 +1371,7 @@ export function createBlocksSystem(options = {}) {
         }
         if (targetGrid) {
             columns = gridColumns;
-            rows = gridRows;
+            minRows = gridRows;
             applySurfaceState();
         }
         for (const entry of knownEntries) objects.get(entry.id).docked = false;
@@ -1265,6 +1390,7 @@ export function createBlocksSystem(options = {}) {
             block.minimized = entry.minimized;
         }
         for (const entry of knownEntries) objects.get(entry.id).docked = entry.docked;
+        syncRows();
         return api;
     }
 
@@ -1275,15 +1401,12 @@ export function createBlocksSystem(options = {}) {
             first.row + first.rows > second.row;
     }
 
-    function assertLayoutFits(id, layout, gridColumns = columns, gridRows = rows) {
+    function assertLayoutFits(id, layout, gridColumns = columns) {
         const lastColumn = layout.column === null
             ? layout.columns
             : layout.column + layout.columns - 1;
-        const lastRow = layout.row === null
-            ? layout.rows
-            : layout.row + layout.rows - 1;
-        if (lastColumn > gridColumns || lastRow > gridRows) {
-            throw gridTooSmallError(`Layout van ${id} past niet in raster ${gridColumns}×${gridRows}.`);
+        if (lastColumn > gridColumns) {
+            throw gridTooSmallError(`Layout van ${id} past niet in ${gridColumns} kolommen.`);
         }
         if (layout.column === null || layout.row === null) return;
         for (const [otherId, other] of objectLayouts) {
@@ -1303,9 +1426,9 @@ export function createBlocksSystem(options = {}) {
             !Number.isInteger(nextRows) || nextRows < 1) {
             throw new TypeError("setGrid(x, y) verwacht positieve gehele aantallen kolommen en rijen.");
         }
-        for (const [id, layout] of objectLayouts) assertLayoutFits(id, layout, nextColumns, nextRows);
+        for (const [id, layout] of objectLayouts) assertLayoutFits(id, layout, nextColumns);
         columns = nextColumns;
-        rows = nextRows;
+        minRows = nextRows;
         applySurfaceState();
         return api;
     }
@@ -1320,7 +1443,7 @@ export function createBlocksSystem(options = {}) {
         const orderedLayouts = directObjectElements()
             .map((element, index) => {
                 const id = element.getAttribute("data-block-object");
-                return { id, index, layout: objectLayouts.get(id) };
+                return { id, index, layout: effectiveLayoutOf(id) };
             })
             .filter((item) => item.layout && item.layout.column !== null && item.layout.row !== null)
             .sort((first, second) =>
@@ -1368,11 +1491,13 @@ export function createBlocksSystem(options = {}) {
                 selected.add(id);
             }
         }
-        return directObjectElements().flatMap((element) => {
+        const measurements = directObjectElements().flatMap((element) => {
             const id = element.getAttribute("data-block-object");
             if (selected && !selected.has(id)) return [];
             return [{ id, ...objects.get(id).fitHeight() }];
         });
+        syncRows();
+        return measurements;
     }
 
     function appendContent(container, content) {
@@ -1412,6 +1537,7 @@ export function createBlocksSystem(options = {}) {
         );
         const block = createBlockController(id, content, addOptions);
         if (automaticMenu) block.menu(addOptions.title ?? "", automaticMenu);
+        syncRows();
         return block;
     }
 
@@ -1491,6 +1617,7 @@ export function createBlocksSystem(options = {}) {
                 shell.style.setProperty("--block-column", String(placeColumn));
                 shell.style.setProperty("--block-row", String(placeRow));
             }
+            syncRows();
         }
 
         function syncMinimizedState() {
@@ -1525,23 +1652,20 @@ export function createBlocksSystem(options = {}) {
                 const index = Math.max(0, Math.min(dockedReturnIndices.get(id) ?? live.length, live.length));
                 surface.insertBefore(shell, live[index] || null);
                 dockedReturnIndices.delete(id);
-                if (layoutMode === "fixed-grid" && placeColumn !== null && placeRow !== null) {
-                    // Is de oude plaats intussen ingenomen, dan laat het block zijn vaste
-                    // adres los en stroomt het naar de eerstvolgende vrije cel.
-                    const mine = { columns: spanColumns, rows: spanRows, column: placeColumn, row: placeRow };
-                    const taken = Array.from(objectLayouts).some(([otherId, other]) =>
-                        otherId !== id && other.column !== null && other.row !== null && layoutsOverlap(mine, other));
-                    if (taken) applyLayout({ columns: spanColumns, rows: spanRows, column: null, row: null });
-                }
                 if (dock && dock.children.length === 0) {
                     dock.remove();
                     dock = null;
                 }
             }
             dockedValue = nextValue;
+            if (!dockedValue) {
+                releasePlaceWhenTaken(id, { columns: spanColumns, rows: spanRows, column: placeColumn, row: placeRow }, applyLayout);
+            }
             syncDockedState();
             syncMenuInteractionState();
             syncResizeInteractionState();
+            syncDockSpace();
+            syncRows();
             emitChange({ type: dockedValue ? "dock" : "undock", id });
         }
 
@@ -1777,8 +1901,12 @@ export function createBlocksSystem(options = {}) {
             const nextValue = Boolean(value);
             if (minimizedValue === nextValue) return;
             minimizedValue = nextValue;
+            if (!minimizedValue) {
+                releasePlaceWhenTaken(id, { columns: spanColumns, rows: spanRows, column: placeColumn, row: placeRow }, applyLayout);
+            }
             syncMinimizedState();
             syncResizeInteractionState();
+            syncRows();
             emitChange({ type: minimizedValue ? "minimize" : "restore", id });
         }
 
@@ -1798,6 +1926,8 @@ export function createBlocksSystem(options = {}) {
                 dock.remove();
                 dock = null;
             }
+            syncDockSpace();
+            syncRows();
             emitChange({ type: "remove", id });
             return true;
         }
@@ -2086,6 +2216,18 @@ export function createBlocksSystem(options = {}) {
         rows: {
             enumerable: true,
             get: () => rows
+        },
+        rowHeight: {
+            enumerable: true,
+            get: () => rowHeightState,
+            set(value) {
+                const nextValue = normalizeRowHeight(value);
+                if (nextValue !== null && layoutMode === "free") {
+                    throw new TypeError("blocks.system.rowHeight vereist layout: fixed-grid of flow-grid.");
+                }
+                rowHeightState = nextValue;
+                applySurfaceState();
+            }
         },
         layout: {
             enumerable: true,
