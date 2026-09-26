@@ -48,9 +48,19 @@
     grid-auto-rows: var(--blocks-row-height);
 }
 
-/* Een gevulde dockrail krijgt eigen ruimte boven het raster. */
+/* Een gevulde dockrail krijgt eigen ruimte boven of onder het raster. */
 .blocks-system-surface[data-blocks-dock="true"] {
     padding-block-start: calc(var(--blocks-dock-height, 22px) + var(--blocks-gap));
+}
+
+.blocks-system-surface[data-blocks-dock="true"][data-blocks-dock-position="bottom"] {
+    padding-block-start: 0;
+    padding-block-end: calc(var(--blocks-dock-height, 22px) + var(--blocks-gap));
+}
+
+.blocks-system-surface[data-blocks-dock-position="bottom"] > .blocks-system-dock {
+    inset-block-start: auto;
+    inset-block-end: var(--blocks-gap);
 }
 
 .blocks-system-surface[data-draggable="true"] .blocks-system-object[data-block-draggable="true"] > .blocks-system-menu {
@@ -181,8 +191,25 @@
     box-shadow: 3px 3px 0 rgb(0 0 0 / 16%);
 }
 
+/* Een chip met samenvatting groeit tot zijn tekst. */
+.blocks-system-dock > .blocks-system-object[data-block-docked="true"][data-block-summary="true"] {
+    height: auto;
+}
+
+.blocks-system-summary {
+    display: none;
+    padding: 4px 6px;
+    font-size: 0.85em;
+    line-height: 1.3;
+}
+
+.blocks-system-object[data-block-docked="true"] > .blocks-system-summary {
+    display: block;
+}
+
 .blocks-system-object[data-block-docked="true"] .blocks-system-content,
-.blocks-system-object[data-block-docked="true"] .blocks-system-minimize {
+.blocks-system-object[data-block-docked="true"] .blocks-system-minimize,
+.blocks-system-object[data-block-docked="true"] .blocks-system-pin {
     display: none;
 }
 
@@ -232,6 +259,7 @@
 .blocks-system-copy,
 .blocks-system-dock-toggle,
 .blocks-system-minimize,
+.blocks-system-pin,
 .blocks-system-close {
     align-self: center;
     width: 16px;
@@ -251,8 +279,15 @@
 .blocks-system-copy:hover,
 .blocks-system-dock-toggle:hover,
 .blocks-system-minimize:hover,
+.blocks-system-pin:hover,
 .blocks-system-close:hover {
     opacity: 1;
+}
+
+.blocks-system-dock-toggle:disabled,
+.blocks-system-pin:disabled {
+    opacity: 0.3;
+    cursor: default;
 }
 
 .blocks-system-copy {

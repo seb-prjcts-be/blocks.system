@@ -522,7 +522,7 @@ function assertBlockActions(state, page, expectedBlockCount) {
     state: "true",
     contentHidden: "true",
     pressed: "true",
-    symbol: "+",
+    symbol: "↩",
     outsideGrid: true,
     directCount: expectedBlockCount - 1
   }, `${page} dockt het block niet compact buiten het raster`);

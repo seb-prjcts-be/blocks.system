@@ -35,6 +35,9 @@ assert.deepEqual(singleton.labels, {
   minimize: "minimize",
   dock: "close to the left dock",
   undock: "return from the dock",
+  pin: "pin as favorite",
+  unpin: "remove as favorite",
+  pinnedStaysVisible: "a favorite stays visible; remove the star first",
   close: "close",
   copy: "copy content",
   copied: "content copied",
@@ -152,12 +155,17 @@ class TestElement {
     return this.children.filter((child) => child.getAttribute("rel") === "stylesheet");
   }
   appendChild(child) {
+    // Zoals de echte DOM: een node verhuist, hij wordt niet gekopieerd.
+    if (child.parentElement && child.parentElement !== this) child.parentElement.removeChild(child);
+    const currentIndex = this.children.indexOf(child);
+    if (currentIndex >= 0) this.children.splice(currentIndex, 1);
     child.parentElement = this;
     child.parentNode = this;
     this.children.push(child);
     return child;
   }
   insertBefore(child, reference) {
+    if (child.parentElement && child.parentElement !== this) child.parentElement.removeChild(child);
     const currentIndex = this.children.indexOf(child);
     if (currentIndex >= 0) this.children.splice(currentIndex, 1);
     const referenceIndex = reference ? this.children.indexOf(reference) : -1;
@@ -356,8 +364,8 @@ assert.deepEqual(savedFlowLayout, {
   version: 1,
   layout: "flow-grid",
   blocks: [
-    { id: "flow-bravo", span: [2, 2], place: null, minimized: false, docked: false },
-    { id: "flow-alpha", span: [1, 3], place: null, minimized: true, docked: false }
+    { id: "flow-bravo", span: [2, 2], place: null, minimized: false, docked: false, pinned: false },
+    { id: "flow-alpha", span: [1, 3], place: null, minimized: true, docked: false, pinned: false }
   ]
 }, "layout export must preserve DOM order, spans, placement and minimized state without content");
 
@@ -402,8 +410,8 @@ assert.deepEqual(responsiveFixed.exportLayout(), {
   version: 1,
   layout: "fixed-grid",
   blocks: [
-    { id: "responsive-lead", span: [1, 4], place: null, minimized: false, docked: false },
-    { id: "responsive-detail", span: [1, 2], place: null, minimized: true, docked: false }
+    { id: "responsive-lead", span: [1, 4], place: null, minimized: false, docked: false, pinned: false },
+    { id: "responsive-detail", span: [1, 2], place: null, minimized: true, docked: false, pinned: false }
   ]
 }, "fixed-grid restore must support a consumer breakpoint change while preserving order and state");
 assert.equal(responsiveLead.element.style.getPropertyValue("--block-span-columns"), "1", "responsive restore must apply the compact lead span");
@@ -513,6 +521,158 @@ const glyphBlock = glyphs.add("<p>glyph</p>", { id: "glyph" });
 const glyphOf = (className) => [...glyphBlock.element.children[0].children[1].children].find((button) => button.className === className)?.textContent;
 assert.equal(glyphOf("blocks-system-dock-toggle"), "×", "the reversible dock action keeps the familiar close glyph");
 assert.equal(glyphOf("blocks-system-close"), "⊗", "destructive removal must not share the dock glyph");
+
+assert.equal(createBlocksSystem().labels.pin, "pin as favorite", "consumers must be able to configure the pin label");
+assert.equal(createBlocksSystem().labels.unpin, "remove as favorite", "consumers must be able to configure the unpin label");
+
+const pinning = createBlocksSystem({ variant: "regular", blockDefaults: { menu: { pin: true } } });
+const pinningField = new TestElement();
+pinning.attach(pinningField);
+const pinFirst = pinning.add("<p>first</p>", { id: "pin-first" });
+const pinSecond = pinning.add("<p>second</p>", { id: "pin-second" });
+const pinThird = pinning.add("<p>third</p>", { id: "pin-third" });
+const pinOrder = () => pinningField.children.filter((child) => child.className === "blocks-system-object").map((child) => child.getAttribute("data-block-object"));
+assert.equal(pinFirst.pinned, false, "a block must start unpinned");
+assert.deepEqual(pinOrder(), ["pin-first", "pin-second", "pin-third"], "unpinned blocks must keep their add() order");
+pinThird.pin();
+assert.equal(pinThird.pinned, true, "pin() without an argument must pin the block");
+assert.deepEqual(pinOrder(), ["pin-third", "pin-first", "pin-second"], "a pinned block must move in front of the unpinned blocks");
+pinFirst.pin();
+assert.deepEqual(pinOrder(), ["pin-third", "pin-first", "pin-second"], "a second pin must join the front group in the order it was pinned, after the first");
+pinThird.pin(false);
+assert.equal(pinThird.pinned, false, "pin(false) must unpin the block");
+assert.deepEqual(pinOrder(), ["pin-first", "pin-third", "pin-second"], "unpinning must drop the block to the front of the unpinned group, not restore its old position");
+const pinSignals = [];
+pinningField.addEventListener("blocks:change", function (event) {
+  if (["pin", "unpin"].includes(event.detail?.type)) pinSignals.push([event.detail.type, event.detail.id]);
+});
+pinSecond.pin();
+pinSecond.pin();
+pinSecond.pinned = false;
+assert.deepEqual(pinSignals, [["pin", "pin-second"], ["unpin", "pin-second"]], "pin and unpin must publish one stable change event per real change, via method or property");
+
+const pinButton = () => [...pinFirst.element.children[0].children[1].children].find((button) => button.className === "blocks-system-pin");
+assert.equal(pinButton().textContent, "★", "a pinned block must show the filled star");
+assert.equal(pinButton().getAttribute("aria-pressed"), "true", "a pinned block's pin button must report pressed");
+pinFirst.pin(false);
+assert.equal(pinButton().textContent, "☆", "an unpinned block must show the empty star");
+
+const pinExport = pinning.exportLayout().blocks;
+assert.deepEqual(pinExport.map((entry) => [entry.id, entry.pinned]), [
+  ["pin-first", false],
+  ["pin-second", false],
+  ["pin-third", false],
+], "exportLayout must report the current pinned state for every block");
+pinSecond.pin();
+assert.equal(pinning.exportLayout().blocks.find((entry) => entry.id === "pin-second").pinned, true, "exportLayout must reflect a pin taken after the first export");
+
+// Regel 1: een favoriet blijft altijd zichtbaar; regel 2: een weggezet block heeft geen ster.
+const exclusive = createBlocksSystem({ variant: "regular", blockDefaults: { menu: { pin: true, dock: true } } });
+const exclusiveField = new TestElement();
+exclusive.attach(exclusiveField);
+const exclusiveBlock = exclusive.add("<p>x</p>", { id: "exclusive", title: "X" });
+const exclusiveControl = (className) => [...exclusiveBlock.element.children[0].children[1].children].find((button) => button.className === className);
+const exclusiveSignals = [];
+exclusiveField.addEventListener("blocks:change", function (event) { exclusiveSignals.push(event.detail.type); });
+assert.equal(exclusiveControl("blocks-system-dock-toggle").disabled, false, "an unpinned block keeps its dock button enabled");
+exclusiveBlock.pin();
+assert.equal(exclusiveControl("blocks-system-dock-toggle").disabled, true, "a pinned block's dock button must be disabled, not hidden");
+assert.equal(exclusiveControl("blocks-system-dock-toggle").getAttribute("aria-label"), "X a favorite stays visible; remove the star first", "the disabled dock button must explain itself");
+exclusiveBlock.dock();
+exclusiveBlock.docked = true;
+assert.equal(exclusiveBlock.docked, false, "dock() on a pinned block must do nothing");
+assert.deepEqual(exclusiveSignals, ["pin"], "a refused dock must not publish a change");
+exclusiveBlock.pin(false);
+assert.equal(exclusiveControl("blocks-system-dock-toggle").disabled, false, "unpinning re-enables the dock button");
+assert.equal(exclusiveControl("blocks-system-dock-toggle").getAttribute("aria-label"), "X close to the left dock", "the dock button gets its normal label back");
+exclusiveBlock.dock();
+assert.equal(exclusiveBlock.docked, true);
+exclusiveBlock.pin();
+exclusiveBlock.pinned = true;
+assert.equal(exclusiveBlock.pinned, false, "pin() on a docked block must do nothing");
+assert.equal(exclusiveControl("blocks-system-pin").disabled, true, "a docked block's pin button must be disabled");
+assert.deepEqual(exclusiveSignals, ["pin", "unpin", "dock"], "a refused pin must not publish a change");
+exclusiveBlock.dock(false);
+assert.equal(exclusiveControl("blocks-system-pin").disabled, false, "undocking re-enables the pin button");
+
+// Stap 3: rail onder het raster, samenvatting in de chip, terugzetknop ↩.
+assert.equal(createBlocksSystem().dockPosition, "top", "the rail stays above the grid unless a consumer asks otherwise");
+assert.equal(createBlocksSystem({ dockPosition: "bottom" }).dockPosition, "bottom");
+assert.throws(function () { createBlocksSystem({ dockPosition: "left" }); }, TypeError, "dockPosition accepts only top or bottom");
+const railed = createBlocksSystem({ variant: "regular", dockPosition: "bottom" });
+const railedField = new TestElement();
+railed.attach(railedField);
+assert.equal(railedField.getAttribute("data-blocks-dock-position"), "bottom", "the field must expose the rail position for CSS");
+railed.dockPosition = "top";
+assert.equal(railedField.getAttribute("data-blocks-dock-position"), "top", "the position is a live property");
+assert.throws(function () { railed.dockPosition = "middle"; }, TypeError);
+const summarized = railed.add("<p>full text</p>", { id: "summarized", title: "S", summary: "<em>short</em>" });
+const summaryNode = () => [...summarized.element.children].find((child) => child.className === "blocks-system-summary");
+assert.equal(summaryNode()?.innerHTML, "<em>short</em>", "add(content, { summary }) stores the summary in its own element");
+assert.equal(summarized.element.getAttribute("data-block-summary"), "true");
+summarized.summary("<b>other</b>");
+assert.equal(summaryNode()?.innerHTML, "<b>other</b>", "block.summary(content) replaces the summary");
+summarized.summary(null);
+assert.equal(summaryNode(), undefined, "block.summary(null) removes it");
+assert.equal(summarized.element.getAttribute("data-block-summary"), "false");
+assert.throws(function () { summarized.summary(42); }, TypeError, "a summary is HTML, a Node, a factory or null");
+const plain = railed.add("<p>plain</p>", { id: "plain", title: "P" });
+assert.equal(plain.element.getAttribute("data-block-summary"), "false", "a block without summary says so");
+const returnGlyph = () => [...plain.element.children[0].children[1].children].find((button) => button.className === "blocks-system-dock-toggle")?.textContent;
+assert.equal(returnGlyph(), "×");
+plain.dock();
+assert.equal(returnGlyph(), "↩", "a docked block offers a return arrow, not a plus");
+plain.dock(false);
+
+// Stap 4: reset() zet alles terug naar de toestand van add().
+const resetting = createBlocksSystem({ layout: "fixed-grid", variant: "regular", blockDefaults: { menu: { pin: true, dock: true, minimize: true } } });
+const resettingField = new TestElement();
+resetting.attach(resettingField).setGrid(3, 3);
+const resetA = resetting.add("<p>a</p>", { id: "reset-a", title: "A", span: [2, 1], place: [1, 1] });
+const resetB = resetting.add("<p>b</p>", { id: "reset-b", title: "B", span: [1, 2], place: [3, 1], minimized: true });
+const resetC = resetting.add("<p>c</p>", { id: "reset-c", title: "C" });
+const resetOrder = () => resetting.exportLayout().blocks.map((entry) => entry.id);
+resetA.span(1, 1);
+resetA.minimized = true;
+resetB.minimized = false;
+resetB.dock();
+resetC.pin();
+resetC.place(2, 3);
+assert.deepEqual(resetOrder(), ["reset-c", "reset-b", "reset-a"], "the scenario really changed order and state");
+const resetSignals = [];
+resettingField.addEventListener("blocks:change", function (event) { if (event.detail.type === "reset") resetSignals.push(event.detail.ids); });
+assert.equal(resetting.reset(), resetting, "reset() returns the system");
+assert.deepEqual(resetting.exportLayout().blocks, [
+  { id: "reset-a", span: [2, 1], place: [1, 1], minimized: false, docked: false, pinned: false },
+  { id: "reset-b", span: [1, 2], place: [3, 1], minimized: true, docked: false, pinned: false },
+  { id: "reset-c", span: [1, 1], place: null, minimized: false, docked: false, pinned: false }
+], "reset() restores add() order, spans, places and the initial minimized state, and clears dock and pin");
+assert.deepEqual(resetSignals, [["reset-a", "reset-b", "reset-c"]], "reset() publishes one reset change naming every block");
+const resetD = resetting.add("<p>d</p>", { id: "reset-d", title: "D" });
+resetD.pin();
+resetting.reset();
+assert.deepEqual(resetOrder(), ["reset-a", "reset-b", "reset-c", "reset-d"], "a block added later keeps its add() position after reset()");
+resetB.remove();
+resetting.reset();
+assert.deepEqual(resetOrder(), ["reset-a", "reset-c", "reset-d"], "reset() forgets removed blocks");
+assert.equal(typeof createBlocksSystem().reset, "function");
+
+const pinRestoreTarget = createBlocksSystem({ variant: "regular", blockDefaults: { menu: { pin: true } } });
+pinRestoreTarget.attach(new TestElement());
+const restoreA = pinRestoreTarget.add("<p>a</p>", { id: "restore-a" });
+const restoreB = pinRestoreTarget.add("<p>b</p>", { id: "restore-b" });
+restoreA.pin(); // een live pin mag de opgeslagen volgorde niet overstemmen
+pinRestoreTarget.restoreLayout({
+  version: 1,
+  layout: "free",
+  blocks: [
+    { id: "restore-b", span: [1, 1], place: null, minimized: false, docked: false, pinned: true },
+    { id: "restore-a", span: [1, 1], place: null, minimized: false, docked: false, pinned: false },
+  ],
+});
+assert.equal(restoreB.pinned, true, "restoreLayout must apply a saved pinned state");
+assert.equal(restoreA.pinned, false, "restoreLayout must clear a live pin the snapshot does not have");
+assert.deepEqual(pinRestoreTarget.exportLayout().blocks.map((entry) => entry.id), ["restore-b", "restore-a"], "restoreLayout must keep the saved pinned block in front");
 
 assert.deepEqual(createBlocksSystem({ colorArray: [] }).colorArray, [], "an empty user color array must be valid while color variation is disabled");
 assert.deepEqual(

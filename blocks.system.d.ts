@@ -13,6 +13,10 @@ export interface BlocksLabels {
   minimize: string;
   dock: string;
   undock: string;
+  pin: string;
+  unpin: string;
+  /** Explains the disabled dock button of a pinned block. */
+  pinnedStaysVisible: string;
   close: string;
   copy: string;
   copied: string;
@@ -27,6 +31,7 @@ export interface BlocksLayoutEntry {
   place: readonly [column: number, row: number] | null;
   minimized: boolean;
   docked: boolean;
+  pinned: boolean;
 }
 
 export interface BlocksLayout {
@@ -95,6 +100,8 @@ export interface AddBlockOptions {
   span?: readonly [columns: number, rows: number];
   /** Initial fixed-grid coordinates, applied like place(). */
   place?: readonly [column: number, row: number];
+  /** Short content shown by the docked chip instead of the title alone; same trust boundary as content. */
+  summary?: BlockContent | null;
 }
 
 export interface BlockMenuOptions {
@@ -104,6 +111,8 @@ export interface BlockMenuOptions {
   minimize?: boolean;
   /** Show a button that copies the block's decoded visible text. Defaults to false. */
   copy?: boolean;
+  /** Show the favorite toggle. A pinned block moves in front of the unpinned blocks and ignores dock(). Defaults to false. */
+  pin?: boolean;
 }
 
 export interface BlockDefaults {
@@ -118,10 +127,16 @@ export interface BlockController {
   variant: string;
   minimized: boolean;
   docked: boolean;
+  /** A pinned block moves in front of the unpinned blocks and ignores dock(); a docked block ignores pin(). */
+  pinned: boolean;
   draggable: boolean;
   menu(name: string, options?: boolean | BlockMenuOptions): BlockController;
   /** Move the block to or from the compact dock without deleting it. */
   dock(value?: boolean): void;
+  /** Pin the block as a favorite, moving it in front of the unpinned blocks. */
+  pin(value?: boolean): void;
+  /** Set or remove (null) the short content the docked chip shows. */
+  summary(content: BlockContent | null): BlockController;
   span(columns: number, rows: number): BlockController;
   /** Fit the row span to the block's rendered content at its current width. */
   fitHeight(): Readonly<{ columns: number; rows: number; changed: boolean }>;
@@ -167,7 +182,7 @@ export interface BlocksResizeDetail {
 }
 
 /** layout: a span, place or fitHeight change of one block; grid: the columns or rows changed. */
-export type BlocksChangeType = "compact" | "dock" | "undock" | "minimize" | "restore" | "remove" | "layout" | "grid";
+export type BlocksChangeType = "compact" | "dock" | "undock" | "pin" | "unpin" | "minimize" | "restore" | "remove" | "reset" | "layout" | "grid";
 
 export interface BlocksChangeDetail {
   type: BlocksChangeType;
@@ -185,6 +200,8 @@ export interface BlocksSystemOptions {
   resizable?: boolean;
   /** Fixed row height in pixels; the field then follows its rows. Defaults to null: rows share the field height. Rejected in free layout. */
   rowHeight?: number | null;
+  /** Where a filled dock rail lives: above (default) or below the grid. */
+  dockPosition?: "top" | "bottom";
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
   /** Appearance for new blocks. Defaults to "regular"; "random" draws from the chance settings. */
@@ -204,6 +221,8 @@ export interface BlocksSystem {
   readonly rows: number;
   /** Fixed row height in pixels, or null when rows share the field height. */
   rowHeight: number | null;
+  /** Read or move the dock rail: "top" (default) or "bottom". */
+  dockPosition: "top" | "bottom";
   readonly layout: BlocksLayoutMode;
   draggable: boolean;
   resizable: boolean;
@@ -233,6 +252,8 @@ export interface BlocksSystem {
   exportLayout(): BlocksLayout;
   /** Restore known block order, spans, optional fixed positions, minimized and docked state. */
   restoreLayout(layout: BlocksLayout, options?: BlocksRestoreOptions): BlocksSystem;
+  /** Return every block to its add() order, span, place and initial minimized state, undocked and unpinned; publishes one "reset" change. */
+  reset(): BlocksSystem;
   mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
   unmount(target: string | Element): boolean;
   remount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;

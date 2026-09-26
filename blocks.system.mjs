@@ -13,8 +13,8 @@ const LAYOUT_VERSION = 1;
 const GRID_TOO_SMALL = "BLOCKS_GRID_TOO_SMALL";
 const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
-const DEFAULT_MENU_OPTIONS = Object.freeze({ dock: true, close: false, minimize: false, copy: false });
-const EMPTY_MENU_OPTIONS = Object.freeze({ dock: false, close: false, minimize: false, copy: false });
+const DEFAULT_MENU_OPTIONS = Object.freeze({ dock: true, close: false, minimize: false, copy: false, pin: false });
+const EMPTY_MENU_OPTIONS = Object.freeze({ dock: false, close: false, minimize: false, copy: false, pin: false });
 const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h9c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H9Zm0-2h9V4H9v12ZM5 22c-1.1 0-2-.9-2-2V6h2v14h11v2H5Z"/></svg>';
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
@@ -24,6 +24,9 @@ const UI_LABELS = Object.freeze({
         minimize: "minimize",
         dock: "close to the left dock",
         undock: "return from the dock",
+        pin: "pin as favorite",
+        unpin: "remove as favorite",
+        pinnedStaysVisible: "a favorite stays visible; remove the star first",
         close: "close",
         copy: "copy content",
         copied: "content copied",
@@ -36,6 +39,9 @@ const UI_LABELS = Object.freeze({
         minimize: "minimaliseren",
         dock: "links sluiten",
         undock: "terug uit de dock",
+        pin: "als favoriet vastzetten",
+        unpin: "favoriet ongedaan maken",
+        pinnedStaysVisible: "een favoriet blijft zichtbaar; haal eerst de ster weg",
         close: "sluiten",
         copy: "inhoud kopiëren",
         copied: "inhoud gekopieerd",
@@ -55,7 +61,8 @@ function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.b
         dock: value.dock === undefined ? fallback.dock : Boolean(value.dock),
         close: value.close === undefined ? fallback.close : Boolean(value.close),
         minimize: value.minimize === undefined ? fallback.minimize : Boolean(value.minimize),
-        copy: value.copy === undefined ? fallback.copy : Boolean(value.copy)
+        copy: value.copy === undefined ? fallback.copy : Boolean(value.copy),
+        pin: value.pin === undefined ? fallback.pin : Boolean(value.pin)
     });
 }
 
@@ -180,6 +187,12 @@ function normalizeRestoreGrid(options) {
     return { columns, rows };
 }
 
+function normalizeDockPosition(value, path = "blocks.system.dockPosition") {
+    if (value === undefined) return "top";
+    if (value === "top" || value === "bottom") return value;
+    throw new TypeError(`${path} verwacht "top" of "bottom".`);
+}
+
 function normalizeLayoutSnapshot(value) {
     if (!value || typeof value !== "object" || value.version !== LAYOUT_VERSION || !Array.isArray(value.blocks)) {
         throw new TypeError(`blocks.system.restoreLayout() verwacht layout version ${LAYOUT_VERSION}.`);
@@ -204,7 +217,7 @@ function normalizeLayoutSnapshot(value) {
         if (place !== null && (place.length !== 2 || place.some((unit) => !Number.isInteger(unit) || unit < 1))) {
             throw new TypeError(`Opgeslagen plaats van ${id} verwacht null of twee positieve gehele rastercoördinaten.`);
         }
-        return Object.freeze({ id, span, place, minimized: Boolean(entry.minimized), docked: Boolean(entry.docked) });
+        return Object.freeze({ id, span, place, minimized: Boolean(entry.minimized), docked: Boolean(entry.docked), pinned: Boolean(entry.pinned) });
     });
     return Object.freeze({ layout, entries });
 }
@@ -518,6 +531,9 @@ export function createBlocksSystem(options = {}) {
     const menuInteractionSetters = new Map();
     const resizeInteractionSetters = new Map();
     const dockedReturnIndices = new Map();
+    // De toestand van elk block op het moment van add(), in add-volgorde;
+    // reset() zet daarnaar terug.
+    const baselines = new Map();
     const randomSource = typeof options.random === "function" ? options.random : Math.random;
     let surface = null;
     let dock = null;
@@ -530,6 +546,7 @@ export function createBlocksSystem(options = {}) {
     if (rowHeightState !== null && layoutMode === "free") {
         throw new TypeError("blocks.system.rowHeight vereist layout: fixed-grid of flow-grid.");
     }
+    let dockPositionState = normalizeDockPosition(options.dockPosition);
     let draggableEnabled = options.draggable === undefined ? true : Boolean(options.draggable);
     let resizableEnabled = options.resizable === undefined ? false : Boolean(options.resizable);
     if (resizableEnabled && layoutMode !== "flow-grid") {
@@ -594,6 +611,7 @@ export function createBlocksSystem(options = {}) {
         surface.setAttribute("data-layout", layoutMode);
         surface.setAttribute("data-draggable", String(draggableEnabled));
         surface.setAttribute("data-resizable", String(resizableEnabled));
+        surface.setAttribute("data-blocks-dock-position", dockPositionState);
         surface.style.setProperty("--blocks-columns", String(columns));
         if (rowHeightState === null) {
             surface.style.removeProperty("--blocks-row-height");
@@ -1328,6 +1346,7 @@ export function createBlocksSystem(options = {}) {
                     place: layout.column === null || layout.row === null ? null : [layout.column, layout.row],
                     minimized: block.minimized,
                     docked: block.docked,
+                    pinned: block.pinned,
                 };
             }),
         };
@@ -1388,7 +1407,12 @@ export function createBlocksSystem(options = {}) {
             applySurfaceState();
             if (columns !== previous.columns && rows === previous.rows) emitChange({ type: "grid" });
         }
-        for (const entry of knownEntries) objects.get(entry.id).docked = false;
+        // Dock en pin verplaatsen blocks; beide gaan uit vóór de opgeslagen
+        // volgorde wordt gezet en komen daarna in die volgorde terug.
+        for (const entry of knownEntries) {
+            objects.get(entry.id).docked = false;
+            objects.get(entry.id).pinned = false;
+        }
         const ordered = [
             ...knownEntries.map((entry) => objects.get(entry.id).element),
             ...directObjectElements().filter((element) => !savedIds.has(element.getAttribute("data-block-object"))),
@@ -1403,6 +1427,7 @@ export function createBlocksSystem(options = {}) {
             if (entry.place) block.place(...entry.place);
             block.minimized = entry.minimized;
         }
+        for (const entry of knownEntries) objects.get(entry.id).pinned = entry.pinned;
         for (const entry of knownEntries) objects.get(entry.id).docked = entry.docked;
         syncRows();
         return api;
@@ -1565,8 +1590,24 @@ export function createBlocksSystem(options = {}) {
         if (automaticMenu) block.menu(addOptions.title ?? "", automaticMenu);
         if (addOptions.span !== undefined) block.span(...normalizeUnitPair(addOptions.span, "blocks.system.add() options.span"));
         if (addOptions.place !== undefined) block.place(...normalizeUnitPair(addOptions.place, "blocks.system.add() options.place"));
+        const baseline = objectLayouts.get(id);
+        baselines.set(id, Object.freeze({
+            id,
+            span: [baseline.columns, baseline.rows],
+            place: baseline.column === null || baseline.row === null ? null : [baseline.column, baseline.row],
+            minimized: block.minimized,
+            docked: false,
+            pinned: false
+        }));
         syncRows();
         return block;
+    }
+
+    function reset() {
+        const entries = [...baselines.values()].filter((entry) => objects.has(entry.id));
+        restoreLayout({ version: LAYOUT_VERSION, layout: layoutMode, blocks: entries });
+        emitChange({ type: "reset", ids: entries.map((entry) => entry.id) });
+        return api;
     }
 
     function createBlockController(id, content, addOptions) {
@@ -1574,17 +1615,44 @@ export function createBlocksSystem(options = {}) {
         let variantValue = appearanceValue.variant;
         let minimizedValue = Boolean(addOptions.minimized);
         let dockedValue = false;
+        let pinnedValue = false;
         let draggableValue = addOptions.draggable === undefined ? true : Boolean(addOptions.draggable);
         const shell = document.createElement("section");
         shell.className = "blocks-system-object";
         shell.setAttribute("data-block-object", id);
         shell.setAttribute("data-block-minimized", String(minimizedValue));
         shell.setAttribute("data-block-docked", "false");
+        shell.setAttribute("data-block-pinned", "false");
         const contentNode = document.createElement("div");
         contentNode.className = "blocks-system-content";
         appendContent(contentNode, content);
         shell.appendChild(contentNode);
         surface.appendChild(shell);
+        let summaryNode = null;
+
+        // De samenvatting is wat een weggezet block in de rail toont in plaats
+        // van zijn titel alleen; zonder samenvatting blijft de titel over.
+        function summary(value) {
+            assertActive();
+            if (value === null || value === undefined) {
+                summaryNode?.remove();
+                summaryNode = null;
+                shell.setAttribute("data-block-summary", "false");
+                return block;
+            }
+            const next = document.createElement("div");
+            next.className = "blocks-system-summary";
+            try {
+                appendContent(next, value);
+            } catch {
+                throw new TypeError("block.summary(content) verwacht HTML als string, een DOM-node, een functie of null.");
+            }
+            shell.insertBefore(next, contentNode);
+            summaryNode?.remove();
+            summaryNode = next;
+            shell.setAttribute("data-block-summary", "true");
+            return block;
+        }
 
         let menuNode = null;
         let titleNode = null;
@@ -1592,6 +1660,7 @@ export function createBlocksSystem(options = {}) {
         let copyNode = null;
         let minimizeNode = null;
         let dockNode = null;
+        let pinNode = null;
         let closeNode = null;
         let copyFeedbackTimer = null;
         const resizeHandles = new Map();
@@ -1661,15 +1730,23 @@ export function createBlocksSystem(options = {}) {
             shell.setAttribute("data-block-docked", String(dockedValue));
             contentNode.setAttribute("aria-hidden", String(dockedValue || minimizedValue));
             if (!dockNode) return;
-            dockNode.textContent = dockedValue ? "+" : "×";
-            dockNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${dockedValue ? labels.undock : labels.dock}`);
+            dockNode.textContent = dockedValue ? "↩" : "×";
+            dockNode.disabled = pinnedValue;
+            dockNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${dockLabel()}`);
             dockNode.setAttribute("aria-pressed", String(dockedValue));
+        }
+
+        function dockLabel() {
+            if (pinnedValue) return labels.pinnedStaysVisible;
+            return dockedValue ? labels.undock : labels.dock;
         }
 
         function setDocked(value = true) {
             assertActive();
             const nextValue = Boolean(value);
             if (dockedValue === nextValue) return;
+            // Regel 1: een favoriet blijft altijd zichtbaar.
+            if (nextValue && pinnedValue) return;
             drag.stop();
             stopResize();
             if (nextValue) {
@@ -1690,11 +1767,45 @@ export function createBlocksSystem(options = {}) {
                 releasePlaceWhenTaken(id, { columns: spanColumns, rows: spanRows, column: placeColumn, row: placeRow }, applyLayout);
             }
             syncDockedState();
+            syncPinnedState();
             syncMenuInteractionState();
             syncResizeInteractionState();
             syncDockSpace();
             syncRows();
             emitChange({ type: dockedValue ? "dock" : "undock", id });
+        }
+
+        function syncPinnedState() {
+            shell.setAttribute("data-block-pinned", String(pinnedValue));
+            if (!pinNode) return;
+            pinNode.disabled = dockedValue;
+            pinNode.textContent = pinnedValue ? "★" : "☆";
+            pinNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${pinnedValue ? labels.unpin : labels.pin}`);
+            pinNode.setAttribute("aria-pressed", String(pinnedValue));
+        }
+
+        function setPinned(value = true) {
+            assertActive();
+            const nextValue = Boolean(value);
+            if (pinnedValue === nextValue) return;
+            // Regel 2: een weggezet block heeft geen ster; eerst terugzetten.
+            if (nextValue && dockedValue) return;
+            drag.stop();
+            const live = directObjectElements();
+            // Een block dat vastgezet wordt, komt achter de al vastgezette
+            // blocks; een block dat losgemaakt wordt, valt terug vooraan in de
+            // niet-vastgezette groep, niet naar zijn oude plek.
+            let lastPinnedIndex = -1;
+            for (let index = 0; index < live.length; index += 1) {
+                if (live[index] === shell) continue;
+                if (live[index].getAttribute("data-block-pinned") === "true") lastPinnedIndex = index;
+            }
+            const referenceNode = live[lastPinnedIndex + 1] || null;
+            if (referenceNode !== shell) surface.insertBefore(shell, referenceNode);
+            pinnedValue = nextValue;
+            syncPinnedState();
+            syncDockedState();
+            emitChange({ type: pinnedValue ? "pin" : "unpin", id });
         }
 
         function syncMenuInteractionState() {
@@ -1717,7 +1828,7 @@ export function createBlocksSystem(options = {}) {
             if (copyNode && copyNode.getAttribute("data-state") === null) {
                 copyNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.copy}`);
             }
-            if (dockNode) dockNode.setAttribute("aria-label", `${titleNode.textContent || id} ${dockedValue ? labels.undock : labels.dock}`);
+            if (dockNode) dockNode.setAttribute("aria-label", `${titleNode.textContent || id} ${dockLabel()}`);
             if (closeNode) closeNode.setAttribute("aria-label", `${titleNode.textContent || id} ${labels.close}`);
         }
 
@@ -1949,6 +2060,7 @@ export function createBlocksSystem(options = {}) {
             menuInteractionSetters.delete(id);
             resizeInteractionSetters.delete(id);
             dockedReturnIndices.delete(id);
+            baselines.delete(id);
             shell.remove();
             if (dock && dock.children.length === 0) {
                 dock.remove();
@@ -2116,6 +2228,16 @@ export function createBlocksSystem(options = {}) {
                 minimizeNode.remove();
                 minimizeNode = null;
             }
+            if (menuOptions.pin && !pinNode) {
+                pinNode = document.createElement("button");
+                pinNode.type = "button";
+                pinNode.className = "blocks-system-pin";
+                pinNode.addEventListener("click", () => setPinned(!pinnedValue));
+                actionsNode.insertBefore(pinNode, dockNode);
+            } else if (!menuOptions.pin && pinNode) {
+                pinNode.remove();
+                pinNode = null;
+            }
             if (menuOptions.dock && !dockNode) {
                 dockNode = document.createElement("button");
                 dockNode.type = "button";
@@ -2139,6 +2261,7 @@ export function createBlocksSystem(options = {}) {
             }
             syncMinimizedState();
             syncDockedState();
+            syncPinnedState();
             syncMenuInteractionState();
             syncResizeInteractionState();
             return block;
@@ -2153,6 +2276,8 @@ export function createBlocksSystem(options = {}) {
             fitHeight,
             place,
             dock: setDocked,
+            pin: setPinned,
+            summary,
             describe,
             remove
         };
@@ -2184,6 +2309,11 @@ export function createBlocksSystem(options = {}) {
             get: () => dockedValue,
             set: setDocked
         });
+        Object.defineProperty(controller, "pinned", {
+            enumerable: true,
+            get: () => pinnedValue,
+            set: setPinned
+        });
         Object.defineProperty(controller, "draggable", {
             enumerable: true,
             get: () => draggableValue,
@@ -2197,8 +2327,11 @@ export function createBlocksSystem(options = {}) {
         syncAppearance();
         syncMinimizedState();
         syncDockedState();
+        syncPinnedState();
         block = Object.freeze(controller);
         objects.set(id, block);
+        shell.setAttribute("data-block-summary", "false");
+        if (addOptions.summary !== undefined) summary(addOptions.summary);
         applyLayout({
             columns: spanColumns,
             rows: spanRows,
@@ -2231,6 +2364,7 @@ export function createBlocksSystem(options = {}) {
         add,
         exportLayout,
         restoreLayout,
+        reset,
         mount,
         unmount,
         remount,
@@ -2245,6 +2379,14 @@ export function createBlocksSystem(options = {}) {
         rows: {
             enumerable: true,
             get: () => rows
+        },
+        dockPosition: {
+            enumerable: true,
+            get: () => dockPositionState,
+            set(value) {
+                dockPositionState = normalizeDockPosition(value);
+                applySurfaceState();
+            }
         },
         rowHeight: {
             enumerable: true,

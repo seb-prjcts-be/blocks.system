@@ -559,6 +559,7 @@
         "  draggable: true,",
         "  resizable: false,",
         "  rowHeight: null,",
+        "  dockPosition: \"top\",",
         "  font: null,",
         "  labels: {},",
         "  variant: \"regular\",",
@@ -576,7 +577,7 @@
         { "id": "api-window", "cells": ["property · window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] },
         { "cells": ["option · catalogUrl", "string | URL | null · null", "Base URL used by address() when a block has no url of its own."] },
         { "cells": ["option · font", "{ family, href? } | null · null", "Set a family and optional stylesheet URL; blocks.font remains writable."] },
-        { "cells": ["option · labels", "Partial<{ move, resize, restore, minimize, dock, undock, close, copy, copied, copyFailed }>", "Override resolved accessible labels; blocks.labels is readonly."] },
+        { "cells": ["option · labels", "Partial<{ move, resize, restore, minimize, dock, undock, pin, unpin, pinnedStaysVisible, close, copy, copied, copyFailed }>", "Override resolved accessible labels; blocks.labels is readonly."] },
         { "cells": ["option · blocks", "BlockDefinition[] · []", "Register definitions during creation."] }
       ]
     },
@@ -621,7 +622,8 @@
         "  minimized: false,",
         "  draggable: true,",
         "  span: [2, 1],",
-        "  place: [1, 1]",
+        "  place: [1, 1],",
+        "  summary: \"<em>short</em>\"",
         "});"
       ],
       "headers": ["kind + contract", "returns / type", "purpose"],
@@ -634,7 +636,8 @@
         { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
         { "cells": ["option · draggable", "boolean · true", "Allow this block to move while the system remains draggable."] },
         { "cells": ["option · span", "[columns, rows]", "Initial size in whole grid units, applied like span(); free layout rejects it."] },
-        { "cells": ["option · place", "[column, row]", "Initial fixed-grid coordinates, applied like place()."] }
+        { "cells": ["option · place", "[column, row]", "Initial fixed-grid coordinates, applied like place()."] },
+        { "cells": ["option · summary", "content | null", "Short content the docked chip shows instead of the title alone."] }
       ]
     },
     "reference-block-layout": {
@@ -648,7 +651,8 @@
         "block.place(1, 1);",
         "",
         "const layout = blocks.exportLayout();",
-        "blocks.restoreLayout(layout);"
+        "blocks.restoreLayout(layout);",
+        "blocks.reset();"
       ],
       "headers": ["kind + contract", "returns", "purpose"],
       "rows": [
@@ -656,8 +660,9 @@
         { "id": "api-fit-height-block", "cells": ["method · block.fitHeight()", "{ columns, rows, changed }", "Measure one content-driven block at its current width; application-owned fixed media spans remain untouched when not called."] },
         { "id": "api-fit-height-system", "cells": ["method · blocks.fitHeight(ids?)", "measurement[]", "Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span."] },
         { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based coordinates in fixed-grid; other modes reject the call."] },
-        { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place, minimized and docked state."] },
+        { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place, minimized, docked and pinned state."] },
         { "cells": ["method · restoreLayout(layout, options?)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing."] },
+        { "cells": ["method · reset()", "blocks", "Return every block to its add() order, span, place and initial minimized state, undocked and unpinned; publishes one reset change naming every block."] },
         { "cells": ["property · resize size", "{ columns, rows }", "Resize event sizes use positive whole grid units."] }
       ],
       "details": "In flow-grid, add blocks in the desired initial order—for example after sorting titles by name—and call span() without place()."
@@ -675,7 +680,7 @@
     },
     "reference-titlebar": {
       "title": "titlebar controls",
-      "intro": "The default titlebar closes reversibly to a compact left dock without retaining grid space. Configure opt-in minimize, destructive close and copy-content actions when the system or block is created, or update one block later through its controller. Both grid layouts reduce a minimized block to one row and release the rest. Fixed-grid leaves its address empty until an explicit compact() after destructive removal.",
+      "intro": "The default titlebar closes reversibly to a compact dock rail above or below the grid without retaining grid space; a docked chip shows the title and, when given, a summary. Configure opt-in minimize, destructive close and copy-content actions when the system or block is created, or update one block later through its controller. Both grid layouts reduce a minimized block to one row and release the rest. Fixed-grid leaves its address empty until an explicit compact() after destructive removal.",
       "code": [
         "block.menu(\"hello\", {",
         "  minimize: true,",
@@ -691,11 +696,17 @@
         { "cells": ["option · menu.minimize", "boolean", "Show minimize and restore."] },
         { "cells": ["option · menu.close", "boolean", "Show remove."] },
         { "cells": ["option · menu.copy", "boolean · false", "Copy decoded visible block text and show brief success or failure feedback."] },
+        { "cells": ["option · menu.pin", "boolean · false", "Show the favorite toggle. A pinned block keeps its dock button disabled with the pinnedStaysVisible label; a docked block keeps its pin button disabled."] },
         { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
         { "cells": ["property · block.minimized", "boolean", "Read or change the current minimized state."] },
+        { "cells": ["option · dockPosition", "top | bottom · top", "Put the rail of docked blocks above or below the grid; the field reserves space on that side."] },
+        { "cells": ["property · blocks.dockPosition", "top | bottom", "Read or move the rail while blocks are docked."] },
         { "cells": ["property · block.docked", "boolean", "Read or change whether the block lives in the compact dock."] },
-        { "cells": ["method · block.dock(value?)", "void", "Dock the block by default, or pass false to restore it to its previous place; a fixed-grid place taken meanwhile is released so the block flows to the next free cell."] },
-        { "id": "api-menu", "cells": ["method · menu(name, options?)", "block", "Add or update the titlebar; options accepts dock, minimize, close and copy."] },
+        { "cells": ["property · block.pinned", "boolean", "Read or change whether the block is pinned as a favorite; a pinned block moves in front of the unpinned blocks."] },
+        { "cells": ["method · block.dock(value?)", "void", "Dock the block by default, or pass false to restore it to its previous place; a fixed-grid place taken meanwhile is released so the block flows to the next free cell. The chip shows ↩ to return."] },
+        { "cells": ["method · block.summary(content)", "block", "Set or remove (null) the short content the docked chip shows."] },
+        { "cells": ["method · block.pin(value?)", "void", "Pin the block by default, or pass false to unpin it; unpinning drops it to the front of the unpinned blocks. Ignored while the block is docked, as dock() is ignored while it is pinned."] },
+        { "id": "api-menu", "cells": ["method · menu(name, options?)", "block", "Add or update the titlebar; options accepts dock, minimize, close, copy and pin."] },
         { "cells": ["method · remove()", "true", "Remove the block. Fixed-grid leaves its address empty until an explicit compact(); flow-grid closes the gap automatically through DOM order."] }
       ]
     },
@@ -849,10 +860,10 @@
         "  const { type, id, ids } = event.detail;",
         "});"
       ],
-      "details": "For blocks:change, type is compact, dock, undock, minimize, restore, remove, layout (one block's span, place or fitHeight changed) or grid (columns or rows changed); id is one block or null, and ids lists affected blocks.",
+      "details": "For blocks:change, type is compact, dock, undock, pin, unpin, minimize, restore, remove, reset (ids lists every block), layout (one block's span, place or fitHeight changed) or grid (columns or rows changed); id is one block or null, and ids lists affected blocks.",
       "headers": ["kind + hook", "purpose"],
       "rows": [
-        { "cells": ["event · blocks:change", "Fires after a compact, dock, undock, minimize, restore or remove state change, after a layout change of one block and when the grid changes."] },
+        { "cells": ["event · blocks:change", "Fires after a compact, dock, undock, pin, unpin, minimize, restore, remove or reset state change, after a layout change of one block and when the grid changes."] },
         { "cells": ["event · blocks:resize", "Fires after pointer or keyboard resizing with id, input, axis, from and to."] },
         { "cells": ["hook · .blocks-system-surface", "The attached field and its layout tokens."] },
         { "cells": ["hook · .blocks-system-object", "One outer block."] },

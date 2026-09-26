@@ -88,7 +88,7 @@ try {
   assert.equal(v.windowStartBlock, "function", "window.blocks.startBlock must exist for script tags");
   assert.equal(v.gridField, "blocks-system-field blocks-system-surface", "an independent system creates its own field");
   assert.equal(v.gridFieldSeparate, true);
-  assert.deepEqual(v.placedLayout, { id: "placed", span: [2, 2], place: [3, 1], minimized: false, docked: false }, "span and place options apply in add()");
+  assert.deepEqual(v.placedLayout, { id: "placed", span: [2, 2], place: [3, 1], minimized: false, docked: false, pinned: false }, "span and place options apply in add()");
   assert.equal(v.gridRows, 2);
   assert.equal(v.badSpan, "TypeError", "an invalid span option fails like span()");
   assert.equal(v.spanInFree, "TypeError", "span in free layout fails like span()");

@@ -29,6 +29,7 @@ const blocks = createBlocksSystem({
   draggable: true,
   resizable: false,
   rowHeight: null,
+  dockPosition: &quot;top&quot;,
   font: null,
   labels: {},
   variant: &quot;regular&quot;,
@@ -43,7 +44,7 @@ const blocks = createBlocksSystem({
 <tr id="api-window"><td data-label="kind + contract">property · window.blocks.system</td><td data-label="returns / type / default">BlocksSystem</td><td data-label="purpose">The same shared instance exposed in a browser.</td></tr>
 <tr><td data-label="kind + contract">option · catalogUrl</td><td data-label="returns / type / default">string | URL | null · null</td><td data-label="purpose">Base URL used by address() when a block has no url of its own.</td></tr>
 <tr><td data-label="kind + contract">option · font</td><td data-label="returns / type / default">{ family, href? } | null · null</td><td data-label="purpose">Set a family and optional stylesheet URL; blocks.font remains writable.</td></tr>
-<tr><td data-label="kind + contract">option · labels</td><td data-label="returns / type / default">Partial&lt;{ move, resize, restore, minimize, dock, undock, close, copy, copied, copyFailed }&gt;</td><td data-label="purpose">Override resolved accessible labels; blocks.labels is readonly.</td></tr>
+<tr><td data-label="kind + contract">option · labels</td><td data-label="returns / type / default">Partial&lt;{ move, resize, restore, minimize, dock, undock, pin, unpin, pinnedStaysVisible, close, copy, copied, copyFailed }&gt;</td><td data-label="purpose">Override resolved accessible labels; blocks.labels is readonly.</td></tr>
 <tr><td data-label="kind + contract">option · blocks</td><td data-label="returns / type / default">BlockDefinition[] · []</td><td data-label="purpose">Register definitions during creation.</td></tr></tbody></table></div>
 </section>
 
@@ -79,7 +80,8 @@ blocks.setGrid(4, 4);</code></pre>
   minimized: false,
   draggable: true,
   span: [2, 1],
-  place: [1, 1]
+  place: [1, 1],
+  summary: &quot;&lt;em&gt;short&lt;/em&gt;&quot;
 });</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type</th><th>purpose</th></tr></thead><tbody><tr id="api-add"><td data-label="kind + contract">method · add(content, options?)</td><td data-label="returns / type">block</td><td data-label="purpose">Add content and return one BlockController; every option is shown above.</td></tr>
 <tr><td data-label="kind + contract">option · id</td><td data-label="returns / type">string</td><td data-label="purpose">Stable id; generated when omitted.</td></tr>
@@ -89,7 +91,8 @@ blocks.setGrid(4, 4);</code></pre>
 <tr><td data-label="kind + contract">option · minimized</td><td data-label="returns / type">boolean</td><td data-label="purpose">Set the initial minimized state.</td></tr>
 <tr><td data-label="kind + contract">option · draggable</td><td data-label="returns / type">boolean · true</td><td data-label="purpose">Allow this block to move while the system remains draggable.</td></tr>
 <tr><td data-label="kind + contract">option · span</td><td data-label="returns / type">[columns, rows]</td><td data-label="purpose">Initial size in whole grid units, applied like span(); free layout rejects it.</td></tr>
-<tr><td data-label="kind + contract">option · place</td><td data-label="returns / type">[column, row]</td><td data-label="purpose">Initial fixed-grid coordinates, applied like place().</td></tr></tbody></table></div>
+<tr><td data-label="kind + contract">option · place</td><td data-label="returns / type">[column, row]</td><td data-label="purpose">Initial fixed-grid coordinates, applied like place().</td></tr>
+<tr><td data-label="kind + contract">option · summary</td><td data-label="returns / type">content | null</td><td data-label="purpose">Short content the docked chip shows instead of the title alone.</td></tr></tbody></table></div>
 </section>
 
 <section id="block-layout" class="reference-fallback-entry">
@@ -102,13 +105,15 @@ blocks.fitHeight([&quot;article&quot;, &quot;notes&quot;]);
 block.place(1, 1);
 
 const layout = blocks.exportLayout();
-blocks.restoreLayout(layout);</code></pre>
+blocks.restoreLayout(layout);
+blocks.reset();</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-span"><td data-label="kind + contract">method · span(columns, rows)</td><td data-label="returns">block</td><td data-label="purpose">Set the size in whole grid units.</td></tr>
 <tr id="api-fit-height-block"><td data-label="kind + contract">method · block.fitHeight()</td><td data-label="returns">{ columns, rows, changed }</td><td data-label="purpose">Measure one content-driven block at its current width; application-owned fixed media spans remain untouched when not called.</td></tr>
 <tr id="api-fit-height-system"><td data-label="kind + contract">method · blocks.fitHeight(ids?)</td><td data-label="returns">measurement[]</td><td data-label="purpose">Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span.</td></tr>
 <tr id="api-place"><td data-label="kind + contract">method · place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based coordinates in fixed-grid; other modes reject the call.</td></tr>
-<tr><td data-label="kind + contract">method · exportLayout()</td><td data-label="returns">{ version, layout, blocks }</td><td data-label="purpose">Export the mode, content-free DOM order and each block's span, place, minimized and docked state.</td></tr>
+<tr><td data-label="kind + contract">method · exportLayout()</td><td data-label="returns">{ version, layout, blocks }</td><td data-label="purpose">Export the mode, content-free DOM order and each block's span, place, minimized, docked and pinned state.</td></tr>
 <tr><td data-label="kind + contract">method · restoreLayout(layout, options?)</td><td data-label="returns">blocks</td><td data-label="purpose">Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing.</td></tr>
+<tr><td data-label="kind + contract">method · reset()</td><td data-label="returns">blocks</td><td data-label="purpose">Return every block to its add() order, span, place and initial minimized state, undocked and unpinned; publishes one reset change naming every block.</td></tr>
 <tr><td data-label="kind + contract">property · resize size</td><td data-label="returns">{ columns, rows }</td><td data-label="purpose">Resize event sizes use positive whole grid units.</td></tr></tbody></table></div>
   <p class="reference-details">In flow-grid, add blocks in the desired initial order—for example after sorting titles by name—and call span() without place().</p>
 </section>
@@ -124,7 +129,7 @@ blocks.restoreLayout(layout);</code></pre>
 
 <section id="titlebar-controls" class="reference-fallback-entry">
   <h2>titlebar controls</h2>
-  <p class="reference-intro">The default titlebar closes reversibly to a compact left dock without retaining grid space. Configure opt-in minimize, destructive close and copy-content actions when the system or block is created, or update one block later through its controller. Both grid layouts reduce a minimized block to one row and release the rest. Fixed-grid leaves its address empty until an explicit compact() after destructive removal.</p>
+  <p class="reference-intro">The default titlebar closes reversibly to a compact dock rail above or below the grid without retaining grid space; a docked chip shows the title and, when given, a summary. Configure opt-in minimize, destructive close and copy-content actions when the system or block is created, or update one block later through its controller. Both grid layouts reduce a minimized block to one row and release the rest. Fixed-grid leaves its address empty until an explicit compact() after destructive removal.</p>
   <pre class="reference-code"><code>block.menu(&quot;hello&quot;, {
   minimize: true,
   close: true,
@@ -136,11 +141,17 @@ blocks.restoreLayout(layout);</code></pre>
 <tr><td data-label="kind + contract">option · menu.minimize</td><td data-label="type or returns">boolean</td><td data-label="purpose">Show minimize and restore.</td></tr>
 <tr><td data-label="kind + contract">option · menu.close</td><td data-label="type or returns">boolean</td><td data-label="purpose">Show remove.</td></tr>
 <tr><td data-label="kind + contract">option · menu.copy</td><td data-label="type or returns">boolean · false</td><td data-label="purpose">Copy decoded visible block text and show brief success or failure feedback.</td></tr>
+<tr><td data-label="kind + contract">option · menu.pin</td><td data-label="type or returns">boolean · false</td><td data-label="purpose">Show the favorite toggle. A pinned block keeps its dock button disabled with the pinnedStaysVisible label; a docked block keeps its pin button disabled.</td></tr>
 <tr><td data-label="kind + contract">option · minimized</td><td data-label="type or returns">boolean</td><td data-label="purpose">Set the initial minimized state.</td></tr>
 <tr><td data-label="kind + contract">property · block.minimized</td><td data-label="type or returns">boolean</td><td data-label="purpose">Read or change the current minimized state.</td></tr>
+<tr><td data-label="kind + contract">option · dockPosition</td><td data-label="type or returns">top | bottom · top</td><td data-label="purpose">Put the rail of docked blocks above or below the grid; the field reserves space on that side.</td></tr>
+<tr><td data-label="kind + contract">property · blocks.dockPosition</td><td data-label="type or returns">top | bottom</td><td data-label="purpose">Read or move the rail while blocks are docked.</td></tr>
 <tr><td data-label="kind + contract">property · block.docked</td><td data-label="type or returns">boolean</td><td data-label="purpose">Read or change whether the block lives in the compact dock.</td></tr>
-<tr><td data-label="kind + contract">method · block.dock(value?)</td><td data-label="type or returns">void</td><td data-label="purpose">Dock the block by default, or pass false to restore it to its previous place; a fixed-grid place taken meanwhile is released so the block flows to the next free cell.</td></tr>
-<tr id="api-menu"><td data-label="kind + contract">method · menu(name, options?)</td><td data-label="type or returns">block</td><td data-label="purpose">Add or update the titlebar; options accepts dock, minimize, close and copy.</td></tr>
+<tr><td data-label="kind + contract">property · block.pinned</td><td data-label="type or returns">boolean</td><td data-label="purpose">Read or change whether the block is pinned as a favorite; a pinned block moves in front of the unpinned blocks.</td></tr>
+<tr><td data-label="kind + contract">method · block.dock(value?)</td><td data-label="type or returns">void</td><td data-label="purpose">Dock the block by default, or pass false to restore it to its previous place; a fixed-grid place taken meanwhile is released so the block flows to the next free cell. The chip shows ↩ to return.</td></tr>
+<tr><td data-label="kind + contract">method · block.summary(content)</td><td data-label="type or returns">block</td><td data-label="purpose">Set or remove (null) the short content the docked chip shows.</td></tr>
+<tr><td data-label="kind + contract">method · block.pin(value?)</td><td data-label="type or returns">void</td><td data-label="purpose">Pin the block by default, or pass false to unpin it; unpinning drops it to the front of the unpinned blocks. Ignored while the block is docked, as dock() is ignored while it is pinned.</td></tr>
+<tr id="api-menu"><td data-label="kind + contract">method · menu(name, options?)</td><td data-label="type or returns">block</td><td data-label="purpose">Add or update the titlebar; options accepts dock, minimize, close, copy and pin.</td></tr>
 <tr><td data-label="kind + contract">method · remove()</td><td data-label="type or returns">true</td><td data-label="purpose">Remove the block. Fixed-grid leaves its address empty until an explicit compact(); flow-grid closes the gap automatically through DOM order.</td></tr></tbody></table></div>
 </section>
 
@@ -270,7 +281,7 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
   <pre class="reference-code"><code>field.addEventListener(&quot;blocks:change&quot;, (event) =&gt; {
   const { type, id, ids } = event.detail;
 });</code></pre>
-  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + hook</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + hook">event · blocks:change</td><td data-label="purpose">Fires after a compact, dock, undock, minimize, restore or remove state change, after a layout change of one block and when the grid changes.</td></tr>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + hook</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + hook">event · blocks:change</td><td data-label="purpose">Fires after a compact, dock, undock, pin, unpin, minimize, restore, remove or reset state change, after a layout change of one block and when the grid changes.</td></tr>
 <tr><td data-label="kind + hook">event · blocks:resize</td><td data-label="purpose">Fires after pointer or keyboard resizing with id, input, axis, from and to.</td></tr>
 <tr><td data-label="kind + hook">hook · .blocks-system-surface</td><td data-label="purpose">The attached field and its layout tokens.</td></tr>
 <tr><td data-label="kind + hook">hook · .blocks-system-object</td><td data-label="purpose">One outer block.</td></tr>
@@ -291,7 +302,7 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
 <tr><td data-label="kind + hook">hook · [data-draggable]</td><td data-label="purpose">Surface drag state.</td></tr>
 <tr><td data-label="kind + hook">hook · [data-block-draggable]</td><td data-label="purpose">Effective drag state for one block.</td></tr>
 <tr><td data-label="kind + hook">hook · CSS custom properties</td><td data-label="purpose">--blocks-gap · --blocks-field-color · --blocks-paper-color · --blocks-ink-color · --blocks-text-color · --blocks-font-family · --blocks-content-padding</td></tr></tbody></table></div>
-  <p class="reference-details">For blocks:change, type is compact, dock, undock, minimize, restore, remove, layout (one block's span, place or fitHeight changed) or grid (columns or rows changed); id is one block or null, and ids lists affected blocks.</p>
+  <p class="reference-details">For blocks:change, type is compact, dock, undock, pin, unpin, minimize, restore, remove, reset (ids lists every block), layout (one block's span, place or fitHeight changed) or grid (columns or rows changed); id is one block or null, and ids lists affected blocks.</p>
 </section>
 
 <section id="errors" class="reference-fallback-entry">

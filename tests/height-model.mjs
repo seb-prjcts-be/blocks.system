@@ -102,6 +102,28 @@ try {
       await frame();
       out.dockSpaceReleased = dockField.getAttribute("data-blocks-dock");
 
+      // 5b. Een rail onder het raster reserveert ruimte onderaan en toont de samenvatting.
+      const below = createBlocksSystem({ layout: "fixed-grid", dockPosition: "bottom", blockDefaults: { menu } });
+      const belowField = makeField("400px");
+      below.attach(belowField).setGrid(2, 1);
+      const parkedBelow = below.add("<p>Lang verhaal</p>", { id: "pb", title: "PB", summary: "kort" }).span(1, 1);
+      const staysBelow = below.add("<p>S</p>", { id: "sb", title: "SB" }).span(1, 1);
+      parkedBelow.dock(true);
+      await frame();
+      const railBelow = belowField.querySelector(".blocks-system-dock").getBoundingClientRect();
+      const staysBelowRect = staysBelow.element.getBoundingClientRect();
+      const belowFieldRect = belowField.getBoundingClientRect();
+      out.railBelowBlocks = railBelow.top >= staysBelowRect.bottom - 0.5;
+      out.railInsideField = railBelow.bottom <= belowFieldRect.bottom + 0.5;
+      out.bottomPadding = getComputedStyle(belowField).paddingBlockEnd;
+      out.topPadding = getComputedStyle(belowField).paddingBlockStart;
+      const summaryEl = parkedBelow.element.querySelector(".blocks-system-summary");
+      out.summaryVisible = summaryEl ? getComputedStyle(summaryEl).display !== "none" : null;
+      out.contentHidden = getComputedStyle(parkedBelow.content).display === "none";
+      parkedBelow.dock(false);
+      await frame();
+      out.summaryHiddenAgain = getComputedStyle(summaryEl).display === "none";
+
       // 6. flow-grid leidt zijn rijen op dezelfde manier af.
       const flow = createBlocksSystem({ layout: "flow-grid", blockDefaults: { menu } });
       flow.attach(makeField("600px")).setGrid(1, 1);
@@ -138,6 +160,13 @@ try {
   assert.equal(v.railAboveBlocks, true, "the dock rail must not cover the first block");
   assert.equal(v.dockSpace, "true");
   assert.equal(v.dockSpaceReleased, null, "an empty dock releases its space");
+  assert.equal(v.railBelowBlocks, true, "a bottom rail must sit below the last block");
+  assert.equal(v.railInsideField, true, "the bottom rail must stay inside the field");
+  assert.notEqual(v.bottomPadding, "0px", "a filled bottom rail reserves space at the end of the field");
+  assert.equal(v.topPadding, "0px", "a bottom rail reserves no space at the start");
+  assert.equal(v.summaryVisible, true, "a docked chip shows its summary");
+  assert.equal(v.contentHidden, true, "the full content stays hidden in the chip");
+  assert.equal(v.summaryHiddenAgain, true, "an undocked block hides its summary again");
   assert.equal(v.flowRows, 5, "flow-grid derives rows from its content too");
   browser.assertNoPageErrors();
   console.log("blocks.system height model — rijen groeien en krimpen, rowHeight, minimize en dockrail OK");
