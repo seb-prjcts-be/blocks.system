@@ -114,7 +114,7 @@ function resolveHost(target) {
 }
 
 function normalizeVariant(value) {
-    const requested = String(value ?? "random").trim().toLowerCase();
+    const requested = String(value ?? "regular").trim().toLowerCase();
     const name = requested === "default"
         ? "regular"
         : requested === "invert" ? "inverse" : requested;
@@ -139,6 +139,13 @@ function rejectRetiredLayoutOptions(options) {
         const replacement = String(options.placement).trim().toLowerCase() === "flow" ? "flow-grid" : "fixed-grid";
         throw new TypeError(`blocks.system.placement is vervangen door layout: ${replacement}.`);
     }
+}
+
+function normalizeUnitPair(value, path) {
+    if (!Array.isArray(value) || value.length !== 2) {
+        throw new TypeError(`${path} verwacht [x, y] in hele rastereenheden.`);
+    }
+    return value;
 }
 
 function normalizeRowHeight(value) {
@@ -1517,7 +1524,17 @@ export function createBlocksSystem(options = {}) {
         if (Object.hasOwn(addOptions, "resizable")) {
             throw new TypeError("blocks.system.add() options.resizable is verwijderd; gebruik blocks.resizable in flow-grid.");
         }
-        if (!surface) throw new Error("Roep eerst blocks.system.attach(target) aan.");
+        if (!surface) {
+            // Nulinstellingen: zonder attach() krijgt het systeem zelf een veld
+            // aan het einde van de pagina, zoals Waves.wave(x) zonder opties al
+            // een bruikbare waarde geeft.
+            const body = typeof document !== "undefined" ? document.body : null;
+            if (!body) throw new Error("Roep eerst blocks.system.attach(target) aan.");
+            const field = document.createElement("div");
+            field.className = "blocks-system-field";
+            body.appendChild(field);
+            attach(field);
+        }
         drag.stop();
         let id;
         if (addOptions.id !== undefined) {
@@ -1537,6 +1554,8 @@ export function createBlocksSystem(options = {}) {
         );
         const block = createBlockController(id, content, addOptions);
         if (automaticMenu) block.menu(addOptions.title ?? "", automaticMenu);
+        if (addOptions.span !== undefined) block.span(...normalizeUnitPair(addOptions.span, "blocks.system.add() options.span"));
+        if (addOptions.place !== undefined) block.place(...normalizeUnitPair(addOptions.place, "blocks.system.add() options.place"));
         syncRows();
         return block;
     }
@@ -2315,7 +2334,13 @@ export function createBlocksSystem(options = {}) {
 
 export const system = createBlocksSystem();
 
+/** Eén aanroep, meteen een standaardblock in het gedeelde systeem. */
+export function startBlock(content, options) {
+    return system.add(content, options);
+}
+
 if (typeof window !== "undefined") {
     window.blocks = window.blocks && typeof window.blocks === "object" ? window.blocks : {};
     window.blocks.system = system;
+    window.blocks.startBlock = startBlock;
 }

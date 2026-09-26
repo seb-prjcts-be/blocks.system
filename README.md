@@ -37,7 +37,19 @@ addressable HTML, SVG, canvas, custom elements and adapter-driven content.
 
 Naming is deliberate: `blocks` is the configured system; every returned
 controller starts with `block`. For zero-config use, the module also exports the
-shared `system` and exposes it as `window.blocks.system`.
+shared `system` and exposes it as `window.blocks.system`, plus `startBlock()`:
+
+```js
+import { startBlock } from "./blocks.system.mjs";
+
+const blockHello = startBlock("<p>hello</p>", { title: "hello" });
+```
+
+Without `attach()` a system creates its own field at the end of the body, a
+block starts `regular` (pass `variant: "random"` for a chance draw) and a short
+block in the free layout keeps a minimum width (`--blocks-block-min-width`,
+180px). In a grid layout `span` and `place` can travel with `add()`:
+`blocks.add(content, { span: [2, 1], place: [1, 1] })`.
 
 `colorVariation` applies only to new blocks whose variant resolves from
 `random`: `0.2` gives the CSS colours in `colorArray` twenty percent of the range.

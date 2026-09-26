@@ -22,7 +22,7 @@ assert.equal(singleton.rows, 1, "grid rows must be readable from the default sys
 assert.equal(singleton.draggable, true, "dragging must be enabled by default");
 assert.equal(singleton.resizable, false, "interactive resizing must remain opt-in");
 assert.equal(singleton.font, null, "external fonts must remain opt-in");
-assert.equal(singleton.variant, "random", "visual variants must be random by default");
+assert.equal(singleton.variant, "regular", "visual variants must be regular by default; random is a deliberate choice");
 assert.deepEqual(singleton.variants, ["regular", "inverse"], "only the monochrome library variants must be discoverable");
 assert.deepEqual(singleton.colorArray, [], "the library must not choose a color palette for the consumer");
 assert.equal(singleton.colorVariation, 0, "automatic color variation must remain opt-in");
@@ -47,7 +47,7 @@ assert.deepEqual(Object.keys(minSingleton).sort(), Object.keys(singleton).sort()
 assert.ok(minified.length < source.length, "the minified module must be smaller than the source");
 
 let adapterUnmounts = 0;
-const local = createBlocksSystem({ catalogUrl: "https://example.test/catalog.html", layout: "fixed-grid", random: () => 0.99 });
+const local = createBlocksSystem({ catalogUrl: "https://example.test/catalog.html", layout: "fixed-grid", variant: "random", random: () => 0.99 });
 const adapterRegistration = local.registerAdapter("html", {
   mount({ host, settings }) {
     const node = document.createElement("p");
@@ -531,6 +531,7 @@ assert.equal(minDefaultMenuBlock.element.style.getPropertyValue("--block-menu-co
 
 const colorSamples = [0, 0.199999, 0.2, 0.999999];
 const colorful = createBlocksSystem({
+  variant: "random",
   colorArray: ["yellow", "blue"],
   colorVariation: 0.2,
   inversionVariation: 1 / 3,
@@ -576,6 +577,7 @@ assert.throws(function () { colorful.inversionVariation = "0.2"; }, /inversionVa
 
 const inversionSamples = [0, 0.799999, 0.8, 0.999999];
 const monochrome = createBlocksSystem({
+  variant: "random",
   colorVariation: 0,
   inversionVariation: 0.2,
   random: () => inversionSamples.shift()

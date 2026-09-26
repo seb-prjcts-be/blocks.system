@@ -11,7 +11,7 @@ const blocks = createBlocksSystem({
 const content = await loadDocsContent("reference", REFERENCE_SECTIONS.map(({ id }) => id));
 
 blocks.attach(board);
-blocks.setGrid(6, 87);
+blocks.setGrid(6, 88);
 quantizeSurface(board);
 
 function text(name, value, className = "") {

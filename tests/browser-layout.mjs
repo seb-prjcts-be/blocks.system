@@ -131,6 +131,7 @@ async function measureUserColor() {
         const blocks = createBlocksSystem({
           layout: "fixed-grid",
           draggable: false,
+          variant: "random",
           colorArray: ["yellow"],
           colorVariation: 1,
           inversionVariation: 0,

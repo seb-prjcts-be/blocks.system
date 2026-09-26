@@ -31,7 +31,7 @@ const blocks = createBlocksSystem({
   rowHeight: null,
   font: null,
   labels: {},
-  variant: &quot;random&quot;,
+  variant: &quot;regular&quot;,
   colorArray: [],
   colorVariation: 0,
   inversionVariation: 1 / 3,
@@ -77,7 +77,9 @@ blocks.setGrid(4, 4);</code></pre>
   menu: { dock: true, minimize: false, close: false, copy: false },
   variant: &quot;regular&quot;,
   minimized: false,
-  draggable: true
+  draggable: true,
+  span: [2, 1],
+  place: [1, 1]
 });</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type</th><th>purpose</th></tr></thead><tbody><tr id="api-add"><td data-label="kind + contract">method · add(content, options?)</td><td data-label="returns / type">block</td><td data-label="purpose">Add content and return one BlockController; every option is shown above.</td></tr>
 <tr><td data-label="kind + contract">option · id</td><td data-label="returns / type">string</td><td data-label="purpose">Stable id; generated when omitted.</td></tr>
@@ -85,7 +87,9 @@ blocks.setGrid(4, 4);</code></pre>
 <tr><td data-label="kind + contract">option · menu</td><td data-label="returns / type">boolean | { dock?, minimize?, close?, copy? }</td><td data-label="purpose">Configure titlebar controls for this block.</td></tr>
 <tr><td data-label="kind + contract">option · variant</td><td data-label="returns / type">string</td><td data-label="purpose">Override the system appearance for this block.</td></tr>
 <tr><td data-label="kind + contract">option · minimized</td><td data-label="returns / type">boolean</td><td data-label="purpose">Set the initial minimized state.</td></tr>
-<tr><td data-label="kind + contract">option · draggable</td><td data-label="returns / type">boolean · true</td><td data-label="purpose">Allow this block to move while the system remains draggable.</td></tr></tbody></table></div>
+<tr><td data-label="kind + contract">option · draggable</td><td data-label="returns / type">boolean · true</td><td data-label="purpose">Allow this block to move while the system remains draggable.</td></tr>
+<tr><td data-label="kind + contract">option · span</td><td data-label="returns / type">[columns, rows]</td><td data-label="purpose">Initial size in whole grid units, applied like span(); free layout rejects it.</td></tr>
+<tr><td data-label="kind + contract">option · place</td><td data-label="returns / type">[column, row]</td><td data-label="purpose">Initial fixed-grid coordinates, applied like place().</td></tr></tbody></table></div>
 </section>
 
 <section id="block-layout" class="reference-fallback-entry">
@@ -162,7 +166,7 @@ blocks.restoreLayout(layout);</code></pre>
 <section id="appearance" class="reference-fallback-entry">
   <h2>choose an appearance</h2>
   <p class="reference-intro">Set a default appearance for future blocks or override it on one block. Built-in fixed variants are regular and inverse; random delegates to the chance settings.</p>
-  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>type or initial value</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">option · variant</td><td data-label="type or initial value">string · random</td><td data-label="purpose">Appearance used for new blocks.</td></tr>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>type or initial value</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">option · variant</td><td data-label="type or initial value">string · regular</td><td data-label="purpose">Appearance used for new blocks; random draws from the chance settings.</td></tr>
 <tr><td data-label="kind + contract">property · blocks.variant</td><td data-label="type or initial value">string</td><td data-label="purpose">Read or change the default appearance.</td></tr>
 <tr><td data-label="kind + contract">property · blocks.variants</td><td data-label="type or initial value">readonly string[]</td><td data-label="purpose">The built-in fixed list: regular and inverse.</td></tr>
 <tr><td data-label="kind + contract">option · options.variant</td><td data-label="type or initial value">string</td><td data-label="purpose">Override the system appearance for one new block.</td></tr>

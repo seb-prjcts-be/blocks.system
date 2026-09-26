@@ -38,7 +38,19 @@ adresseerbare HTML, SVG, canvas, custom elements en adaptergestuurde inhoud.
 De naamgeving is bewust: `blocks` is het geconfigureerde systeem; iedere
 teruggegeven controller begint met `block`. Voor gebruik zonder configuratie
 exporteert de module ook het gedeelde `system`, globaal als
-`window.blocks.system`.
+`window.blocks.system`, plus `startBlock()`:
+
+```js
+import { startBlock } from "./blocks.system.mjs";
+
+const blockHallo = startBlock("<p>hallo</p>", { title: "hallo" });
+```
+
+Zonder `attach()` maakt een systeem zelf een veld aan het einde van de body,
+een block begint `regular` (geef `variant: "random"` mee voor een kansgestuurde
+trekking) en een kort block in de vrije layout houdt een minimale breedte
+(`--blocks-block-min-width`, 180px). In een rasterlayout mogen `span` en
+`place` met `add()` mee: `blocks.add(inhoud, { span: [2, 1], place: [1, 1] })`.
 
 `colorVariation` geldt alleen voor nieuwe blocks waarvan de variant uit `random`
 wordt bepaald: `0.2` geeft de CSS-kleuren uit `colorArray` twintig procent van het

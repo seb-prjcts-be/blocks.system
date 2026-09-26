@@ -90,6 +90,10 @@ export interface AddBlockOptions {
   minimized?: boolean;
   /** Allow this block to move while the system remains draggable. Defaults to true. */
   draggable?: boolean;
+  /** Initial span in whole grid units, applied like span(); rejected in free layout. */
+  span?: readonly [columns: number, rows: number];
+  /** Initial fixed-grid coordinates, applied like place(). */
+  place?: readonly [column: number, row: number];
 }
 
 export interface BlockMenuOptions {
@@ -181,6 +185,7 @@ export interface BlocksSystemOptions {
   rowHeight?: number | null;
   font?: BlocksFont | null;
   labels?: Partial<BlocksLabels>;
+  /** Appearance for new blocks. Defaults to "regular"; "random" draws from the chance settings. */
   variant?: string;
   /** User-owned CSS colors available to future random blocks. Defaults to an empty array. */
   colorArray?: readonly string[];
@@ -235,10 +240,12 @@ export interface BlocksSystem {
 
 export function createBlocksSystem(options?: BlocksSystemOptions): BlocksSystem;
 export const system: BlocksSystem;
+/** Add one block to the shared system; without attach() the system creates its own field at the end of the body. */
+export function startBlock(content: BlockContent, options?: AddBlockOptions): BlockController;
 
 declare global {
   interface Window {
-    blocks: { system: BlocksSystem; [key: string]: unknown };
+    blocks: { system: BlocksSystem; startBlock: typeof startBlock; [key: string]: unknown };
   }
 
   interface HTMLElementEventMap {

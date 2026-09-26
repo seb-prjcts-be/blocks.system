@@ -8,6 +8,7 @@
     --blocks-text-color: #14140f;
     --blocks-font-family: "Segoe UI", Arial, sans-serif;
     --blocks-content-padding: 7px;
+    --blocks-block-min-width: 180px;
     box-sizing: border-box;
     position: relative;
     min-width: 0;
@@ -22,6 +23,12 @@
     flex-wrap: wrap;
     align-items: flex-start;
     align-content: flex-start;
+}
+
+/* Een kort block in de vrije layout wordt geen strookje; consumenten
+   overschrijven de token. */
+.blocks-system-surface[data-layout="free"] > .blocks-system-object {
+    min-width: min(var(--blocks-block-min-width), 100%);
 }
 
 .blocks-system-surface:is([data-layout="fixed-grid"], [data-layout="flow-grid"]) {

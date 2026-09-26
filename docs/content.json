@@ -561,7 +561,7 @@
         "  rowHeight: null,",
         "  font: null,",
         "  labels: {},",
-        "  variant: \"random\",",
+        "  variant: \"regular\",",
         "  colorArray: [],",
         "  colorVariation: 0,",
         "  inversionVariation: 1 / 3,",
@@ -619,7 +619,9 @@
         "  menu: { dock: true, minimize: false, close: false, copy: false },",
         "  variant: \"regular\",",
         "  minimized: false,",
-        "  draggable: true",
+        "  draggable: true,",
+        "  span: [2, 1],",
+        "  place: [1, 1]",
         "});"
       ],
       "headers": ["kind + contract", "returns / type", "purpose"],
@@ -630,7 +632,9 @@
         { "cells": ["option · menu", "boolean | { dock?, minimize?, close?, copy? }", "Configure titlebar controls for this block."] },
         { "cells": ["option · variant", "string", "Override the system appearance for this block."] },
         { "cells": ["option · minimized", "boolean", "Set the initial minimized state."] },
-        { "cells": ["option · draggable", "boolean · true", "Allow this block to move while the system remains draggable."] }
+        { "cells": ["option · draggable", "boolean · true", "Allow this block to move while the system remains draggable."] },
+        { "cells": ["option · span", "[columns, rows]", "Initial size in whole grid units, applied like span(); free layout rejects it."] },
+        { "cells": ["option · place", "[column, row]", "Initial fixed-grid coordinates, applied like place()."] }
       ]
     },
     "reference-block-layout": {
@@ -723,7 +727,7 @@
       "intro": "Set a default appearance for future blocks or override it on one block. Built-in fixed variants are regular and inverse; random delegates to the chance settings.",
       "headers": ["kind + contract", "type or initial value", "purpose"],
       "rows": [
-        { "cells": ["option · variant", "string · random", "Appearance used for new blocks."] },
+        { "cells": ["option · variant", "string · regular", "Appearance used for new blocks; random draws from the chance settings."] },
         { "cells": ["property · blocks.variant", "string", "Read or change the default appearance."] },
         { "cells": ["property · blocks.variants", "readonly string[]", "The built-in fixed list: regular and inverse."] },
         { "cells": ["option · options.variant", "string", "Override the system appearance for one new block."] },
