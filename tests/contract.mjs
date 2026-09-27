@@ -657,6 +657,40 @@ resetting.reset();
 assert.deepEqual(resetOrder(), ["reset-a", "reset-c", "reset-d"], "reset() forgets removed blocks");
 assert.equal(typeof createBlocksSystem().reset, "function");
 
+// Stap 4b: saveBaseline() legt de huidige indeling vast als doel van reset(),
+// zodat een consument die spans en volgorde pas na add() bepaalt toch naar
+// zijn eigen "oorspronkelijke" layout kan terugkeren.
+const baselining = createBlocksSystem({ layout: "fixed-grid", variant: "regular", blockDefaults: { menu: { pin: true, dock: true } } });
+baselining.attach(new TestElement()).setGrid(3, 3);
+const baseA = baselining.add("<p>a</p>", { id: "base-a", title: "A" });
+const baseB = baselining.add("<p>b</p>", { id: "base-b", title: "B" });
+const baseC = baselining.add("<p>c</p>", { id: "base-c", title: "C" });
+baseA.span(2, 1);
+baseC.span(1, 2);
+baselining.restoreLayout({
+  version: 1,
+  layout: "fixed-grid",
+  blocks: [
+    { id: "base-b", span: [1, 1], place: null, minimized: false, docked: false, pinned: false },
+    { id: "base-a", span: [2, 1], place: null, minimized: false, docked: false, pinned: false },
+    { id: "base-c", span: [1, 2], place: null, minimized: false, docked: false, pinned: false }
+  ]
+});
+assert.equal(baselining.saveBaseline(), baselining, "saveBaseline() returns the system");
+baseC.pin();
+baseB.dock();
+baseA.span(1, 1);
+baselining.reset();
+assert.deepEqual(baselining.exportLayout().blocks, [
+  { id: "base-b", span: [1, 1], place: null, minimized: false, docked: false, pinned: false },
+  { id: "base-a", span: [2, 1], place: null, minimized: false, docked: false, pinned: false },
+  { id: "base-c", span: [1, 2], place: null, minimized: false, docked: false, pinned: false }
+], "reset() returns to the saved baseline, not to the add() state");
+const baseD = baselining.add("<p>d</p>", { id: "base-d", title: "D" });
+baseD.pin();
+baselining.reset();
+assert.deepEqual(baselining.exportLayout().blocks.map((entry) => entry.id), ["base-b", "base-a", "base-c", "base-d"], "a block added after saveBaseline() joins the baseline at the end");
+
 const pinRestoreTarget = createBlocksSystem({ variant: "regular", blockDefaults: { menu: { pin: true } } });
 pinRestoreTarget.attach(new TestElement());
 const restoreA = pinRestoreTarget.add("<p>a</p>", { id: "restore-a" });

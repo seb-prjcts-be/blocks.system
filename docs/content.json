@@ -652,6 +652,7 @@
         "",
         "const layout = blocks.exportLayout();",
         "blocks.restoreLayout(layout);",
+        "blocks.saveBaseline();",
         "blocks.reset();"
       ],
       "headers": ["kind + contract", "returns", "purpose"],
@@ -662,7 +663,8 @@
         { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based coordinates in fixed-grid; other modes reject the call."] },
         { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place, minimized, docked and pinned state."] },
         { "cells": ["method · restoreLayout(layout, options?)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing."] },
-        { "cells": ["method · reset()", "blocks", "Return every block to its add() order, span, place and initial minimized state, undocked and unpinned; publishes one reset change naming every block."] },
+        { "cells": ["method · saveBaseline()", "blocks", "Make the current order, spans, places, minimized, docked and pinned state the target of reset(); blocks added later join at the end."] },
+        { "cells": ["method · reset()", "blocks", "Return every block to the saved baseline, by default its add() order, span, place and initial minimized state, undocked and unpinned; publishes one reset change naming every block."] },
         { "cells": ["property · resize size", "{ columns, rows }", "Resize event sizes use positive whole grid units."] }
       ],
       "details": "In flow-grid, add blocks in the desired initial order—for example after sorting titles by name—and call span() without place()."

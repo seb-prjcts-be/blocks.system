@@ -252,7 +252,9 @@ export interface BlocksSystem {
   exportLayout(): BlocksLayout;
   /** Restore known block order, spans, optional fixed positions, minimized and docked state. */
   restoreLayout(layout: BlocksLayout, options?: BlocksRestoreOptions): BlocksSystem;
-  /** Return every block to its add() order, span, place and initial minimized state, undocked and unpinned; publishes one "reset" change. */
+  /** Make the current order, spans, places, minimized, docked and pinned state the target of reset(); blocks added later join at the end. */
+  saveBaseline(): BlocksSystem;
+  /** Return every block to the saved baseline (by default its add() order, span, place and initial minimized state, undocked and unpinned); publishes one "reset" change. */
   reset(): BlocksSystem;
   mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>;
   unmount(target: string | Element): boolean;

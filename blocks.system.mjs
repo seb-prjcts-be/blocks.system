@@ -1603,6 +1603,23 @@ export function createBlocksSystem(options = {}) {
         return block;
     }
 
+    function saveBaseline() {
+        // De huidige indeling wordt het nieuwe doel van reset(); blocks die
+        // later worden toegevoegd, sluiten achteraan aan.
+        baselines.clear();
+        for (const entry of exportLayout().blocks) {
+            baselines.set(entry.id, Object.freeze({
+                id: entry.id,
+                span: [...entry.span],
+                place: entry.place ? [...entry.place] : null,
+                minimized: entry.minimized,
+                docked: entry.docked,
+                pinned: entry.pinned
+            }));
+        }
+        return api;
+    }
+
     function reset() {
         const entries = [...baselines.values()].filter((entry) => objects.has(entry.id));
         restoreLayout({ version: LAYOUT_VERSION, layout: layoutMode, blocks: entries });
@@ -2364,6 +2381,7 @@ export function createBlocksSystem(options = {}) {
         add,
         exportLayout,
         restoreLayout,
+        saveBaseline,
         reset,
         mount,
         unmount,

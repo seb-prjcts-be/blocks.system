@@ -140,6 +140,22 @@ for (const eventName of ["blocks:reorder", "blocks:resize", "blocks:change"]) {
 }
 ```
 
+`reset()` returns every block to its baseline. By default that is the state at
+`add()`, which is too early for an application that sets spans and order
+afterwards. Call `saveBaseline()` once the editorial layout is complete and
+before the personal override is restored; `reset()` then returns to that
+layout, and blocks added later join at the end:
+
+```js
+applyEditorialLayout();
+blocks.saveBaseline();
+if (storedLayout) blocks.restoreLayout(JSON.parse(storedLayout));
+resetButton.addEventListener("click", () => {
+  localStorage.removeItem(storageKey);
+  blocks.reset();
+});
+```
+
 `localStorage` is browser/profile-specific, not an account database. Use a
 server store such as SQLite only when layouts or content must follow authenticated
 people across devices or be shared and administered centrally. The core stays

@@ -144,6 +144,22 @@ for (const eventNaam of ["blocks:reorder", "blocks:resize", "blocks:change"]) {
 }
 ```
 
+`reset()` zet elk block terug naar zijn basis. Standaard is dat de toestand bij
+`add()`, en dat is te vroeg voor een toepassing die spans en volgorde pas
+daarna bepaalt. Roep `saveBaseline()` aan zodra de redactionele indeling klaar
+is en vóór de persoonlijke indeling wordt teruggezet; `reset()` keert dan naar
+die indeling terug, en later toegevoegde blocks sluiten achteraan aan:
+
+```js
+pasRedactieIndelingToe();
+blocks.saveBaseline();
+if (opgeslagenLayout) blocks.restoreLayout(JSON.parse(opgeslagenLayout));
+terugzetKnop.addEventListener("click", () => {
+  localStorage.removeItem(opslagSleutel);
+  blocks.reset();
+});
+```
+
 `localStorage` hoort bij één browserprofiel en is geen accountdatabase. Gebruik
 pas een serveropslag zoals SQLite wanneer layout of inhoud aangemelde personen
 over meerdere apparaten moet volgen, gedeeld wordt of centraal beheer nodig

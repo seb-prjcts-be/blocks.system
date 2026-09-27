@@ -106,6 +106,7 @@ block.place(1, 1);
 
 const layout = blocks.exportLayout();
 blocks.restoreLayout(layout);
+blocks.saveBaseline();
 blocks.reset();</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns</th><th>purpose</th></tr></thead><tbody><tr id="api-span"><td data-label="kind + contract">method · span(columns, rows)</td><td data-label="returns">block</td><td data-label="purpose">Set the size in whole grid units.</td></tr>
 <tr id="api-fit-height-block"><td data-label="kind + contract">method · block.fitHeight()</td><td data-label="returns">{ columns, rows, changed }</td><td data-label="purpose">Measure one content-driven block at its current width; application-owned fixed media spans remain untouched when not called.</td></tr>
@@ -113,7 +114,8 @@ blocks.reset();</code></pre>
 <tr id="api-place"><td data-label="kind + contract">method · place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based coordinates in fixed-grid; other modes reject the call.</td></tr>
 <tr><td data-label="kind + contract">method · exportLayout()</td><td data-label="returns">{ version, layout, blocks }</td><td data-label="purpose">Export the mode, content-free DOM order and each block's span, place, minimized, docked and pinned state.</td></tr>
 <tr><td data-label="kind + contract">method · restoreLayout(layout, options?)</td><td data-label="returns">blocks</td><td data-label="purpose">Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing.</td></tr>
-<tr><td data-label="kind + contract">method · reset()</td><td data-label="returns">blocks</td><td data-label="purpose">Return every block to its add() order, span, place and initial minimized state, undocked and unpinned; publishes one reset change naming every block.</td></tr>
+<tr><td data-label="kind + contract">method · saveBaseline()</td><td data-label="returns">blocks</td><td data-label="purpose">Make the current order, spans, places, minimized, docked and pinned state the target of reset(); blocks added later join at the end.</td></tr>
+<tr><td data-label="kind + contract">method · reset()</td><td data-label="returns">blocks</td><td data-label="purpose">Return every block to the saved baseline, by default its add() order, span, place and initial minimized state, undocked and unpinned; publishes one reset change naming every block.</td></tr>
 <tr><td data-label="kind + contract">property · resize size</td><td data-label="returns">{ columns, rows }</td><td data-label="purpose">Resize event sizes use positive whole grid units.</td></tr></tbody></table></div>
   <p class="reference-details">In flow-grid, add blocks in the desired initial order—for example after sorting titles by name—and call span() without place().</p>
 </section>
