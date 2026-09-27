@@ -2005,8 +2005,8 @@ try {
       bodyWhiteSpace: "nowrap",
       bodyFits: true,
       urls: [
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.6.0/blocks.system.css",
-        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.6.0/blocks.system.mjs"
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.6.1/blocks.system.css",
+        "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.6.1/blocks.system.mjs"
       ]
     }, "de CDN-uitleg staat niet op één regel met beide echte release-URL's");
     assert.deepEqual(desktopManual.startPair.steps, [
