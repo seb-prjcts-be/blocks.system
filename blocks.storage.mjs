@@ -1,53 +1,117 @@
-function plainObject(value, label) {
+function assertPlainObject(value, label) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new TypeError(`${label} verwacht een object.`);
   }
   return value;
 }
 
-function cleanPath(value, label = "pad") {
-  const path = String(value || "").replace(/\\/g, "/");
-  if (!path || path.startsWith("/") || path.split("/").some((part) => !part || part === "." || part === "..")) {
+function normalizeRelativePath(value, label = "pad") {
+  const path = String(value || "").replaceAll("\\", "/");
+  const parts = path.split("/");
+  if (parts.some((part) => !part || part === "." || part === "..")) {
     throw new TypeError(`${label} verwacht een relatief pad zonder lege delen, "." of "..".`);
   }
   return path;
 }
 
-async function fileHandle(root, path, create = false) {
-  const parts = cleanPath(path).split("/");
+async function resolveFileHandle(root, normalizedPath, create = false) {
+  const parts = normalizedPath.split("/");
   const name = parts.pop();
   let directory = root;
-  for (const part of parts) directory = await directory.getDirectoryHandle(part, { create });
-  return { directory, name, handle: await directory.getFileHandle(name, { create }) };
+
+  for (const part of parts) {
+    directory = await directory.getDirectoryHandle(part, { create });
+  }
+
+  const handle = await directory.getFileHandle(name, { create });
+  return { directory, name, handle };
 }
 
-async function writeFile(handle, value) {
+async function createExclusiveAssetFile(root, normalizedPath) {
+  const parts = normalizedPath.split("/");
+  const name = parts.pop();
+  let directory = root;
+  let creatingDirectories = false;
+
+  for (const part of parts) {
+    if (!creatingDirectories) {
+      try {
+        directory = await directory.getDirectoryHandle(part, { create: false });
+        continue;
+      } catch {
+        creatingDirectories = true;
+      }
+    }
+    directory = await directory.getDirectoryHandle(part, { create: true });
+  }
+
+  if (!creatingDirectories) {
+    let exists = false;
+    try {
+      await directory.getFileHandle(name, { create: false });
+      exists = true;
+    } catch {
+      // Bestand bestaat nog niet; we maken het hieronder aan.
+    }
+    if (exists) {
+      throw new RangeError(`Storage asset bestaat al: ${normalizedPath}`);
+    }
+  }
+
+  const handle = await directory.getFileHandle(name, { create: true });
+  return { directory, name, handle };
+}
+
+async function writeFile(handle, content) {
   const stream = await handle.createWritable();
-  await stream.write(value);
+  await stream.write(content);
   await stream.close();
 }
 
-function documentKeys(keys, available) {
-  const list = keys === undefined ? available : keys;
-  if (!Array.isArray(list) || list.length === 0) throw new TypeError("storage.load(keys) verwacht minstens één documentsleutel.");
-  const unique = [...new Set(list.map((key) => String(key || "")))];
-  for (const key of unique) if (!available.includes(key)) throw new RangeError(`Onbekend storagedocument: ${key || "(leeg)"}`);
-  return unique;
+function resolveDocumentKeys(keys, availableKeys, availableKeySet) {
+  if (keys === undefined) {
+    return availableKeys;
+  }
+  if (!Array.isArray(keys) || keys.length === 0) {
+    throw new TypeError("storage.load(keys) verwacht minstens één documentsleutel.");
+  }
+
+  const uniqueKeys = new Set();
+  for (const rawKey of keys) {
+    const key = String(rawKey || "");
+    if (!availableKeySet.has(key)) {
+      throw new RangeError(`Onbekend storagedocument: ${key || "(leeg)"}`);
+    }
+    uniqueKeys.add(key);
+  }
+  return [...uniqueKeys];
 }
 
-function normalizedChange(change) {
-  plainObject(change, "storage.commit(change)");
-  const documents = plainObject(change.documents, "storage.commit(change).documents");
-  const assets = change.assets === undefined ? [] : change.assets;
-  if (!Array.isArray(assets)) throw new TypeError("storage.commit(change).assets verwacht een array.");
+function normalizeChange(change) {
+  assertPlainObject(change, "storage.commit(change)");
+  const documents = assertPlainObject(change.documents, "storage.commit(change).documents");
+  const rawAssets = change.assets === undefined ? [] : change.assets;
+
+  if (!Array.isArray(rawAssets)) {
+    throw new TypeError("storage.commit(change).assets verwacht een array.");
+  }
+
+  const assets = rawAssets.map((asset, index) => {
+    const label = `storage asset ${index + 1}`;
+    assertPlainObject(asset, label);
+    if (!(asset.file instanceof Blob)) {
+      throw new TypeError(`${label} verwacht een Blob als file.`);
+    }
+    return {
+      path: normalizeRelativePath(asset.path, `${label}.path`),
+      file: asset.file
+    };
+  });
+
   return {
-    revision: change.revision === undefined || change.revision === null ? null : String(change.revision),
+    revision: change.revision == null ? null : String(change.revision),
     documents,
-    assets: assets.map((asset, index) => {
-      plainObject(asset, `storage asset ${index + 1}`);
-      if (!(asset.file instanceof Blob)) throw new TypeError(`storage asset ${index + 1} verwacht een Blob als file.`);
-      return { path: cleanPath(asset.path, `storage asset ${index + 1}.path`), file: asset.file };
-    })
+    assets
   };
 }
 
@@ -59,134 +123,214 @@ export class BlocksStorageConflictError extends Error {
 }
 
 export function createBlocksStorage(adapter) {
-  plainObject(adapter, "createBlocksStorage(adapter)");
+  assertPlainObject(adapter, "createBlocksStorage(adapter)");
   if (typeof adapter.load !== "function" || typeof adapter.commit !== "function") {
     throw new TypeError("Een storage-adapter moet load(keys) en commit(change) leveren.");
   }
+
   return Object.freeze({
     kind: String(adapter.kind || "custom"),
     async load(keys) {
       const result = await adapter.load(keys);
-      plainObject(result, "storage.load() resultaat");
-      plainObject(result.documents, "storage.load() documents");
-      return { documents: result.documents, revision: result.revision == null ? null : String(result.revision) };
+      assertPlainObject(result, "storage.load() resultaat");
+      assertPlainObject(result.documents, "storage.load() documents");
+      return {
+        documents: result.documents,
+        revision: result.revision == null ? null : String(result.revision)
+      };
     },
     async commit(change) {
-      const result = await adapter.commit(normalizedChange(change));
-      plainObject(result, "storage.commit() resultaat");
-      return { revision: result.revision == null ? null : String(result.revision) };
+      const result = await adapter.commit(normalizeChange(change));
+      assertPlainObject(result, "storage.commit() resultaat");
+      return {
+        revision: result.revision == null ? null : String(result.revision)
+      };
     }
   });
 }
 
 export function createJsonStorage(options) {
-  plainObject(options, "createJsonStorage(options)");
+  assertPlainObject(options, "createJsonStorage(options)");
   const root = options.directory;
   if (!root || typeof root.getDirectoryHandle !== "function" || typeof root.getFileHandle !== "function") {
     throw new TypeError("createJsonStorage() verwacht een FileSystemDirectoryHandle als directory.");
   }
-  const configured = plainObject(options.documents, "createJsonStorage().documents");
-  const paths = Object.fromEntries(Object.entries(configured).map(([key, path]) => [key, cleanPath(path, `documents.${key}`)]));
-  const available = Object.keys(paths);
-  if (available.length === 0) throw new TypeError("createJsonStorage().documents mag niet leeg zijn.");
 
-  async function revision() {
-    const parts = [];
-    for (const key of available.sort()) {
-      const { handle } = await fileHandle(root, paths[key]);
-      const file = await handle.getFile();
-      parts.push(`${key}:${file.lastModified || 0}:${file.size}`);
-    }
+  const configured = assertPlainObject(options.documents, "createJsonStorage().documents");
+  const paths = Object.fromEntries(
+    Object.entries(configured).map(([key, path]) => [
+      key,
+      normalizeRelativePath(path, `documents.${key}`)
+    ])
+  );
+
+  const availableKeys = Object.keys(paths);
+  if (availableKeys.length === 0) {
+    throw new TypeError("createJsonStorage().documents mag niet leeg zijn.");
+  }
+
+  const availableKeySet = new Set(availableKeys);
+  const sortedKeys = [...availableKeys].sort();
+
+  async function readRevision(filesByKey) {
+    const parts = await Promise.all(
+      sortedKeys.map(async (key) => {
+        let file = filesByKey?.get(key);
+        if (!file) {
+          const { handle } = await resolveFileHandle(root, paths[key]);
+          file = await handle.getFile();
+        }
+        return `${key}:${file.lastModified || 0}:${file.size}`;
+      })
+    );
     return parts.join("|");
   }
 
   async function load(keys) {
-    const selected = documentKeys(keys, available);
-    const documents = {};
-    for (const key of selected) {
-      const { handle } = await fileHandle(root, paths[key]);
-      documents[key] = JSON.parse(await (await handle.getFile()).text());
-    }
-    return { documents, revision: await revision() };
+    const selectedKeys = resolveDocumentKeys(keys, availableKeys, availableKeySet);
+    const filesByKey = new Map();
+
+    const entries = await Promise.all(
+      selectedKeys.map(async (key) => {
+        const { handle } = await resolveFileHandle(root, paths[key]);
+        const file = await handle.getFile();
+        filesByKey.set(key, file);
+        return [key, JSON.parse(await file.text())];
+      })
+    );
+
+    return {
+      documents: Object.fromEntries(entries),
+      revision: await readRevision(filesByKey)
+    };
   }
 
   async function commit(change) {
-    if (change.revision !== null && change.revision !== await revision()) throw new BlocksStorageConflictError();
-    const entries = Object.entries(change.documents);
-    for (const [key] of entries) if (!available.includes(key)) throw new RangeError(`Onbekend storagedocument: ${key}`);
+    if (change.revision !== null && change.revision !== (await readRevision())) {
+      throw new BlocksStorageConflictError();
+    }
+
+    const documentEntries = Object.entries(change.documents);
+    for (const [key] of documentEntries) {
+      if (!availableKeySet.has(key)) {
+        throw new RangeError(`Onbekend storagedocument: ${key}`);
+      }
+    }
+
+    const serializedDocuments = documentEntries.map(([key, value]) => [
+      key,
+      `${JSON.stringify(value, null, 2)}\n`
+    ]);
+
     const backups = [];
     const createdAssets = [];
+
     try {
       for (const asset of change.assets) {
-        try {
-          await fileHandle(root, asset.path);
-          throw new RangeError(`Storage asset bestaat al: ${asset.path}`);
-        } catch (error) {
-          if (error instanceof RangeError) throw error;
-        }
-        const target = await fileHandle(root, asset.path, true);
+        const target = await createExclusiveAssetFile(root, asset.path);
         createdAssets.push(target);
         await writeFile(target.handle, await asset.file.arrayBuffer());
       }
-      for (const [key, value] of entries) {
-        const target = await fileHandle(root, paths[key]);
-        backups.push({ handle: target.handle, value: await (await target.handle.getFile()).text() });
-        await writeFile(target.handle, `${JSON.stringify(value, null, 2)}\n`);
+
+      for (const [key, serializedContent] of serializedDocuments) {
+        const target = await resolveFileHandle(root, paths[key]);
+        const currentFile = await target.handle.getFile();
+        backups.push({ handle: target.handle, value: await currentFile.text() });
+        await writeFile(target.handle, serializedContent);
       }
     } catch (error) {
-      let rollbackError = null;
       try {
-        for (const backup of backups) await writeFile(backup.handle, backup.value);
-        for (const asset of createdAssets) await asset.directory.removeEntry?.(asset.name);
-      } catch (failedRollback) {
-        rollbackError = failedRollback;
+        for (const backup of backups) {
+          await writeFile(backup.handle, backup.value);
+        }
+        for (const asset of createdAssets) {
+          await asset.directory.removeEntry?.(asset.name);
+        }
+      } catch (rollbackError) {
+        error.rollbackError = rollbackError;
       }
-      if (rollbackError) error.rollbackError = rollbackError;
       throw error;
     }
-    return { revision: await revision() };
+
+    return { revision: await readRevision() };
   }
 
   return createBlocksStorage({ kind: "json", load, commit });
 }
 
 export function createHttpStorage(options) {
-  plainObject(options, "createHttpStorage(options)");
+  assertPlainObject(options, "createHttpStorage(options)");
   const endpoint = String(options.endpoint || "");
-  if (!endpoint) throw new TypeError("createHttpStorage().endpoint mag niet leeg zijn.");
-  const request = options.fetch || globalThis.fetch;
-  if (typeof request !== "function") throw new TypeError("createHttpStorage() verwacht fetch.");
+  if (!endpoint) {
+    throw new TypeError("createHttpStorage().endpoint mag niet leeg zijn.");
+  }
 
-  async function response(call) {
-    const result = await call;
-    if (result.status === 409) throw new BlocksStorageConflictError();
-    let body;
-    try { body = await result.json(); } catch { body = null; }
-    if (!result.ok) throw new Error(body?.error || `Storageverzoek faalde met HTTP ${result.status}.`);
+  const fetchFn = options.fetch || globalThis.fetch;
+  if (typeof fetchFn !== "function") {
+    throw new TypeError("createHttpStorage() verwacht fetch.");
+  }
+
+  async function parseResponse(responsePromise) {
+    const response = await responsePromise;
+    if (response.status === 409) {
+      throw new BlocksStorageConflictError();
+    }
+
+    let body = null;
+    try {
+      body = await response.json();
+    } catch {
+      // Negeer ongeldige of lege JSON bij foutstatussen.
+    }
+
+    if (!response.ok) {
+      throw new Error(body?.error || `Storageverzoek faalde met HTTP ${response.status}.`);
+    }
     return body;
   }
 
   async function load(keys) {
-    const selected = Array.isArray(keys) ? keys.map(String) : keys;
-    return response(request(endpoint, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "load", keys: selected })
-    }));
+    const selectedKeys = Array.isArray(keys) ? keys.map(String) : keys;
+    return parseResponse(
+      fetchFn(endpoint, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "load", keys: selectedKeys })
+      })
+    );
   }
 
   async function commit(change) {
     const form = new FormData();
-    const assets = change.assets.map((asset, index) => ({ path: asset.path, field: `asset-${index}` }));
-    form.append("payload", JSON.stringify({
-      action: "commit",
-      revision: change.revision,
-      documents: change.documents,
-      assets
+    const assets = change.assets.map((asset, index) => ({
+      path: asset.path,
+      field: `asset-${index}`
     }));
-    change.assets.forEach((asset, index) => form.append(`asset-${index}`, asset.file, asset.path.split("/").pop()));
-    return response(request(endpoint, { method: "POST", credentials: "same-origin", body: form }));
+
+    form.append(
+      "payload",
+      JSON.stringify({
+        action: "commit",
+        revision: change.revision,
+        documents: change.documents,
+        assets
+      })
+    );
+
+    for (let i = 0; i < change.assets.length; i++) {
+      const { path, file } = change.assets[i];
+      const fileName = path.slice(path.lastIndexOf("/") + 1);
+      form.append(`asset-${i}`, file, fileName);
+    }
+
+    return parseResponse(
+      fetchFn(endpoint, {
+        method: "POST",
+        credentials: "same-origin",
+        body: form
+      })
+    );
   }
 
   return createBlocksStorage({ kind: "http", load, commit });
