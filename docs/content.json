@@ -589,7 +589,7 @@
       ],
       "headers": ["kind + contract", "returns / type", "purpose"],
       "rows": [
-        { "id": "api-attach", "cells": ["method · attach(target)", "blocks", "Attach to a selector or Element."] },
+        { "id": "api-attach", "cells": ["method · attach(target) / hydrate(target?, options?)", "blocks", "Attach to a selector or Element, or hydrate declarative blocks in place."] },
         { "cells": ["property · field", "Element | null", "The currently attached field."] }
       ]
     },
@@ -784,7 +784,7 @@
         { "cells": ["property · draggable", "boolean", "Read or change whether this block can move."] },
         { "cells": ["method · describe(options?)", "definition", "Serialize this live block for the built-in html adapter."] },
         { "cells": ["option · options.url", "string | URL", "Name the page in the serialized definition."] },
-        { "id": "api-address", "cells": ["method · address(id)", "string", "Build ?block=id from definition.url or the system catalogUrl."] }
+        { "id": "api-address", "cells": ["method · address(id) / resolveAddress(options?)", "string | Element", "Build ?block=id from definition.url or the system catalogUrl, or scroll to the addressed block."] }
       ]
     },
     "reference-definition-create": {
@@ -824,7 +824,7 @@
         { "cells": ["property · definition.markup", "trusted HTML", "Content used by the built-in html adapter."] },
         { "cells": ["adapter · adapter \"html\"", "built-in", "Mounts and snippets trusted definition.markup. Replace it with registerAdapter(\"html\", adapter, { replace: true })."] },
         { "cells": ["method · listAdapters()", "string[]", "List registered adapter ids, starting with the built-in html adapter."] },
-        { "cells": ["method · list(filters?)", "definition[]", "Filter definitions with any combination of the four filters below."] },
+        { "cells": ["method · list(filters?) / bindSearch(options?)", "definition[]", "Filter definitions or live search tiles with any combination of the four filters below."] },
         { "cells": ["filter · filters.query", "string", "Match text in the definition id, label, description, adapter, medium or category."] },
         { "cells": ["filter · filters.adapter", "string", "Keep definitions that use this adapter id."] },
         { "cells": ["filter · filters.medium", "string", "Keep definitions with this medium."] },

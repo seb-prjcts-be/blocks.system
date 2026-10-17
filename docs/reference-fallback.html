@@ -52,7 +52,7 @@ const blocks = createBlocksSystem({
   <h2>attach a container</h2><span id="system-methods" class="reference-anchor-alias" aria-hidden="true"></span>
   <p class="reference-intro">Attach the system to one existing element before adding content. A selector and an Element are both accepted.</p>
   <pre class="reference-code"><code>blocks.attach(&quot;#blocks-field&quot;);</code></pre>
-  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type</th><th>purpose</th></tr></thead><tbody><tr id="api-attach"><td data-label="kind + contract">method · attach(target)</td><td data-label="returns / type">blocks</td><td data-label="purpose">Attach to a selector or Element.</td></tr>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type</th><th>purpose</th></tr></thead><tbody><tr id="api-attach"><td data-label="kind + contract">method · attach(target) / hydrate(target?, options?)</td><td data-label="returns / type">blocks</td><td data-label="purpose">Attach to a selector or Element, or hydrate declarative blocks in place.</td></tr>
 <tr><td data-label="kind + contract">property · field</td><td data-label="returns / type">Element | null</td><td data-label="purpose">The currently attached field.</td></tr></tbody></table></div>
 </section>
 
@@ -215,7 +215,7 @@ blocks.reset();</code></pre>
 <tr><td data-label="kind + contract">property · draggable</td><td data-label="type or returns">boolean</td><td data-label="purpose">Read or change whether this block can move.</td></tr>
 <tr><td data-label="kind + contract">method · describe(options?)</td><td data-label="type or returns">definition</td><td data-label="purpose">Serialize this live block for the built-in html adapter.</td></tr>
 <tr><td data-label="kind + contract">option · options.url</td><td data-label="type or returns">string | URL</td><td data-label="purpose">Name the page in the serialized definition.</td></tr>
-<tr id="api-address"><td data-label="kind + contract">method · address(id)</td><td data-label="type or returns">string</td><td data-label="purpose">Build ?block=id from definition.url or the system catalogUrl.</td></tr></tbody></table></div>
+<tr id="api-address"><td data-label="kind + contract">method · address(id) / resolveAddress(options?)</td><td data-label="type or returns">string | Element</td><td data-label="purpose">Build ?block=id from definition.url or the system catalogUrl, or scroll to the addressed block.</td></tr></tbody></table></div>
 </section>
 
 <section id="adapters" class="reference-fallback-entry">
@@ -251,7 +251,7 @@ const notes = blocks.list({
 <tr><td data-label="kind + contract">property · definition.markup</td><td data-label="returns or type">trusted HTML</td><td data-label="purpose">Content used by the built-in html adapter.</td></tr>
 <tr><td data-label="kind + contract">adapter · adapter &quot;html&quot;</td><td data-label="returns or type">built-in</td><td data-label="purpose">Mounts and snippets trusted definition.markup. Replace it with registerAdapter(&quot;html&quot;, adapter, { replace: true }).</td></tr>
 <tr><td data-label="kind + contract">method · listAdapters()</td><td data-label="returns or type">string[]</td><td data-label="purpose">List registered adapter ids, starting with the built-in html adapter.</td></tr>
-<tr><td data-label="kind + contract">method · list(filters?)</td><td data-label="returns or type">definition[]</td><td data-label="purpose">Filter definitions with any combination of the four filters below.</td></tr>
+<tr><td data-label="kind + contract">method · list(filters?) / bindSearch(options?)</td><td data-label="returns or type">definition[]</td><td data-label="purpose">Filter definitions or live search tiles with any combination of the four filters below.</td></tr>
 <tr><td data-label="kind + contract">filter · filters.query</td><td data-label="returns or type">string</td><td data-label="purpose">Match text in the definition id, label, description, adapter, medium or category.</td></tr>
 <tr><td data-label="kind + contract">filter · filters.adapter</td><td data-label="returns or type">string</td><td data-label="purpose">Keep definitions that use this adapter id.</td></tr>
 <tr><td data-label="kind + contract">filter · filters.medium</td><td data-label="returns or type">string</td><td data-label="purpose">Keep definitions with this medium.</td></tr>

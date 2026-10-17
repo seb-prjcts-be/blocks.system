@@ -370,6 +370,95 @@ function loadFontStylesheet(href) {
     document.head.appendChild(link);
 }
 
+const DEFAULT_GRID_MODES = Object.freeze([
+    Object.freeze({ name: "wide", minWidth: 1080 }),
+    Object.freeze({ name: "medium", minWidth: 680 }),
+    Object.freeze({ name: "compact", minWidth: 0 })
+]);
+
+function normalizeSearchText(value) {
+    return String(value || "")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\b(?:eerste|1ste)\b/g, "1e")
+        .replace(/\b(?:tweede|2de)\b/g, "2e")
+        .replace(/\b(?:derde|3de)\b/g, "3e");
+}
+
+function scoreSearchEntry({ title, page, text }, query) {
+    if (page && page.startsWith(query) && /^(?:hoe|waar|wanneer|wat|wie)\b/.test(title)) return -1;
+    if (title === query) return 0;
+    if (title.startsWith(query)) return 1;
+    if (new RegExp(`(^|\\s)${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(title)) return 2;
+    if (title.includes(query)) return 3;
+    const words = query.split(/\s+/).filter((word) => word.length > 1);
+    if (words.length > 1 && words.every((word) => title.includes(word))) return 3.5;
+    const position = text.indexOf(query);
+    if (position >= 0) return 4 + position / 100000;
+    if (words.length > 1 && words.every((word) => text.includes(word))) return 5;
+    return Number.POSITIVE_INFINITY;
+}
+
+function gridModeForWidth(width, modes = DEFAULT_GRID_MODES) {
+    return modes.find((mode) => width >= mode.minWidth) || modes.at(-1);
+}
+
+function parsePositiveGridUnit(value, path) {
+    const number = Number(value);
+    if (!Number.isInteger(number) || number < 1) {
+        throw new TypeError(`${path} is geen positieve rastereenheid.`);
+    }
+    return number;
+}
+
+function readSourceGrid(source, mode) {
+    const fallbackColumns = mode === "compact" ? 1 : mode === "medium" ? 6 : 12;
+    const rawCols = source.getAttribute(`data-grid-${mode}-columns`) ?? source.getAttribute("data-grid-columns") ?? fallbackColumns;
+    const rawRows = source.getAttribute(`data-grid-${mode}-rows`) ?? source.getAttribute("data-grid-rows") ?? 1;
+    return {
+        columns: parsePositiveGridUnit(rawCols, `${mode}.columns`),
+        rows: parsePositiveGridUnit(rawRows, `${mode}.rows`)
+    };
+}
+
+function readBlockSpan(node, mode, gridColumns = Infinity) {
+    const blockId = node.dataset.blockId || node.id || "block";
+    const explicit = String(node.getAttribute(`data-block-span-${mode}`) || node.getAttribute("data-block-span") || "").trim();
+    if (explicit) {
+        const parts = explicit.split(/\s+/);
+        if (parts.length !== 2) {
+            throw new TypeError(`${blockId}: span voor ${mode} ontbreekt.`);
+        }
+        return [
+            Math.min(gridColumns, parsePositiveGridUnit(parts[0], `${blockId}.${mode}.columns`)),
+            parsePositiveGridUnit(parts[1], `${blockId}.${mode}.rows`)
+        ];
+    }
+    const fallbackCols = node.getAttribute("data-span-columns") ?? 1;
+    const fallbackRows = node.getAttribute("data-span-rows") ?? 1;
+    return [
+        Math.min(gridColumns, parsePositiveGridUnit(fallbackCols, `${blockId}.${mode}.columns`)),
+        parsePositiveGridUnit(fallbackRows, `${blockId}.${mode}.rows`)
+    ];
+}
+
+function extractBlockDescription(node) {
+    const clone = node.cloneNode(true);
+    clone.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((heading) => heading.remove());
+    return clone.textContent.replace(/\s+/g, " ").trim().slice(0, 600);
+}
+
+function createChipSummaryNode(description) {
+    const raw = String(description || "");
+    const sentence = raw.match(/^.{20,140}?[.!?](?=\s|$)/)?.[0];
+    const text = sentence || raw.slice(0, 120).replace(/\s+\S*$/, "");
+    if (!text) return null;
+    const node = document.createElement("p");
+    node.textContent = text.length < raw.length && !sentence ? `${text}\u2026` : text;
+    return node;
+}
+
 function createBlockCatalog(options = {}) {
     const definitions = new Map();
     const adapters = new Map();
@@ -424,17 +513,34 @@ function createBlockCatalog(options = {}) {
     }
 
     function list(filters = {}) {
-        const query = String(filters.query || "").trim().toLowerCase();
-        return Array.from(definitions.values()).filter((block) => {
+        const query = normalizeSearchText(String(filters.query || "").trim());
+        const matches = Array.from(definitions.values()).filter((block) => {
             if (filters.adapter && filters.adapter !== "all" && block.adapter !== filters.adapter) return false;
             if (filters.medium && filters.medium !== "all" && block.medium !== filters.medium) return false;
             if (filters.category && filters.category !== "all" && block.category !== filters.category) return false;
             if (!query) return true;
-            return [block.id, block.label, block.adapter, block.medium, block.category, block.description]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase()
-                .includes(query);
+            const title = normalizeSearchText(block.label || block.id);
+            const page = normalizeSearchText(block.url || block.category || "");
+            const text = normalizeSearchText(
+                [block.id, block.label, block.adapter, block.medium, block.category, block.description]
+                    .filter(Boolean)
+                    .join(" ")
+            );
+            return Number.isFinite(scoreSearchEntry({ title, page, text }, query));
+        });
+        if (!query) return matches;
+        return matches.sort((first, second) => {
+            const firstScore = scoreSearchEntry({
+                title: normalizeSearchText(first.label || first.id),
+                page: normalizeSearchText(first.url || first.category || ""),
+                text: normalizeSearchText([first.id, first.label, first.adapter, first.medium, first.category, first.description].filter(Boolean).join(" "))
+            }, query);
+            const secondScore = scoreSearchEntry({
+                title: normalizeSearchText(second.label || second.id),
+                page: normalizeSearchText(second.url || second.category || ""),
+                text: normalizeSearchText([second.id, second.label, second.adapter, second.medium, second.category, second.description].filter(Boolean).join(" "))
+            }, query);
+            return firstScore - secondScore;
         });
     }
 
@@ -2403,6 +2509,425 @@ export function createBlocksSystem(options = {}) {
         return block;
     }
 
+    function resolveAddress(addressOptions = {}) {
+        if (typeof window === "undefined" || typeof document === "undefined") return null;
+        const locationSource = addressOptions.url ? new URL(addressOptions.url, window.location.href) : window.location;
+        const queryKey = addressOptions.queryKey || "block";
+        const requested = new URLSearchParams(locationSource.search).get(queryKey);
+        const hash = locationSource.hash;
+        const raw = requested || (hash.length > 1 ? hash.slice(1) : "");
+        if (!raw) return null;
+
+        let target = null;
+        try {
+            target = document.getElementById(decodeURIComponent(raw));
+        } catch {
+            target = null;
+        }
+        if (!target) return null;
+
+        if (requested && target.classList?.contains("blocks-system-object")) {
+            const highlightClass = addressOptions.highlightClass || "is-aangewezen";
+            const duration = Number.isFinite(addressOptions.highlightDuration) ? addressOptions.highlightDuration : 2600;
+            target.classList.add(highlightClass);
+            const clear = () => target.classList.remove(highlightClass);
+            window.setTimeout(clear, duration);
+            window.addEventListener("pointerdown", clear, { once: true });
+            window.addEventListener("keydown", clear, { once: true });
+        }
+
+        const jump = () => target.scrollIntoView?.({ block: "start", behavior: "auto" });
+        if (typeof requestAnimationFrame === "function") {
+            requestAnimationFrame(jump);
+            if (document.readyState !== "complete") {
+                window.addEventListener("load", () => requestAnimationFrame(jump), { once: true });
+            }
+        } else {
+            jump();
+        }
+        return target;
+    }
+
+    function bindSearch(searchOptions = {}) {
+        if (typeof document === "undefined" || typeof window === "undefined") return false;
+        const root = searchOptions.root || document;
+        const container = root.querySelector(searchOptions.containerSelector || ".kaart-zoek");
+        const input = root.querySelector(searchOptions.inputSelector || "#kaart-zoekveld");
+        const status = root.querySelector(searchOptions.statusSelector || ".kaart-zoek__stand");
+        if (!container || !input) return false;
+
+        const tileSelector = searchOptions.tileSelector || ".kaart-tegel";
+        const groupListSelector = searchOptions.groupListSelector || ".kaart-tegels";
+        const tiles = Array.from(root.querySelectorAll(tileSelector)).map((element) => ({
+            element,
+            title: normalizeSearchText(element.dataset.titel || element.querySelector("a")?.textContent || ""),
+            page: normalizeSearchText(element.dataset.pagina || ""),
+            display: normalizeSearchText(element.querySelector("a")?.textContent || ""),
+            text: normalizeSearchText(element.dataset.zoek || element.textContent)
+        }));
+        if (tiles.length === 0) return false;
+
+        const groups = Array.from(root.querySelectorAll(groupListSelector)).map((listNode) => ({
+            element: listNode.closest(".blocks-system-object") || listNode.closest(".content-block"),
+            tiles: Array.from(listNode.querySelectorAll(tileSelector))
+        })).filter((group) => group.element);
+
+        container.hidden = false;
+
+        const results = document.createElement("ul");
+        results.className = searchOptions.resultsClass || "kaart-tegels kaart-treffers";
+        results.hidden = true;
+        container.after(results);
+
+        const filter = () => {
+            const query = normalizeSearchText(input.value.trim());
+            if (!query) {
+                tiles.forEach(({ element }) => { element.hidden = false; });
+                groups.forEach((group) => { group.element.hidden = false; });
+                results.hidden = true;
+                results.replaceChildren();
+                if (status) status.textContent = `${tiles.length} blokken`;
+                return;
+            }
+
+            const hits = tiles
+                .map((tile) => ({ tile, rank: scoreSearchEntry(tile, query) }))
+                .filter(({ rank }) => Number.isFinite(rank))
+                .sort((a, b) => a.rank - b.rank || a.tile.display.length - b.tile.display.length);
+
+            groups.forEach((group) => { group.element.hidden = true; });
+            tiles.forEach(({ element }) => { element.hidden = true; });
+
+            results.replaceChildren(...hits.map(({ tile }) => {
+                const copy = tile.element.cloneNode(true);
+                copy.hidden = false;
+                return copy;
+            }));
+            results.hidden = hits.length === 0;
+
+            if (status) {
+                status.textContent = hits.length
+                    ? `${hits.length} van ${tiles.length} blokken — beste treffer bovenaan`
+                    : `geen blok gevonden voor “${input.value.trim()}”`;
+            }
+        };
+
+        input.addEventListener("input", filter);
+        input.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter") return;
+            const source = results.hidden
+                ? tiles.find(({ element }) => !element.hidden)?.element
+                : results.firstElementChild;
+            const link = source?.querySelector("a[href]");
+            if (link) {
+                event.preventDefault();
+                link.click();
+            }
+        });
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key !== "/" || event.target === input) return;
+            if (event.target?.matches?.("input, textarea, select, [contenteditable]")) return;
+            event.preventDefault();
+            input.focus();
+            input.select?.();
+        });
+
+        filter();
+
+        const focusParam = searchOptions.focusParam || "zoek";
+        if (new URLSearchParams(window.location.search).get("focus") === focusParam) {
+            input.focus();
+        }
+        return true;
+    }
+
+    function hydrate(target, hydrateOptions = {}) {
+        if (typeof document === "undefined") return null;
+        const wrapper = typeof target === "string" ? document.querySelector(target) : target;
+        if (!(wrapper instanceof Element) || wrapper.dataset.blocksReady === "true") return null;
+        const source = wrapper.matches("[data-content-page]")
+            ? wrapper
+            : wrapper.querySelector(":scope > [data-content-page]");
+        if (!source) return null;
+        const nodes = Array.from(source.querySelectorAll(":scope > [data-content-block]"));
+        if (nodes.length === 0) return null;
+
+        const pagePath = typeof window !== "undefined" ? window.location.pathname : "";
+        const storagePrefix = hydrateOptions.storagePrefix || "blocks.system:block-posities";
+        const personalLayoutKey = hydrateOptions.storageKey || `${storagePrefix}:${source.dataset.contentPage || pagePath}`;
+        const editorMode = hydrateOptions.editorMode ?? (document.body?.dataset.editorMode === "true");
+        const footnotes = Array.from(source.querySelectorAll(":scope > [data-content-footnote]"));
+        footnotes.forEach((note) => note.remove());
+
+        const field = document.createElement("div");
+        field.id = hydrateOptions.fieldId || "page-blocks";
+        field.className = hydrateOptions.fieldClass || "page-blocks";
+        field.dataset.page = source.dataset.contentPage || "";
+        field.dataset.rubriek = source.dataset.pageSection || "";
+        field.dataset.rubriekLabel = source.dataset.pageSectionLabel || "";
+        const gridModes = Array.isArray(hydrateOptions.breakpoints) && hydrateOptions.breakpoints.length > 0
+            ? hydrateOptions.breakpoints
+            : DEFAULT_GRID_MODES;
+        for (const { name: mode } of gridModes) {
+            const key = `${mode[0].toUpperCase()}${mode.slice(1)}`;
+            field.dataset[`grid${key}Columns`] = source.dataset[`grid${key}Columns`];
+            field.dataset[`grid${key}Rows`] = source.dataset[`grid${key}Rows`];
+        }
+        source.replaceWith(field);
+        attach(field);
+
+        const pageUrl = source.dataset.contentPage || pagePath.split("/").pop() || "index.html";
+        if (typeof hydrateOptions.onField === "function") {
+            hydrateOptions.onField(field, source, api);
+        }
+
+        const controllers = nodes.map((node) => {
+            const id = node.dataset.blockId || node.id;
+            const title = node.dataset.blockTitle;
+            const heading = node.querySelector("h2, h3, h4");
+            const description = extractBlockDescription(node);
+            node.classList.add("block-body");
+
+            const controller = add(node, {
+                id,
+                title,
+                variant: node.dataset.blockVariant || "regular",
+                summary: createChipSummaryNode(description),
+                menu: {
+                    copy: Boolean(node.querySelector('a[href^="mailto:"], a[href^="tel:"]'))
+                }
+            });
+            controller.element.id = id;
+            controller.element.dataset.blockTitle = title;
+            if (node.dataset.blockRole === "lead") controller.element.classList.add("is-page-lead");
+            if (typeof hydrateOptions.onBlock === "function") {
+                hydrateOptions.onBlock(controller, node, field, api);
+            }
+
+            register({
+                ...controller.describe({ url: pageUrl }),
+                category: field.dataset.rubriek,
+                description,
+                medium: "html"
+            }, { replace: true });
+
+            if (heading) heading.classList.add("block-heading-hidden");
+            return controller;
+        });
+
+        const sourceById = new Map(nodes.map((node) => [node.dataset.blockId || node.id, node]));
+        const hasViewportLead = typeof hydrateOptions.viewportLead === "function"
+            ? hydrateOptions.viewportLead(field, source)
+            : Boolean(hydrateOptions.viewportLead);
+        const directionLeadId = hasViewportLead
+            ? (nodes.find((node) => node.dataset.blockRole === "lead")?.dataset.blockId || nodes.find((node) => node.dataset.blockRole === "lead")?.id || "")
+            : "";
+        let directionLeadRows = 0;
+        let responsiveLayout = null;
+        const effectiveRowHeight = rowHeightState || 128;
+
+        const pageHeightRows = () => {
+            const main = wrapper.closest("main");
+            const mainStyle = main && typeof getComputedStyle === "function" ? getComputedStyle(main) : null;
+            const verticalPadding = mainStyle
+                ? (Number.parseFloat(mainStyle.paddingTop) || 0) + (Number.parseFloat(mainStyle.paddingBottom) || 0)
+                : 0;
+            const gap = typeof getComputedStyle === "function"
+                ? (Number.parseFloat(getComputedStyle(field).rowGap) || 0)
+                : 0;
+            const viewportHeight = typeof window !== "undefined" ? window.innerHeight : effectiveRowHeight;
+            const availableHeight = Math.max(effectiveRowHeight, viewportHeight - verticalPadding);
+            return Math.max(1, Math.round((availableHeight + gap) / (effectiveRowHeight + gap)));
+        };
+
+        const responsiveGrid = (mode) => responsiveLayout?.grid?.[mode] || readSourceGrid(source, mode);
+        const responsiveSpan = (id, mode, gridColumns = Infinity) => {
+            const saved = responsiveLayout?.blocks?.[id]?.span?.[mode];
+            const span = saved
+                ? saved.map((value) => parsePositiveGridUnit(value, `${id}.${mode}`))
+                : readBlockSpan(sourceById.get(id), mode, gridColumns);
+            return id === directionLeadId ? [span[0], directionLeadRows] : span;
+        };
+
+        if (footnotes.length > 0) {
+            const footer = document.createElement("footer");
+            footer.className = "veld-colofon";
+            footer.append(...footnotes);
+            wrapper.append(footer);
+        }
+
+        const fixedMediaSelector = hydrateOptions.fixedMediaSelector || "[data-block-fixed-height]";
+        let activeMode = "";
+        const fitHeightAll = () => {
+            const contentHeightIds = controllers
+                .filter(({ id, element }) => id !== directionLeadId && (!fixedMediaSelector || !element.querySelector(fixedMediaSelector)))
+                .map(({ id }) => id);
+            fitHeight(contentHeightIds);
+            return exportLayout();
+        };
+
+        const layout = (force = false) => {
+            const width = field.clientWidth || wrapper.clientWidth || (typeof window !== "undefined" ? window.innerWidth : 1080);
+            const mode = gridModeForWidth(width, gridModes).name;
+            const previousDirectionLeadRows = directionLeadRows;
+            directionLeadRows = directionLeadId ? pageHeightRows() : 0;
+            if (mode === activeMode && directionLeadRows === previousDirectionLeadRows && !force) {
+                fitHeightAll();
+                return;
+            }
+            const grid = responsiveGrid(mode);
+            restoreLayout({
+                version: 1,
+                layout: layoutMode,
+                blocks: exportLayout().blocks.map((block) => ({
+                    ...block,
+                    span: responsiveSpan(block.id, mode, grid.columns),
+                    place: null
+                }))
+            }, { grid: { columns: grid.columns, rows: 1 } });
+            activeMode = mode;
+            field.dataset.gridMode = mode;
+            fitHeightAll();
+        };
+
+        layout();
+        saveBaseline();
+        if (!editorMode && typeof localStorage !== "undefined") {
+            try {
+                const saved = JSON.parse(localStorage.getItem(personalLayoutKey) || "null");
+                if (saved?.version === 1) {
+                    const dockedSet = new Set(Array.isArray(saved.docked) ? saved.docked : []);
+                    const pinnedSet = new Set(Array.isArray(saved.pinned) ? saved.pinned : []);
+                    const ids = [...new Set([...(Array.isArray(saved.order) ? saved.order : []), ...controllers.map(({ id }) => id)])];
+                    restoreLayout({
+                        version: 1,
+                        layout: layoutMode,
+                        blocks: ids.map((id) => ({ id, docked: dockedSet.has(id), pinned: pinnedSet.has(id) }))
+                    });
+                    fitHeightAll();
+                }
+            } catch {
+                /* Geblokkeerde of verouderde browseropslag negeren. */
+            }
+        }
+
+        let frame = 0;
+        const scheduleFit = () => {
+            if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(frame);
+            if (typeof requestAnimationFrame === "function") frame = requestAnimationFrame(fitHeightAll);
+            else fitHeightAll();
+        };
+        if (typeof ResizeObserver === "function") {
+            const observer = new ResizeObserver(() => {
+                if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(frame);
+                if (typeof requestAnimationFrame === "function") frame = requestAnimationFrame(() => layout());
+                else layout();
+            });
+            observer.observe(wrapper);
+        }
+        if (typeof MutationObserver === "function") {
+            const mutations = new MutationObserver(scheduleFit);
+            mutations.observe(field, {
+                childList: true,
+                characterData: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ["hidden"]
+            });
+        }
+        field.addEventListener("load", fitHeightAll, true);
+        field.addEventListener("blocks:content-resize", fitHeightAll);
+
+        let resetButton = null;
+        let resetting = false;
+        const removeResetButton = () => {
+            resetButton?.remove();
+            resetButton = null;
+        };
+        const ensureResetButton = () => {
+            if (resetButton) return;
+            resetButton = document.createElement("button");
+            resetButton.type = "button";
+            resetButton.className = hydrateOptions.resetClass || "veld-terugzetten";
+            resetButton.textContent = hydrateOptions.resetLabel || "Alles terugzetten";
+            resetButton.title = hydrateOptions.resetTitle || "Zet favorieten, weggezette blocks en de volgorde terug zoals de redactie ze koos";
+            resetButton.addEventListener("click", () => {
+                resetting = true;
+                try {
+                    if (typeof localStorage !== "undefined") localStorage.removeItem(personalLayoutKey);
+                    reset();
+                    layout(true);
+                } finally {
+                    resetting = false;
+                }
+                removeResetButton();
+            });
+            field.after(resetButton);
+        };
+        const savePersonalPositions = () => {
+            if (editorMode || resetting || typeof localStorage === "undefined") return;
+            const snapshot = exportLayout().blocks;
+            localStorage.setItem(personalLayoutKey, JSON.stringify({
+                version: 1,
+                order: snapshot.map((block) => block.id),
+                docked: snapshot.filter((block) => block.docked).map((block) => block.id),
+                pinned: snapshot.filter((block) => block.pinned).map((block) => block.id)
+            }));
+            ensureResetButton();
+        };
+        if (!editorMode && typeof localStorage !== "undefined") {
+            try {
+                if (localStorage.getItem(personalLayoutKey)) ensureResetButton();
+            } catch {
+                /* Geen toegang tot localStorage. */
+            }
+        }
+        field.addEventListener("blocks:reorder", savePersonalPositions);
+        field.addEventListener("blocks:change", (event) => {
+            if (["dock", "undock", "pin", "unpin"].includes(event.detail?.type)) savePersonalPositions();
+        });
+
+        Object.defineProperty(field, "blocksPage", {
+            configurable: false,
+            enumerable: false,
+            value: Object.freeze({
+                blocks: api,
+                controllers: Object.freeze([...controllers]),
+                currentLayout() {
+                    return {
+                        mode: activeMode,
+                        grid: { columns: api.columns, rows: api.rows },
+                        blocks: exportLayout().blocks
+                    };
+                },
+                applyComposition(pageLayout) {
+                    responsiveLayout = structuredClone(pageLayout);
+                    layout(true);
+                },
+                fitContent() {
+                    layout();
+                }
+            })
+        });
+
+        wrapper.dataset.blocksReady = "true";
+        document.body?.classList.add("has-page-blocks");
+        if (hydrateOptions.resolveAddress !== false) {
+            resolveAddress(hydrateOptions.addressOptions);
+        }
+        if (hydrateOptions.searchShortcutUrl && !document.body?.classList.contains(hydrateOptions.searchPageClass || "page-kaart")) {
+            document.addEventListener("keydown", (event) => {
+                if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+                const active = document.activeElement;
+                if (active && active.matches("input, textarea, select, [contenteditable]")) return;
+                event.preventDefault();
+                window.location.href = hydrateOptions.searchShortcutUrl;
+            });
+        }
+        return field;
+    }
+
     const apiObject = {
         register,
         registerAdapter,
@@ -2410,6 +2935,7 @@ export function createBlocksSystem(options = {}) {
         list,
         get,
         attach,
+        hydrate,
         setGrid,
         compact,
         fitHeight,
@@ -2422,7 +2948,9 @@ export function createBlocksSystem(options = {}) {
         unmount,
         remount,
         snippet,
-        address
+        address,
+        resolveAddress,
+        bindSearch
     };
     Object.defineProperties(apiObject, {
         columns: {

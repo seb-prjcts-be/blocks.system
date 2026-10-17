@@ -215,6 +215,49 @@ export interface BlocksSystemOptions {
   blocks?: BlockDefinition[];
 }
 
+export interface BlocksHydrateBreakpoint {
+  name: string;
+  minWidth: number;
+}
+
+export interface BlocksHydrateOptions {
+  fieldId?: string;
+  fieldClass?: string;
+  storageKey?: string;
+  storagePrefix?: string;
+  editorMode?: boolean;
+  breakpoints?: readonly BlocksHydrateBreakpoint[];
+  fixedMediaSelector?: string;
+  viewportLead?: boolean | ((field: Element, source: Element) => boolean);
+  resetClass?: string;
+  resetLabel?: string;
+  resetTitle?: string;
+  resolveAddress?: boolean;
+  addressOptions?: BlocksAddressOptions;
+  searchShortcutUrl?: string;
+  searchPageClass?: string;
+  onField?: (field: HTMLElement, source: Element, system: BlocksSystem) => void;
+  onBlock?: (controller: BlockController, sourceNode: Element, field: HTMLElement, system: BlocksSystem) => void;
+}
+
+export interface BlocksAddressOptions {
+  url?: string | URL;
+  queryKey?: string;
+  highlightClass?: string;
+  highlightDuration?: number;
+}
+
+export interface BlocksSearchOptions {
+  root?: Document | Element;
+  containerSelector?: string;
+  inputSelector?: string;
+  statusSelector?: string;
+  tileSelector?: string;
+  groupListSelector?: string;
+  resultsClass?: string;
+  focusParam?: string;
+}
+
 export interface BlocksSystem {
   readonly columns: number;
   /** Current row count: the setGrid() minimum or more when the content needs it. */
@@ -242,6 +285,12 @@ export interface BlocksSystem {
   list(filters?: { query?: string; adapter?: string; medium?: string; category?: string }): Readonly<BlockDefinition>[];
   get(id: string): Readonly<BlockDefinition> | null;
   attach(target: string | Element): BlocksSystem;
+  /** Hydrate declarative HTML blocks in a field with responsive spans, auto-fit, deep-link resolution and optional visitor persistence. */
+  hydrate(target: string | Element, options?: BlocksHydrateOptions): HTMLElement | null;
+  /** Scroll to and highlight the block addressed by ?block= or #hash in the URL. */
+  resolveAddress(options?: BlocksAddressOptions): HTMLElement | null;
+  /** Bind diacritic-insensitive live filtering and relevance ranking to a search input and item tiles. */
+  bindSearch(options?: BlocksSearchOptions): boolean;
   /** Fix the columns and set the minimum rows; rows grow and shrink with the content. */
   setGrid(columns: number, minRows: number): BlocksSystem;
   compact(): BlocksSystem;

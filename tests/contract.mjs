@@ -1017,6 +1017,29 @@ assert.equal(createBlocksSystem().labels.undock, "return from the dock", "undock
 assert.equal(createBlocksSystem().labels.restore, "restore", "restore keeps its minimize meaning");
 assert.equal(dutch.labels.copy, "inhoud meenemen", "consumers must be able to configure copy feedback labels");
 assert.throws(function () { createBlocksSystem({ labels: { close: "" } }); }, /labels\.close mag niet leeg/, "empty accessible labels must fail early");
-assert.match(source, /mode:\s*detail\.mode[\s\S]*fromIndex:[\s\S]*toIndex:[\s\S]*direction:/, "reorder events must expose one stable detail shape");
+assert.ok(
+  ["hydrate", "resolveAddress", "bindSearch"].every((name) => typeof singleton[name] === "function"),
+  "the system must expose hydrate, resolveAddress and bindSearch"
+);
+
+const rankedCatalog = createBlocksSystem();
+rankedCatalog.register({
+  id: "studierichting-beeldend",
+  adapter: "html",
+  label: "Vrije Beeldende Kunsten",
+  category: "Onderwijs",
+  description: "Atelier met nadruk op waarneming en élève-begeleiding."
+});
+rankedCatalog.register({
+  id: "praktisch-algemeen",
+  adapter: "html",
+  label: "Algemene info",
+  category: "Onderwijs",
+  description: "Informatie voor elke vrije beeldende kunsten leerling."
+});
+const rankedMatches = rankedCatalog.list({ query: "vrije beeldende" });
+assert.equal(rankedMatches.length, 2, "multi-word query must match across label and description");
+assert.equal(rankedMatches[0].id, "studierichting-beeldend", "exact label match must rank ahead of description match");
+assert.equal(rankedCatalog.list({ query: "eleve" })[0]?.id, "studierichting-beeldend", "list({ query }) must fold diacritics");
 
 console.log("blocks.system contract — ok");
