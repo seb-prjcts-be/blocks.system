@@ -250,8 +250,8 @@ export interface BlocksSystem {
   add(content: BlockContent, options?: AddBlockOptions): BlockController;
   /** Export content-free layout state in current DOM order. */
   exportLayout(): BlocksLayout;
-  /** Restore known block order, spans, optional fixed positions, minimized and docked state. */
-  restoreLayout(layout: BlocksLayout, options?: BlocksRestoreOptions): BlocksSystem;
+  /** Restore known block order, spans (or keep current spans when omitted), optional fixed positions, minimized, docked and pinned state. */
+  restoreLayout(layout: BlocksLayout | { version: 1; layout: BlocksLayoutMode; blocks: ReadonlyArray<{ id: string } & Partial<BlocksLayoutEntry>> }, options?: BlocksRestoreOptions): BlocksSystem;
   /** Make the current order, spans, places, minimized, docked and pinned state the target of reset(); blocks added later join at the end. */
   saveBaseline(): BlocksSystem;
   /** Return every block to the saved baseline (by default its add() order, span, place and initial minimized state, undocked and unpinned); publishes one "reset" change. */

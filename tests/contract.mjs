@@ -595,6 +595,42 @@ assert.deepEqual(exclusiveSignals, ["pin", "unpin", "dock"], "a refused pin must
 exclusiveBlock.dock(false);
 assert.equal(exclusiveControl("blocks-system-pin").disabled, false, "undocking re-enables the pin button");
 
+const dockPinOrder = createBlocksSystem({ variant: "regular", blockDefaults: { menu: { pin: true, dock: true } } });
+const dockPinField = new TestElement();
+dockPinOrder.attach(dockPinField);
+const dpA = dockPinOrder.add("<p>a</p>", { id: "dp-a", title: "A" });
+const dpB = dockPinOrder.add("<p>b</p>", { id: "dp-b", title: "B" });
+const dpC = dockPinOrder.add("<p>c</p>", { id: "dp-c", title: "C" });
+const dpLiveOrder = () => dockPinField.children.filter((child) => child.className === "blocks-system-object").map((child) => child.getAttribute("data-block-object"));
+dpB.dock();
+dpC.pin();
+assert.deepEqual(
+  dockPinOrder.exportLayout().blocks.map((entry) => entry.id),
+  ["dp-c", "dp-a", "dp-b"],
+  "pinning a later block while another is docked must shift the docked return position behind the newly pinned block"
+);
+dpB.dock(false);
+assert.deepEqual(
+  dpLiveOrder(),
+  ["dp-c", "dp-a", "dp-b"],
+  "undocking after a later block was pinned must return the block to its relative unpinned neighbor, not one slot earlier"
+);
+dpC.pin(false);
+dpA.dock();
+dpB.dock();
+assert.deepEqual(
+  dockPinOrder.exportLayout().blocks.map((entry) => entry.id),
+  ["dp-c", "dp-a", "dp-b"],
+  "docking multiple blocks in sequence must preserve their relative order in exportLayout"
+);
+dpB.dock(false);
+dpA.dock(false);
+assert.deepEqual(
+  dpLiveOrder(),
+  ["dp-c", "dp-a", "dp-b"],
+  "undocking multiple blocks in reverse order must still restore their original sequence"
+);
+
 // Stap 3: rail onder het raster, samenvatting in de chip, terugzetknop ↩.
 assert.equal(createBlocksSystem().dockPosition, "top", "the rail stays above the grid unless a consumer asks otherwise");
 assert.equal(createBlocksSystem({ dockPosition: "bottom" }).dockPosition, "bottom");
@@ -638,7 +674,7 @@ resetB.minimized = false;
 resetB.dock();
 resetC.pin();
 resetC.place(2, 3);
-assert.deepEqual(resetOrder(), ["reset-c", "reset-b", "reset-a"], "the scenario really changed order and state");
+assert.deepEqual(resetOrder(), ["reset-c", "reset-a", "reset-b"], "the scenario really changed order and state");
 const resetSignals = [];
 resettingField.addEventListener("blocks:change", function (event) { if (event.detail.type === "reset") resetSignals.push(event.detail.ids); });
 assert.equal(resetting.reset(), resetting, "reset() returns the system");

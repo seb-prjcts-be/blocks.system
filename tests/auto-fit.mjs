@@ -51,7 +51,50 @@ try {
         rows: blocks.exportLayout().blocks.map((entry) => entry.span[1]),
         overflow: block.content.scrollHeight - block.content.clientHeight
       };
-      return { before, allMeasurement, afterAll, selectedMeasurement, afterSelected };
+
+      blocks.draggable = true;
+      const handle = block.element.querySelector(".blocks-system-title");
+      const handleRect = handle.getBoundingClientRect();
+      let draggingWhenPreviewInserted = false;
+      const previewObserver = new MutationObserver(() => {
+        if (field.querySelector(".blocks-system-drop-preview")) {
+          draggingWhenPreviewInserted = field.hasAttribute("data-dragging");
+        }
+      });
+      previewObserver.observe(field, { childList: true });
+      handle.dispatchEvent(new PointerEvent("pointerdown", {
+        pointerId: 31,
+        button: 0,
+        isPrimary: true,
+        bubbles: true,
+        cancelable: true,
+        clientX: handleRect.left + 6,
+        clientY: handleRect.top + 6
+      }));
+      await Promise.resolve();
+      previewObserver.disconnect();
+      const fitDuringDrag = blocks.fitHeight(["article"]);
+      const stillDraggingAfterFit = field.hasAttribute("data-dragging");
+      handle.dispatchEvent(new PointerEvent("pointerup", {
+        pointerId: 31,
+        button: 0,
+        isPrimary: true,
+        bubbles: true,
+        cancelable: true,
+        clientX: handleRect.left + 6,
+        clientY: handleRect.top + 6
+      }));
+
+      return {
+        before,
+        allMeasurement,
+        afterAll,
+        selectedMeasurement,
+        afterSelected,
+        draggingWhenPreviewInserted,
+        fitDuringDrag,
+        stillDraggingAfterFit
+      };
     })()`,
     awaitPromise: true,
     returnByValue: true
@@ -70,6 +113,9 @@ try {
     { id: "article", columns: 1, rows: 2, changed: true }
   ]);
   assert.deepEqual(result.result.value.afterSelected, { rows: [2, 3], overflow: 0 });
+  assert.equal(result.result.value.draggingWhenPreviewInserted, true, "data-dragging must already be set when the drop preview enters the surface");
+  assert.deepEqual(result.result.value.fitDuringDrag, [{ id: "article", columns: 1, rows: 2, changed: false }], "fitHeight() during an active drag must be a no-op");
+  assert.equal(result.result.value.stillDraggingAfterFit, true, "fitHeight() must not abort an active pointer drag");
   browser.assertNoPageErrors();
   console.log("blocks.system auto-fit — volledige en op ID geselecteerde systeemmeting bewaren hun contract OK");
 } finally {

@@ -209,9 +209,17 @@ function normalizeLayoutSnapshot(value) {
             throw new TypeError(`Ongeldig of dubbel opgeslagen block-id: ${id || "(leeg)"}`);
         }
         seen.add(id);
-        const span = Array.isArray(entry.span) ? entry.span.map(Number) : [];
-        const place = entry.place === null ? null : Array.isArray(entry.place) ? entry.place.map(Number) : [];
-        if (span.length !== 2 || span.some((unit) => !Number.isInteger(unit) || unit < 1)) {
+        const span = entry.span === undefined || entry.span === null
+            ? null
+            : Array.isArray(entry.span)
+              ? entry.span.map(Number)
+              : [];
+        const place = entry.place === undefined || entry.place === null
+            ? null
+            : Array.isArray(entry.place)
+              ? entry.place.map(Number)
+              : [];
+        if (span !== null && (span.length !== 2 || span.some((unit) => !Number.isInteger(unit) || unit < 1))) {
             throw new TypeError(`Opgeslagen span van ${id} verwacht twee positieve gehele rastereenheden.`);
         }
         if (place !== null && (place.length !== 2 || place.some((unit) => !Number.isInteger(unit) || unit < 1))) {
@@ -850,6 +858,16 @@ export function createBlocksSystem(options = {}) {
             else current.preview.removeAttribute("data-drop-state");
         }
 
+        function applyGridOrder(elements, placed) {
+            // Verborgen blocks nemen niet deel aan het raster, maar houden hun
+            // relatieve plek in de DOM-volgorde zodat een filter ze niet vooraan zet.
+            let cursor = 0;
+            for (const element of elements) {
+                const next = element.hidden ? element : placed[cursor++]?.element;
+                if (next) surface.appendChild(next);
+            }
+        }
+
         function commitGridDrop(current) {
             const moved =
                 current.targetCol !== current.draggedLayout.col || current.targetRow !== current.draggedLayout.row;
@@ -861,9 +879,9 @@ export function createBlocksSystem(options = {}) {
                 objectLayoutSetters.get(layout.id)?.(layout.col + 1, layout.row + 1);
             }
             placed.sort((first, second) => first.row - second.row || first.col - second.col);
-            for (const layout of placed) surface.appendChild(layout.element);
+            applyGridOrder(current.objects, placed);
             applySurfaceState();
-            current.targetIndex = placed.indexOf(current.draggedLayout);
+            current.targetIndex = directObjects().indexOf(current.shell);
             return true;
         }
 
@@ -885,7 +903,7 @@ export function createBlocksSystem(options = {}) {
             const placed = pushedGridLayouts(dragged, layouts);
             for (const layout of placed) objectLayoutSetters.get(layout.id)?.(layout.col + 1, layout.row + 1);
             placed.sort((first, second) => first.row - second.row || first.col - second.col);
-            for (const layout of placed) surface.appendChild(layout.element);
+            applyGridOrder(elements, placed);
             applySurfaceState();
             shell.querySelector(":scope > .blocks-system-menu > .blocks-system-title")?.focus({ preventScroll: true });
             animateDragSettlement(elements, before);
@@ -895,7 +913,7 @@ export function createBlocksSystem(options = {}) {
                 mode: "grid",
                 key,
                 fromIndex,
-                toIndex: placed.indexOf(dragged),
+                toIndex: directObjects().indexOf(shell),
                 from: { column: from.col + 1, row: from.row + 1 },
                 to: { column: dragged.col + 1, row: dragged.row + 1 },
                 direction: key.replace("Arrow", "").toLowerCase(),
@@ -1103,6 +1121,7 @@ export function createBlocksSystem(options = {}) {
             preview.style.setProperty("--block-row", computed.getPropertyValue("--block-row").trim() || "auto");
             preview.style.width = `${bounds.width}px`;
             preview.style.height = `${bounds.height}px`;
+            surface.setAttribute("data-dragging", shell.getAttribute("data-block-object") || "");
             surface.insertBefore(preview, shell);
 
             shell.style.setProperty("--blocks-drag-left", `${bounds.left}px`);
@@ -1161,7 +1180,6 @@ export function createBlocksSystem(options = {}) {
                 };
                 showLandingSlot(dragState, slots[originalIndex]);
             }
-            surface.setAttribute("data-dragging", shell.getAttribute("data-block-object") || "");
             let pointerCaptured = false;
             if (typeof handle.setPointerCapture === "function") {
                 try {
@@ -1369,13 +1387,16 @@ export function createBlocksSystem(options = {}) {
         if (layoutMode === "flow-grid" && knownEntries.some((entry) => entry.place !== null)) {
             throw new TypeError("Een flow-grid-layout mag geen vaste blockadressen bevatten.");
         }
-        const targetLayouts = knownEntries.map((entry) => ({
-            id: entry.id,
-            columns: entry.span[0],
-            rows: entry.span[1],
-            column: entry.place?.[0] ?? null,
-            row: entry.place?.[1] ?? null,
-        }));
+        const targetLayouts = knownEntries.map((entry) => {
+            const current = objectLayouts.get(entry.id);
+            return {
+                id: entry.id,
+                columns: entry.span ? entry.span[0] : current.columns,
+                rows: entry.span ? entry.span[1] : current.rows,
+                column: entry.place?.[0] ?? null,
+                row: entry.place?.[1] ?? null,
+            };
+        });
         for (const layout of targetLayouts) {
             const lastColumn = layout.column === null ? layout.columns : layout.column + layout.columns - 1;
             if (lastColumn > gridColumns) {
@@ -1420,7 +1441,9 @@ export function createBlocksSystem(options = {}) {
         for (const element of ordered) surface.insertBefore(element, null);
         for (const entry of knownEntries) objectLayoutSetters.get(entry.id)?.(null, null);
         if (layoutMode !== "free") {
-            for (const entry of knownEntries) objects.get(entry.id).span(...entry.span);
+            for (const entry of knownEntries) {
+                if (entry.span) objects.get(entry.id).span(...entry.span);
+            }
         }
         for (const entry of knownEntries) {
             const block = objects.get(entry.id);
@@ -1767,12 +1790,15 @@ export function createBlocksSystem(options = {}) {
             drag.stop();
             stopResize();
             if (nextValue) {
-                dockedReturnIndices.set(id, directObjectElements().indexOf(shell));
+                dockedReturnIndices.set(id, orderedObjectElements().indexOf(shell));
                 ensureDock().appendChild(shell);
             } else {
-                const live = directObjectElements();
-                const index = Math.max(0, Math.min(dockedReturnIndices.get(id) ?? live.length, live.length));
-                surface.insertBefore(shell, live[index] || null);
+                const ordered = orderedObjectElements();
+                const from = ordered.indexOf(shell);
+                const reference = from >= 0
+                    ? ordered.slice(from + 1).find((element) => element.parentElement === surface) || null
+                    : null;
+                surface.insertBefore(shell, reference);
                 dockedReturnIndices.delete(id);
                 if (dock && dock.children.length === 0) {
                     dock.remove();
@@ -1808,6 +1834,8 @@ export function createBlocksSystem(options = {}) {
             // Regel 2: een weggezet block heeft geen ster; eerst terugzetten.
             if (nextValue && dockedValue) return;
             drag.stop();
+            const ordered = orderedObjectElements();
+            const fromOrdered = ordered.indexOf(shell);
             const live = directObjectElements();
             // Een block dat vastgezet wordt, komt achter de al vastgezette
             // blocks; een block dat losgemaakt wordt, valt terug vooraan in de
@@ -1816,6 +1844,14 @@ export function createBlocksSystem(options = {}) {
             for (let index = 0; index < live.length; index += 1) {
                 if (live[index] === shell) continue;
                 if (live[index].getAttribute("data-block-pinned") === "true") lastPinnedIndex = index;
+            }
+            const toOrdered = lastPinnedIndex + 1;
+            if (nextValue && fromOrdered >= 0) {
+                for (const [dockedId, returnIndex] of dockedReturnIndices) {
+                    if (returnIndex >= toOrdered && returnIndex < fromOrdered) {
+                        dockedReturnIndices.set(dockedId, returnIndex + 1);
+                    }
+                }
             }
             const referenceNode = live[lastPinnedIndex + 1] || null;
             if (referenceNode !== shell) surface.insertBefore(shell, referenceNode);
@@ -2147,11 +2183,10 @@ export function createBlocksSystem(options = {}) {
 
         function fitHeight() {
             assertActive();
-            drag.stop();
             if (layoutMode === "free") {
                 throw new TypeError("block.fitHeight() vereist layout: fixed-grid of flow-grid.");
             }
-            if (minimizedValue || dockedValue || shell.hidden) {
+            if (minimizedValue || dockedValue || shell.hidden || surface?.hasAttribute("data-dragging")) {
                 return Object.freeze({ columns: spanColumns, rows: spanRows, changed: false });
             }
             const style = getComputedStyle(surface);

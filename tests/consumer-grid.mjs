@@ -74,6 +74,22 @@ try {
         spans: blocks.exportLayout().blocks.map((entry) => entry.span)
       };
 
+      // A personal arrangement without spans preserves the active breakpoint spans.
+      const personalRestore = failure(() => blocks.restoreLayout({
+        version: 1,
+        layout: "fixed-grid",
+        blocks: [
+          { id: "narrow", pinned: true },
+          { id: "wide", pinned: false }
+        ]
+      }));
+      const afterPersonalRestore = blocks.exportLayout().blocks.map((entry) => ({
+        id: entry.id,
+        span: entry.span,
+        pinned: entry.pinned
+      }));
+      blocks.restoreLayout(compact, { grid: { columns: 4, rows: 4 } });
+
       // The native hidden attribute removes a block from the rendered grid.
       narrow.element.hidden = true;
       const hiddenDisplay = getComputedStyle(narrow.element).display;
@@ -97,7 +113,7 @@ try {
       }, { grid: { columns: 4, rows: 3 } }));
       const overlapUnchanged = JSON.stringify([placedBlocks.columns, placedBlocks.rows, placedBlocks.exportLayout()]) === beforeOverlap;
 
-      // A hidden block keeps its place when a visible block moves by keyboard.
+      // A hidden block keeps its place and DOM order when visible blocks move by keyboard or pointer drag.
       const second = placedBlocks.exportLayout().blocks.find((entry) => entry.id === "second");
       placedField.querySelector('[data-block-object="second"]').hidden = true;
       const title = first.element.querySelector(".blocks-system-title");
@@ -105,6 +121,50 @@ try {
       title.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", bubbles: true, cancelable: true }));
       const hiddenAfterMove = placedBlocks.exportLayout().blocks.find((entry) => entry.id === "second");
       const movedPlace = placedBlocks.exportLayout().blocks.find((entry) => entry.id === "first").place;
+      const orderAfterHiddenKeyMove = placedBlocks.exportLayout().blocks.map((entry) => entry.id);
+
+      const filteredDragField = document.createElement("section");
+      filteredDragField.style.width = "600px";
+      filteredDragField.style.height = "400px";
+      document.body.append(filteredDragField);
+      const filteredDragBlocks = createBlocksSystem({ layout: "fixed-grid", draggable: true });
+      filteredDragBlocks.attach(filteredDragField).setGrid(2, 3);
+      filteredDragBlocks.add("<p>Intro</p>", { id: "intro", title: "Intro", menu }).span(2, 1);
+      const hiddenGroup = filteredDragBlocks.add("<p>Verborgen groep</p>", { id: "hidden-group", title: "Verborgen", menu }).span(1, 1);
+      const leftVisible = filteredDragBlocks.add("<p>Links</p>", { id: "left-visible", title: "Links", menu }).span(1, 1);
+      const rightVisible = filteredDragBlocks.add("<p>Rechts</p>", { id: "right-visible", title: "Rechts", menu }).span(1, 1);
+      hiddenGroup.element.hidden = true;
+      const leftRect = leftVisible.element.getBoundingClientRect();
+      const rightHandle = rightVisible.element.querySelector(".blocks-system-title");
+      const rightHandleRect = rightHandle.getBoundingClientRect();
+      rightHandle.dispatchEvent(new PointerEvent("pointerdown", {
+        pointerId: 19,
+        button: 0,
+        isPrimary: true,
+        bubbles: true,
+        cancelable: true,
+        clientX: rightHandleRect.left + 8,
+        clientY: rightHandleRect.top + 8
+      }));
+      rightHandle.dispatchEvent(new PointerEvent("pointermove", {
+        pointerId: 19,
+        button: 0,
+        isPrimary: true,
+        bubbles: true,
+        cancelable: true,
+        clientX: leftRect.left + 8,
+        clientY: leftRect.top + 8
+      }));
+      rightHandle.dispatchEvent(new PointerEvent("pointerup", {
+        pointerId: 19,
+        button: 0,
+        isPrimary: true,
+        bubbles: true,
+        cancelable: true,
+        clientX: leftRect.left + 8,
+        clientY: leftRect.top + 8
+      }));
+      const orderAfterFilteredPointerDrag = filteredDragBlocks.exportLayout().blocks.map((entry) => entry.id);
 
       // Undocking onto a cell that another block took meanwhile must not overlap.
       const overlapField = document.createElement("section");
@@ -154,8 +214,10 @@ try {
         rowsGrow, rowsAfterGrow,
         undockOverlap, undockPlaces, resizingAttribute, outlineIdle, outlineActive,
         overlap, overlapUnchanged, placeBefore: second.place, hiddenAfterMove: hiddenAfterMove.place, movedPlace,
+        orderAfterHiddenKeyMove, orderAfterFilteredPointerDrag,
         hiddenFit: { rows: hiddenFit.rows, changed: hiddenFit.changed },
         switched, afterSwitch, tooSmall, afterRejected,
+        personalRestore, afterPersonalRestore,
         spanOverflow, gridOverflow, restoreOverflow,
         hiddenDisplay, shownDisplay
       };
@@ -172,6 +234,11 @@ try {
   assert.deepEqual(value.afterSwitch, { grid: [4, 4], spans: [[4, 3], [4, 1]] });
   assert.deepEqual(value.tooSmall, { name: "RangeError", code: "BLOCKS_GRID_TOO_SMALL" });
   assert.deepEqual(value.afterRejected, value.afterSwitch, "a rejected grid switch must leave grid and spans untouched");
+  assert.equal(value.personalRestore, null, "restoreLayout must allow entries without span so personal arrangements preserve responsive spans");
+  assert.deepEqual(value.afterPersonalRestore, [
+    { id: "narrow", span: [4, 1], pinned: true },
+    { id: "wide", span: [4, 3], pinned: false }
+  ]);
   assert.equal(value.rowsGrow, null, "a span taller than the grid grows the rows instead of throwing");
   assert.equal(value.rowsAfterGrow, 9, "rows follow the tallest span");
   for (const name of ["spanOverflow", "gridOverflow", "restoreOverflow"]) {
@@ -185,6 +252,8 @@ try {
   assert.equal(value.overlapUnchanged, true, "a rejected overlap must leave grid, order, spans and places untouched");
   assert.deepEqual(value.movedPlace, [2, 1], "the visible block must still move by keyboard");
   assert.deepEqual(value.hiddenAfterMove, value.placeBefore, "a hidden block must not be moved by another block's drag");
+  assert.deepEqual(value.orderAfterHiddenKeyMove, ["first", "second"], "a hidden block must not be pushed to the front of DOM order when a visible block moves by keyboard");
+  assert.deepEqual(value.orderAfterFilteredPointerDrag, ["intro", "hidden-group", "right-visible", "left-visible"], "pointer-dragging while filtered must preserve hidden blocks' DOM positions instead of pushing them to the front");
   assert.deepEqual(value.hiddenFit, { rows: 2, changed: false }, "a hidden block keeps its span when measured");
   assert.equal(value.hiddenDisplay, "none", "a hidden block must leave the rendered grid");
   assert.equal(value.shownDisplay, "flex", "removing hidden must restore the normal block display");
