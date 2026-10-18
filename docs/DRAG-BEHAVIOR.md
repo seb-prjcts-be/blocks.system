@@ -26,12 +26,16 @@ het gevoel alleen.
 ### Met `layout: "fixed-grid"`
 
 - de library meet de werkelijk gerenderde uniforme gridtracks en gaps;
+- `startDragging` zet `data-dragging="true"` op het veld en het block vóór de
+  preview in de DOM komt, zodat `MutationObserver`- en `fitHeight()`-aanroepen
+  de tijdelijke preview negeren en een lopende pointerdrag nooit afbreken;
 - het block volgt de pointer vrij vanuit het oorspronkelijke grijppunt;
 - de preview houdt in de flow tijdelijk de oorsprong bezet, maar wordt visueel
   naar de gekwantiseerde doelcel vertaald; andere blocks blijven dus pixelvast;
 - bij drop wordt de doelcel vastgelegd en zakt iedere botsing kolomvast omlaag;
 - de DOM-volgorde wordt daarna rij-voor-rij gesorteerd zodat lees- en
-  toetsenbordvolgorde de zichtbare compositie volgen;
+  toetsenbordvolgorde de zichtbare compositie volgen, terwijl blocks met
+  `hidden` op hun relatieve DOM-positie blijven staan;
 - pointer en pijltoetsen gebruiken hetzelfde collisionmodel en sturen
   `blocks:reorder`;
 - de 160 ms settlement gebruikt de Web Animations API en wordt volledig
@@ -57,8 +61,10 @@ scrollt eerst lokaal en ketent aan haar grens weer door naar de pagina.
   maakt. Een consumer die zelf niet-uniforme tracks oplegt, valt buiten dit
   dragcontract.
 - `exportLayout()` en `restoreLayout()` leveren alleen contentvrije
-  layoutstatus. Opslag tussen paginaladingen blijft verantwoordelijkheid van de
-  consumer.
+  layoutstatus; `restoreLayout()` aanvaardt ook gedeeltelijke entries zonder
+  `span` of `place` (zoals `{ id, docked, pinned }`) zodat actuele
+  breakpoint-spans behouden blijven. Opslag tussen paginaladingen blijft
+  verantwoordelijkheid van de consumer of van `blocks.hydrate()`.
 - De layoutmodus ligt vast bij creatie. `place()` is uitsluitend geldig in
   fixed-grid; flow-grid-blocks krijgen nooit een vast adres.
 
@@ -72,9 +78,14 @@ Wat de testsuite in echte Chromium aantoont (`npm test`):
 - `tests/height-model.mjs`: rijen die groeien en krimpen bij spans, plaatsen,
   toetsenbordverplaatsing, minimaliseren en docken, `rowHeight`, en een
   dockrail die het eerste block niet bedekt;
-- `tests/consumer-grid.mjs`: de atomaire rasterwissel, de vaste foutcode,
-  verborgen blocks bij meten en slepen, en undocken op een bezette cel;
-- `tests/auto-fit.mjs`: de inhoudsmeting van `fitHeight()`.
+- `tests/consumer-grid.mjs`: de atomaire rasterwissel, gedeeltelijke
+  `restoreLayout()`-entries zonder `span`/`place`, de vaste foutcode,
+  verborgen blocks die bij meten en slepen hun plaats en relatieve DOM-positie
+  behouden, undocken en logische terugkeerpositie bij pinnen, en
+  `hydrate()`, `resolveAddress()`, `bindSearch()` en accentongevoelig
+  gerangschikt zoeken via `list({ query })`;
+- `tests/auto-fit.mjs`: de inhoudsmeting van `fitHeight()` en het negeren van
+  een actieve pointerdrag (`[data-dragging]`) en preview-insertie.
 
 Nog niet in deze repo geautomatiseerd: de pointerdrag in fixed-grid zelf
 (preview, `↓`-collisionpreview, kolomvaste duwcascade, landing op de getoonde

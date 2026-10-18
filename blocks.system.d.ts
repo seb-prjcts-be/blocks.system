@@ -258,6 +258,25 @@ export interface BlocksSearchOptions {
   focusParam?: string;
 }
 
+export interface BlocksHydratedPage {
+  readonly blocks: BlocksSystem;
+  readonly controllers: readonly BlockController[];
+  currentLayout(): {
+    mode: string;
+    grid: { columns: number; rows: number };
+    blocks: readonly BlocksLayoutEntry[];
+  };
+  applyComposition(pageLayout: {
+    grid?: Record<string, { columns: number; rows: number }>;
+    blocks?: Record<string, { span?: Record<string, readonly [number, number]> }>;
+  } | null): void;
+  fitContent(): void;
+}
+
+export interface BlocksHydratedField extends HTMLElement {
+  readonly blocksPage: Readonly<BlocksHydratedPage>;
+}
+
 export interface BlocksSystem {
   readonly columns: number;
   /** Current row count: the setGrid() minimum or more when the content needs it. */
@@ -286,7 +305,7 @@ export interface BlocksSystem {
   get(id: string): Readonly<BlockDefinition> | null;
   attach(target: string | Element): BlocksSystem;
   /** Hydrate declarative HTML blocks in a field with responsive spans, auto-fit, deep-link resolution and optional visitor persistence. */
-  hydrate(target: string | Element, options?: BlocksHydrateOptions): HTMLElement | null;
+  hydrate(target: string | Element, options?: BlocksHydrateOptions): BlocksHydratedField | null;
   /** Scroll to and highlight the block addressed by ?block= or #hash in the URL. */
   resolveAddress(options?: BlocksAddressOptions): HTMLElement | null;
   /** Bind diacritic-insensitive live filtering and relevance ranking to a search input and item tiles. */

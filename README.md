@@ -115,8 +115,9 @@ changes the span in whole grid units; the same controls work with arrow keys
 when focused. Minimizing keeps the titlebar and releases the block's extra rows,
 so later blocks move up automatically.
 
-`exportLayout()` returns only layout state—the selected mode, ids, order, spans,
-fixed positions where applicable and minimized and docked state, never block content. That makes `localStorage`
+`exportLayout()` returns only layout state (`version: 1`, the selected mode, ids,
+order, spans, fixed positions where applicable and minimized, docked and pinned
+state), never block content. That makes `localStorage`
 the simple fit for a personal layout on one browser. Keep role defaults in the
 application, then restore the local override with a role-specific key:
 
@@ -164,9 +165,11 @@ storage-agnostic in both cases.
 A responsive page often uses a different grid and different spans per
 breakpoint. Pass the target grid to `restoreLayout(layout, { grid })` so the
 spans and the grid switch in one step; restoring spans first, or resizing the
-grid first, would reject whichever set does not fit the other grid. When the
-target grid has too few columns or a saved place overlaps a fixed block, nothing
-changes.
+grid first, would reject whichever set does not fit the other grid. Entries in
+`restoreLayout()` may also omit `span` and `place` (for example `{ id, docked,
+pinned }`) when a page stores only visitor order and dock or pin state while
+keeping the current breakpoint spans. When the target grid has too few columns
+or a saved place overlaps a fixed block, nothing changes.
 
 ```js
 blocks.restoreLayout(compactLayout, { grid: { columns: 4, rows: 24 } });
@@ -181,6 +184,41 @@ count. Only a block wider than the grid is refused, with a `RangeError` whose
 By default every row shares the field height (`1fr`), so the page owns the
 height. Pass `rowHeight: 128` (pixels) to let the library own it instead: rows
 become fixed tracks and the field grows and shrinks with its rows.
+
+### Declarative page hydration, address jumps and search
+
+When a server-rendered or static page already carries its blocks in HTML,
+`blocks.hydrate(target?, options?)` turns a `[data-content-page]` container and
+its direct `[data-content-block]` children into an attached field in place. It
+reads per-breakpoint grid dimensions (`data-grid-wide-columns`,
+`data-grid-wide-rows`, and matching `medium` or `compact` attributes) and
+per-block spans (`data-block-span-wide`, ...), registers each block's HTML
+definition, restores and saves visitor order, docked and pinned state under
+`storageKey` or `storagePrefix` (skipped when `editorMode` is true), moves an
+optional `[data-content-footnote]` into `footer.veld-colofon`, wires a reset
+button while a visitor layout is stored, and exposes `field.blocksPage`
+(`{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }`):
+
+```js
+const field = blocks.hydrate("main .main-wrapper", {
+  storagePrefix: "site:positions"
+});
+```
+
+`blocks.resolveAddress(options?)` reads `?block=` (and `#block-id` when
+`hashFallback` is true) from `location`, undocks a docked target block, scrolls
+it into view and marks it with `data-block-gericht="true"` for `highlightMs`.
+`hydrate()` calls `resolveAddress()` automatically unless
+`resolveAddress: false` is set.
+
+`blocks.list({ query, adapter, medium, category })` splits a multi-word `query`
+into diacritic-insensitive tokens (`ë` matches `e`), requires every token to
+match across `label`, `summary`, `text`, `tags`, `category`, `pageTitle`, `id`,
+`medium` or `adapter`, and orders matches by relevance (title before summary
+before body text, with Dutch `nl` collation as tie-breaker).
+`blocks.bindSearch(options?)` connects that ranked search to a DOM search input,
+renders a flat ranked results list while typing, opens the top hit on `Enter`,
+clears on `Escape`, and focuses the input on `/` or `?focus=zoek`.
 
 ### Optional content storage
 
@@ -262,21 +300,27 @@ blocks.register({
 
 ## API map
 
-- Creation: `createBlocksSystem({ catalogUrl, random, layout, draggable, resizable, rowHeight, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` on the shared system.
-- Shared system: `attach`, `setGrid`, `compact`, `fitHeight`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
+- Creation: `createBlocksSystem({ catalogUrl, random, layout, draggable, resizable, rowHeight, dockPosition, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` on the shared system.
+- Shared system: `attach`, `hydrate`, `setGrid`, `compact`, `fitHeight`, `saveBaseline`, `reset`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `rowHeight`, `dockPosition`, `layout`, `draggable`, `resizable`, `font`, `labels`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
-- Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
-- Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- One block: `menu`, `docked`, `dock`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `describe`, `variant`, `color`, `remove`.
+- Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`, `bindSearch`.
+- Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`, `resolveAddress`.
+- One block: `menu`, `docked`, `dock`, `pinned`, `pin`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `summary`, `describe`, `variant`, `color`, `remove`.
 
 Accessible menu labels follow the document language (`nl` or English) and can
-be overridden with `createBlocksSystem({ labels: { move, resize, minimize, dock, restore,
-close, copy, copied, copyFailed } })`. A locked layout removes menu headers from
-the keyboard tab order; their action buttons remain available.
+be overridden with `createBlocksSystem({ labels: { move, resize, minimize, dock, undock,
+pin, unpin, pinnedStaysVisible, restore, close, copy, copied, copyFailed } })`. A locked
+layout removes menu headers from the keyboard tab order; their action buttons remain available.
 
 Every new block starts with one reversible close action. It moves the block to
-a compact rail on the left, shows only its titlebar there and leaves no grid
-footprint; `block.dock(false)` restores its previous position, or flows to the next free cell when that place was taken meanwhile. `title` is optional:
+a compact dock rail (`dockPosition: "top"` or `"bottom"`), shows its titlebar
+and optional `block.summary(html)` there and leaves no grid footprint;
+`block.dock(false)` restores its previous position, or flows to the next free
+cell when that place was taken meanwhile. Set `menu.pin: true` or call
+`block.pin()` to mark a block as a favorite (`★`/`☆`): in `flow-grid` pinned
+blocks stay at the front of the grid, cannot be docked while pinned, and shift
+docked blocks' logical return positions when another block is pinned ahead of
+them. `title` is optional:
 when omitted, the titlebar has no visible text while the block `id` remains the
 accessible fallback name for its controls. Use `menu: false` to remove the whole
 titlebar, or `blockDefaults.menu` and a local `menu` object for exceptions.
@@ -305,19 +349,22 @@ and lets later blocks reflow upward.
 Removing a placed block never changes another fixed address; the gap remains
 intentional until the application calls `compact()`. Removing a flow-grid block
 reflows naturally because DOM order is the layout.
-The field emits `blocks:change` for `compact`, `dock`, `undock`, `minimize`,
-`restore` and `remove`, plus `layout` when one block's span, place or measured
-height changes and `grid` when the columns or rows change. Together they cover
-everything `exportLayout()` records.
+The field emits `blocks:change` for `compact`, `dock`, `undock`, `pin`,
+`unpin`, `minimize`, `restore`, `remove` and `reset`, plus `layout` when one
+block's span, place or measured height changes and `grid` when the columns or
+rows change. Together they cover everything `exportLayout()` records.
 Use `block.fitHeight()` after content changes to measure its real rendered
-height at the current width and apply the smallest whole-row span. Use
+height at the current width and apply the smallest whole-row span. While a
+block is actively being dragged (`[data-dragging]`), `block.fitHeight()`
+returns early without interrupting the drag or measuring the preview. Use
 `blocks.fitHeight()` to fit all live blocks, or pass an iterable of live block
 IDs to `blocks.fitHeight(ids)` in a mixed composition. The consumer remains
 responsible for repacking or resizing the total grid afterwards. Measure only
 content-driven blocks: media that deliberately fills an application-owned span
 must keep that span instead of being included in the selected measurement.
 The native `hidden` attribute on a block's element removes it from the grid;
-measuring and dragging leave its span and place untouched until it returns.
+measuring, keyboard moves and pointer drops leave its span, place and relative
+DOM slot untouched until it returns.
 Trackpad and wheel input over ordinary block content continues scrolling the
 page; only genuinely overflowing inner content scrolls locally first.
 The measured mechanics and boundaries are recorded in

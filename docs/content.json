@@ -583,14 +583,28 @@
     },
     "reference-container": {
       "title": "attach a container",
-      "intro": "Attach the system to one existing element before adding content. A selector and an Element are both accepted.",
+      "intro": "Attach the system to one existing element before adding content, or hydrate a declarative [data-content-page] and its direct [data-content-block] children in place. A selector and an Element are both accepted.",
       "code": [
-        "blocks.attach(\"#blocks-field\");"
+        "blocks.attach(\"#blocks-field\");",
+        "const field = blocks.hydrate(\"main .main-wrapper\", {",
+        "  storagePrefix: \"site:positions\"",
+        "});"
       ],
       "headers": ["kind + contract", "returns / type", "purpose"],
       "rows": [
-        { "id": "api-attach", "cells": ["method · attach(target) / hydrate(target?, options?)", "blocks", "Attach to a selector or Element, or hydrate declarative blocks in place."] },
-        { "cells": ["property · field", "Element | null", "The currently attached field."] }
+        { "id": "api-attach", "cells": ["method · attach(target)", "blocks", "Attach to a selector or Element."] },
+        { "cells": ["property · field", "Element | null", "The currently attached field."] },
+        { "id": "api-hydrate", "cells": ["method · hydrate(target?, options?)", "BlocksHydratedField | null", "Replace [data-content-page] and its direct [data-content-block] children with an attached field; moves [data-content-footnote] into footer.veld-colofon and exposes field.blocksPage."] },
+        { "cells": ["property · field.blocksPage", "{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }", "Live page handle on the hydrated field for inspecting the active breakpoint layout, applying a composition or re-measuring content."] },
+        { "cells": ["option · fieldId · fieldClass", "string · \"page-blocks\"", "Id and class name for the created field element."] },
+        { "cells": ["option · storageKey · storagePrefix", "string", "Full localStorage key, or prefix (\"blocks.system:block-posities\") combined with the page name, for visitor order, docked and pinned state."] },
+        { "cells": ["option · editorMode", "boolean", "Skip visitor localStorage restore and save when true; defaults to body[data-editor-mode=\"true\"]."] },
+        { "cells": ["option · breakpoints", "readonly { name, minWidth }[]", "Responsive modes matched by width (defaults: wide 1080, medium 680, compact 0) for data-grid-{name}-columns/rows and data-block-span-{name}."] },
+        { "cells": ["option · fixedMediaSelector · viewportLead", "string · boolean | fn", "Skip fitHeight() on blocks matching fixedMediaSelector (\"[data-block-fixed-height]\") and size a [data-block-role=\"lead\"] block to the viewport when viewportLead is true."] },
+        { "cells": ["option · resetClass · resetLabel · resetTitle", "string", "Class (\"veld-terugzetten\"), label (\"Alles terugzetten\") and title for the reset button shown while a visitor layout is stored."] },
+        { "cells": ["option · resolveAddress · addressOptions", "boolean · BlocksAddressOptions", "Call resolveAddress(addressOptions) after hydration unless resolveAddress is false."] },
+        { "cells": ["option · searchShortcutUrl · searchPageClass", "string", "Open searchShortcutUrl when / is pressed outside inputs on pages without searchPageClass (\"page-kaart\")."] },
+        { "cells": ["option · onField · onBlock", "function", "Callbacks onField(field, source, blocks) and onBlock(block, sourceNode, field, blocks) during hydration."] }
       ]
     },
     "reference-grid": {
@@ -662,7 +676,7 @@
         { "id": "api-fit-height-system", "cells": ["method · blocks.fitHeight(ids?)", "measurement[]", "Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span."] },
         { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based coordinates in fixed-grid; other modes reject the call."] },
         { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place, minimized, docked and pinned state."] },
-        { "cells": ["method · restoreLayout(layout, options?)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing."] },
+        { "cells": ["method · restoreLayout(layout, options?)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. Entries may omit span and place to keep their current spans. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing."] },
         { "cells": ["method · saveBaseline()", "blocks", "Make the current order, spans, places, minimized, docked and pinned state the target of reset(); blocks added later join at the end."] },
         { "cells": ["method · reset()", "blocks", "Return every block to the saved baseline, by default its add() order, span, place and initial minimized state, undocked and unpinned; publishes one reset change naming every block."] },
         { "cells": ["property · resize size", "{ columns, rows }", "Resize event sizes use positive whole grid units."] }
@@ -784,7 +798,10 @@
         { "cells": ["property · draggable", "boolean", "Read or change whether this block can move."] },
         { "cells": ["method · describe(options?)", "definition", "Serialize this live block for the built-in html adapter."] },
         { "cells": ["option · options.url", "string | URL", "Name the page in the serialized definition."] },
-        { "id": "api-address", "cells": ["method · address(id) / resolveAddress(options?)", "string | Element", "Build ?block=id from definition.url or the system catalogUrl, or scroll to the addressed block."] }
+        { "id": "api-address", "cells": ["method · address(id)", "string", "Build ?block=id from definition.url or the system catalogUrl."] },
+        { "id": "api-resolve-address", "cells": ["method · resolveAddress(options?)", "HTMLElement | null", "Scroll to the element named by ?block= or #hash and briefly highlight a matching block."] },
+        { "cells": ["option · url · queryKey", "string | URL · \"block\"", "Location to inspect (defaults to window.location) and query parameter name."] },
+        { "cells": ["option · highlightClass · highlightDuration", "\"is-aangewezen\" · 2600", "Class added to a ?block= target and timeout in ms before it clears (or on first pointerdown/keydown)."] }
       ]
     },
     "reference-definition-create": {
@@ -824,12 +841,16 @@
         { "cells": ["property · definition.markup", "trusted HTML", "Content used by the built-in html adapter."] },
         { "cells": ["adapter · adapter \"html\"", "built-in", "Mounts and snippets trusted definition.markup. Replace it with registerAdapter(\"html\", adapter, { replace: true })."] },
         { "cells": ["method · listAdapters()", "string[]", "List registered adapter ids, starting with the built-in html adapter."] },
-        { "cells": ["method · list(filters?) / bindSearch(options?)", "definition[]", "Filter definitions or live search tiles with any combination of the four filters below."] },
-        { "cells": ["filter · filters.query", "string", "Match text in the definition id, label, description, adapter, medium or category."] },
+        { "cells": ["method · list(filters?)", "definition[]", "Filter definitions with any combination of the four filters below; a query sorts matches by relevance."] },
+        { "cells": ["filter · filters.query", "string", "Diacritic-insensitive match in the definition id, label, description, adapter, medium or category, ranked from exact title to body text."] },
         { "cells": ["filter · filters.adapter", "string", "Keep definitions that use this adapter id."] },
         { "cells": ["filter · filters.medium", "string", "Keep definitions with this medium."] },
         { "cells": ["filter · filters.category", "string", "Keep definitions in this category."] },
-        { "cells": ["method · get(id)", "definition | null", "Read one registered definition."] }
+        { "cells": ["method · get(id)", "definition | null", "Read one registered definition."] },
+        { "id": "api-bind-search", "cells": ["method · bindSearch(options?)", "boolean", "Bind diacritic-insensitive live filtering, relevance ranking, Enter jump and / focus to search tiles in the DOM."] },
+        { "cells": ["option · root · focusParam", "Document | Element · \"zoek\"", "Root queried for elements (document) and ?focus= value that focuses the input on load."] },
+        { "cells": ["option · containerSelector · inputSelector · statusSelector", "\".kaart-zoek\" · \"#kaart-zoekveld\" · \".kaart-zoek__stand\"", "Selectors for the hidden search wrapper, search input and hit counter."] },
+        { "cells": ["option · tileSelector · groupListSelector · resultsClass", "\".kaart-tegel\" · \".kaart-tegels\" · \"kaart-tegels kaart-treffers\"", "Selectors for item tiles and grouped lists, plus the class on the inserted ranked results list."] }
       ]
     },
     "reference-adapter-methods": {

@@ -2,12 +2,16 @@ import {
   createBlocksSystem,
   system,
   type BlockController,
+  type BlocksAddressOptions,
   type BlocksChangeDetail,
   type BlocksGridTooSmallCode,
+  type BlocksHydratedField,
+  type BlocksHydrateOptions,
   type BlocksLayout,
   type BlocksLayoutMode,
   type BlocksResizeDetail,
   type BlocksReorderDetail,
+  type BlocksSearchOptions,
   type BlocksSystem
 } from "blocks.system";
 import { createBlocksStorage, createHttpStorage, createJsonStorage } from "blocks.system/storage";
@@ -27,24 +31,48 @@ const blocks: BlocksSystem = createBlocksSystem({
   layout: "flow-grid",
   draggable: true,
   resizable: true,
-  blockDefaults: { menu: { minimize: true, close: true, copy: true } }
+  dockPosition: "bottom",
+  blockDefaults: { menu: { pin: true, minimize: true, close: true, copy: true } }
 });
 
 blocks.attach(document.body).setGrid(6, 4);
 blocks.fitHeight();
 blocks.fitHeight(new Set(["one"]));
 const block: BlockController = blocks
-  .add(document.createElement("article"), { id: "typed-block", title: "typed", draggable: false })
+  .add(document.createElement("article"), { id: "typed-block", title: "typed", draggable: false, summary: "<p>short</p>" })
   .span(2, 1)
-  .menu("typed", { close: true, copy: true });
+  .summary(null)
+  .menu("typed", { pin: true, close: true, copy: true });
 block.draggable = true;
+block.pin(true);
+const blockPinned: boolean = block.pinned;
 const blockDraggable: boolean = block.draggable;
 const layoutMode: BlocksLayoutMode = blocks.layout;
+const dockPosition: "top" | "bottom" = blocks.dockPosition;
+blocks.saveBaseline();
 const savedLayout: BlocksLayout = blocks.exportLayout();
 blocks.restoreLayout(savedLayout);
 blocks.restoreLayout(savedLayout, { grid: { columns: 4, rows: 12 } });
+blocks.restoreLayout({
+  version: 1,
+  layout: "flow-grid",
+  blocks: [{ id: "typed-block", docked: false, pinned: true }]
+});
+blocks.reset();
+const hydrateOptions: BlocksHydrateOptions = {
+  storagePrefix: "demo",
+  breakpoints: [{ name: "wide", minWidth: 1080 }],
+  viewportLead: (field) => field.id === "page-blocks",
+  searchShortcutUrl: "kaart?focus=zoek"
+};
+const hydratedField: BlocksHydratedField | null = blocks.hydrate(document.body, hydrateOptions);
+hydratedField?.blocksPage.fitContent();
+const addressOptions: BlocksAddressOptions = { queryKey: "block", highlightClass: "is-aangewezen", highlightDuration: 2600 };
+const resolvedTarget: HTMLElement | null = blocks.resolveAddress(addressOptions);
+const searchOptions: BlocksSearchOptions = { root: document, focusParam: "zoek" };
+const searchBound: boolean = blocks.bindSearch(searchOptions);
 const gridCode: BlocksGridTooSmallCode = "BLOCKS_GRID_TOO_SMALL";
-void gridCode;
+void [gridCode, blockPinned, dockPosition, hydratedField, resolvedTarget, searchBound];
 // @ts-expect-error A grid switch needs both dimensions.
 blocks.restoreLayout(savedLayout, { grid: { columns: 4 } });
 

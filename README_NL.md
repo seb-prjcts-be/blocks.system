@@ -118,8 +118,9 @@ onderrand om de span in volledige rastereenheden aan te passen; met focus doen
 de pijltjestoetsen hetzelfde. Minimaliseren behoudt de titelbalk maar geeft de
 extra rijen vrij, zodat volgende blocks automatisch opschuiven.
 
-`exportLayout()` geeft alleen layoutstatus terug—de gekozen modus, id's,
-volgorde, spans, vaste plaatsen waar van toepassing en minimaliseer- en dockstatus, nooit blockinhoud. Daarom past
+`exportLayout()` geeft alleen layoutstatus terug (`version: 1`, de gekozen
+modus, id's, volgorde, spans, vaste plaatsen waar van toepassing en
+minimaliseer-, dock- en pinstatus), nooit blockinhoud. Daarom past
 `localStorage` goed voor een persoonlijke layout in één browser. Bewaar de
 standaard per rol in de toepassing en herstel daarna de lokale afwijking met
 een sleutel per rol:
@@ -168,9 +169,12 @@ heeft. De kern blijft in beide gevallen opslagneutraal.
 Een responsieve pagina gebruikt per breakpoint vaak een ander raster en andere
 spans. Geef het doelraster mee aan `restoreLayout(layout, { grid })`, zodat spans
 en raster in één stap wisselen; eerst de spans of eerst het raster zetten
-weigert telkens de set die niet in het andere raster past. Heeft het doelraster te
-weinig kolommen of overlapt een opgeslagen plaats een vast block, dan verandert
-er niets.
+weigert telkens de set die niet in het andere raster past. Items in
+`restoreLayout()` mogen ook `span` en `place` weglaten (bijvoorbeeld
+`{ id, docked, pinned }`) wanneer een pagina alleen bezoekersvolgorde en dock-
+of pinstatus bewaart en de actuele breakpoint-spans behoudt. Heeft het
+doelraster te weinig kolommen of overlapt een opgeslagen plaats een vast block,
+dan verandert er niets.
 
 ```js
 blocks.restoreLayout(compacteLayout, { grid: { columns: 4, rows: 24 } });
@@ -186,6 +190,42 @@ Standaard delen alle rijen de veldhoogte (`1fr`), dus de pagina is eigenaar van
 de hoogte. Geef `rowHeight: 128` (pixels) mee om die eigenaarschap aan de
 library te geven: rijen worden vaste tracks en het veld groeit en krimpt met
 zijn rijen.
+
+### Declaratieve paginahydratie, adressprongen en zoeken
+
+Wanneer een statische of servergerenderde pagina haar blocks al in HTML bevat,
+vormt `blocks.hydrate(target?, options?)` een `[data-content-page]`-container en
+de directe `[data-content-block]`-kindelementen ter plaatse om tot een gekoppeld
+veld. De methode leest per breakpoint de rastermaten (`data-grid-wide-columns`,
+`data-grid-wide-rows` en bijpassende `medium`- of `compact`-attributen) en
+blockspans (`data-block-span-wide`, ...), registreert de HTML-definitie van elk
+block, herstelt en bewaart de bezoekersvolgorde en dock- en pinstatus onder
+`storageKey` of `storagePrefix` (overgeslagen bij `editorMode`), verplaatst een
+optionele `[data-content-footnote]` naar `footer.veld-colofon`, toont een
+terugzetknop zolang er een bezoekersindeling bewaard is en plaatst
+`field.blocksPage` (`{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }`) op het veld:
+
+```js
+const field = blocks.hydrate("main .main-wrapper", {
+  storagePrefix: "site:positions"
+});
+```
+
+`blocks.resolveAddress(options?)` leest `?block=` (en `#block-id` wanneer
+`hashFallback` aan staat) uit `location`, haalt een gedockt doelblock uit de
+dockrail, scrollt het in beeld en markeert het gedurende `highlightMs` met
+`data-block-gericht="true"`. `hydrate()` roept `resolveAddress()` automatisch
+aan tenzij `resolveAddress: false` is meegegeven.
+
+`blocks.list({ query, adapter, medium, category })` splitst een meerwoordige
+`query` in accentongevoelige zoektermen (`ë` matcht `e`), eist dat elke term
+voorkomt in `label`, `summary`, `text`, `tags`, `category`, `pageTitle`, `id`,
+`medium` of `adapter`, en sorteert treffers op relevantie (titel vóór
+samenvatting vóór lopende tekst, met Nederlandse `nl`-sortering bij gelijke
+score). `blocks.bindSearch(options?)` koppelt dat gerangschikte zoeken aan een
+zoekveld in de DOM, toont tijdens het typen een platte trefferlijst op
+relevantie, opent bij `Enter` de beste treffer, wist met `Escape` en geeft het
+zoekveld focus bij `/` of `?focus=zoek`.
 
 ### Optionele inhoudsopslag
 
@@ -272,21 +312,28 @@ blocks.register({
 
 ## API-overzicht
 
-- Aanmaak: `createBlocksSystem({ catalogUrl, random, layout, draggable, resizable, rowHeight, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` op het gedeelde systeem.
-- Gedeeld systeem: `attach`, `setGrid`, `compact`, `fitHeight`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `layout`, `draggable`, `resizable`, `font`, `variant`,
+- Aanmaak: `createBlocksSystem({ catalogUrl, random, layout, draggable, resizable, rowHeight, dockPosition, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` op het gedeelde systeem.
+- Gedeeld systeem: `attach`, `hydrate`, `setGrid`, `compact`, `fitHeight`, `saveBaseline`, `reset`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `rowHeight`, `dockPosition`, `layout`, `draggable`, `resizable`, `font`, `labels`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
-- Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`.
-- Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`.
-- Eén block: `menu`, `docked`, `dock`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `describe`, `variant`, `color`, `remove`.
+- Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`, `bindSearch`.
+- Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`, `resolveAddress`.
+- Eén block: `menu`, `docked`, `dock`, `pinned`, `pin`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `summary`, `describe`, `variant`, `color`, `remove`.
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
-overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, dock, restore,
-close, copy, copied, copyFailed } })`. Bij een vergrendelde layout verdwijnen
-menuheaders uit de toetsenbordvolgorde; hun actieknoppen blijven bereikbaar.
+overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, dock, undock,
+pin, unpin, pinnedStaysVisible, restore, close, copy, copied, copyFailed } })`. Bij een
+vergrendelde layout verdwijnen menuheaders uit de toetsenbordvolgorde; hun actieknoppen blijven bereikbaar.
 
 Ieder nieuw block krijgt standaard één omkeerbare sluitactie. Die verplaatst het
-block naar een compacte rail links, toont daar alleen de titelbalk en laat geen
-rasterruimte achter; `block.dock(false)` herstelt het op zijn vorige positie, of laat het naar de eerstvolgende vrije cel stromen als die plaats intussen bezet is. `title` is
+block naar een compacte dockrail (`dockPosition: "top"` of `"bottom"`), toont
+daar de titelbalk en een optionele `block.summary(html)` en laat geen
+rasterruimte achter; `block.dock(false)` herstelt het op zijn vorige positie, of
+laat het naar de eerstvolgende vrije cel stromen als die plaats intussen bezet
+is. Zet `menu.pin: true` of roep `block.pin()` aan om een block als favoriet
+(`★`/`☆`) te markeren: in `flow-grid` blijven gepinde blocks vooraan in het
+raster staan, kunnen ze niet gedockt worden zolang ze gepind zijn, en schuift
+de logische terugkeerpositie van gedockte blocks mee op wanneer een ander block
+ervoor gepind wordt. `title` is
 optioneel: zonder titel heeft de titelbalk geen zichtbare tekst, terwijl het
 block-`id` de toegankelijke fallbacknaam voor de knoppen blijft. Gebruik
 `menu: false` om de volledige titelbalk weg te laten, of `blockDefaults.menu` en
@@ -317,20 +364,23 @@ in `flow-grid` behoudt het één titelbalkrij en schuiven latere blocks omhoog.
 Bij `remove()` veranderen de adressen van andere fixed-grid-blocks nooit; het
 gat blijft bewust bestaan totdat de toepassing `compact()` aanroept. In
 flow-grid herschikt verwijdering vanzelf door de DOM-volgorde. Het veld vuurt
-`blocks:change` voor `compact`, `dock`, `undock`, `minimize`, `restore` en `remove`,
-plus `layout` wanneer de span, plaats of gemeten hoogte van één block verandert en
-`grid` wanneer de kolommen of rijen veranderen. Samen dekken ze alles wat
-`exportLayout()` vastlegt.
+`blocks:change` voor `compact`, `dock`, `undock`, `pin`, `unpin`, `minimize`,
+`restore`, `remove` en `reset`, plus `layout` wanneer de span, plaats of
+gemeten hoogte van één block verandert en `grid` wanneer de kolommen of rijen
+veranderen. Samen dekken ze alles wat `exportLayout()` vastlegt.
 Gebruik `block.fitHeight()` na een inhoudswijziging om de werkelijk gerenderde
 hoogte op de huidige breedte te meten en de kleinste volledige rijspan toe te
-passen. `blocks.fitHeight()` doet dat voor alle levende blocks; geef in een
-gemengde compositie een iterable met levende block-ID's aan
-`blocks.fitHeight(ids)`. De consumer blijft verantwoordelijk voor het opnieuw
-packen of vergroten van het totale raster. Meet alleen inhoudsgedreven blocks:
-media die bewust een door de toepassing gekozen span vullen, behouden die span
-en horen niet in de geselecteerde meting.
+passen. Zolang een block actief met de pointer wordt versleept
+(`[data-dragging]`), keert `block.fitHeight()` meteen terug zonder de drag te
+onderbreken of de preview te meten. `blocks.fitHeight()` doet dat voor alle
+levende blocks; geef in een gemengde compositie een iterable met levende
+block-ID's aan `blocks.fitHeight(ids)`. De consumer blijft verantwoordelijk voor
+het opnieuw packen of vergroten van het totale raster. Meet alleen
+inhoudsgedreven blocks: media die bewust een door de toepassing gekozen span
+vullen, behouden die span en horen niet in de geselecteerde meting.
 Het native `hidden`-attribuut op het element van een block haalt het uit het
-raster; meten en slepen laten zijn span en plaats ongemoeid tot het terugkeert.
+raster; meten, toetsverplaatsingen en pointerdrops laten zijn span, plaats en
+relatieve DOM-positie ongemoeid tot het terugkeert.
 Trackpad- en wheelscroll boven gewone blockinhoud blijft de pagina scrollen;
 alleen echt overlopende binneninhoud scrollt eerst lokaal.
 De gemeten werking en grenzen staan duurzaam in

@@ -54,7 +54,7 @@ assert.doesNotMatch(apiHtml, /class="reference-index"/, "reference masthead must
 assert.doesNotMatch(apiHtml, /class="reference-introduction"/, "reference masthead must not explain the visible learning route twice");
 assert.doesNotMatch(apiHtml, /reference-map|reference-focus/, "reference masthead must not contain matrix controls");
 assert.doesNotMatch(css, /\.docs-masthead\s*\{[^}]*border-bottom/, "manual and reference mastheads must not draw a horizontal rule below their titles");
-assert.match(reference, /blocks\.setGrid\(6, 94\)/, "reference must use the wide thematic field without internal table scrolling");
+assert.match(reference, /blocks\.setGrid\(6, 103\)/, "reference must use the wide thematic field without internal table scrolling");
 assert.equal((reference.match(/createBlocksSystem\(/g) || []).length, 1, "reference must use one shared lookup field");
 assert.doesNotMatch(reference + sections, /reference-matrix|REFERENCE_COLUMNS|reference-axis|setFocusedColumn/, "reference must not compress contracts into a matrix");
 for (const id of Object.keys(content.reference)) {
@@ -73,8 +73,8 @@ for (const anchor of [
 
 const serializedReference = JSON.stringify(content.reference);
 for (const apiName of [
-  "createBlocksSystem(options?)", "add(content, options?)", "describe(options?)",
-  "registerAdapter(id, adapter, options?)", "address(id)", "mount(id, target, overrides?)",
+  "createBlocksSystem(options?)", "hydrate(target?, options?)", "add(content, options?)", "describe(options?)",
+  "registerAdapter(id, adapter, options?)", "address(id)", "resolveAddress(options?)", "bindSearch(options?)", "mount(id, target, overrides?)",
   "blocks:reorder", "blocks:change"
 ]) assert.ok(serializedReference.includes(apiName), "reference content misses " + apiName);
 assert.match(serializedReference, /definition\.url[\s\S]*address\(\) prefers it/, "reference must retain the new per-block address contract");
