@@ -2785,11 +2785,15 @@ export function createBlocksSystem(options = {}) {
         };
 
         const responsiveGrid = (mode) => responsiveLayout?.grid?.[mode] || readSourceGrid(source, mode);
-        const responsiveSpan = (id, mode, gridColumns = Infinity) => {
+        const responsiveSpan = (id, mode, gridColumns = Infinity, current = null) => {
             const saved = responsiveLayout?.blocks?.[id]?.span?.[mode];
-            const span = saved
-                ? saved.map((value) => parsePositiveGridUnit(value, `${id}.${mode}`))
-                : readBlockSpan(sourceById.get(id), mode, gridColumns);
+            const sourceNode = sourceById.get(id);
+            let span;
+            if (saved) span = saved.map((value) => parsePositiveGridUnit(value, `${id}.${mode}`));
+            else if (sourceNode) span = readBlockSpan(sourceNode, mode, gridColumns);
+            // Een block dat na hydrate() met add() in het veld kwam, heeft geen
+            // bronelement: het houdt zijn eigen span, begrensd op het raster.
+            else span = [Math.min(current?.[0] ?? 1, gridColumns), current?.[1] ?? 1];
             return id === directionLeadId ? [span[0], directionLeadRows] : span;
         };
 
@@ -2825,7 +2829,7 @@ export function createBlocksSystem(options = {}) {
                 layout: layoutMode,
                 blocks: exportLayout().blocks.map((block) => ({
                     ...block,
-                    span: responsiveSpan(block.id, mode, grid.columns),
+                    span: responsiveSpan(block.id, mode, grid.columns, block.span),
                     place: null
                 }))
             }, { grid: { columns: grid.columns, rows: 1 } });
