@@ -68,6 +68,9 @@ const hydrateOptions: BlocksHydrateOptions = {
 const hydratedField: BlocksHydratedField | null = blocks.hydrate(document.body, hydrateOptions);
 hydratedField?.blocksPage.fitContent();
 blocks.hydrate("main", { storage: false });
+const defaultHydratedField: BlocksHydratedField | null = blocks.hydrate();
+const optionsOnlyHydratedField: BlocksHydratedField | null = blocks.hydrate({ storage: false });
+void [defaultHydratedField, optionsOnlyHydratedField];
 // @ts-expect-error Storage is a prefix or false, not true.
 blocks.hydrate("main", { storage: true });
 const addressOptions: BlocksAddressOptions = { queryKey: "block", highlightDuration: 2600 };

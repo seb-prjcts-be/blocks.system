@@ -592,7 +592,7 @@
       "rows": [
         { "id": "api-attach", "cells": ["method · attach(target)", "blocks", "Attach to a selector or Element."] },
         { "cells": ["property · field", "Element | null", "The currently attached field."] },
-        { "id": "api-hydrate", "cells": ["method · hydrate(target, options?)", "BlocksHydratedField | null", "Replace [data-content-page] and its direct [data-content-block] children with a field.blocks-system-page that keeps the source id; moves [data-content-footnote] into footer.blocks-system-footnotes and exposes field.blocksPage."] },
+        { "id": "api-hydrate", "cells": ["method · hydrate(target?, options?)", "BlocksHydratedField | null", "Replace [data-content-page] and its direct [data-content-block] children with a field.blocks-system-page that keeps the source id; moves [data-content-footnote] into footer.blocks-system-footnotes and exposes field.blocksPage."] },
         { "cells": ["property · field.blocksPage", "{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }", "Live page handle on the hydrated field: inspect the active breakpoint layout, apply a composition, re-measure content, or loop over controllers for site-specific changes."] },
         { "cells": ["hook · data-block-copy · data-block-role", "attribute on [data-content-block]", "data-block-copy adds a copy button; data-block-role is copied onto the block element, and \"lead\" works with viewportLead."] },
         { "cells": ["option · storage", "string | false · \"blocks.system:layout\"", "localStorage key prefix, followed by the page name, for the visitor's order, docked and pinned blocks. false stores nothing and shows no reset button."] },

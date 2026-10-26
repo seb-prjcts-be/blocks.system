@@ -113,7 +113,8 @@ try {
         savedDocked: Boolean(savedAfterDock?.docked?.includes("blok-a")),
         resetText,
         restoredAfterReset: contactCtrl.docked === false && savedAfterReset === null,
-        noSiteBodyClass: !document.body.classList.contains("has-page-blocks")
+        noSiteBodyClass: !document.body.classList.contains("has-page-blocks"),
+        noUndefinedGridDataset: hydratedField.dataset.gridWideColumns === undefined
       };
 
       // 6b. storage: false bewaart niets en toont dus ook geen terugzetknop.
@@ -226,7 +227,8 @@ try {
     savedDocked: true,
     resetText: "reset layout",
     restoredAfterReset: true,
-    noSiteBodyClass: true
+    noSiteBodyClass: true,
+    noUndefinedGridDataset: true
   }, "hydrate() must turn declarative blocks into persistent, resettable blocks with neutral library names");
   assert.deepEqual(v.quiet, { stored: null, resetButton: false }, "hydrate({ storage: false }) must store nothing and show no reset button");
   assert.deepEqual(v.addressed, { id: "blok-b", undocked: true, marked: "true" }, "resolveAddress(url) must undock and mark the addressed block");

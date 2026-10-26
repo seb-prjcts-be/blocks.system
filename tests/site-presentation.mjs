@@ -73,7 +73,7 @@ for (const anchor of [
 
 const serializedReference = JSON.stringify(content.reference);
 for (const apiName of [
-  "createBlocksSystem(options?)", "hydrate(target, options?)", "add(content, options?)", "describe(options?)",
+  "createBlocksSystem(options?)", "hydrate(target?, options?)", "add(content, options?)", "describe(options?)",
   "registerAdapter(id, adapter, options?)", "address(id)", "resolveAddress(url?, options?)", "bindSearch(input, options?)", "mount(id, target, overrides?)",
   "blocks:reorder", "blocks:change"
 ]) assert.ok(serializedReference.includes(apiName), "reference content misses " + apiName);

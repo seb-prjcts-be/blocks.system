@@ -309,7 +309,8 @@ export interface BlocksSystem {
   get(id: string): Readonly<BlockDefinition> | null;
   attach(target: string | Element): BlocksSystem;
   /** Hydrate declarative HTML blocks in a field with responsive spans, auto-fit, deep-link resolution and optional visitor persistence. */
-  hydrate(target: string | Element, options?: BlocksHydrateOptions): BlocksHydratedField | null;
+  /** Without a target, the first [data-content-page] on the page is hydrated; an options object may take the place of the target. */
+  hydrate(target?: string | Element | BlocksHydrateOptions, options?: BlocksHydrateOptions): BlocksHydratedField | null;
   /** Undock, scroll to and mark the block named by ?block= or #hash in url (defaults to the current location). */
   resolveAddress(url?: string | URL, options?: BlocksAddressOptions): HTMLElement | null;
   /** Bind diacritic-insensitive live filtering and relevance ranking to a search input and its items. */

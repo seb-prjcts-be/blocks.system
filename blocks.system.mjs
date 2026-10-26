@@ -2541,10 +2541,11 @@ export function createBlocksSystem(options = {}) {
         }
         // Een gedockt block komt eerst terug in het raster, anders valt er
         // niets aan te wijzen.
-        const controller = objects.get(id);
-        if (controller?.docked) controller.dock(false);
-        const target = controller?.element || document.getElementById(id);
+        const directController = objects.get(id);
+        const target = directController?.element || document.getElementById(id);
         if (!target) return null;
+        const controller = directController || objects.get(target.getAttribute?.("data-block-object") || target.id);
+        if (controller?.docked) controller.dock(false);
 
         if (requested && target.classList?.contains("blocks-system-object")) {
             const duration = Number.isFinite(addressOptions.highlightDuration) ? addressOptions.highlightDuration : 2600;
@@ -2675,14 +2676,21 @@ export function createBlocksSystem(options = {}) {
         return true;
     }
 
-    function hydrate(target, hydrateOptions = {}) {
+    function hydrate(target = "[data-content-page]", hydrateOptions = {}) {
         if (typeof document === "undefined") return null;
+        if (target && typeof target === "object" && !(target instanceof Element)) {
+            hydrateOptions = target;
+            target = "[data-content-page]";
+        }
         const wrapper = typeof target === "string" ? document.querySelector(target) : target;
         if (!(wrapper instanceof Element) || wrapper.dataset.blocksReady === "true") return null;
         const source = wrapper.matches("[data-content-page]")
             ? wrapper
             : wrapper.querySelector(":scope > [data-content-page]");
-        if (!source) return null;
+        if (!source || source.dataset.blocksReady === "true") return null;
+        // Wanneer het doel de bron zelf is, draagt de ouder het veld, de voetnoten en de meting.
+        const host = wrapper === source ? (source.parentElement || source) : wrapper;
+        if (host.dataset?.blocksReady === "true") return null;
         const nodes = Array.from(source.querySelectorAll(":scope > [data-content-block]"));
         if (nodes.length === 0) return null;
 
@@ -2707,8 +2715,10 @@ export function createBlocksSystem(options = {}) {
             : DEFAULT_GRID_MODES;
         for (const { name: mode } of gridModes) {
             const key = `${mode[0].toUpperCase()}${mode.slice(1)}`;
-            field.dataset[`grid${key}Columns`] = source.dataset[`grid${key}Columns`];
-            field.dataset[`grid${key}Rows`] = source.dataset[`grid${key}Rows`];
+            const cols = source.dataset[`grid${key}Columns`];
+            const rows = source.dataset[`grid${key}Rows`];
+            if (cols !== undefined) field.dataset[`grid${key}Columns`] = cols;
+            if (rows !== undefined) field.dataset[`grid${key}Rows`] = rows;
         }
         source.replaceWith(field);
         // Het veld neemt de plaats en dus ook het id van de bron over.
@@ -2718,7 +2728,7 @@ export function createBlocksSystem(options = {}) {
         const pageUrl = source.dataset.contentPage || pagePath.split("/").pop() || "index.html";
 
         const controllers = nodes.map((node) => {
-            const id = node.dataset.blockId || node.id;
+            const id = node.dataset.blockId || node.id || undefined;
             const title = node.dataset.blockTitle;
             const heading = node.querySelector("h2, h3, h4");
             const description = extractBlockDescription(node);
@@ -2733,8 +2743,8 @@ export function createBlocksSystem(options = {}) {
                     copy: node.hasAttribute("data-block-copy") && node.dataset.blockCopy !== "false"
                 }
             });
-            controller.element.id = id;
-            controller.element.dataset.blockTitle = title;
+            controller.element.id = controller.id;
+            if (title !== undefined) controller.element.dataset.blockTitle = title;
             if (node.dataset.blockRole) controller.element.dataset.blockRole = node.dataset.blockRole;
 
             register({
@@ -2748,19 +2758,20 @@ export function createBlocksSystem(options = {}) {
             return controller;
         });
 
-        const sourceById = new Map(nodes.map((node) => [node.dataset.blockId || node.id, node]));
+        const sourceById = new Map(nodes.map((node, index) => [controllers[index].id, node]));
         const hasViewportLead = typeof hydrateOptions.viewportLead === "function"
             ? hydrateOptions.viewportLead(field, source)
             : Boolean(hydrateOptions.viewportLead);
-        const directionLeadId = hasViewportLead
-            ? (nodes.find((node) => node.dataset.blockRole === "lead")?.dataset.blockId || nodes.find((node) => node.dataset.blockRole === "lead")?.id || "")
-            : "";
+        const leadIndex = hasViewportLead
+            ? nodes.findIndex((node) => node.dataset.blockRole === "lead")
+            : -1;
+        const directionLeadId = leadIndex >= 0 ? controllers[leadIndex].id : "";
         let directionLeadRows = 0;
         let responsiveLayout = null;
         const effectiveRowHeight = rowHeightState || 128;
 
         const pageHeightRows = () => {
-            const main = wrapper.closest("main");
+            const main = host.closest("main");
             const mainStyle = main && typeof getComputedStyle === "function" ? getComputedStyle(main) : null;
             const verticalPadding = mainStyle
                 ? (Number.parseFloat(mainStyle.paddingTop) || 0) + (Number.parseFloat(mainStyle.paddingBottom) || 0)
@@ -2786,7 +2797,7 @@ export function createBlocksSystem(options = {}) {
             const footer = document.createElement("footer");
             footer.className = "blocks-system-footnotes";
             footer.append(...footnotes);
-            wrapper.append(footer);
+            host.append(footer);
         }
 
         const fixedMediaSelector = hydrateOptions.fixedMediaSelector || "[data-block-fixed-height]";
@@ -2800,7 +2811,7 @@ export function createBlocksSystem(options = {}) {
         };
 
         const layout = (force = false) => {
-            const width = field.clientWidth || wrapper.clientWidth || (typeof window !== "undefined" ? window.innerWidth : 1080);
+            const width = field.clientWidth || host.clientWidth || (typeof window !== "undefined" ? window.innerWidth : 1080);
             const mode = gridModeForWidth(width, gridModes).name;
             const previousDirectionLeadRows = directionLeadRows;
             directionLeadRows = directionLeadId ? pageHeightRows() : 0;
@@ -2856,7 +2867,7 @@ export function createBlocksSystem(options = {}) {
                 if (typeof requestAnimationFrame === "function") frame = requestAnimationFrame(() => layout());
                 else layout();
             });
-            observer.observe(wrapper);
+            observer.observe(host);
         }
         if (typeof MutationObserver === "function") {
             const mutations = new MutationObserver(scheduleFit);
@@ -2944,6 +2955,8 @@ export function createBlocksSystem(options = {}) {
         });
 
         wrapper.dataset.blocksReady = "true";
+        host.dataset.blocksReady = "true";
+        field.dataset.blocksReady = "true";
         if (hydrateOptions.address !== false) resolveAddress();
         return field;
     }

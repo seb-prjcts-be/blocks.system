@@ -58,7 +58,7 @@ CSS-haken staan in de [reference](api.html). De drie functies onder
 
 | Functie | Doet |
 |---|---|
-| `hydrate(target, options?)` | Maakt van HTML-blokken in een veld levende blokken met responsive spans, auto-fit, deeplinks en bezoekersopslag. Geeft het veld terug met een `blocksPage`-object. Opties: `storage`, `breakpoints`, `fixedMediaSelector`, `viewportLead`, `address`. |
+| `hydrate(target?, options?)` | Maakt van HTML-blokken in een veld levende blokken met responsive spans, auto-fit, deeplinks en bezoekersopslag. Geeft het veld terug met een `blocksPage`-object. Opties: `storage`, `breakpoints`, `fixedMediaSelector`, `viewportLead`, `address`. |
 | `resolveAddress(url?, options?)` | Haalt het blok uit `?block=` of de hash uit de dock, scrolt ernaartoe en markeert het. |
 | `bindSearch(input, options?)` | Koppelt live filteren met diakritiek-ongevoelige ranking aan een zoekveld en zijn items. Opties: `items`, `status`, `root`, `shortcut`, `focus`. |
 

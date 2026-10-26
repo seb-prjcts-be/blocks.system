@@ -187,9 +187,10 @@ become fixed tracks and the field grows and shrinks with its rows.
 
 ### Declarative page hydration, address jumps and search
 
-When a page already carries its blocks in HTML, `blocks.hydrate(target, options?)`
+When a page already carries its blocks in HTML, `blocks.hydrate(target?, options?)`
 turns them into a field in place. `target` is a `[data-content-page]` element or
-its parent; every direct `[data-content-block]` child becomes one block.
+its parent; without it, the first `[data-content-page]` on the page is used.
+Every direct `[data-content-block]` child becomes one block.
 
 ```html
 <section id="page" data-content-page="contact.html"

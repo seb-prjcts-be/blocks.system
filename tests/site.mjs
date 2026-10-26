@@ -116,13 +116,13 @@ for (const [page, entry] of docsShellEntries) {
 }
 
 assert.deepEqual(DOCS_RELEASE, {
-  sourceRef: "v0.6.1",
-  releaseStatus: "released",
+  sourceRef: "main",
+  releaseStatus: "unreleased",
   packageVersion: "0.6.1",
   stableRef: "v0.6.1",
   nextRelease: null,
   stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.6.1"
-}, "docs release metadata must identify the released v0.6.1 source");
+}, "docs release metadata must identify the unreleased main source while v0.6.1 remains the latest stable tag");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
@@ -463,7 +463,7 @@ assert.ok(referenceOrder.every((id, index) => index === 0 || referenceSectionsSo
 
 const serializedReference = JSON.stringify(docsContent.reference);
 for (const apiName of [
-  "createBlocksSystem(options?)", "system", "attach(target)", "hydrate(target, options?)", "setGrid(columns, rows)", "compact()", "fitHeight()",
+  "createBlocksSystem(options?)", "system", "attach(target)", "hydrate(target?, options?)", "setGrid(columns, rows)", "compact()", "fitHeight()",
   "columns", "rows", "layout", "draggable", "resizable", "labels", "colorArray", "colorVariation", "inversionVariation",
   "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)",
   "exportLayout()", "restoreLayout(layout)", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",

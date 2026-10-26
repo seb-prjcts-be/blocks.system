@@ -194,9 +194,10 @@ zijn rijen.
 ### Declaratieve paginahydratie, adressprongen en zoeken
 
 Staan de blocks van een pagina al in de HTML, dan maakt
-`blocks.hydrate(target, options?)` er ter plaatse een veld van. `target` is een
-`[data-content-page]`-element of zijn ouder; elk direct
-`[data-content-block]`-kind wordt één block.
+`blocks.hydrate(target?, options?)` er ter plaatse een veld van. `target` is een
+`[data-content-page]`-element of zijn ouder; zonder `target` neemt het de eerste
+`[data-content-page]` op de pagina. Elk direct `[data-content-block]`-kind wordt
+één block.
 
 ```html
 <section id="page" data-content-page="contact.html"
