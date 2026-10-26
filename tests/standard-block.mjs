@@ -67,11 +67,12 @@ try {
       out.minWidth = Math.round(short.element.getBoundingClientRect().width);
       out.minWidthToken = getComputedStyle(free.field).getPropertyValue("--blocks-block-min-width").trim();
 
-      // 6. hydrate() activeert declaratieve HTML, extraheert voetnoot en chip-samenvatting, en bewaart persoonlijke volgorde.
+      // 6. hydrate() zonder opties: declaratieve HTML wordt een veld met neutrale namen,
+      //    voetnoten, kopieerknop op aanvraag, persoonlijke volgorde en een terugzetknop.
       const declarativeHost = document.createElement("div");
       declarativeHost.innerHTML = \`
-        <div class="pagina-veld" data-content-page="test-pagina" data-grid-columns="12" data-grid-rows="4">
-          <article id="blok-a" data-content-block data-block-title="Contact" data-span-columns="6" data-span-rows="2">
+        <div id="pagina" data-content-page="test-pagina" data-page-section="school" data-grid-columns="12" data-grid-rows="4">
+          <article id="blok-a" data-content-block data-block-title="Contact" data-block-role="lead" data-block-copy data-span-columns="6" data-span-rows="2">
             <h2>Contact</h2>
             <p>Bel of mail het secretariaat voor vragen.</p>
             <p><a href="mailto:info@example.test">info@example.test</a></p>
@@ -84,63 +85,102 @@ try {
         </div>
       \`;
       document.body.append(declarativeHost);
-      window.localStorage.removeItem("blocks.system:block-posities:test-pagina");
+      window.localStorage.removeItem("blocks.system:layout:test-pagina");
       const hydratedSystem = mod.createBlocksSystem({ layout: "flow-grid", rowHeight: 40 });
       const hydratedField = hydratedSystem.hydrate(declarativeHost);
       await frame();
       const contactCtrl = hydratedField.blocksPage.controllers.find((c) => c.id === "blok-a");
+      const scheduleCtrl = hydratedField.blocksPage.controllers.find((c) => c.id === "blok-b");
       contactCtrl.dock(true);
       await frame();
-      const savedAfterDock = JSON.parse(window.localStorage.getItem("blocks.system:block-posities:test-pagina") || "null");
-      const resetBtn = declarativeHost.querySelector(".veld-terugzetten");
-      const resetVisibleWhenDocked = Boolean(resetBtn);
+      const savedAfterDock = JSON.parse(window.localStorage.getItem("blocks.system:layout:test-pagina") || "null");
+      const resetBtn = declarativeHost.querySelector(".blocks-system-reset");
+      const resetText = resetBtn?.textContent ?? null;
       resetBtn?.click();
       await frame();
-      const savedAfterReset = window.localStorage.getItem("blocks.system:block-posities:test-pagina");
+      const savedAfterReset = window.localStorage.getItem("blocks.system:layout:test-pagina");
       out.hydrate = {
         controllerCount: hydratedField.blocksPage.controllers.length,
-        headingHidden: Boolean(declarativeHost.querySelector("#blok-a h2.block-heading-hidden")),
-        copyButtonExists: Boolean(contactCtrl.element.querySelector(".blocks-system-copy")),
-        colofonMoved: Boolean(declarativeHost.querySelector(".veld-colofon [data-content-footnote]")),
+        fieldId: hydratedField.id,
+        fieldIsPage: hydratedField.classList.contains("blocks-system-page"),
+        section: hydratedField.dataset.section,
+        role: contactCtrl.element.dataset.blockRole ?? null,
+        sourceClass: Boolean(contactCtrl.content.querySelector(":scope > .blocks-system-page-block")),
+        headingHidden: Boolean(declarativeHost.querySelector("#blok-a h2.blocks-system-heading-hidden")),
+        copyOnRequest: Boolean(contactCtrl.element.querySelector(".blocks-system-copy")),
+        noCopyByDefault: !scheduleCtrl.element.querySelector(".blocks-system-copy"),
+        footnotesMoved: Boolean(declarativeHost.querySelector(".blocks-system-footnotes [data-content-footnote]")),
         savedDocked: Boolean(savedAfterDock?.docked?.includes("blok-a")),
-        resetVisibleWhenDocked,
-        restoredAfterReset: contactCtrl.docked === false && savedAfterReset === null
+        resetText,
+        restoredAfterReset: contactCtrl.docked === false && savedAfterReset === null,
+        noSiteBodyClass: !document.body.classList.contains("has-page-blocks")
       };
 
-      // 7. resolveAddress() wijst het gevraagde block aan.
-      const addressed = hydratedSystem.resolveAddress({
-        url: "https://example.test/pagina?block=blok-b",
-        highlightDuration: 500
-      });
+      // 6b. storage: false bewaart niets en toont dus ook geen terugzetknop.
+      const quietHost = document.createElement("div");
+      quietHost.innerHTML = \`
+        <div data-content-page="stille-pagina" data-grid-columns="4" data-grid-rows="1">
+          <article id="stil-a" data-content-block data-block-title="Stil"><p>Niets bewaren.</p></article>
+        </div>
+      \`;
+      document.body.append(quietHost);
+      window.localStorage.removeItem("blocks.system:layout:stille-pagina");
+      const quietField = mod.createBlocksSystem({ layout: "flow-grid", rowHeight: 40 }).hydrate(quietHost, { storage: false, address: false });
+      await frame();
+      quietField.blocksPage.controllers[0].dock(true);
+      await frame();
+      out.quiet = {
+        stored: window.localStorage.getItem("blocks.system:layout:stille-pagina"),
+        resetButton: Boolean(quietHost.querySelector(".blocks-system-reset"))
+      };
+
+      // 7. resolveAddress(url) haalt een gedockt block terug en markeert het.
+      scheduleCtrl.dock(true);
+      await frame();
+      const addressed = hydratedSystem.resolveAddress("https://example.test/pagina?block=blok-b", { highlightDuration: 500 });
       out.addressed = {
         id: addressed?.id ?? null,
-        highlighted: addressed?.classList.contains("is-aangewezen") ?? false
+        undocked: scheduleCtrl.docked === false,
+        marked: addressed?.getAttribute("data-block-addressed") ?? null
       };
 
-      // 8. bindSearch() filtert en rangschikt tegels diakriet-ongevoelig.
+      // 8. bindSearch(input) filtert en rangschikt items diakriet-ongevoelig.
       const searchHost = document.createElement("div");
       searchHost.innerHTML = \`
-        <div class="kaart-zoek" hidden>
-          <input id="kaart-zoekveld" type="search">
-          <p class="kaart-zoek__stand"></p>
+        <div class="zoekvak" hidden>
+          <input id="zoekveld" type="search">
+          <p id="stand"></p>
         </div>
-        <article class="content-block">
-          <ul class="kaart-tegels">
-            <li class="kaart-tegel" data-titel="Algemeen" data-zoek="algemene info voor elke élève"><a href="#a">Algemeen</a></li>
-            <li class="kaart-tegel" data-titel="Élève begeleiding" data-zoek="élève begeleiding op maat"><a href="#b">Élève begeleiding</a></li>
-          </ul>
-        </article>
+        <ul>
+          <li data-search-item data-title="Algemeen" data-search="algemene info voor elke élève"><a href="#a">Algemeen</a></li>
+          <li data-search-item data-title="Élève begeleiding" data-search="élève begeleiding op maat"><a href="#b">Élève begeleiding</a></li>
+        </ul>
       \`;
       document.body.append(searchHost);
-      const searchBound = hydratedSystem.bindSearch({ root: searchHost });
-      const searchInput = searchHost.querySelector("#kaart-zoekveld");
+      const searchBound = hydratedSystem.bindSearch("#zoekveld", { root: searchHost, status: "#stand", shortcut: false });
+      const searchBoundTwice = hydratedSystem.bindSearch("#zoekveld", { root: searchHost, status: "#stand" });
+      const searchInput = searchHost.querySelector("#zoekveld");
+      const boxVisible = !searchHost.querySelector(".zoekvak").hidden;
+      const idleStatus = searchHost.querySelector("#stand").textContent;
       searchInput.value = "eleve";
       searchInput.dispatchEvent(new Event("input", { bubbles: true }));
-      const orderedHrefs = [...searchHost.querySelectorAll(".kaart-treffers .kaart-tegel a")].map((el) => el.getAttribute("href"));
+      const orderedHrefs = [...searchHost.querySelectorAll(".blocks-system-search-results [data-search-item] a")].map((el) => el.getAttribute("href"));
+      const hitStatus = searchHost.querySelector("#stand").textContent;
+      searchInput.value = "xyz";
+      searchInput.dispatchEvent(new Event("input", { bubbles: true }));
+      const noneStatus = searchHost.querySelector("#stand").textContent;
+      searchInput.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
       out.search = {
         searchBound,
+        searchBoundTwice,
+        resultLists: searchHost.querySelectorAll(".blocks-system-search-results").length,
+        boxVisible,
+        idleStatus,
         orderedHrefs,
-        statusText: searchHost.querySelector(".kaart-zoek__stand")?.textContent ?? ""
+        hitStatus,
+        noneStatus,
+        clearedByEscape: searchInput.value === "" && searchHost.querySelector("#stand").textContent === idleStatus,
+        missingInput: hydratedSystem.bindSearch("#bestaat-niet", { root: searchHost })
       };
 
       return out;
@@ -174,19 +214,34 @@ try {
   assert.equal(v.minWidthToken, "180px", "the minimum width is a CSS token consumers can override");
   assert.deepEqual(v.hydrate, {
     controllerCount: 2,
+    fieldId: "pagina",
+    fieldIsPage: true,
+    section: "school",
+    role: "lead",
+    sourceClass: true,
     headingHidden: true,
-    copyButtonExists: true,
-    colofonMoved: true,
+    copyOnRequest: true,
+    noCopyByDefault: true,
+    footnotesMoved: true,
     savedDocked: true,
-    resetVisibleWhenDocked: true,
-    restoredAfterReset: true
-  }, "hydrate() must turn declarative blocks into persistent, resettable blocks with footnotes and copy actions");
-  assert.deepEqual(v.addressed, { id: "blok-b", highlighted: true }, "resolveAddress() must highlight the addressed block");
+    resetText: "reset layout",
+    restoredAfterReset: true,
+    noSiteBodyClass: true
+  }, "hydrate() must turn declarative blocks into persistent, resettable blocks with neutral library names");
+  assert.deepEqual(v.quiet, { stored: null, resetButton: false }, "hydrate({ storage: false }) must store nothing and show no reset button");
+  assert.deepEqual(v.addressed, { id: "blok-b", undocked: true, marked: "true" }, "resolveAddress(url) must undock and mark the addressed block");
   assert.deepEqual(v.search, {
     searchBound: true,
+    searchBoundTwice: true,
+    resultLists: 1,
+    boxVisible: true,
+    idleStatus: "2 blocks",
     orderedHrefs: ["#b", "#a"],
-    statusText: "2 van 2 blokken — beste treffer bovenaan"
-  }, "bindSearch() must rank heading matches first and fold diacritics");
+    hitStatus: "2 of 2 blocks, best match first",
+    noneStatus: "no block found for “xyz”",
+    clearedByEscape: true,
+    missingInput: false
+  }, "bindSearch(input) must rank title matches first, fold diacritics and use the system labels");
   browser.assertNoPageErrors();
   console.log("blocks.system standard block — automatisch veld, startBlock, span/place, regular, minimale breedte, hydrate, resolveAddress en bindSearch OK");
 } finally {

@@ -81,9 +81,10 @@ Wat de testsuite in echte Chromium aantoont (`npm test`):
 - `tests/consumer-grid.mjs`: de atomaire rasterwissel, gedeeltelijke
   `restoreLayout()`-entries zonder `span`/`place`, de vaste foutcode,
   verborgen blocks die bij meten en slepen hun plaats en relatieve DOM-positie
-  behouden, undocken en logische terugkeerpositie bij pinnen, en
-  `hydrate()`, `resolveAddress()`, `bindSearch()` en accentongevoelig
-  gerangschikt zoeken via `list({ query })`;
+  behouden, undocken en logische terugkeerpositie bij pinnen;
+- `tests/standard-block.mjs`: `hydrate()` met en zonder opslag,
+  `resolveAddress(url)` dat een gedockt block terughaalt, en `bindSearch(input)`
+  met accentongevoelige rangschikking, statuslabels en `Escape`;
 - `tests/auto-fit.mjs`: de inhoudsmeting van `fitHeight()` en het negeren van
   een actieve pointerdrag (`[data-dragging]`) en preview-insertie.
 

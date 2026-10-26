@@ -60,19 +60,27 @@ blocks.restoreLayout({
 });
 blocks.reset();
 const hydrateOptions: BlocksHydrateOptions = {
-  storagePrefix: "demo",
+  storage: "demo",
   breakpoints: [{ name: "wide", minWidth: 1080 }],
-  viewportLead: (field) => field.id === "page-blocks",
-  searchShortcutUrl: "kaart?focus=zoek"
+  viewportLead: (field) => field.id === "page",
+  address: true
 };
 const hydratedField: BlocksHydratedField | null = blocks.hydrate(document.body, hydrateOptions);
 hydratedField?.blocksPage.fitContent();
-const addressOptions: BlocksAddressOptions = { queryKey: "block", highlightClass: "is-aangewezen", highlightDuration: 2600 };
-const resolvedTarget: HTMLElement | null = blocks.resolveAddress(addressOptions);
-const searchOptions: BlocksSearchOptions = { root: document, focusParam: "zoek" };
-const searchBound: boolean = blocks.bindSearch(searchOptions);
+blocks.hydrate("main", { storage: false });
+// @ts-expect-error Storage is a prefix or false, not true.
+blocks.hydrate("main", { storage: true });
+const addressOptions: BlocksAddressOptions = { queryKey: "block", highlightDuration: 2600 };
+const resolvedTarget: HTMLElement | null = blocks.resolveAddress("https://example.test/?block=a", addressOptions);
+const resolvedHere: HTMLElement | null = blocks.resolveAddress();
+const searchOptions: BlocksSearchOptions = { items: ".tile", status: "#count", shortcut: false, focus: "search" };
+const searchBound: boolean = blocks.bindSearch("#search", searchOptions);
+const searchLazy: boolean = blocks.bindSearch(document.createElement("input"));
+// @ts-expect-error The search input comes first.
+blocks.bindSearch({ items: ".tile" });
+const resetLabel: string = blocks.labels.reset;
 const gridCode: BlocksGridTooSmallCode = "BLOCKS_GRID_TOO_SMALL";
-void [gridCode, blockPinned, dockPosition, hydratedField, resolvedTarget, searchBound];
+void [gridCode, blockPinned, dockPosition, hydratedField, resolvedTarget, resolvedHere, searchBound, searchLazy, resetLabel];
 // @ts-expect-error A grid switch needs both dimensions.
 blocks.restoreLayout(savedLayout, { grid: { columns: 4 } });
 

@@ -463,11 +463,11 @@ assert.ok(referenceOrder.every((id, index) => index === 0 || referenceSectionsSo
 
 const serializedReference = JSON.stringify(docsContent.reference);
 for (const apiName of [
-  "createBlocksSystem(options?)", "system", "attach(target)", "hydrate(target?, options?)", "setGrid(columns, rows)", "compact()", "fitHeight()",
+  "createBlocksSystem(options?)", "system", "attach(target)", "hydrate(target, options?)", "setGrid(columns, rows)", "compact()", "fitHeight()",
   "columns", "rows", "layout", "draggable", "resizable", "labels", "colorArray", "colorVariation", "inversionVariation",
   "add(content, options?)", "menu(name, options?)", "span(columns, rows)", "place(column, row)",
   "exportLayout()", "restoreLayout(layout)", "registerAdapter(id, adapter, options?)", "mount(id, target, overrides?)",
-  "unmount(target)", "address(id)", "resolveAddress(options?)", "bindSearch(options?)", "blocks:reorder", "blocks:resize", "blocks:change"
+  "unmount(target)", "address(id)", "resolveAddress(url?, options?)", "bindSearch(input, options?)", "blocks:reorder", "blocks:resize", "blocks:change"
 ]) {
   assert.ok(serializedReference.includes(apiName), `reference misses ${apiName}`);
 }

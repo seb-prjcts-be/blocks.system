@@ -30,7 +30,12 @@ const UI_LABELS = Object.freeze({
         close: "close",
         copy: "copy content",
         copied: "content copied",
-        copyFailed: "copy failed"
+        copyFailed: "copy failed",
+        reset: "reset layout",
+        resetTitle: "restore the order, the favorites and the docked blocks",
+        searchCount: "{total} blocks",
+        searchHits: "{hits} of {total} blocks, best match first",
+        searchNone: "no block found for “{query}”"
     }),
     nl: Object.freeze({
         move: "verplaatsen met de pijltjestoetsen",
@@ -45,9 +50,19 @@ const UI_LABELS = Object.freeze({
         close: "sluiten",
         copy: "inhoud kopiëren",
         copied: "inhoud gekopieerd",
-        copyFailed: "kopiëren mislukt"
+        copyFailed: "kopiëren mislukt",
+        reset: "indeling terugzetten",
+        resetTitle: "zet de volgorde, de favorieten en de weggezette blocks terug",
+        searchCount: "{total} blokken",
+        searchHits: "{hits} van {total} blokken, beste treffer bovenaan",
+        searchNone: "geen blok gevonden voor “{query}”"
     })
 });
+
+// Vult {naam}-plaatshouders in een label; onbekende namen blijven staan.
+function formatLabel(template, values) {
+    return template.replace(/\{(\w+)\}/g, (match, name) => (Object.hasOwn(values, name) ? String(values[name]) : match));
+}
 
 function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.blockDefaults.menu") {
     if (value === undefined) return inherited;
@@ -2509,28 +2524,32 @@ export function createBlocksSystem(options = {}) {
         return block;
     }
 
-    function resolveAddress(addressOptions = {}) {
+    function resolveAddress(url = undefined, addressOptions = {}) {
         if (typeof window === "undefined" || typeof document === "undefined") return null;
-        const locationSource = addressOptions.url ? new URL(addressOptions.url, window.location.href) : window.location;
+        const locationSource = url ? new URL(url, window.location.href) : window.location;
         const queryKey = addressOptions.queryKey || "block";
         const requested = new URLSearchParams(locationSource.search).get(queryKey);
         const hash = locationSource.hash;
         const raw = requested || (hash.length > 1 ? hash.slice(1) : "");
         if (!raw) return null;
 
-        let target = null;
+        let id = "";
         try {
-            target = document.getElementById(decodeURIComponent(raw));
+            id = decodeURIComponent(raw);
         } catch {
-            target = null;
+            return null;
         }
+        // Een gedockt block komt eerst terug in het raster, anders valt er
+        // niets aan te wijzen.
+        const controller = objects.get(id);
+        if (controller?.docked) controller.dock(false);
+        const target = controller?.element || document.getElementById(id);
         if (!target) return null;
 
         if (requested && target.classList?.contains("blocks-system-object")) {
-            const highlightClass = addressOptions.highlightClass || "is-aangewezen";
             const duration = Number.isFinite(addressOptions.highlightDuration) ? addressOptions.highlightDuration : 2600;
-            target.classList.add(highlightClass);
-            const clear = () => target.classList.remove(highlightClass);
+            target.setAttribute("data-block-addressed", "true");
+            const clear = () => target.removeAttribute("data-block-addressed");
             window.setTimeout(clear, duration);
             window.addEventListener("pointerdown", clear, { once: true });
             window.addEventListener("keydown", clear, { once: true });
@@ -2548,45 +2567,51 @@ export function createBlocksSystem(options = {}) {
         return target;
     }
 
-    function bindSearch(searchOptions = {}) {
+    function resolveElement(target, root) {
+        if (target instanceof Element) return target;
+        if (typeof target === "string" && target.trim()) return root.querySelector(target);
+        return null;
+    }
+
+    function bindSearch(inputTarget, searchOptions = {}) {
         if (typeof document === "undefined" || typeof window === "undefined") return false;
         const root = searchOptions.root || document;
-        const container = root.querySelector(searchOptions.containerSelector || ".kaart-zoek");
-        const input = root.querySelector(searchOptions.inputSelector || "#kaart-zoekveld");
-        const status = root.querySelector(searchOptions.statusSelector || ".kaart-zoek__stand");
-        if (!container || !input) return false;
+        const input = resolveElement(inputTarget, root);
+        if (!input || !input.parentElement) return false;
+        if (input.dataset.blocksSearch === "true") return true;
 
-        const tileSelector = searchOptions.tileSelector || ".kaart-tegel";
-        const groupListSelector = searchOptions.groupListSelector || ".kaart-tegels";
-        const tiles = Array.from(root.querySelectorAll(tileSelector)).map((element) => ({
+        const tiles = Array.from(root.querySelectorAll(searchOptions.items || "[data-search-item]")).map((element) => ({
             element,
-            title: normalizeSearchText(element.dataset.titel || element.querySelector("a")?.textContent || ""),
-            page: normalizeSearchText(element.dataset.pagina || ""),
+            title: normalizeSearchText(element.dataset.title || element.querySelector("a")?.textContent || ""),
+            page: normalizeSearchText(element.dataset.page || ""),
             display: normalizeSearchText(element.querySelector("a")?.textContent || ""),
-            text: normalizeSearchText(element.dataset.zoek || element.textContent)
+            text: normalizeSearchText(element.dataset.search || element.textContent)
         }));
         if (tiles.length === 0) return false;
+        input.dataset.blocksSearch = "true";
 
-        const groups = Array.from(root.querySelectorAll(groupListSelector)).map((listNode) => ({
-            element: listNode.closest(".blocks-system-object") || listNode.closest(".content-block"),
-            tiles: Array.from(listNode.querySelectorAll(tileSelector))
-        })).filter((group) => group.element);
+        // Tijdens het zoeken wijken de blocks met items voor de trefferlijst;
+        // het block met het zoekveld zelf blijft staan.
+        const searchBlock = input.closest(".blocks-system-object");
+        const groups = [...new Set(tiles.map(({ element }) => element.closest(".blocks-system-object")))]
+            .filter((element) => element && element !== searchBlock);
+        const status = resolveElement(searchOptions.status, root);
 
-        container.hidden = false;
-
+        const box = input.parentElement;
+        box.hidden = false;
         const results = document.createElement("ul");
-        results.className = searchOptions.resultsClass || "kaart-tegels kaart-treffers";
+        results.className = "blocks-system-search-results";
         results.hidden = true;
-        container.after(results);
+        box.after(results);
 
         const filter = () => {
             const query = normalizeSearchText(input.value.trim());
             if (!query) {
                 tiles.forEach(({ element }) => { element.hidden = false; });
-                groups.forEach((group) => { group.element.hidden = false; });
+                groups.forEach((element) => { element.hidden = false; });
                 results.hidden = true;
                 results.replaceChildren();
-                if (status) status.textContent = `${tiles.length} blokken`;
+                if (status) status.textContent = formatLabel(labels.searchCount, { total: tiles.length });
                 return;
             }
 
@@ -2595,7 +2620,7 @@ export function createBlocksSystem(options = {}) {
                 .filter(({ rank }) => Number.isFinite(rank))
                 .sort((a, b) => a.rank - b.rank || a.tile.display.length - b.tile.display.length);
 
-            groups.forEach((group) => { group.element.hidden = true; });
+            groups.forEach((element) => { element.hidden = true; });
             tiles.forEach(({ element }) => { element.hidden = true; });
 
             results.replaceChildren(...hits.map(({ tile }) => {
@@ -2607,13 +2632,19 @@ export function createBlocksSystem(options = {}) {
 
             if (status) {
                 status.textContent = hits.length
-                    ? `${hits.length} van ${tiles.length} blokken — beste treffer bovenaan`
-                    : `geen blok gevonden voor “${input.value.trim()}”`;
+                    ? formatLabel(labels.searchHits, { hits: hits.length, total: tiles.length })
+                    : formatLabel(labels.searchNone, { query: input.value.trim() });
             }
         };
 
         input.addEventListener("input", filter);
         input.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && input.value) {
+                event.preventDefault();
+                input.value = "";
+                filter();
+                return;
+            }
             if (event.key !== "Enter") return;
             const source = results.hidden
                 ? tiles.find(({ element }) => !element.hidden)?.element
@@ -2625,18 +2656,20 @@ export function createBlocksSystem(options = {}) {
             }
         });
 
-        document.addEventListener("keydown", (event) => {
-            if (event.key !== "/" || event.target === input) return;
-            if (event.target?.matches?.("input, textarea, select, [contenteditable]")) return;
-            event.preventDefault();
-            input.focus();
-            input.select?.();
-        });
+        const shortcut = searchOptions.shortcut === undefined ? "/" : searchOptions.shortcut;
+        if (shortcut) {
+            document.addEventListener("keydown", (event) => {
+                if (event.key !== shortcut || event.metaKey || event.ctrlKey || event.altKey) return;
+                if (event.target === input || event.target?.matches?.("input, textarea, select, [contenteditable]")) return;
+                event.preventDefault();
+                input.focus();
+                input.select?.();
+            });
+        }
 
         filter();
 
-        const focusParam = searchOptions.focusParam || "zoek";
-        if (new URLSearchParams(window.location.search).get("focus") === focusParam) {
+        if (new URLSearchParams(window.location.search).get("focus") === (searchOptions.focus || "search")) {
             input.focus();
         }
         return true;
@@ -2654,18 +2687,21 @@ export function createBlocksSystem(options = {}) {
         if (nodes.length === 0) return null;
 
         const pagePath = typeof window !== "undefined" ? window.location.pathname : "";
-        const storagePrefix = hydrateOptions.storagePrefix || "blocks.system:block-posities";
-        const personalLayoutKey = hydrateOptions.storageKey || `${storagePrefix}:${source.dataset.contentPage || pagePath}`;
-        const editorMode = hydrateOptions.editorMode ?? (document.body?.dataset.editorMode === "true");
+        // storage: false bewaart niets; een string is het voorvoegsel van de
+        // sleutel, waarachter de paginanaam komt.
+        const storagePrefix = hydrateOptions.storage === false
+            ? ""
+            : String(hydrateOptions.storage ?? "").trim() || "blocks.system:layout";
+        const personalLayoutKey = storagePrefix ? `${storagePrefix}:${source.dataset.contentPage || pagePath}` : "";
+        const persist = Boolean(personalLayoutKey) && typeof localStorage !== "undefined";
         const footnotes = Array.from(source.querySelectorAll(":scope > [data-content-footnote]"));
         footnotes.forEach((note) => note.remove());
 
         const field = document.createElement("div");
-        field.id = hydrateOptions.fieldId || "page-blocks";
-        field.className = hydrateOptions.fieldClass || "page-blocks";
+        field.className = "blocks-system-page";
         field.dataset.page = source.dataset.contentPage || "";
-        field.dataset.rubriek = source.dataset.pageSection || "";
-        field.dataset.rubriekLabel = source.dataset.pageSectionLabel || "";
+        field.dataset.section = source.dataset.pageSection || "";
+        field.dataset.sectionLabel = source.dataset.pageSectionLabel || "";
         const gridModes = Array.isArray(hydrateOptions.breakpoints) && hydrateOptions.breakpoints.length > 0
             ? hydrateOptions.breakpoints
             : DEFAULT_GRID_MODES;
@@ -2675,19 +2711,18 @@ export function createBlocksSystem(options = {}) {
             field.dataset[`grid${key}Rows`] = source.dataset[`grid${key}Rows`];
         }
         source.replaceWith(field);
+        // Het veld neemt de plaats en dus ook het id van de bron over.
+        if (source.id) field.id = source.id;
         attach(field);
 
         const pageUrl = source.dataset.contentPage || pagePath.split("/").pop() || "index.html";
-        if (typeof hydrateOptions.onField === "function") {
-            hydrateOptions.onField(field, source, api);
-        }
 
         const controllers = nodes.map((node) => {
             const id = node.dataset.blockId || node.id;
             const title = node.dataset.blockTitle;
             const heading = node.querySelector("h2, h3, h4");
             const description = extractBlockDescription(node);
-            node.classList.add("block-body");
+            node.classList.add("blocks-system-page-block");
 
             const controller = add(node, {
                 id,
@@ -2695,24 +2730,21 @@ export function createBlocksSystem(options = {}) {
                 variant: node.dataset.blockVariant || "regular",
                 summary: createChipSummaryNode(description),
                 menu: {
-                    copy: Boolean(node.querySelector('a[href^="mailto:"], a[href^="tel:"]'))
+                    copy: node.hasAttribute("data-block-copy") && node.dataset.blockCopy !== "false"
                 }
             });
             controller.element.id = id;
             controller.element.dataset.blockTitle = title;
-            if (node.dataset.blockRole === "lead") controller.element.classList.add("is-page-lead");
-            if (typeof hydrateOptions.onBlock === "function") {
-                hydrateOptions.onBlock(controller, node, field, api);
-            }
+            if (node.dataset.blockRole) controller.element.dataset.blockRole = node.dataset.blockRole;
 
             register({
                 ...controller.describe({ url: pageUrl }),
-                category: field.dataset.rubriek,
+                category: field.dataset.section,
                 description,
                 medium: "html"
             }, { replace: true });
 
-            if (heading) heading.classList.add("block-heading-hidden");
+            if (heading) heading.classList.add("blocks-system-heading-hidden");
             return controller;
         });
 
@@ -2752,7 +2784,7 @@ export function createBlocksSystem(options = {}) {
 
         if (footnotes.length > 0) {
             const footer = document.createElement("footer");
-            footer.className = "veld-colofon";
+            footer.className = "blocks-system-footnotes";
             footer.append(...footnotes);
             wrapper.append(footer);
         }
@@ -2793,7 +2825,7 @@ export function createBlocksSystem(options = {}) {
 
         layout();
         saveBaseline();
-        if (!editorMode && typeof localStorage !== "undefined") {
+        if (persist) {
             try {
                 const saved = JSON.parse(localStorage.getItem(personalLayoutKey) || "null");
                 if (saved?.version === 1) {
@@ -2849,13 +2881,13 @@ export function createBlocksSystem(options = {}) {
             if (resetButton) return;
             resetButton = document.createElement("button");
             resetButton.type = "button";
-            resetButton.className = hydrateOptions.resetClass || "veld-terugzetten";
-            resetButton.textContent = hydrateOptions.resetLabel || "Alles terugzetten";
-            resetButton.title = hydrateOptions.resetTitle || "Zet favorieten, weggezette blocks en de volgorde terug zoals de redactie ze koos";
+            resetButton.className = "blocks-system-reset";
+            resetButton.textContent = labels.reset;
+            resetButton.title = labels.resetTitle;
             resetButton.addEventListener("click", () => {
                 resetting = true;
                 try {
-                    if (typeof localStorage !== "undefined") localStorage.removeItem(personalLayoutKey);
+                    if (persist) localStorage.removeItem(personalLayoutKey);
                     reset();
                     layout(true);
                 } finally {
@@ -2866,7 +2898,7 @@ export function createBlocksSystem(options = {}) {
             field.after(resetButton);
         };
         const savePersonalPositions = () => {
-            if (editorMode || resetting || typeof localStorage === "undefined") return;
+            if (!persist || resetting) return;
             const snapshot = exportLayout().blocks;
             localStorage.setItem(personalLayoutKey, JSON.stringify({
                 version: 1,
@@ -2876,7 +2908,7 @@ export function createBlocksSystem(options = {}) {
             }));
             ensureResetButton();
         };
-        if (!editorMode && typeof localStorage !== "undefined") {
+        if (persist) {
             try {
                 if (localStorage.getItem(personalLayoutKey)) ensureResetButton();
             } catch {
@@ -2912,19 +2944,7 @@ export function createBlocksSystem(options = {}) {
         });
 
         wrapper.dataset.blocksReady = "true";
-        document.body?.classList.add("has-page-blocks");
-        if (hydrateOptions.resolveAddress !== false) {
-            resolveAddress(hydrateOptions.addressOptions);
-        }
-        if (hydrateOptions.searchShortcutUrl && !document.body?.classList.contains(hydrateOptions.searchPageClass || "page-kaart")) {
-            document.addEventListener("keydown", (event) => {
-                if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
-                const active = document.activeElement;
-                if (active && active.matches("input, textarea, select, [contenteditable]")) return;
-                event.preventDefault();
-                window.location.href = hydrateOptions.searchShortcutUrl;
-            });
-        }
+        if (hydrateOptions.address !== false) resolveAddress();
         return field;
     }
 

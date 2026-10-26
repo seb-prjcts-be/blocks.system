@@ -21,6 +21,15 @@ export interface BlocksLabels {
   copy: string;
   copied: string;
   copyFailed: string;
+  /** Text of the button hydrate() shows while a visitor layout is stored. */
+  reset: string;
+  resetTitle: string;
+  /** bindSearch() status without a query; {total} is filled in. */
+  searchCount: string;
+  /** bindSearch() status with hits; {hits} and {total} are filled in. */
+  searchHits: string;
+  /** bindSearch() status without hits; {query} is filled in. */
+  searchNone: string;
 }
 
 export type BlocksLayoutMode = "free" | "fixed-grid" | "flow-grid";
@@ -221,41 +230,36 @@ export interface BlocksHydrateBreakpoint {
 }
 
 export interface BlocksHydrateOptions {
-  fieldId?: string;
-  fieldClass?: string;
-  storageKey?: string;
-  storagePrefix?: string;
-  editorMode?: boolean;
+  /** localStorage key prefix for the visitor's order, docked and pinned blocks; the page name follows it. false stores nothing. Defaults to "blocks.system:layout". */
+  storage?: string | false;
+  /** Width modes for data-grid-{name}-columns/rows and data-block-span-{name}. Defaults to wide 1080, medium 680, compact 0. */
   breakpoints?: readonly BlocksHydrateBreakpoint[];
+  /** Blocks containing a match keep their span instead of fitting their content. Defaults to "[data-block-fixed-height]". */
   fixedMediaSelector?: string;
+  /** Let the [data-block-role="lead"] block fill the viewport height. */
   viewportLead?: boolean | ((field: Element, source: Element) => boolean);
-  resetClass?: string;
-  resetLabel?: string;
-  resetTitle?: string;
-  resolveAddress?: boolean;
-  addressOptions?: BlocksAddressOptions;
-  searchShortcutUrl?: string;
-  searchPageClass?: string;
-  onField?: (field: HTMLElement, source: Element, system: BlocksSystem) => void;
-  onBlock?: (controller: BlockController, sourceNode: Element, field: HTMLElement, system: BlocksSystem) => void;
+  /** Call resolveAddress() after hydration. Defaults to true. */
+  address?: boolean;
 }
 
 export interface BlocksAddressOptions {
-  url?: string | URL;
+  /** Query parameter that names the block. Defaults to "block". */
   queryKey?: string;
-  highlightClass?: string;
+  /** Milliseconds data-block-addressed stays on the block. Defaults to 2600. */
   highlightDuration?: number;
 }
 
 export interface BlocksSearchOptions {
+  /** Where the input selector, items and status are looked up. Defaults to document. */
   root?: Document | Element;
-  containerSelector?: string;
-  inputSelector?: string;
-  statusSelector?: string;
-  tileSelector?: string;
-  groupListSelector?: string;
-  resultsClass?: string;
-  focusParam?: string;
+  /** Items to search. Defaults to "[data-search-item]". */
+  items?: string;
+  /** Element or selector that shows the hit count. */
+  status?: string | Element | null;
+  /** Key that focuses the input from anywhere on the page; false turns it off. Defaults to "/". */
+  shortcut?: string | false;
+  /** Value of ?focus= that focuses the input on load. Defaults to "search". */
+  focus?: string;
 }
 
 export interface BlocksHydratedPage {
@@ -306,10 +310,10 @@ export interface BlocksSystem {
   attach(target: string | Element): BlocksSystem;
   /** Hydrate declarative HTML blocks in a field with responsive spans, auto-fit, deep-link resolution and optional visitor persistence. */
   hydrate(target: string | Element, options?: BlocksHydrateOptions): BlocksHydratedField | null;
-  /** Scroll to and highlight the block addressed by ?block= or #hash in the URL. */
-  resolveAddress(options?: BlocksAddressOptions): HTMLElement | null;
-  /** Bind diacritic-insensitive live filtering and relevance ranking to a search input and item tiles. */
-  bindSearch(options?: BlocksSearchOptions): boolean;
+  /** Undock, scroll to and mark the block named by ?block= or #hash in url (defaults to the current location). */
+  resolveAddress(url?: string | URL, options?: BlocksAddressOptions): HTMLElement | null;
+  /** Bind diacritic-insensitive live filtering and relevance ranking to a search input and its items. */
+  bindSearch(input: string | Element, options?: BlocksSearchOptions): boolean;
   /** Fix the columns and set the minimum rows; rows grow and shrink with the content. */
   setGrid(columns: number, minRows: number): BlocksSystem;
   compact(): BlocksSystem;

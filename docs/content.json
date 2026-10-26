@@ -577,34 +577,29 @@
         { "id": "api-window", "cells": ["property · window.blocks.system", "BlocksSystem", "The same shared instance exposed in a browser."] },
         { "cells": ["option · catalogUrl", "string | URL | null · null", "Base URL used by address() when a block has no url of its own."] },
         { "cells": ["option · font", "{ family, href? } | null · null", "Set a family and optional stylesheet URL; blocks.font remains writable."] },
-        { "cells": ["option · labels", "Partial<{ move, resize, restore, minimize, dock, undock, pin, unpin, pinnedStaysVisible, close, copy, copied, copyFailed }>", "Override resolved accessible labels; blocks.labels is readonly."] },
+        { "cells": ["option · labels", "Partial<BlocksLabels>", "Override move, resize, restore, minimize, dock, undock, pin, unpin, pinnedStaysVisible, close, copy, copied, copyFailed, reset, resetTitle, searchCount, searchHits or searchNone; blocks.labels is readonly."] },
         { "cells": ["option · blocks", "BlockDefinition[] · []", "Register definitions during creation."] }
       ]
     },
     "reference-container": {
       "title": "attach a container",
-      "intro": "Attach the system to one existing element before adding content, or hydrate a declarative [data-content-page] and its direct [data-content-block] children in place. A selector and an Element are both accepted.",
+      "intro": "Attach the system to one existing element before adding content, or let hydrate() turn a declarative [data-content-page] and its direct [data-content-block] children into a field in place. A selector and an Element are both accepted.",
       "code": [
         "blocks.attach(\"#blocks-field\");",
-        "const field = blocks.hydrate(\"main .main-wrapper\", {",
-        "  storagePrefix: \"site:positions\"",
-        "});"
+        "const field = blocks.hydrate(\"#page\");"
       ],
       "headers": ["kind + contract", "returns / type", "purpose"],
       "rows": [
         { "id": "api-attach", "cells": ["method · attach(target)", "blocks", "Attach to a selector or Element."] },
         { "cells": ["property · field", "Element | null", "The currently attached field."] },
-        { "id": "api-hydrate", "cells": ["method · hydrate(target?, options?)", "BlocksHydratedField | null", "Replace [data-content-page] and its direct [data-content-block] children with an attached field; moves [data-content-footnote] into footer.veld-colofon and exposes field.blocksPage."] },
-        { "cells": ["property · field.blocksPage", "{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }", "Live page handle on the hydrated field for inspecting the active breakpoint layout, applying a composition or re-measuring content."] },
-        { "cells": ["option · fieldId · fieldClass", "string · \"page-blocks\"", "Id and class name for the created field element."] },
-        { "cells": ["option · storageKey · storagePrefix", "string", "Full localStorage key, or prefix (\"blocks.system:block-posities\") combined with the page name, for visitor order, docked and pinned state."] },
-        { "cells": ["option · editorMode", "boolean", "Skip visitor localStorage restore and save when true; defaults to body[data-editor-mode=\"true\"]."] },
+        { "id": "api-hydrate", "cells": ["method · hydrate(target, options?)", "BlocksHydratedField | null", "Replace [data-content-page] and its direct [data-content-block] children with a field.blocks-system-page that keeps the source id; moves [data-content-footnote] into footer.blocks-system-footnotes and exposes field.blocksPage."] },
+        { "cells": ["property · field.blocksPage", "{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }", "Live page handle on the hydrated field: inspect the active breakpoint layout, apply a composition, re-measure content, or loop over controllers for site-specific changes."] },
+        { "cells": ["hook · data-block-copy · data-block-role", "attribute on [data-content-block]", "data-block-copy adds a copy button; data-block-role is copied onto the block element, and \"lead\" works with viewportLead."] },
+        { "cells": ["option · storage", "string | false · \"blocks.system:layout\"", "localStorage key prefix, followed by the page name, for the visitor's order, docked and pinned blocks. false stores nothing and shows no reset button."] },
         { "cells": ["option · breakpoints", "readonly { name, minWidth }[]", "Responsive modes matched by width (defaults: wide 1080, medium 680, compact 0) for data-grid-{name}-columns/rows and data-block-span-{name}."] },
         { "cells": ["option · fixedMediaSelector · viewportLead", "string · boolean | fn", "Skip fitHeight() on blocks matching fixedMediaSelector (\"[data-block-fixed-height]\") and size a [data-block-role=\"lead\"] block to the viewport when viewportLead is true."] },
-        { "cells": ["option · resetClass · resetLabel · resetTitle", "string", "Class (\"veld-terugzetten\"), label (\"Alles terugzetten\") and title for the reset button shown while a visitor layout is stored."] },
-        { "cells": ["option · resolveAddress · addressOptions", "boolean · BlocksAddressOptions", "Call resolveAddress(addressOptions) after hydration unless resolveAddress is false."] },
-        { "cells": ["option · searchShortcutUrl · searchPageClass", "string", "Open searchShortcutUrl when / is pressed outside inputs on pages without searchPageClass (\"page-kaart\")."] },
-        { "cells": ["option · onField · onBlock", "function", "Callbacks onField(field, source, blocks) and onBlock(block, sourceNode, field, blocks) during hydration."] }
+        { "cells": ["option · address", "boolean · true", "Call resolveAddress() after hydration; false leaves the URL alone."] },
+        { "cells": ["hook · blocks-system-reset · blocks-system-heading-hidden", "button · heading", "The reset button shown while a visitor layout is stored (text from labels.reset), and the hook on each block's first heading; hide that heading visually in your own CSS."] }
       ]
     },
     "reference-grid": {
@@ -799,9 +794,9 @@
         { "cells": ["method · describe(options?)", "definition", "Serialize this live block for the built-in html adapter."] },
         { "cells": ["option · options.url", "string | URL", "Name the page in the serialized definition."] },
         { "id": "api-address", "cells": ["method · address(id)", "string", "Build ?block=id from definition.url or the system catalogUrl."] },
-        { "id": "api-resolve-address", "cells": ["method · resolveAddress(options?)", "HTMLElement | null", "Scroll to the element named by ?block= or #hash and briefly highlight a matching block."] },
-        { "cells": ["option · url · queryKey", "string | URL · \"block\"", "Location to inspect (defaults to window.location) and query parameter name."] },
-        { "cells": ["option · highlightClass · highlightDuration", "\"is-aangewezen\" · 2600", "Class added to a ?block= target and timeout in ms before it clears (or on first pointerdown/keydown)."] }
+        { "id": "api-resolve-address", "cells": ["method · resolveAddress(url?, options?)", "HTMLElement | null", "Read ?block= or #hash from url (defaults to the current location), undock that block, scroll to it and briefly mark it."] },
+        { "cells": ["option · queryKey", "string · \"block\"", "Query parameter that names the block in url."] },
+        { "cells": ["option · highlightDuration", "number · 2600", "Milliseconds data-block-addressed=\"true\" stays on a ?block= target, or until the first pointerdown or keydown."] }
       ]
     },
     "reference-definition-create": {
@@ -847,10 +842,9 @@
         { "cells": ["filter · filters.medium", "string", "Keep definitions with this medium."] },
         { "cells": ["filter · filters.category", "string", "Keep definitions in this category."] },
         { "cells": ["method · get(id)", "definition | null", "Read one registered definition."] },
-        { "id": "api-bind-search", "cells": ["method · bindSearch(options?)", "boolean", "Bind diacritic-insensitive live filtering, relevance ranking, Enter jump and / focus to search tiles in the DOM."] },
-        { "cells": ["option · root · focusParam", "Document | Element · \"zoek\"", "Root queried for elements (document) and ?focus= value that focuses the input on load."] },
-        { "cells": ["option · containerSelector · inputSelector · statusSelector", "\".kaart-zoek\" · \"#kaart-zoekveld\" · \".kaart-zoek__stand\"", "Selectors for the hidden search wrapper, search input and hit counter."] },
-        { "cells": ["option · tileSelector · groupListSelector · resultsClass", "\".kaart-tegel\" · \".kaart-tegels\" · \"kaart-tegels kaart-treffers\"", "Selectors for item tiles and grouped lists, plus the class on the inserted ranked results list."] }
+        { "id": "api-bind-search", "cells": ["method · bindSearch(input, options?)", "boolean", "Bind diacritic-insensitive live filtering, relevance ranking, Enter jump, Escape clear and / focus to a search input (selector or Element). A hidden wrapper around the input becomes visible and the ranked ul.blocks-system-search-results follows it. Returns false when the input or the items are missing."] },
+        { "cells": ["option · items · status · root", "\"[data-search-item]\" · string | Element · document", "Items to search (read via data-title or the first link, data-page and data-search or the text), the element that shows the hit count, and where both are looked up."] },
+        { "cells": ["option · shortcut · focus", "\"/\" | false · \"search\"", "Key that focuses the input from anywhere, and the ?focus= value that focuses it on load."] }
       ]
     },
     "reference-adapter-methods": {

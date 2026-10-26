@@ -187,38 +187,83 @@ become fixed tracks and the field grows and shrinks with its rows.
 
 ### Declarative page hydration, address jumps and search
 
-When a server-rendered or static page already carries its blocks in HTML,
-`blocks.hydrate(target?, options?)` turns a `[data-content-page]` container and
-its direct `[data-content-block]` children into an attached field in place. It
-reads per-breakpoint grid dimensions (`data-grid-wide-columns`,
-`data-grid-wide-rows`, and matching `medium` or `compact` attributes) and
-per-block spans (`data-block-span-wide`, ...), registers each block's HTML
-definition, restores and saves visitor order, docked and pinned state under
-`storageKey` or `storagePrefix` (skipped when `editorMode` is true), moves an
-optional `[data-content-footnote]` into `footer.veld-colofon`, wires a reset
-button while a visitor layout is stored, and exposes `field.blocksPage`
-(`{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }`):
+When a page already carries its blocks in HTML, `blocks.hydrate(target, options?)`
+turns them into a field in place. `target` is a `[data-content-page]` element or
+its parent; every direct `[data-content-block]` child becomes one block.
 
-```js
-const field = blocks.hydrate("main .main-wrapper", {
-  storagePrefix: "site:positions"
-});
+```html
+<section id="page" data-content-page="contact.html"
+         data-grid-wide-columns="12" data-grid-wide-rows="4">
+  <article data-content-block data-block-id="contact" data-block-title="Contact"
+           data-block-span-wide="6 2" data-block-copy>
+    <h2>Contact</h2>
+    <p><a href="mailto:info@example.test">info@example.test</a></p>
+  </article>
+  <footer data-content-footnote><p>Updated in October.</p></footer>
+</section>
 ```
 
-`blocks.resolveAddress(options?)` reads `?block=` (and `#block-id` when
-`hashFallback` is true) from `location`, undocks a docked target block, scrolls
-it into view and marks it with `data-block-gericht="true"` for `highlightMs`.
-`hydrate()` calls `resolveAddress()` automatically unless
-`resolveAddress: false` is set.
+```js
+const field = blocks.hydrate("#page");
+```
 
-`blocks.list({ query, adapter, medium, category })` splits a multi-word `query`
-into diacritic-insensitive tokens (`ë` matches `e`), requires every token to
-match across `label`, `summary`, `text`, `tags`, `category`, `pageTitle`, `id`,
-`medium` or `adapter`, and orders matches by relevance (title before summary
-before body text, with Dutch `nl` collation as tie-breaker).
-`blocks.bindSearch(options?)` connects that ranked search to a DOM search input,
-renders a flat ranked results list while typing, opens the top hit on `Enter`,
-clears on `Escape`, and focuses the input on `/` or `?focus=zoek`.
+Without options, `hydrate()` does the following:
+
+- It reads the grid and the spans per width mode (`wide` from 1080px, `medium`
+  from 680px, `compact` below that) and fits each block to its content.
+- The field takes over the source's `id`, so `#page` now names the field. It
+  carries the class `blocks-system-page`.
+- Each block's first heading gets `blocks-system-heading-hidden`, because the
+  title already sits in the titlebar. The class is a hook: hide it visually in
+  your own CSS.
+- A block with `data-block-copy` gets a copy button.
+- `[data-content-footnote]` moves into `footer.blocks-system-footnotes` after
+  the field.
+- The visitor's order, docked and pinned blocks are kept in `localStorage`
+  under `blocks.system:layout:` plus the page name. While something is stored,
+  a `button.blocks-system-reset` puts the page back.
+- It calls `resolveAddress()`.
+
+Five options change that: `storage` (another key prefix, or `false` to store
+nothing), `breakpoints`, `fixedMediaSelector`, `viewportLead` and
+`address: false`. The returned field carries `field.blocksPage`
+(`{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }`);
+loop over `controllers` when a site wants to add its own classes or colours.
+
+`blocks.resolveAddress(url?, options?)` reads `?block=` or `#id` from `url`, or
+from the current location. A docked block comes back into the grid first. The
+page scrolls to the block, and with `?block=` it gets
+`data-block-addressed="true"` for `highlightDuration` milliseconds (2600), or
+until the next click or key.
+
+`blocks.list({ query, adapter, medium, category })` ignores accents in a query
+(`é` finds `e`) and ranks the matches: the title first, then the rest of the
+definition. A query of several words finds definitions that contain every word.
+`blocks.bindSearch(input, options?)` connects that ranking to a search field on
+the page:
+
+```html
+<div hidden>
+  <input id="search" type="search">
+  <p id="search-status"></p>
+</div>
+<ul>
+  <li data-search-item data-search="opening hours"><a href="contact.html">Contact</a></li>
+</ul>
+```
+
+```js
+blocks.bindSearch("#search", { status: "#search-status" });
+```
+
+Items are `[data-search-item]` elements. Each one is found by `data-title` (or
+its first link), `data-page` and `data-search` (or its text). If the field's
+wrapper is hidden, for pages without JavaScript, `bindSearch()` shows it. While
+you type, a `ul.blocks-system-search-results` after that wrapper lists the hits,
+best first, and the blocks that hold items step aside. `Enter` opens the first
+hit, `Escape` clears the field, and `/` or `?focus=search` puts the cursor in
+it. The options are `items`, `status`, `root`, `shortcut` (`false` turns `/`
+off) and `focus`. The status texts come from `labels`.
 
 ### Optional content storage
 
@@ -309,8 +354,9 @@ blocks.register({
 
 Accessible menu labels follow the document language (`nl` or English) and can
 be overridden with `createBlocksSystem({ labels: { move, resize, minimize, dock, undock,
-pin, unpin, pinnedStaysVisible, restore, close, copy, copied, copyFailed } })`. A locked
-layout removes menu headers from the keyboard tab order; their action buttons remain available.
+pin, unpin, pinnedStaysVisible, restore, close, copy, copied, copyFailed, reset, resetTitle,
+searchCount, searchHits, searchNone } })`. The search labels fill in `{total}`, `{hits}` and
+`{query}`. A locked layout removes menu headers from the keyboard tab order; their action buttons remain available.
 
 Every new block starts with one reversible close action. It moves the block to
 a compact dock rail (`dockPosition: "top"` or `"bottom"`), shows its titlebar

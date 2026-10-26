@@ -41,7 +41,12 @@ assert.deepEqual(singleton.labels, {
   close: "close",
   copy: "copy content",
   copied: "content copied",
-  copyFailed: "copy failed"
+  copyFailed: "copy failed",
+  reset: "reset layout",
+  resetTitle: "restore the order, the favorites and the docked blocks",
+  searchCount: "{total} blocks",
+  searchHits: "{hits} of {total} blocks, best match first",
+  searchNone: "no block found for “{query}”"
 }, "the environment-neutral singleton must expose English UI labels");
 
 const minUrl = pathToFileURL(minPath);

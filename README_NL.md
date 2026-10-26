@@ -193,39 +193,87 @@ zijn rijen.
 
 ### Declaratieve paginahydratie, adressprongen en zoeken
 
-Wanneer een statische of servergerenderde pagina haar blocks al in HTML bevat,
-vormt `blocks.hydrate(target?, options?)` een `[data-content-page]`-container en
-de directe `[data-content-block]`-kindelementen ter plaatse om tot een gekoppeld
-veld. De methode leest per breakpoint de rastermaten (`data-grid-wide-columns`,
-`data-grid-wide-rows` en bijpassende `medium`- of `compact`-attributen) en
-blockspans (`data-block-span-wide`, ...), registreert de HTML-definitie van elk
-block, herstelt en bewaart de bezoekersvolgorde en dock- en pinstatus onder
-`storageKey` of `storagePrefix` (overgeslagen bij `editorMode`), verplaatst een
-optionele `[data-content-footnote]` naar `footer.veld-colofon`, toont een
-terugzetknop zolang er een bezoekersindeling bewaard is en plaatst
-`field.blocksPage` (`{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }`) op het veld:
+Staan de blocks van een pagina al in de HTML, dan maakt
+`blocks.hydrate(target, options?)` er ter plaatse een veld van. `target` is een
+`[data-content-page]`-element of zijn ouder; elk direct
+`[data-content-block]`-kind wordt één block.
 
-```js
-const field = blocks.hydrate("main .main-wrapper", {
-  storagePrefix: "site:positions"
-});
+```html
+<section id="page" data-content-page="contact.html"
+         data-grid-wide-columns="12" data-grid-wide-rows="4">
+  <article data-content-block data-block-id="contact" data-block-title="Contact"
+           data-block-span-wide="6 2" data-block-copy>
+    <h2>Contact</h2>
+    <p><a href="mailto:info@example.test">info@example.test</a></p>
+  </article>
+  <footer data-content-footnote><p>Bijgewerkt in oktober.</p></footer>
+</section>
 ```
 
-`blocks.resolveAddress(options?)` leest `?block=` (en `#block-id` wanneer
-`hashFallback` aan staat) uit `location`, haalt een gedockt doelblock uit de
-dockrail, scrollt het in beeld en markeert het gedurende `highlightMs` met
-`data-block-gericht="true"`. `hydrate()` roept `resolveAddress()` automatisch
-aan tenzij `resolveAddress: false` is meegegeven.
+```js
+const field = blocks.hydrate("#page");
+```
 
-`blocks.list({ query, adapter, medium, category })` splitst een meerwoordige
-`query` in accentongevoelige zoektermen (`ë` matcht `e`), eist dat elke term
-voorkomt in `label`, `summary`, `text`, `tags`, `category`, `pageTitle`, `id`,
-`medium` of `adapter`, en sorteert treffers op relevantie (titel vóór
-samenvatting vóór lopende tekst, met Nederlandse `nl`-sortering bij gelijke
-score). `blocks.bindSearch(options?)` koppelt dat gerangschikte zoeken aan een
-zoekveld in de DOM, toont tijdens het typen een platte trefferlijst op
-relevantie, opent bij `Enter` de beste treffer, wist met `Escape` en geeft het
-zoekveld focus bij `/` of `?focus=zoek`.
+Zonder opties doet `hydrate()` het volgende:
+
+- Het leest het raster en de spans per breedtemodus (`wide` vanaf 1080px,
+  `medium` vanaf 680px, `compact` daaronder) en past elk block aan zijn inhoud
+  aan.
+- Het veld neemt het `id` van de bron over, zodat `#page` nu het veld is. Het
+  krijgt de klasse `blocks-system-page`.
+- De eerste kop van elk block krijgt `blocks-system-heading-hidden`, want de
+  titel staat al in de titelbalk. Die klasse is een haak: verberg ze visueel in
+  je eigen CSS.
+- Een block met `data-block-copy` krijgt een kopieerknop.
+- `[data-content-footnote]` verhuist naar `footer.blocks-system-footnotes` na
+  het veld.
+- De volgorde, de gedockte en de vastgezette blocks van de bezoeker komen in
+  `localStorage` onder `blocks.system:layout:` plus de paginanaam. Zolang er iets
+  bewaard is, zet een `button.blocks-system-reset` de pagina terug.
+- Het roept `resolveAddress()` aan.
+
+Vijf opties veranderen dat: `storage` (een ander voorvoegsel, of `false` om
+niets te bewaren), `breakpoints`, `fixedMediaSelector`, `viewportLead` en
+`address: false`. Het teruggegeven veld draagt `field.blocksPage`
+(`{ blocks, controllers, currentLayout(), applyComposition(pageLayout), fitContent() }`);
+loop over `controllers` wanneer een site er eigen klassen of kleuren aan wil
+geven.
+
+`blocks.resolveAddress(url?, options?)` leest `?block=` of `#id` uit `url`, of
+uit de huidige locatie. Een gedockt block komt eerst terug in het raster. De
+pagina scrolt naar het block, en bij `?block=` krijgt het
+`data-block-addressed="true"`, gedurende `highlightDuration` milliseconden
+(2600) of tot de volgende klik of toets.
+
+`blocks.list({ query, adapter, medium, category })` negeert accenten in een
+zoekvraag (`é` vindt `e`) en rangschikt de treffers: eerst de titel, dan de rest
+van de definitie. Een zoekvraag van meerdere woorden vindt definities waarin elk
+woord voorkomt. `blocks.bindSearch(input, options?)` koppelt die rangschikking
+aan een zoekveld op de pagina:
+
+```html
+<div hidden>
+  <input id="search" type="search">
+  <p id="search-status"></p>
+</div>
+<ul>
+  <li data-search-item data-search="openingsuren"><a href="contact.html">Contact</a></li>
+</ul>
+```
+
+```js
+blocks.bindSearch("#search", { status: "#search-status" });
+```
+
+Items zijn `[data-search-item]`-elementen. Elk item wordt gevonden via
+`data-title` (of zijn eerste link), `data-page` en `data-search` (of zijn
+tekst). Is het omhulsel van het zoekveld verborgen, voor pagina's zonder
+JavaScript, dan maakt `bindSearch()` het zichtbaar. Tijdens het typen toont een
+`ul.blocks-system-search-results` na dat omhulsel de treffers, de beste eerst,
+en wijken de blocks met items. `Enter` opent de eerste treffer, `Escape` maakt
+het veld leeg, en `/` of `?focus=search` zet de cursor erin. De opties zijn
+`items`, `status`, `root`, `shortcut` (`false` zet `/` uit) en `focus`. De
+statusteksten komen uit `labels`.
 
 ### Optionele inhoudsopslag
 
@@ -321,8 +369,9 @@ blocks.register({
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
 overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, dock, undock,
-pin, unpin, pinnedStaysVisible, restore, close, copy, copied, copyFailed } })`. Bij een
-vergrendelde layout verdwijnen menuheaders uit de toetsenbordvolgorde; hun actieknoppen blijven bereikbaar.
+pin, unpin, pinnedStaysVisible, restore, close, copy, copied, copyFailed, reset, resetTitle,
+searchCount, searchHits, searchNone } })`. De zoeklabels vullen `{total}`, `{hits}` en `{query}`
+in. Bij een vergrendelde layout verdwijnen menuheaders uit de toetsenbordvolgorde; hun actieknoppen blijven bereikbaar.
 
 Ieder nieuw block krijgt standaard één omkeerbare sluitactie. Die verplaatst het
 block naar een compacte dockrail (`dockPosition: "top"` of `"bottom"`), toont
