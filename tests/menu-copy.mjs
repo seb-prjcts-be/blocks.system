@@ -30,9 +30,10 @@ try {
       const button = block.element.querySelector(".blocks-system-copy");
       const icon = button?.querySelector("svg");
       const before = button ? {
-        text: button.textContent,
+        icon: button.getAttribute("data-icon"),
+        title: button.getAttribute("title"),
         label: button.getAttribute("aria-label"),
-        icon: icon ? {
+        svg: icon ? {
           viewBox: icon.getAttribute("viewBox"),
           path: icon.querySelector("path")?.getAttribute("d")
         } : null
@@ -46,7 +47,7 @@ try {
       button?.click();
       await new Promise((done) => setTimeout(done, 20));
       const success = button ? {
-        text: button.textContent,
+        icon: button.getAttribute("data-icon"),
         label: button.getAttribute("aria-label"),
         state: button.dataset.state
       } : null;
@@ -60,7 +61,7 @@ try {
         copied,
         success,
         failure: button ? {
-          text: button.textContent,
+          icon: button.getAttribute("data-icon"),
           label: button.getAttribute("aria-label"),
           state: button.dataset.state
         } : null
@@ -73,17 +74,18 @@ try {
   assert.deepEqual(result.result.value, {
     button: true,
     before: {
-      text: "",
+      icon: "copy",
+      title: "copy content",
       label: "Contact copy content",
-      icon: {
-        viewBox: "0 0 24 24",
-        path: "M9 18c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h9c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H9Zm0-2h9V4H9v12ZM5 22c-1.1 0-2-.9-2-2V6h2v14h11v2H5Z"
+      svg: {
+        viewBox: "0 0 12 12",
+        path: "M4.5 4.5h5.5v5.5H4.5ZM7.5 2H2v5.5"
       }
     },
     iconSizes: { copy: [13, 13], minimize: "13px", close: "13px", button: [16, 16] },
     copied: 'Bel 09 224 08 76 "vandaag".',
-    success: { text: "✓", label: "Contact content copied", state: "copied" },
-    failure: { text: "!", label: "Contact copy failed", state: "failed" }
+    success: { icon: "copied", label: "Contact content copied", state: "copied" },
+    failure: { icon: "failed", label: "Contact copy failed", state: "failed" }
   }, "the opt-in menu copy action must copy decoded visible content and show feedback");
   browser.assertNoPageErrors();
   console.log("blocks.system menu copy — leesbare DOM-inhoud en kopieerfeedback OK");

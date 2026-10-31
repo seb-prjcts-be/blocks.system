@@ -15,7 +15,29 @@ const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
 const DEFAULT_MENU_OPTIONS = Object.freeze({ dock: true, close: false, minimize: false, copy: false, pin: false });
 const EMPTY_MENU_OPTIONS = Object.freeze({ dock: false, close: false, minimize: false, copy: false, pin: false });
-const COPY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 18c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h9c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H9Zm0-2h9V4H9v12ZM5 22c-1.1 0-2-.9-2-2V6h2v14h11v2H5Z"/></svg>';
+// Menu-iconen op één raster van 12: lijnen in de menukleur, zodat elke knop
+// even groot en even zwaar oogt, los van het lettertype.
+const MENU_ICON_PATHS = Object.freeze({
+    copy: "M4.5 4.5h5.5v5.5H4.5ZM7.5 2H2v5.5",
+    copied: "M2.5 6.5 5 9l4.5-5.5",
+    failed: "M6 2v5M6 9v1",
+    minimize: "M3 7.5 6 4.5l3 3",
+    restore: "M3 4.5 6 7.5l3-3",
+    pin: "M6 1.5l1.3 2.9 3.2.3-2.4 2.1.7 3.1L6 8.3 3.2 9.9l.7-3.1L1.5 4.7l3.2-.3Z",
+    unpin: "M6 1.5l1.3 2.9 3.2.3-2.4 2.1.7 3.1L6 8.3 3.2 9.9l.7-3.1L1.5 4.7l3.2-.3Z",
+    // × sluit omkeerbaar naar de dock; alleen het definitieve verwijderen
+    // draagt de cirkel.
+    dock: "M3 3l6 6M9 3 3 9",
+    undock: "M4.5 2 2 4.5 4.5 7M2 4.5h5a3 3 0 0 1 0 6H5",
+    close: "M6 1.5a4.5 4.5 0 1 1 0 9a4.5 4.5 0 1 1 0-9ZM4.25 4.25l3.5 3.5M7.75 4.25l-3.5 3.5"
+});
+
+// data-icon draagt de toestand voor CSS en tests; title toont de actie bij hover.
+function setMenuIcon(button, name, label) {
+    button.innerHTML = `<svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="${MENU_ICON_PATHS[name]}"/></svg>`;
+    button.setAttribute("data-icon", name);
+    button.setAttribute("title", label);
+}
 const UI_LABELS = Object.freeze({
     en: Object.freeze({
         move: "move with the arrow keys",
@@ -1882,7 +1904,7 @@ export function createBlocksSystem(options = {}) {
             shell.setAttribute("data-block-minimized", String(minimizedValue));
             contentNode.setAttribute("aria-hidden", String(minimizedValue || dockedValue));
             if (!minimizeNode) return;
-            minimizeNode.textContent = minimizedValue ? "+" : "−";
+            setMenuIcon(minimizeNode, minimizedValue ? "restore" : "minimize", minimizedValue ? labels.restore : labels.minimize);
             minimizeNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${minimizedValue ? labels.restore : labels.minimize}`);
             minimizeNode.setAttribute("aria-pressed", String(minimizedValue));
         }
@@ -1891,7 +1913,7 @@ export function createBlocksSystem(options = {}) {
             shell.setAttribute("data-block-docked", String(dockedValue));
             contentNode.setAttribute("aria-hidden", String(dockedValue || minimizedValue));
             if (!dockNode) return;
-            dockNode.textContent = dockedValue ? "↩" : "×";
+            setMenuIcon(dockNode, dockedValue ? "undock" : "dock", dockLabel());
             dockNode.disabled = pinnedValue;
             dockNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${dockLabel()}`);
             dockNode.setAttribute("aria-pressed", String(dockedValue));
@@ -1943,7 +1965,7 @@ export function createBlocksSystem(options = {}) {
             shell.setAttribute("data-block-pinned", String(pinnedValue));
             if (!pinNode) return;
             pinNode.disabled = dockedValue;
-            pinNode.textContent = pinnedValue ? "★" : "☆";
+            setMenuIcon(pinNode, pinnedValue ? "unpin" : "pin", pinnedValue ? labels.unpin : labels.pin);
             pinNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${pinnedValue ? labels.unpin : labels.pin}`);
             pinNode.setAttribute("aria-pressed", String(pinnedValue));
         }
@@ -2012,7 +2034,7 @@ export function createBlocksSystem(options = {}) {
                 copyFeedbackTimer = null;
             }
             if (!copyNode) return;
-            copyNode.innerHTML = COPY_ICON;
+            setMenuIcon(copyNode, "copy", labels.copy);
             copyNode.removeAttribute("data-state");
             copyNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${labels.copy}`);
         }
@@ -2021,7 +2043,7 @@ export function createBlocksSystem(options = {}) {
             if (!copyNode) return;
             if (copyFeedbackTimer !== null) clearTimeout(copyFeedbackTimer);
             const copied = state === "copied";
-            copyNode.textContent = copied ? "✓" : "!";
+            setMenuIcon(copyNode, state, copied ? labels.copied : labels.copyFailed);
             copyNode.setAttribute("data-state", state);
             copyNode.setAttribute("aria-label", `${titleNode?.textContent || id} ${copied ? labels.copied : labels.copyFailed}`);
             copyFeedbackTimer = setTimeout(resetCopyFeedback, 1600);
@@ -2383,7 +2405,7 @@ export function createBlocksSystem(options = {}) {
                 copyNode = document.createElement("button");
                 copyNode.type = "button";
                 copyNode.className = "blocks-system-copy";
-                copyNode.innerHTML = COPY_ICON;
+                setMenuIcon(copyNode, "copy", labels.copy);
                 copyNode.addEventListener("click", copyBlockContent);
                 actionsNode.appendChild(copyNode);
             } else if (!menuOptions.copy && copyNode) {
@@ -2425,7 +2447,7 @@ export function createBlocksSystem(options = {}) {
                 closeNode = document.createElement("button");
                 closeNode.type = "button";
                 closeNode.className = "blocks-system-close";
-                closeNode.textContent = "⊗";
+                setMenuIcon(closeNode, "close", labels.close);
                 closeNode.addEventListener("click", remove);
                 actionsNode.appendChild(closeNode);
             } else if (!menuOptions.close && closeNode) {

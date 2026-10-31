@@ -488,7 +488,7 @@ async function exerciseBlockActions(boardSelector) {
         state: block.getAttribute("data-block-docked"),
         contentHidden: content.getAttribute("aria-hidden"),
         pressed: dock.getAttribute("aria-pressed"),
-        symbol: dock.textContent,
+        symbol: dock.getAttribute("data-icon"),
         outsideGrid: block.parentElement.classList.contains("blocks-system-dock"),
         directCount: board.querySelectorAll(":scope > .blocks-system-object").length
       };
@@ -498,7 +498,7 @@ async function exerciseBlockActions(boardSelector) {
         state: block.getAttribute("data-block-docked"),
         contentHidden: content.getAttribute("aria-hidden"),
         pressed: dock.getAttribute("aria-pressed"),
-        symbol: dock.textContent,
+        symbol: dock.getAttribute("data-icon"),
         directCount: board.querySelectorAll(":scope > .blocks-system-object").length
       };
       return { initial, docked, restored };
@@ -522,7 +522,7 @@ function assertBlockActions(state, page, expectedBlockCount) {
     state: "true",
     contentHidden: "true",
     pressed: "true",
-    symbol: "↩",
+    symbol: "undock",
     outsideGrid: true,
     directCount: expectedBlockCount - 1
   }, `${page} dockt het block niet compact buiten het raster`);
@@ -530,7 +530,7 @@ function assertBlockActions(state, page, expectedBlockCount) {
     state: "false",
     contentHidden: "false",
     pressed: "false",
-    symbol: "×",
+    symbol: "dock",
     directCount: expectedBlockCount
   }, `${page} herstelt het gedockte block niet volledig`);
 }

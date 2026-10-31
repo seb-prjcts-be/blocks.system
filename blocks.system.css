@@ -290,22 +290,26 @@
     cursor: default;
 }
 
-.blocks-system-copy {
+.blocks-system-actions > button {
     display: grid;
     place-items: center;
 }
 
-.blocks-system-copy svg {
+/* Het icoon volgt de lettergrootte van de knop: wie de knop groter zet,
+   krijgt een even groot icoon mee. */
+.blocks-system-actions > button svg {
     display: block;
-    width: 13px;
-    height: 13px;
-    fill: currentColor;
+    width: 1em;
+    height: 1em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: square;
     pointer-events: none;
 }
 
-.blocks-system-copy[data-state] {
-    font-size: 13px;
-    line-height: 1;
+.blocks-system-pin[data-icon="unpin"] svg {
+    fill: currentColor;
 }
 
 .blocks-system-content {

@@ -523,9 +523,9 @@ assert.throws(function () { inheritingBlock.menu("later", "yes"); }, TypeError, 
 const glyphs = createBlocksSystem({ variant: "regular", blockDefaults: { menu: { dock: true, close: true } } });
 glyphs.attach(new TestElement());
 const glyphBlock = glyphs.add("<p>glyph</p>", { id: "glyph" });
-const glyphOf = (className) => [...glyphBlock.element.children[0].children[1].children].find((button) => button.className === className)?.textContent;
-assert.equal(glyphOf("blocks-system-dock-toggle"), "×", "the reversible dock action keeps the familiar close glyph");
-assert.equal(glyphOf("blocks-system-close"), "⊗", "destructive removal must not share the dock glyph");
+const glyphOf = (className) => [...glyphBlock.element.children[0].children[1].children].find((button) => button.className === className)?.getAttribute("data-icon");
+assert.equal(glyphOf("blocks-system-dock-toggle"), "dock", "the reversible dock action keeps the familiar close glyph");
+assert.equal(glyphOf("blocks-system-close"), "close", "destructive removal must not share the dock glyph");
 
 assert.equal(createBlocksSystem().labels.pin, "pin as favorite", "consumers must be able to configure the pin label");
 assert.equal(createBlocksSystem().labels.unpin, "remove as favorite", "consumers must be able to configure the unpin label");
@@ -557,10 +557,10 @@ pinSecond.pinned = false;
 assert.deepEqual(pinSignals, [["pin", "pin-second"], ["unpin", "pin-second"]], "pin and unpin must publish one stable change event per real change, via method or property");
 
 const pinButton = () => [...pinFirst.element.children[0].children[1].children].find((button) => button.className === "blocks-system-pin");
-assert.equal(pinButton().textContent, "★", "a pinned block must show the filled star");
+assert.equal(pinButton().getAttribute("data-icon"), "unpin", "a pinned block must show the filled star");
 assert.equal(pinButton().getAttribute("aria-pressed"), "true", "a pinned block's pin button must report pressed");
 pinFirst.pin(false);
-assert.equal(pinButton().textContent, "☆", "an unpinned block must show the empty star");
+assert.equal(pinButton().getAttribute("data-icon"), "pin", "an unpinned block must show the empty star");
 
 const pinExport = pinning.exportLayout().blocks;
 assert.deepEqual(pinExport.map((entry) => [entry.id, entry.pinned]), [
@@ -659,10 +659,10 @@ assert.equal(summarized.element.getAttribute("data-block-summary"), "false");
 assert.throws(function () { summarized.summary(42); }, TypeError, "a summary is HTML, a Node, a factory or null");
 const plain = railed.add("<p>plain</p>", { id: "plain", title: "P" });
 assert.equal(plain.element.getAttribute("data-block-summary"), "false", "a block without summary says so");
-const returnGlyph = () => [...plain.element.children[0].children[1].children].find((button) => button.className === "blocks-system-dock-toggle")?.textContent;
-assert.equal(returnGlyph(), "×");
+const returnGlyph = () => [...plain.element.children[0].children[1].children].find((button) => button.className === "blocks-system-dock-toggle")?.getAttribute("data-icon");
+assert.equal(returnGlyph(), "dock");
 plain.dock();
-assert.equal(returnGlyph(), "↩", "a docked block offers a return arrow, not a plus");
+assert.equal(returnGlyph(), "undock", "a docked block offers a return arrow, not a plus");
 plain.dock(false);
 
 // Stap 4: reset() zet alles terug naar de toestand van add().
