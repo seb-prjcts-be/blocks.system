@@ -205,17 +205,18 @@ const field = blocks.hydrate("main .main-wrapper", {
 });
 ```
 
-`blocks.resolveAddress(options?)` reads `?block=` (and `#block-id` when
-`hashFallback` is true) from `location`, undocks a docked target block, scrolls
-it into view and marks it with `data-block-gericht="true"` for `highlightMs`.
-`hydrate()` calls `resolveAddress()` automatically unless
-`resolveAddress: false` is set.
+`blocks.resolveAddress(options?)` reads `?block=` (or `queryKey`, falling back
+to `#block-id` in the URL hash) from `url` or `window.location`, undocks a
+docked target block, scrolls it into view and marks a `?block=` match with
+`highlightClass` (`"is-aangewezen"`) for `highlightDuration` (`2600` ms, or
+until the first pointer or key interaction). `hydrate()` calls
+`resolveAddress()` automatically unless `resolveAddress: false` is set.
 
 `blocks.list({ query, adapter, medium, category })` splits a multi-word `query`
-into diacritic-insensitive tokens (`ë` matches `e`), requires every token to
-match across `label`, `summary`, `text`, `tags`, `category`, `pageTitle`, `id`,
-`medium` or `adapter`, and orders matches by relevance (title before summary
-before body text, with Dutch `nl` collation as tie-breaker).
+into diacritic-insensitive tokens (`ë` matches `e`), matches across `id`,
+`label`, `description`, `adapter`, `medium` and `category`, and orders matches
+by relevance from exact title (`label` or `id`) to category and body text
+(`description`).
 `blocks.bindSearch(options?)` connects that ranked search to a DOM search input,
 renders a flat ranked results list while typing, opens the top hit on `Enter`,
 clears on `Escape`, and focuses the input on `/` or `?focus=zoek`.

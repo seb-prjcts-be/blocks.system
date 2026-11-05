@@ -305,7 +305,7 @@ export interface BlocksSystem {
   get(id: string): Readonly<BlockDefinition> | null;
   attach(target: string | Element): BlocksSystem;
   /** Hydrate declarative HTML blocks in a field with responsive spans, auto-fit, deep-link resolution and optional visitor persistence. */
-  hydrate(target: string | Element, options?: BlocksHydrateOptions): BlocksHydratedField | null;
+  hydrate(target?: string | Element | BlocksHydrateOptions, options?: BlocksHydrateOptions): BlocksHydratedField | null;
   /** Scroll to and highlight the block addressed by ?block= or #hash in the URL. */
   resolveAddress(options?: BlocksAddressOptions): HTMLElement | null;
   /** Bind diacritic-insensitive live filtering and relevance ranking to a search input and item tiles. */

@@ -211,19 +211,20 @@ const field = blocks.hydrate("main .main-wrapper", {
 });
 ```
 
-`blocks.resolveAddress(options?)` leest `?block=` (en `#block-id` wanneer
-`hashFallback` aan staat) uit `location`, haalt een gedockt doelblock uit de
-dockrail, scrollt het in beeld en markeert het gedurende `highlightMs` met
-`data-block-gericht="true"`. `hydrate()` roept `resolveAddress()` automatisch
-aan tenzij `resolveAddress: false` is meegegeven.
+`blocks.resolveAddress(options?)` leest `?block=` (of `queryKey`, met terugval
+op `#block-id` in de URL-hash) uit `url` of `window.location`, haalt een
+gedockt doelblock uit de dockrail, scrollt het in beeld en markeert een
+`?block=`-treffer gedurende `highlightDuration` (`2600` ms, of tot de eerste
+muis- of toetsinteractie) met `highlightClass` (`"is-aangewezen"`). `hydrate()`
+roept `resolveAddress()` automatisch aan tenzij `resolveAddress: false` is
+meegegeven.
 
 `blocks.list({ query, adapter, medium, category })` splitst een meerwoordige
-`query` in accentongevoelige zoektermen (`ë` matcht `e`), eist dat elke term
-voorkomt in `label`, `summary`, `text`, `tags`, `category`, `pageTitle`, `id`,
-`medium` of `adapter`, en sorteert treffers op relevantie (titel vóór
-samenvatting vóór lopende tekst, met Nederlandse `nl`-sortering bij gelijke
-score). `blocks.bindSearch(options?)` koppelt dat gerangschikte zoeken aan een
-zoekveld in de DOM, toont tijdens het typen een platte trefferlijst op
+`query` in accentongevoelige zoektermen (`ë` matcht `e`), zoekt over `id`,
+`label`, `description`, `adapter`, `medium` en `category`, en sorteert treffers
+op relevantie van exacte titel (`label` of `id`) tot categorie en lopende tekst
+(`description`). `blocks.bindSearch(options?)` koppelt dat gerangschikte zoeken
+aan een zoekveld in de DOM, toont tijdens het typen een platte trefferlijst op
 relevantie, opent bij `Enter` de beste treffer, wist met `Escape` en geeft het
 zoekveld focus bij `/` of `?focus=zoek`.
 

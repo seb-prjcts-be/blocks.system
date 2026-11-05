@@ -66,7 +66,10 @@ const hydrateOptions: BlocksHydrateOptions = {
   searchShortcutUrl: "kaart?focus=zoek"
 };
 const hydratedField: BlocksHydratedField | null = blocks.hydrate(document.body, hydrateOptions);
+const defaultHydratedField: BlocksHydratedField | null = blocks.hydrate();
+const optionsOnlyHydratedField: BlocksHydratedField | null = blocks.hydrate(hydrateOptions);
 hydratedField?.blocksPage.fitContent();
+void [defaultHydratedField, optionsOnlyHydratedField];
 const addressOptions: BlocksAddressOptions = { queryKey: "block", highlightClass: "is-aangewezen", highlightDuration: 2600 };
 const resolvedTarget: HTMLElement | null = blocks.resolveAddress(addressOptions);
 const searchOptions: BlocksSearchOptions = { root: document, focusParam: "zoek" };

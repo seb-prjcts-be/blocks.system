@@ -104,20 +104,24 @@ try {
         colofonMoved: Boolean(declarativeHost.querySelector(".veld-colofon [data-content-footnote]")),
         savedDocked: Boolean(savedAfterDock?.docked?.includes("blok-a")),
         resetVisibleWhenDocked,
-        restoredAfterReset: contactCtrl.docked === false && savedAfterReset === null
+        restoredAfterReset: contactCtrl.docked === false && savedAfterReset === null,
+        noUndefinedGridDataset: hydratedField.dataset.gridWideColumns === undefined
       };
 
-      // 7. resolveAddress() wijst het gevraagde block aan.
+      // 7. resolveAddress() haalt een gedockt block uit de dockrail en wijst het aan.
+      const blokBCtrl = hydratedField.blocksPage.controllers.find((c) => c.id === "blok-b");
+      blokBCtrl.dock(true);
       const addressed = hydratedSystem.resolveAddress({
         url: "https://example.test/pagina?block=blok-b",
         highlightDuration: 500
       });
       out.addressed = {
         id: addressed?.id ?? null,
+        undocked: blokBCtrl.docked === false,
         highlighted: addressed?.classList.contains("is-aangewezen") ?? false
       };
 
-      // 8. bindSearch() filtert en rangschikt tegels diakriet-ongevoelig.
+      // 8. bindSearch() filtert en rangschikt tegels diakriet-ongevoelig en wist bij Escape.
       const searchHost = document.createElement("div");
       searchHost.innerHTML = \`
         <div class="kaart-zoek" hidden>
@@ -137,10 +141,14 @@ try {
       searchInput.value = "eleve";
       searchInput.dispatchEvent(new Event("input", { bubbles: true }));
       const orderedHrefs = [...searchHost.querySelectorAll(".kaart-treffers .kaart-tegel a")].map((el) => el.getAttribute("href"));
+      const statusText = searchHost.querySelector(".kaart-zoek__stand")?.textContent ?? "";
+      searchInput.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+      const clearedOnEscape = searchInput.value === "" && searchHost.querySelector(".kaart-treffers")?.hidden === true;
       out.search = {
         searchBound,
         orderedHrefs,
-        statusText: searchHost.querySelector(".kaart-zoek__stand")?.textContent ?? ""
+        statusText,
+        clearedOnEscape
       };
 
       return out;
@@ -179,14 +187,16 @@ try {
     colofonMoved: true,
     savedDocked: true,
     resetVisibleWhenDocked: true,
-    restoredAfterReset: true
+    restoredAfterReset: true,
+    noUndefinedGridDataset: true
   }, "hydrate() must turn declarative blocks into persistent, resettable blocks with footnotes and copy actions");
-  assert.deepEqual(v.addressed, { id: "blok-b", highlighted: true }, "resolveAddress() must highlight the addressed block");
+  assert.deepEqual(v.addressed, { id: "blok-b", undocked: true, highlighted: true }, "resolveAddress() must undock and highlight the addressed block");
   assert.deepEqual(v.search, {
     searchBound: true,
     orderedHrefs: ["#b", "#a"],
-    statusText: "2 van 2 blokken — beste treffer bovenaan"
-  }, "bindSearch() must rank heading matches first and fold diacritics");
+    statusText: "2 van 2 blokken — beste treffer bovenaan",
+    clearedOnEscape: true
+  }, "bindSearch() must rank heading matches first, fold diacritics, and clear on Escape");
   browser.assertNoPageErrors();
   console.log("blocks.system standard block — automatisch veld, startBlock, span/place, regular, minimale breedte, hydrate, resolveAddress en bindSearch OK");
 } finally {
