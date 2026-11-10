@@ -15,7 +15,7 @@ pin, schrijf dan de nieuwe commit bovenaan en ruim de afgewerkte lijst op.
 |---|---|
 | Pin in de clone | `73036ee` (`index.php`, regel 47), sinds 2026-11-10 |
 | Vorige pin | `5787bdd` |
-| Clone-commit van de pin | `0fe06c9`, **nog niet gepusht** |
+| Clone-commit van de pin | `0fe06c9`, gepusht op 2026-11-10 |
 | Lib sinds de pin | alleen documentatie: dit logboek |
 
 De ronde hieronder zit dus in de pin. Ze blijft staan als naslag tot de
@@ -90,8 +90,7 @@ Niet nodig, wel mogelijk zodra de pin verzet is.
 
 ### Nog te doen
 
-1. Seb: de clone pushen (commit `0fe06c9`). Zeg het en het gebeurt.
-2. De editor in beheer eens met de hand bekijken: een block toevoegen en
+1. De editor in beheer eens met de hand bekijken: een block toevoegen en
    verslepen.
 
 ### Zo verzet je de pin een volgende keer
