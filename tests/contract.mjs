@@ -696,6 +696,17 @@ assert.deepEqual(resetOrder(), ["reset-a", "reset-b", "reset-c", "reset-d"], "a 
 resetB.remove();
 resetting.reset();
 assert.deepEqual(resetOrder(), ["reset-a", "reset-c", "reset-d"], "reset() forgets removed blocks");
+// Het weghalen van een element kan synchroon een event geven (blur op een
+// knop met focus) terwijl het block nog in het veld staat.
+const detachResetD = resetD.element.remove.bind(resetD.element);
+let orderDuringRemoval = null;
+resetD.element.remove = function () {
+  orderDuringRemoval = resetting.exportLayout().blocks.map(function (entry) { return entry.id; });
+  detachResetD();
+};
+resetD.remove();
+assert.deepEqual(orderDuringRemoval, ["reset-a", "reset-c", "reset-d"], "exportLayout() must stay consistent when a listener runs while a block leaves the field");
+assert.deepEqual(resetOrder(), ["reset-a", "reset-c"], "remove() finishes after a listener read the layout");
 assert.equal(typeof createBlocksSystem().reset, "function");
 
 // Stap 4b: saveBaseline() legt de huidige indeling vast als doel van reset(),

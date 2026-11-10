@@ -28,6 +28,12 @@ its release note and is removed here.
   above or below the grid, so the label is now `close to the dock`, and
   `naar de dock sluiten` in Dutch. It is the button's `aria-label` and tooltip.
 
+## Fixed
+
+- `block.remove()` takes the element out of the field before it forgets the
+  block. A listener that reads `exportLayout()` while the element leaves (a
+  `blur` on a focused button, for instance) no longer throws.
+
 ## Migration
 
 1. Nothing is required.

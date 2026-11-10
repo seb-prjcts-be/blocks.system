@@ -2250,6 +2250,9 @@ export function createBlocksSystem(options = {}) {
             drag.stop();
             stopResize();
             if (copyFeedbackTimer !== null) clearTimeout(copyFeedbackTimer);
+            // Eerst uit het veld, dan pas de toestand wissen: het weghalen kan
+            // synchroon een event geven (blur) waarin een listener de layout leest.
+            shell.remove();
             objects.delete(id);
             objectLayouts.delete(id);
             objectLayoutSetters.delete(id);
@@ -2257,7 +2260,6 @@ export function createBlocksSystem(options = {}) {
             resizeInteractionSetters.delete(id);
             dockedReturnIndices.delete(id);
             baselines.delete(id);
-            shell.remove();
             if (dock && dock.children.length === 0) {
                 dock.remove();
                 dock = null;
