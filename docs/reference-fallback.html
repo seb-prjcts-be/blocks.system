@@ -37,6 +37,7 @@ const blocks = createBlocksSystem({
   colorVariation: 0,
   inversionVariation: 1 / 3,
   blockDefaults: { menu: { dock: true, minimize: false, close: false, copy: false } },
+  onIssue: null,
   blocks: []
 });</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>returns / type / default</th><th>purpose</th></tr></thead><tbody><tr id="api-create"><td data-label="kind + contract">method · createBlocksSystem(options?)</td><td data-label="returns / type / default">BlocksSystem</td><td data-label="purpose">Create an independent blocks system; the complete options object is shown above.</td></tr>
@@ -45,7 +46,9 @@ const blocks = createBlocksSystem({
 <tr><td data-label="kind + contract">option · catalogUrl</td><td data-label="returns / type / default">string | URL | null · null</td><td data-label="purpose">Base URL used by address() when a block has no url of its own.</td></tr>
 <tr><td data-label="kind + contract">option · font</td><td data-label="returns / type / default">{ family, href? } | null · null</td><td data-label="purpose">Set a family and optional stylesheet URL; blocks.font remains writable.</td></tr>
 <tr><td data-label="kind + contract">option · labels</td><td data-label="returns / type / default">Partial&lt;BlocksLabels&gt;</td><td data-label="purpose">Override move, resize, restore, minimize, dock, undock, pin, unpin, pinnedStaysVisible, close, copy, copied, copyFailed, reset, resetTitle, searchCount, searchHits or searchNone; blocks.labels is readonly.</td></tr>
-<tr><td data-label="kind + contract">option · blocks</td><td data-label="returns / type / default">BlockDefinition[] · []</td><td data-label="purpose">Register definitions during creation.</td></tr></tbody></table></div>
+<tr><td data-label="kind + contract">option · onIssue</td><td data-label="returns / type / default">(issue) =&gt; void | null · null</td><td data-label="purpose">Called with { code, message } and, when they apply, id, ids or option, whenever the system refuses or skips something without throwing: an unknown add() option, dock() on a pinned block, a hydrate() that finds nothing. Try onIssue: console.warn while building.</td></tr>
+<tr><td data-label="kind + contract">option · blocks</td><td data-label="returns / type / default">BlockDefinition[] · []</td><td data-label="purpose">Register definitions during creation.</td></tr>
+<tr id="api-version"><td data-label="kind + contract">property · version</td><td data-label="returns / type / default">string</td><td data-label="purpose">Module export with the version of this source, equal to package.json.</td></tr></tbody></table></div>
 </section>
 
 <section id="container" class="reference-fallback-entry">
@@ -62,7 +65,8 @@ const field = blocks.hydrate(&quot;#page&quot;);</code></pre>
 <tr><td data-label="kind + contract">option · breakpoints</td><td data-label="returns / type">readonly { name, minWidth }[]</td><td data-label="purpose">Responsive modes matched by width (defaults: wide 1080, medium 680, compact 0) for data-grid-{name}-columns/rows and data-block-span-{name}.</td></tr>
 <tr><td data-label="kind + contract">option · fixedMediaSelector · viewportLead</td><td data-label="returns / type">string · boolean | fn</td><td data-label="purpose">Skip fitHeight() on blocks matching fixedMediaSelector (&quot;[data-block-fixed-height]&quot;) and size a [data-block-role=&quot;lead&quot;] block to the viewport when viewportLead is true.</td></tr>
 <tr><td data-label="kind + contract">option · address</td><td data-label="returns / type">boolean · true</td><td data-label="purpose">Call resolveAddress() after hydration; false leaves the URL alone.</td></tr>
-<tr><td data-label="kind + contract">hook · blocks-system-reset · blocks-system-heading-hidden</td><td data-label="returns / type">button · heading</td><td data-label="purpose">The reset button shown while a visitor layout is stored (text from labels.reset), and the hook on each block's first heading; hide that heading visually in your own CSS.</td></tr></tbody></table></div>
+<tr><td data-label="kind + contract">hook · blocks-system-reset · blocks-system-heading-hidden</td><td data-label="returns / type">button · heading</td><td data-label="purpose">The reset button shown while a visitor layout is stored (text from labels.reset), and the hook on each block's first heading; hide that heading visually in your own CSS.</td></tr>
+<tr id="api-destroy"><td data-label="kind + contract">method · destroy()</td><td data-label="returns / type">blocks</td><td data-label="purpose">Remove every block, release the field and undo hydrate() and bindSearch(): observers and listeners stop and a hydrated page gets its original HTML back. Publishes no events; the same system can start again.</td></tr></tbody></table></div>
 </section>
 
 <section id="grid" class="reference-fallback-entry">
@@ -121,8 +125,9 @@ blocks.reset();</code></pre>
 <tr id="api-fit-height-block"><td data-label="kind + contract">method · block.fitHeight()</td><td data-label="returns">{ columns, rows, changed }</td><td data-label="purpose">Measure one content-driven block at its current width; application-owned fixed media spans remain untouched when not called.</td></tr>
 <tr id="api-fit-height-system"><td data-label="kind + contract">method · blocks.fitHeight(ids?)</td><td data-label="returns">measurement[]</td><td data-label="purpose">Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span.</td></tr>
 <tr id="api-place"><td data-label="kind + contract">method · place(column, row)</td><td data-label="returns">block</td><td data-label="purpose">Set one-based coordinates in fixed-grid; other modes reject the call.</td></tr>
-<tr><td data-label="kind + contract">method · exportLayout()</td><td data-label="returns">{ version, layout, blocks }</td><td data-label="purpose">Export the mode, content-free DOM order and each block's span, place, minimized, docked and pinned state.</td></tr>
+<tr><td data-label="kind + contract">method · exportLayout()</td><td data-label="returns">{ version, layout, grid, blocks }</td><td data-label="purpose">Export the mode, the grid, content-free DOM order and each block's span, place, minimized, docked and pinned state. grid is { columns, rows } with the setGrid() minimum, or null in free layout; pass it back as restoreLayout(layout, { grid: layout.grid }).</td></tr>
 <tr><td data-label="kind + contract">method · restoreLayout(layout, options?)</td><td data-label="returns">blocks</td><td data-label="purpose">Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. Entries may omit span and place to keep their current spans. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing.</td></tr>
+<tr id="api-check-layout"><td data-label="kind + contract">method · checkLayout(layout, options?)</td><td data-label="returns">{ ok, code, message, unknownIds, missingIds }</td><td data-label="purpose">Tell whether restoreLayout() would accept the snapshot, without changing anything. restoreLayout() skips unknownIds and appends missingIds.</td></tr>
 <tr><td data-label="kind + contract">method · saveBaseline()</td><td data-label="returns">blocks</td><td data-label="purpose">Make the current order, spans, places, minimized, docked and pinned state the target of reset(); blocks added later join at the end.</td></tr>
 <tr><td data-label="kind + contract">method · reset()</td><td data-label="returns">blocks</td><td data-label="purpose">Return every block to the saved baseline, by default its add() order, span, place and initial minimized state, undocked and unpinned; publishes one reset change naming every block.</td></tr>
 <tr><td data-label="kind + contract">property · resize size</td><td data-label="returns">{ columns, rows }</td><td data-label="purpose">Resize event sizes use positive whole grid units.</td></tr></tbody></table></div>
@@ -221,7 +226,12 @@ blocks.reset();</code></pre>
   <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + contract</th><th>type or returns</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + contract">property · id</td><td data-label="type or returns">readonly string</td><td data-label="purpose">Stable lowercase kebab-case id.</td></tr>
 <tr><td data-label="kind + contract">property · element</td><td data-label="type or returns">readonly HTMLElement</td><td data-label="purpose">The outer block element. Do not call element.remove(); use remove() so the system releases its layout.</td></tr>
 <tr><td data-label="kind + contract">property · content</td><td data-label="type or returns">readonly HTMLDivElement</td><td data-label="purpose">The content host inside the block.</td></tr>
+<tr><td data-label="kind + contract">property · title</td><td data-label="type or returns">string</td><td data-label="purpose">Read or change the titlebar text. Setting it keeps the buttons; on a block without a titlebar it adds one with the default menu.</td></tr>
+<tr><td data-label="kind + contract">property · layout</td><td data-label="type or returns">readonly { span, place }</td><td data-label="purpose">The current span [columns, rows] and place [column, row] or null, as exportLayout() writes them.</td></tr>
 <tr><td data-label="kind + contract">property · draggable</td><td data-label="type or returns">boolean</td><td data-label="purpose">Read or change whether this block can move.</td></tr>
+<tr id="api-block"><td data-label="kind + contract">method · blocks.block(id)</td><td data-label="type or returns">BlockController | null</td><td data-label="purpose">The live block with this id. get() and list() return catalog definitions instead.</td></tr>
+<tr><td data-label="kind + contract">method · blocks.blocks()</td><td data-label="type or returns">BlockController[]</td><td data-label="purpose">Every live block in its current order; a docked block sits where it returns to.</td></tr>
+<tr><td data-label="kind + contract">method · blocks.blockOf(element)</td><td data-label="type or returns">BlockController | null</td><td data-label="purpose">The live block that contains this element.</td></tr>
 <tr><td data-label="kind + contract">method · describe(options?)</td><td data-label="type or returns">definition</td><td data-label="purpose">Serialize this live block for the built-in html adapter.</td></tr>
 <tr><td data-label="kind + contract">option · options.url</td><td data-label="type or returns">string | URL</td><td data-label="purpose">Name the page in the serialized definition.</td></tr>
 <tr id="api-address"><td data-label="kind + contract">method · address(id)</td><td data-label="type or returns">string</td><td data-label="purpose">Build ?block=id from definition.url or the system catalogUrl.</td></tr>
@@ -298,7 +308,8 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
   <pre class="reference-code"><code>field.addEventListener(&quot;blocks:change&quot;, (event) =&gt; {
   const { type, id, ids } = event.detail;
 });</code></pre>
-  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + hook</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + hook">event · blocks:change</td><td data-label="purpose">Fires after a compact, dock, undock, pin, unpin, minimize, restore, remove or reset state change, after a layout change of one block and when the grid changes.</td></tr>
+  <div class="reference-table-wrap"><table class="reference-table"><thead><tr><th>kind + hook</th><th>purpose</th></tr></thead><tbody><tr><td data-label="kind + hook">event · blocks:change</td><td data-label="purpose">Fires after an add, compact, dock, undock, pin, unpin, minimize, restore, remove or reset state change, after a layout or title change of one block and when the grid changes.</td></tr>
+<tr id="api-batch"><td data-label="kind + hook">method · blocks.batch(fn)</td><td data-label="purpose">Run fn and publish everything it changes as one blocks:change of type batch. The changes themselves apply at once; batch() returns what fn returns.</td></tr>
 <tr><td data-label="kind + hook">event · blocks:resize</td><td data-label="purpose">Fires after pointer or keyboard resizing with id, input, axis, from and to.</td></tr>
 <tr><td data-label="kind + hook">hook · .blocks-system-surface</td><td data-label="purpose">The attached field and its layout tokens.</td></tr>
 <tr><td data-label="kind + hook">hook · .blocks-system-object</td><td data-label="purpose">One outer block.</td></tr>
@@ -319,14 +330,14 @@ const source = blocks.snippet(&quot;block-note&quot;, { text: &quot;hello&quot; 
 <tr><td data-label="kind + hook">hook · [data-draggable]</td><td data-label="purpose">Surface drag state.</td></tr>
 <tr><td data-label="kind + hook">hook · [data-block-draggable]</td><td data-label="purpose">Effective drag state for one block.</td></tr>
 <tr><td data-label="kind + hook">hook · CSS custom properties</td><td data-label="purpose">--blocks-gap · --blocks-field-color · --blocks-paper-color · --blocks-ink-color · --blocks-text-color · --blocks-font-family · --blocks-content-padding</td></tr></tbody></table></div>
-  <p class="reference-details">For blocks:change, type is compact, dock, undock, pin, unpin, minimize, restore, remove, reset (ids lists every block), layout (one block's span, place or fitHeight changed) or grid (columns or rows changed); id is one block or null, and ids lists affected blocks.</p>
+  <p class="reference-details">For blocks:change, type is add (a block joined the field), compact, dock, undock, pin, unpin, minimize, restore, remove, reset (ids lists every block), layout (one block's span, place or fitHeight changed), grid (columns or rows changed), title (a titlebar text changed) or batch; id is one block or null, and ids lists affected blocks. A batch change also carries changes: the held events in order, each as { event, detail }.</p>
 </section>
 
 <section id="errors" class="reference-fallback-entry">
   <h2>failures + boundaries</h2>
   <small>fail early</small>
   <strong>Invalid input throws.</strong>
-  <p class="reference-details">Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. A span, place, grid or restored layout that does not fit throws a RangeError with code BLOCKS_GRID_TOO_SMALL. Catch only errors your interface can recover from.</p>
+  <p class="reference-details">Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Every thrown error carries a stable code on error.code; the message may change, the code does not. A span, place, grid or restored layout that does not fit throws a RangeError with code BLOCKS_GRID_TOO_SMALL. The other codes are BLOCKS_INVALID_ARGUMENT, BLOCKS_INVALID_ID, BLOCKS_DUPLICATE_ID, BLOCKS_UNKNOWN_BLOCK, BLOCKS_UNKNOWN_ADAPTER, BLOCKS_ADAPTER_RESULT, BLOCKS_RETIRED_OPTION, BLOCKS_REMOVED, BLOCKS_WRONG_LAYOUT, BLOCKS_OVERLAP, BLOCKS_NO_FIELD, BLOCKS_FIELD_IN_USE, BLOCKS_LAYOUT_VERSION, BLOCKS_NO_CATALOG_URL and BLOCKS_NOT_MEASURABLE. What is refused without throwing reaches onIssue with its own code. Catch only errors your interface can recover from.</p>
 </section>
   </main>
   <footer class="site-footer">

@@ -40,7 +40,7 @@ function interfaceMembers(interfaceName) {
     }
   }
   return statements.flatMap((statement) => {
-    const match = statement.match(/^(?:readonly\s+)?([A-Za-z_$][\w$]*)\??\s*(?:\(|:)/);
+    const match = statement.match(/^(?:readonly\s+)?([A-Za-z_$][\w$]*)\??\s*(?:<[^>]*>\s*)?(?:\(|:)/);
     return match ? [match[1]] : [];
   }).sort();
 }
@@ -83,6 +83,10 @@ const referenceSectionsByInterface = {
   BlocksLayoutEntry: ["reference-block-layout"],
   BlocksLayout: ["reference-block-layout"],
   BlocksRestoreOptions: ["reference-block-layout"],
+  BlocksLayoutCheck: ["reference-block-layout"],
+  BlocksError: ["reference-system-errors"],
+  BlocksIssue: ["reference-system-create"],
+  BlocksBatchedEvent: ["reference-field-signals"],
   BlocksHydrateBreakpoint: ["reference-container"],
   BlocksHydrateOptions: ["reference-container"],
   BlocksHydratedPage: ["reference-container"],
@@ -105,7 +109,7 @@ const referenceSectionsByInterface = {
   BlocksResizeDetail: ["reference-dragging", "reference-field-signals"],
   BlocksChangeDetail: ["reference-field-signals"],
   BlocksSystemOptions: ["reference-system-create", "reference-grid", "reference-titlebar", "reference-dragging", "reference-appearance", "reference-color", "reference-chance"],
-  BlocksSystem: ["reference-system-create", "reference-container", "reference-grid", "reference-block-create", "reference-block-layout", "reference-dragging", "reference-appearance", "reference-color", "reference-chance", "reference-definition-create", "reference-adapter-methods", "reference-block-controller"]
+  BlocksSystem: ["reference-system-create", "reference-container", "reference-grid", "reference-block-create", "reference-block-layout", "reference-dragging", "reference-appearance", "reference-color", "reference-chance", "reference-definition-create", "reference-adapter-methods", "reference-block-controller", "reference-field-signals"]
 };
 
 for (const [interfaceName, sectionIds] of Object.entries(referenceSectionsByInterface)) {

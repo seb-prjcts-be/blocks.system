@@ -46,7 +46,22 @@ export interface BlocksLayoutEntry {
 export interface BlocksLayout {
   version: 1;
   layout: BlocksLayoutMode;
+  /** The grid the snapshot was made for; rows is the setGrid() minimum. null in free layout. Pass it on as restoreLayout(layout, { grid: layout.grid }) to switch the grid together with the blocks. Optional when you build a snapshot by hand. */
+  grid?: { columns: number; rows: number } | null;
   blocks: readonly BlocksLayoutEntry[];
+}
+
+/** What checkLayout() says about a snapshot without changing anything. */
+export interface BlocksLayoutCheck {
+  /** true when restoreLayout() would accept the snapshot. */
+  ok: boolean;
+  /** Error code of the refusal, or null. */
+  code: BlocksErrorCode | null;
+  message: string | null;
+  /** Ids in the snapshot that are not in the field; restoreLayout() skips them. */
+  unknownIds: readonly string[];
+  /** Ids in the field that are not in the snapshot; restoreLayout() appends them. */
+  missingIds: readonly string[];
 }
 
 export interface BlocksRestoreOptions {
@@ -56,6 +71,53 @@ export interface BlocksRestoreOptions {
 
 /** Error code on the RangeError thrown when a span, place, grid or restored layout is wider than the grid. */
 export type BlocksGridTooSmallCode = "BLOCKS_GRID_TOO_SMALL";
+
+/** Every error blocks.system throws carries one of these on error.code. The message may change, the code does not. */
+export type BlocksErrorCode =
+  | BlocksGridTooSmallCode
+  | "BLOCKS_INVALID_ARGUMENT"
+  | "BLOCKS_INVALID_ID"
+  | "BLOCKS_DUPLICATE_ID"
+  | "BLOCKS_UNKNOWN_BLOCK"
+  | "BLOCKS_UNKNOWN_ADAPTER"
+  | "BLOCKS_ADAPTER_RESULT"
+  | "BLOCKS_RETIRED_OPTION"
+  | "BLOCKS_REMOVED"
+  | "BLOCKS_WRONG_LAYOUT"
+  | "BLOCKS_OVERLAP"
+  | "BLOCKS_NO_FIELD"
+  | "BLOCKS_FIELD_IN_USE"
+  | "BLOCKS_LAYOUT_VERSION"
+  | "BLOCKS_NO_CATALOG_URL"
+  | "BLOCKS_NOT_MEASURABLE";
+
+export interface BlocksError extends Error {
+  code: BlocksErrorCode;
+}
+
+/** Codes of what blocks.system refuses or skips without throwing; they reach onIssue. */
+export type BlocksIssueCode =
+  | "BLOCKS_UNKNOWN_OPTION"
+  | "BLOCKS_UNKNOWN_BLOCK"
+  | "BLOCKS_PINNED_STAYS_VISIBLE"
+  | "BLOCKS_DOCKED_HAS_NO_PIN"
+  | "BLOCKS_HYDRATE_NO_TARGET"
+  | "BLOCKS_HYDRATE_NO_PAGE"
+  | "BLOCKS_HYDRATE_NO_BLOCKS"
+  | "BLOCKS_HYDRATE_ALREADY_DONE"
+  | "BLOCKS_SEARCH_NO_INPUT"
+  | "BLOCKS_SEARCH_NO_ITEMS";
+
+export interface BlocksIssue {
+  code: BlocksIssueCode;
+  message: string;
+  /** The block concerned, when there is one. */
+  id?: string;
+  /** The block ids concerned, when there are several. */
+  ids?: readonly string[];
+  /** The option name add() did not know. */
+  option?: string;
+}
 
 export interface BlockDefinition {
   id: string;
@@ -132,6 +194,10 @@ export interface BlockController {
   readonly id: string;
   readonly element: HTMLElement;
   readonly content: HTMLDivElement;
+  /** Read or change the titlebar text. Setting it keeps the buttons as they are; on a block without a titlebar it adds one with the default menu. */
+  title: string;
+  /** The current span and place of this block, as exportLayout() writes them. */
+  readonly layout: Readonly<{ span: readonly [columns: number, rows: number]; place: readonly [column: number, row: number] | null }>;
   color: string;
   variant: string;
   minimized: boolean;
@@ -190,18 +256,28 @@ export interface BlocksResizeDetail {
   to: BlocksResizeSize;
 }
 
-/** layout: a span, place or fitHeight change of one block; grid: the columns or rows changed. */
-export type BlocksChangeType = "compact" | "dock" | "undock" | "pin" | "unpin" | "minimize" | "restore" | "remove" | "reset" | "layout" | "grid";
+/** layout: a span, place or fitHeight change of one block; grid: the columns or rows changed; add: a block joined the field; title: its titlebar text changed; batch: everything batch() collected. */
+export type BlocksChangeType = "add" | "compact" | "dock" | "undock" | "pin" | "unpin" | "minimize" | "restore" | "remove" | "reset" | "layout" | "grid" | "title" | "batch";
+
+/** One event batch() held back, in the order it happened. */
+export interface BlocksBatchedEvent {
+  event: "blocks:change" | "blocks:reorder" | "blocks:resize";
+  detail: BlocksChangeDetail | BlocksReorderDetail | BlocksResizeDetail;
+}
 
 export interface BlocksChangeDetail {
   type: BlocksChangeType;
   id: string | null;
   ids: readonly string[];
+  /** Only on type "batch": the events batch() held back. */
+  changes?: readonly BlocksBatchedEvent[];
 }
 
 export interface BlocksSystemOptions {
   catalogUrl?: string | URL | null;
   random?: () => number;
+  /** Called with a code and a message whenever blocks.system refuses or skips something without throwing: an unknown add() option, dock() on a pinned block, a hydrate() that finds nothing. Without it nothing is reported. Try onIssue: console.warn while building. */
+  onIssue?: ((issue: Readonly<BlocksIssue>) => void) | null;
   /** Choose one complete layout model. Defaults to free. */
   layout?: BlocksLayoutMode;
   draggable?: boolean;
@@ -307,6 +383,18 @@ export interface BlocksSystem {
   listAdapters(): string[];
   list(filters?: { query?: string; adapter?: string; medium?: string; category?: string }): Readonly<BlockDefinition>[];
   get(id: string): Readonly<BlockDefinition> | null;
+  /** The live block with this id, or null. get() and list() return catalog definitions instead. */
+  block(id: string): BlockController | null;
+  /** Every live block in its current order, docked blocks at the place they return to. */
+  blocks(): BlockController[];
+  /** The live block that contains this element, or null. */
+  blockOf(target: Element | null): BlockController | null;
+  /** Run fn and publish everything it changes as one blocks:change of type "batch". The changes themselves happen at once. Returns what fn returns. */
+  batch<T>(fn: (blocks: BlocksSystem) => T): T;
+  /** Tell whether restoreLayout() would accept this snapshot, and which ids it would skip or append, without changing anything. */
+  checkLayout(layout: unknown, options?: BlocksRestoreOptions): Readonly<BlocksLayoutCheck>;
+  /** Remove every block, release the field and undo hydrate() and bindSearch(): observers and listeners stop and a hydrated page gets its original HTML back. Publishes no events. The system can start again afterwards. */
+  destroy(): BlocksSystem;
   attach(target: string | Element): BlocksSystem;
   /** Hydrate declarative HTML blocks in a field with responsive spans, auto-fit, deep-link resolution and optional visitor persistence. */
   /** Without a target, the first [data-content-page] on the page is hydrated; an options object may take the place of the target. */
@@ -336,6 +424,8 @@ export interface BlocksSystem {
   address(id: string): string;
 }
 
+/** Version of this source, equal to package.json. */
+export const version: string;
 export function createBlocksSystem(options?: BlocksSystemOptions): BlocksSystem;
 export const system: BlocksSystem;
 /** Add one block to the shared system; without attach() the system creates its own field at the end of the body. */

@@ -5,6 +5,9 @@
  * wordt gemount, opgeruimd en als snippet geëxporteerd.
  */
 
+/** Versie van deze bron; gelijk aan package.json. */
+export const version = "0.6.1";
+
 const BUILT_IN_VARIANTS = Object.freeze(["regular", "inverse"]);
 const BUILT_IN_LAYOUTS = Object.freeze(["free", "fixed-grid", "flow-grid"]);
 const EMPTY_COLOR_ARRAY = Object.freeze([]);
@@ -15,6 +18,7 @@ const DRAG_SETTLE_DURATION = 160;
 const DRAG_SETTLE_EASING = "cubic-bezier(.2,.8,.2,1)";
 const DEFAULT_MENU_OPTIONS = Object.freeze({ dock: true, close: false, minimize: false, copy: false, pin: false });
 const EMPTY_MENU_OPTIONS = Object.freeze({ dock: false, close: false, minimize: false, copy: false, pin: false });
+const ADD_OPTION_NAMES = Object.freeze(["id", "title", "menu", "variant", "minimized", "draggable", "span", "place", "summary"]);
 // Menu-iconen op één raster van 12: lijnen in de menukleur, zodat elke knop
 // even groot en even zwaar oogt, los van het lettertype.
 const MENU_ICON_PATHS = Object.freeze({
@@ -92,7 +96,7 @@ function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.b
     const fallback = inherited || DEFAULT_MENU_OPTIONS;
     if (value === true) return fallback;
     if (!value || typeof value !== "object") {
-        throw new TypeError(`${path} verwacht true, false of een object met dock, close, minimize en copy.`);
+        throw coded(new TypeError(`${path} verwacht true, false of een object met dock, close, minimize en copy.`), "BLOCKS_INVALID_ARGUMENT");
     }
     return Object.freeze({
         dock: value.dock === undefined ? fallback.dock : Boolean(value.dock),
@@ -106,7 +110,7 @@ function normalizeAutomaticMenu(value, inherited = null, path = "blocks.system.b
 function normalizeBlockDefaults(value) {
     if (value === undefined) return Object.freeze({ menu: DEFAULT_MENU_OPTIONS });
     if (!value || typeof value !== "object") {
-        throw new TypeError("blocks.system.blockDefaults verwacht een object.");
+        throw coded(new TypeError("blocks.system.blockDefaults verwacht een object."), "BLOCKS_INVALID_ARGUMENT");
     }
     return Object.freeze({
         menu: normalizeAutomaticMenu(value.menu, DEFAULT_MENU_OPTIONS)
@@ -115,7 +119,7 @@ function normalizeBlockDefaults(value) {
 
 function normalizeLabels(value) {
     if (value !== undefined && (!value || typeof value !== "object")) {
-        throw new TypeError("blocks.system.labels verwacht een object met toegankelijke UI-labels.");
+        throw coded(new TypeError("blocks.system.labels verwacht een object met toegankelijke UI-labels."), "BLOCKS_INVALID_ARGUMENT");
     }
     const documentLanguage = typeof document === "undefined"
         ? ""
@@ -126,7 +130,7 @@ function normalizeLabels(value) {
     const labels = {};
     for (const name of Object.keys(defaults)) {
         const label = String(value?.[name] ?? defaults[name]).trim();
-        if (!label) throw new TypeError(`blocks.system.labels.${name} mag niet leeg zijn.`);
+        if (!label) throw coded(new TypeError(`blocks.system.labels.${name} mag niet leeg zijn.`), "BLOCKS_INVALID_ARGUMENT");
         labels[name] = label;
     }
     return Object.freeze(labels);
@@ -134,15 +138,15 @@ function normalizeLabels(value) {
 
 function normalizeBlock(definition) {
     if (!definition || typeof definition !== "object") {
-        throw new TypeError("Een blokdefinitie moet een object zijn.");
+        throw coded(new TypeError("Een blokdefinitie moet een object zijn."), "BLOCKS_INVALID_ARGUMENT");
     }
     const id = String(definition.id || "");
     const adapter = String(definition.adapter || "");
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) {
-        throw new TypeError(`Ongeldig blok-id: ${id || "(leeg)"}`);
+        throw coded(new TypeError(`Ongeldig blok-id: ${id || "(leeg)"}`), "BLOCKS_INVALID_ID");
     }
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(adapter)) {
-        throw new TypeError(`Ongeldig adapter-id voor ${id}: ${adapter || "(leeg)"}`);
+        throw coded(new TypeError(`Ongeldig adapter-id voor ${id}: ${adapter || "(leeg)"}`), "BLOCKS_INVALID_ID");
     }
     return Object.freeze({
         ...definition,
@@ -156,7 +160,7 @@ function normalizeBlock(definition) {
 
 function resolveHost(target) {
     const host = typeof target === "string" ? document.querySelector(target) : target;
-    if (!(host instanceof Element)) throw new TypeError("building blocks verwacht een geldig host-element.");
+    if (!(host instanceof Element)) throw coded(new TypeError("blocks.system verwacht een geldig host-element."), "BLOCKS_INVALID_ARGUMENT");
     return host;
 }
 
@@ -167,7 +171,7 @@ function normalizeVariant(value) {
         : requested === "invert" ? "inverse" : requested;
     if (name === "random") return name;
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)) {
-        throw new TypeError(`Ongeldige blockvariant: ${name || "(leeg)"}`);
+        throw coded(new TypeError(`Ongeldige blockvariant: ${name || "(leeg)"}`), "BLOCKS_INVALID_ARGUMENT");
     }
     return name;
 }
@@ -175,22 +179,22 @@ function normalizeVariant(value) {
 function normalizeLayout(value) {
     const layout = String(value ?? "free").trim().toLowerCase();
     if (BUILT_IN_LAYOUTS.includes(layout)) return layout;
-    throw new TypeError("blocks.system.layout verwacht free, fixed-grid of flow-grid.");
+    throw coded(new TypeError("blocks.system.layout verwacht free, fixed-grid of flow-grid."), "BLOCKS_INVALID_ARGUMENT");
 }
 
 function rejectRetiredLayoutOptions(options) {
     if (Object.hasOwn(options, "snap")) {
-        throw new TypeError("blocks.system.snap is vervangen door layout: free of fixed-grid.");
+        throw coded(new TypeError("blocks.system.snap is vervangen door layout: free of fixed-grid."), "BLOCKS_RETIRED_OPTION");
     }
     if (Object.hasOwn(options, "placement")) {
         const replacement = String(options.placement).trim().toLowerCase() === "flow" ? "flow-grid" : "fixed-grid";
-        throw new TypeError(`blocks.system.placement is vervangen door layout: ${replacement}.`);
+        throw coded(new TypeError(`blocks.system.placement is vervangen door layout: ${replacement}.`), "BLOCKS_RETIRED_OPTION");
     }
 }
 
 function normalizeUnitPair(value, path) {
     if (!Array.isArray(value) || value.length !== 2) {
-        throw new TypeError(`${path} verwacht [x, y] in hele rastereenheden.`);
+        throw coded(new TypeError(`${path} verwacht [x, y] in hele rastereenheden.`), "BLOCKS_INVALID_ARGUMENT");
     }
     return value;
 }
@@ -199,27 +203,32 @@ function normalizeRowHeight(value) {
     if (value === undefined || value === null) return null;
     const pixels = Number(value);
     if (!Number.isFinite(pixels) || pixels <= 0) {
-        throw new TypeError("blocks.system.rowHeight verwacht een positief aantal pixels of null.");
+        throw coded(new TypeError("blocks.system.rowHeight verwacht een positief aantal pixels of null."), "BLOCKS_INVALID_ARGUMENT");
     }
     return pixels;
 }
 
-function gridTooSmallError(message) {
-    const error = new RangeError(message);
-    error.code = GRID_TOO_SMALL;
+// Elke fout draagt een vaste code naast haar zin; de zin mag veranderen, de
+// code niet. Zo kan een toepassing of een agent op de oorzaak schakelen.
+function coded(error, code) {
+    error.code = code;
     return error;
+}
+
+function gridTooSmallError(message) {
+    return coded(new RangeError(message), GRID_TOO_SMALL);
 }
 
 function normalizeRestoreGrid(options) {
     if (options === undefined) return null;
     if (!options || typeof options !== "object") {
-        throw new TypeError("blocks.system.restoreLayout(layout, options) verwacht een optieobject.");
+        throw coded(new TypeError("blocks.system.restoreLayout(layout, options) verwacht een optieobject."), "BLOCKS_INVALID_ARGUMENT");
     }
     if (options.grid === undefined) return null;
     const columns = Number(options.grid?.columns);
     const rows = Number(options.grid?.rows);
     if (!Number.isInteger(columns) || columns < 1 || !Number.isInteger(rows) || rows < 1) {
-        throw new TypeError("restoreLayout(layout, { grid }) verwacht positieve gehele aantallen kolommen en rijen.");
+        throw coded(new TypeError("restoreLayout(layout, { grid }) verwacht positieve gehele aantallen kolommen en rijen."), "BLOCKS_INVALID_ARGUMENT");
     }
     return { columns, rows };
 }
@@ -227,23 +236,23 @@ function normalizeRestoreGrid(options) {
 function normalizeDockPosition(value, path = "blocks.system.dockPosition") {
     if (value === undefined) return "top";
     if (value === "top" || value === "bottom") return value;
-    throw new TypeError(`${path} verwacht "top" of "bottom".`);
+    throw coded(new TypeError(`${path} verwacht "top" of "bottom".`), "BLOCKS_INVALID_ARGUMENT");
 }
 
 function normalizeLayoutSnapshot(value) {
     if (!value || typeof value !== "object" || value.version !== LAYOUT_VERSION || !Array.isArray(value.blocks)) {
-        throw new TypeError(`blocks.system.restoreLayout() verwacht layout version ${LAYOUT_VERSION}.`);
+        throw coded(new TypeError(`blocks.system.restoreLayout() verwacht layout version ${LAYOUT_VERSION}.`), "BLOCKS_LAYOUT_VERSION");
     }
     if (!Object.hasOwn(value, "layout")) {
-        throw new TypeError("blocks.system.restoreLayout() verwacht een expliciete layoutmodus.");
+        throw coded(new TypeError("blocks.system.restoreLayout() verwacht een expliciete layoutmodus."), "BLOCKS_LAYOUT_VERSION");
     }
     const layout = normalizeLayout(value.layout);
     const seen = new Set();
     const entries = value.blocks.map((entry) => {
-        if (!entry || typeof entry !== "object") throw new TypeError("Elk opgeslagen block verwacht een layoutobject.");
+        if (!entry || typeof entry !== "object") throw coded(new TypeError("Elk opgeslagen block verwacht een layoutobject."), "BLOCKS_INVALID_ARGUMENT");
         const id = String(entry.id || "");
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id) || seen.has(id)) {
-            throw new TypeError(`Ongeldig of dubbel opgeslagen block-id: ${id || "(leeg)"}`);
+            throw coded(new TypeError(`Ongeldig of dubbel opgeslagen block-id: ${id || "(leeg)"}`), "BLOCKS_INVALID_ID");
         }
         seen.add(id);
         const span = entry.span === undefined || entry.span === null
@@ -257,10 +266,10 @@ function normalizeLayoutSnapshot(value) {
               ? entry.place.map(Number)
               : [];
         if (span !== null && (span.length !== 2 || span.some((unit) => !Number.isInteger(unit) || unit < 1))) {
-            throw new TypeError(`Opgeslagen span van ${id} verwacht twee positieve gehele rastereenheden.`);
+            throw coded(new TypeError(`Opgeslagen span van ${id} verwacht twee positieve gehele rastereenheden.`), "BLOCKS_INVALID_ARGUMENT");
         }
         if (place !== null && (place.length !== 2 || place.some((unit) => !Number.isInteger(unit) || unit < 1))) {
-            throw new TypeError(`Opgeslagen plaats van ${id} verwacht null of twee positieve gehele rastercoördinaten.`);
+            throw coded(new TypeError(`Opgeslagen plaats van ${id} verwacht null of twee positieve gehele rastercoördinaten.`), "BLOCKS_INVALID_ARGUMENT");
         }
         return Object.freeze({ id, span, place, minimized: Boolean(entry.minimized), docked: Boolean(entry.docked), pinned: Boolean(entry.pinned) });
     });
@@ -270,13 +279,13 @@ function normalizeLayoutSnapshot(value) {
 function normalizeColorArray(value) {
     const source = value === undefined ? EMPTY_COLOR_ARRAY : value;
     if (!Array.isArray(source)) {
-        throw new TypeError("blocks.system.colorArray verwacht een array met CSS-kleuren.");
+        throw coded(new TypeError("blocks.system.colorArray verwacht een array met CSS-kleuren."), "BLOCKS_INVALID_ARGUMENT");
     }
     const colors = [];
     const seen = new Set();
     for (const value of source) {
         if (typeof value !== "string" || value.trim() === "") {
-            throw new TypeError("blocks.system.colorArray verwacht niet-lege CSS-kleuren als strings.");
+            throw coded(new TypeError("blocks.system.colorArray verwacht niet-lege CSS-kleuren als strings."), "BLOCKS_INVALID_ARGUMENT");
         }
         const color = value.trim();
         if (!seen.has(color)) {
@@ -351,24 +360,24 @@ function resolveReadableMenuColor(host, backgroundValue) {
 function normalizeVariation(value, property, fallback) {
     if (value === undefined) return fallback;
     if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1) {
-        throw new TypeError(`blocks.system.${property} verwacht een getal van 0 tot en met 1.`);
+        throw coded(new TypeError(`blocks.system.${property} verwacht een getal van 0 tot en met 1.`), "BLOCKS_INVALID_ARGUMENT");
     }
     return value;
 }
 
 function assertColorVariationHasColors(colors, variation) {
     if (variation > 0 && colors.length === 0) {
-        throw new TypeError("blocks.system.colorVariation groter dan 0 verwacht minstens één CSS-kleur in colorArray.");
+        throw coded(new TypeError("blocks.system.colorVariation groter dan 0 verwacht minstens één CSS-kleur in colorArray."), "BLOCKS_INVALID_ARGUMENT");
     }
 }
 
 function normalizeFont(value) {
     if (value === null || value === undefined) return null;
     if (!value || typeof value !== "object") {
-        throw new TypeError("blocks.system.font verwacht null of een object met minstens family.");
+        throw coded(new TypeError("blocks.system.font verwacht null of een object met minstens family."), "BLOCKS_INVALID_ARGUMENT");
     }
     const family = String(value.family || "").trim();
-    if (!family) throw new TypeError("blocks.system.font.family mag niet leeg zijn.");
+    if (!family) throw coded(new TypeError("blocks.system.font.family mag niet leeg zijn."), "BLOCKS_INVALID_ARGUMENT");
 
     const href = value.href === undefined || value.href === null
         ? null
@@ -378,10 +387,10 @@ function normalizeFont(value) {
         try {
             url = new URL(href);
         } catch {
-            throw new TypeError("blocks.system.font.href verwacht een geldige absolute URL.");
+            throw coded(new TypeError("blocks.system.font.href verwacht een geldige absolute URL."), "BLOCKS_INVALID_ARGUMENT");
         }
         if (url.protocol !== "https:" && url.protocol !== "http:") {
-            throw new TypeError("blocks.system.font.href ondersteunt alleen http- en https-URL's.");
+            throw coded(new TypeError("blocks.system.font.href ondersteunt alleen http- en https-URL's."), "BLOCKS_INVALID_ARGUMENT");
         }
     }
 
@@ -444,7 +453,7 @@ function gridModeForWidth(width, modes = DEFAULT_GRID_MODES) {
 function parsePositiveGridUnit(value, path) {
     const number = Number(value);
     if (!Number.isInteger(number) || number < 1) {
-        throw new TypeError(`${path} is geen positieve rastereenheid.`);
+        throw coded(new TypeError(`${path} is geen positieve rastereenheid.`), "BLOCKS_INVALID_ARGUMENT");
     }
     return number;
 }
@@ -465,7 +474,7 @@ function readBlockSpan(node, mode, gridColumns = Infinity) {
     if (explicit) {
         const parts = explicit.split(/\s+/);
         if (parts.length !== 2) {
-            throw new TypeError(`${blockId}: span voor ${mode} ontbreekt.`);
+            throw coded(new TypeError(`${blockId}: span voor ${mode} ontbreekt.`), "BLOCKS_INVALID_ARGUMENT");
         }
         return [
             Math.min(gridColumns, parsePositiveGridUnit(parts[0], `${blockId}.${mode}.columns`)),
@@ -504,7 +513,7 @@ function createBlockCatalog(options = {}) {
 
     function requireMarkup(block) {
         if (typeof block.markup !== "string") {
-            throw new TypeError(`De html-adapter verwacht een markup-string op ${block.id}.`);
+            throw coded(new TypeError(`De html-adapter verwacht een markup-string op ${block.id}.`), "BLOCKS_INVALID_ARGUMENT");
         }
         return block.markup;
     }
@@ -526,7 +535,7 @@ function createBlockCatalog(options = {}) {
     function register(definition, registerOptions = {}) {
         const block = normalizeBlock(definition);
         if (definitions.has(block.id) && !registerOptions.replace) {
-            throw new Error(`Blok bestaat al: ${block.id}`);
+            throw coded(new Error(`Blok bestaat al: ${block.id}`), "BLOCKS_DUPLICATE_ID");
         }
         definitions.set(block.id, block);
     }
@@ -534,13 +543,13 @@ function createBlockCatalog(options = {}) {
     function registerAdapter(id, adapter, registerOptions = {}) {
         const name = String(id || "");
         if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(name)) {
-            throw new TypeError(`Ongeldig adapter-id: ${name || "(leeg)"}`);
+            throw coded(new TypeError(`Ongeldig adapter-id: ${name || "(leeg)"}`), "BLOCKS_INVALID_ID");
         }
         if (!adapter || typeof adapter.mount !== "function") {
-            throw new TypeError(`Adapter ${name} heeft minstens een mount()-functie nodig.`);
+            throw coded(new TypeError(`Adapter ${name} heeft minstens een mount()-functie nodig.`), "BLOCKS_INVALID_ARGUMENT");
         }
         if (adapters.has(name) && !registerOptions.replace) {
-            throw new Error(`Adapter bestaat al: ${name}`);
+            throw coded(new Error(`Adapter bestaat al: ${name}`), "BLOCKS_DUPLICATE_ID");
         }
         adapters.set(name, Object.freeze({ ...adapter }));
     }
@@ -595,9 +604,9 @@ function createBlockCatalog(options = {}) {
     async function mount(id, target, overrides = {}) {
         const host = resolveHost(target);
         const block = get(id);
-        if (!block) throw new RangeError(`Onbekend blok: ${id}`);
+        if (!block) throw coded(new RangeError(`Onbekend blok: ${id}`), "BLOCKS_UNKNOWN_BLOCK");
         const adapter = adapters.get(block.adapter);
-        if (!adapter) throw new Error(`Geen adapter geregistreerd voor ${block.id}: ${block.adapter}`);
+        if (!adapter) throw coded(new Error(`Geen adapter geregistreerd voor ${block.id}: ${block.adapter}`), "BLOCKS_UNKNOWN_ADAPTER");
         const settings = { ...block.defaults, ...overrides };
         const context = { block, host, settings, adapter };
         if (typeof adapter.ready === "function") await adapter.ready(context);
@@ -605,7 +614,7 @@ function createBlockCatalog(options = {}) {
         const result = await adapter.mount(context);
         const node = result && result.node ? result.node : result;
         if (!(node instanceof Element) || node.parentNode !== host) {
-            throw new TypeError(`Adapter ${block.adapter} moet een gemount root-element teruggeven.`);
+            throw coded(new TypeError(`Adapter ${block.adapter} moet een gemount root-element teruggeven.`), "BLOCKS_ADAPTER_RESULT");
         }
         const mounted = { ...context, node };
         mounts.set(host, mounted);
@@ -619,17 +628,17 @@ function createBlockCatalog(options = {}) {
 
     function snippet(id, overrides = {}) {
         const block = get(id);
-        if (!block) throw new RangeError(`Onbekend blok: ${id}`);
+        if (!block) throw coded(new RangeError(`Onbekend blok: ${id}`), "BLOCKS_UNKNOWN_BLOCK");
         const adapter = adapters.get(block.adapter);
         if (!adapter || typeof adapter.snippet !== "function") {
-            throw new Error(`Adapter ${block.adapter} levert geen snippet voor ${block.id}.`);
+            throw coded(new Error(`Adapter ${block.adapter} levert geen snippet voor ${block.id}.`), "BLOCKS_UNKNOWN_ADAPTER");
         }
         return adapter.snippet({ block, settings: { ...block.defaults, ...overrides } });
     }
 
     function address(id) {
         const block = get(id);
-        if (!block) throw new RangeError(`Onbekend blok: ${id}`);
+        if (!block) throw coded(new RangeError(`Onbekend blok: ${id}`), "BLOCKS_UNKNOWN_BLOCK");
         const fallbackUrl = typeof window !== "undefined" ? window.location.href : null;
         const base = catalogUrl || fallbackUrl;
         let url;
@@ -637,11 +646,11 @@ function createBlockCatalog(options = {}) {
             try {
                 url = new URL(block.url, base || undefined);
             } catch {
-                if (!base) throw new Error("Voor address() is een catalogUrl nodig.");
-                throw new TypeError(`Ongeldige blok-url voor ${id}: ${block.url}`);
+                if (!base) throw coded(new Error("Voor address() is een catalogUrl nodig."), "BLOCKS_NO_CATALOG_URL");
+                throw coded(new TypeError(`Ongeldige blok-url voor ${id}: ${block.url}`), "BLOCKS_INVALID_ARGUMENT");
             }
         } else {
-            if (!base) throw new Error("Voor address() is een catalogUrl nodig.");
+            if (!base) throw coded(new Error("Voor address() is een catalogUrl nodig."), "BLOCKS_NO_CATALOG_URL");
             url = new URL(base);
             // Alleen op het catalogus-/paginapad is component een eigen
             // routeringsparameter; een consumer-eigen blok-url blijft intact.
@@ -671,7 +680,7 @@ function createBlockCatalog(options = {}) {
 
 export function createBlocksSystem(options = {}) {
     if (Object.hasOwn(options, "colorVary")) {
-        throw new TypeError("blocks.system.colorVary heet nu colorVariation.");
+        throw coded(new TypeError("blocks.system.colorVary heet nu colorVariation."), "BLOCKS_RETIRED_OPTION");
     }
     rejectRetiredLayoutOptions(options);
     const catalog = createBlockCatalog({ catalogUrl: options.catalogUrl });
@@ -686,6 +695,16 @@ export function createBlocksSystem(options = {}) {
     // reset() zet daarnaar terug.
     const baselines = new Map();
     const randomSource = typeof options.random === "function" ? options.random : Math.random;
+    if (options.onIssue !== undefined && options.onIssue !== null && typeof options.onIssue !== "function") {
+        throw coded(new TypeError("blocks.system.onIssue verwacht een functie."), "BLOCKS_INVALID_ARGUMENT");
+    }
+    const issueListener = options.onIssue || null;
+    // Opruimers van hydrate() en bindSearch(); destroy() roept ze aan.
+    const teardowns = new Set();
+    // Binnen batch() wachten de events; mute zwijgt ze tijdens destroy().
+    let batchDepth = 0;
+    let batchQueue = [];
+    let eventsMuted = false;
     let surface = null;
     let dock = null;
     let columns = 1;
@@ -695,13 +714,13 @@ export function createBlocksSystem(options = {}) {
     const layoutMode = normalizeLayout(options.layout);
     let rowHeightState = normalizeRowHeight(options.rowHeight);
     if (rowHeightState !== null && layoutMode === "free") {
-        throw new TypeError("blocks.system.rowHeight vereist layout: fixed-grid of flow-grid.");
+        throw coded(new TypeError("blocks.system.rowHeight vereist layout: fixed-grid of flow-grid."), "BLOCKS_WRONG_LAYOUT");
     }
     let dockPositionState = normalizeDockPosition(options.dockPosition);
     let draggableEnabled = options.draggable === undefined ? true : Boolean(options.draggable);
     let resizableEnabled = options.resizable === undefined ? false : Boolean(options.resizable);
     if (resizableEnabled && layoutMode !== "flow-grid") {
-        throw new TypeError("blocks.system.resizable kan alleen true zijn bij layout: flow-grid.");
+        throw coded(new TypeError("blocks.system.resizable kan alleen true zijn bij layout: flow-grid."), "BLOCKS_WRONG_LAYOUT");
     }
     let fontState = normalizeFont(options.font);
     const labels = normalizeLabels(options.labels);
@@ -713,6 +732,22 @@ export function createBlocksSystem(options = {}) {
     assertColorVariationHasColors(colorArrayState, colorVariationState);
     let objectIndex = 0;
     let api;
+
+    // Wat stil geweigerd of overgeslagen wordt, gaat naar onIssue. Zonder
+    // onIssue verandert er niets aan het gedrag.
+    function report(code, message, extra = {}) {
+        if (!issueListener) return;
+        issueListener(Object.freeze({ code, message, ...extra }));
+    }
+
+    function publish(name, detail) {
+        if (eventsMuted || !surface || typeof surface.dispatchEvent !== "function") return;
+        if (batchDepth > 0) {
+            batchQueue.push({ event: name, detail });
+            return;
+        }
+        surface.dispatchEvent(new CustomEvent(name, { detail }));
+    }
 
     function resolveAppearance(value) {
         const name = normalizeVariant(value);
@@ -911,22 +946,17 @@ export function createBlocksSystem(options = {}) {
         }
 
         function emitReorder(detail) {
-            if (!surface) return;
-            surface.dispatchEvent(
-                new CustomEvent("blocks:reorder", {
-                    detail: {
-                        id: detail.id,
-                        input: detail.input,
-                        mode: detail.mode,
-                        key: detail.key ?? null,
-                        fromIndex: detail.fromIndex ?? null,
-                        toIndex: detail.toIndex ?? null,
-                        from: detail.from ?? null,
-                        to: detail.to ?? null,
-                        direction: detail.direction ?? "still",
-                    },
-                }),
-            );
+            publish("blocks:reorder", {
+                id: detail.id,
+                input: detail.input,
+                mode: detail.mode,
+                key: detail.key ?? null,
+                fromIndex: detail.fromIndex ?? null,
+                toIndex: detail.toIndex ?? null,
+                from: detail.from ?? null,
+                to: detail.to ?? null,
+                direction: detail.direction ?? "still",
+            });
         }
 
         function gridLayoutSnapshot(elements, metrics) {
@@ -1422,27 +1452,60 @@ export function createBlocksSystem(options = {}) {
 
     const drag = createDragController();
 
+    // Haalt alles wat het systeem op het veld zette er weer af.
+    function releaseSurface() {
+        if (!surface) return;
+        drag.stop();
+        drag.unbind(surface);
+        surface.classList.remove("blocks-system-surface");
+        surface.removeAttribute("data-blocks-system");
+        surface.removeAttribute("data-layout");
+        surface.removeAttribute("data-draggable");
+        surface.removeAttribute("data-resizable");
+        surface.style.removeProperty("--blocks-columns");
+        surface.style.removeProperty("--blocks-rows");
+        surface.style.removeProperty("--blocks-row-height");
+        surface.removeAttribute("data-row-height");
+        surface.removeAttribute("data-blocks-dock");
+        surface.style.removeProperty("--blocks-dock-height");
+        surface.style.removeProperty("--blocks-font-family");
+    }
+
+    // Ruimt het hele systeem op: wat hydrate() en bindSearch() opzetten, alle
+    // blocks en het veld. Daarna kan hetzelfde systeem opnieuw beginnen met
+    // attach(), add() of hydrate(). Er gaan geen events uit.
+    function destroy() {
+        drag.stop();
+        eventsMuted = true;
+        try {
+            for (const teardown of [...teardowns].reverse()) teardown();
+            teardowns.clear();
+            for (const block of [...objects.values()]) block.remove();
+            baselines.clear();
+            dockedReturnIndices.clear();
+            if (surface) {
+                dock?.remove();
+                dock = null;
+                releaseSurface();
+                surface.removeAttribute("data-blocks-dock-position");
+                surface = null;
+            }
+            columns = 1;
+            minRows = 1;
+            rows = 1;
+        } finally {
+            eventsMuted = false;
+            batchQueue = [];
+        }
+        return api;
+    }
+
     function attach(target) {
         const nextSurface = resolveHost(target);
         if (surface && surface !== nextSurface && objects.size > 0) {
-            throw new Error("Verwijder de bestaande blokken voordat blocks.system aan een ander veld wordt gekoppeld.");
+            throw coded(new Error("Verwijder de bestaande blokken voordat blocks.system aan een ander veld wordt gekoppeld."), "BLOCKS_FIELD_IN_USE");
         }
-        if (surface && surface !== nextSurface) {
-            drag.stop();
-            drag.unbind(surface);
-            surface.classList.remove("blocks-system-surface");
-            surface.removeAttribute("data-blocks-system");
-            surface.removeAttribute("data-layout");
-            surface.removeAttribute("data-draggable");
-            surface.removeAttribute("data-resizable");
-            surface.style.removeProperty("--blocks-columns");
-            surface.style.removeProperty("--blocks-rows");
-            surface.style.removeProperty("--blocks-row-height");
-            surface.removeAttribute("data-row-height");
-            surface.removeAttribute("data-blocks-dock");
-            surface.style.removeProperty("--blocks-dock-height");
-            surface.style.removeProperty("--blocks-font-family");
-        }
+        if (surface && surface !== nextSurface) releaseSurface();
         if (surface !== nextSurface) drag.bind(nextSurface);
         surface = nextSurface;
         applySurfaceState();
@@ -1450,21 +1513,35 @@ export function createBlocksSystem(options = {}) {
     }
 
     function emitChange(detail) {
-        if (!surface || typeof surface.dispatchEvent !== "function") return;
-        surface.dispatchEvent(
-            new CustomEvent("blocks:change", {
-                detail: {
-                    type: detail.type,
-                    id: detail.id ?? null,
-                    ids: detail.ids ?? (detail.id ? [detail.id] : []),
-                },
-            }),
-        );
+        publish("blocks:change", {
+            type: detail.type,
+            id: detail.id ?? null,
+            ids: detail.ids ?? (detail.id ? [detail.id] : []),
+        });
     }
 
     function emitResize(detail) {
-        if (!surface || typeof surface.dispatchEvent !== "function") return;
-        surface.dispatchEvent(new CustomEvent("blocks:resize", { detail }));
+        publish("blocks:resize", detail);
+    }
+
+    // Bundelt alle events van fn tot één blocks:change van het type "batch".
+    // De wijzigingen zelf gebeuren meteen; alleen het melden wacht.
+    function batch(fn) {
+        if (typeof fn !== "function") {
+            throw coded(new TypeError("blocks.system.batch(fn) verwacht een functie."), "BLOCKS_INVALID_ARGUMENT");
+        }
+        batchDepth += 1;
+        try {
+            return fn(api);
+        } finally {
+            batchDepth -= 1;
+            if (batchDepth === 0 && batchQueue.length > 0) {
+                const changes = batchQueue;
+                batchQueue = [];
+                const ids = [...new Set(changes.flatMap(({ detail }) => detail.ids ?? (detail.id ? [detail.id] : [])))];
+                publish("blocks:change", { type: "batch", id: null, ids, changes: Object.freeze(changes) });
+            }
+        }
     }
 
     function directObjectElements() {
@@ -1497,6 +1574,9 @@ export function createBlocksSystem(options = {}) {
         return {
             version: LAYOUT_VERSION,
             layout: layoutMode,
+            // Het raster waarvoor deze opname gemaakt is; rows is het minimum
+            // van setGrid(). Geef het door als restoreLayout(opname, { grid }).
+            grid: layoutMode === "free" ? null : { columns, rows: minRows },
             blocks: orderedObjectElements().map((element) => {
                 const id = element.getAttribute("data-block-object");
                 const layout = objectLayouts.get(id);
@@ -1513,22 +1593,22 @@ export function createBlocksSystem(options = {}) {
         };
     }
 
-    function restoreLayout(snapshot, options) {
-        drag.stop();
+    // Alles wat kan falen, faalt hier, vóór de eerste wijziging.
+    function planRestore(snapshot, options) {
         const normalized = normalizeLayoutSnapshot(snapshot);
         const targetGrid = normalizeRestoreGrid(options);
         if (normalized.layout !== layoutMode) {
-            throw new TypeError(`Opgeslagen layout ${normalized.layout} past niet bij systeemlayout ${layoutMode}.`);
+            throw coded(new TypeError(`Opgeslagen layout ${normalized.layout} past niet bij systeemlayout ${layoutMode}.`), "BLOCKS_WRONG_LAYOUT");
         }
         if (targetGrid && layoutMode === "free") {
-            throw new TypeError("restoreLayout(layout, { grid }) vereist layout: fixed-grid of flow-grid.");
+            throw coded(new TypeError("restoreLayout(layout, { grid }) vereist layout: fixed-grid of flow-grid."), "BLOCKS_WRONG_LAYOUT");
         }
         const gridColumns = targetGrid?.columns ?? columns;
         const gridRows = targetGrid?.rows ?? rows;
         const entries = normalized.entries;
         const knownEntries = entries.filter((entry) => objects.has(entry.id));
         if (layoutMode === "flow-grid" && knownEntries.some((entry) => entry.place !== null)) {
-            throw new TypeError("Een flow-grid-layout mag geen vaste blockadressen bevatten.");
+            throw coded(new TypeError("Een flow-grid-layout mag geen vaste blockadressen bevatten."), "BLOCKS_WRONG_LAYOUT");
         }
         const targetLayouts = knownEntries.map((entry) => {
             const current = objectLayouts.get(entry.id);
@@ -1550,7 +1630,7 @@ export function createBlocksSystem(options = {}) {
         for (let index = 0; index < placedTargets.length; index += 1) {
             for (let otherIndex = index + 1; otherIndex < placedTargets.length; otherIndex += 1) {
                 if (layoutsOverlap(placedTargets[index], placedTargets[otherIndex])) {
-                    throw new RangeError(`Opgeslagen layouts van ${placedTargets[index].id} en ${placedTargets[otherIndex].id} overlappen.`);
+                    throw coded(new RangeError(`Opgeslagen layouts van ${placedTargets[index].id} en ${placedTargets[otherIndex].id} overlappen.`), "BLOCKS_OVERLAP");
                 }
             }
         }
@@ -1562,7 +1642,37 @@ export function createBlocksSystem(options = {}) {
             if (targetGrid) assertLayoutFits(id, layout, gridColumns, gridRows);
             if (layout.column === null || layout.row === null) continue;
             const overlapping = placedTargets.find((target) => layoutsOverlap(target, layout));
-            if (overlapping) throw new RangeError(`Opgeslagen plaats van ${overlapping.id} overlapt ${id}.`);
+            if (overlapping) throw coded(new RangeError(`Opgeslagen plaats van ${overlapping.id} overlapt ${id}.`), "BLOCKS_OVERLAP");
+        }
+        const unknownIds = entries.filter((entry) => !objects.has(entry.id)).map((entry) => entry.id);
+        const missingIds = Array.from(objects.keys()).filter((id) => !savedIds.has(id));
+        return { targetGrid, gridColumns, gridRows, knownEntries, savedIds, unknownIds, missingIds };
+    }
+
+    // Zegt zonder iets te wijzigen of restoreLayout() deze opname aanneemt.
+    // unknownIds staan in de opname maar niet in het veld en worden
+    // overgeslagen; missingIds staan in het veld maar niet in de opname en
+    // sluiten achteraan aan.
+    function checkLayout(snapshot, options) {
+        try {
+            const { unknownIds, missingIds } = planRestore(snapshot, options);
+            return Object.freeze({ ok: true, code: null, message: null, unknownIds: Object.freeze(unknownIds), missingIds: Object.freeze(missingIds) });
+        } catch (error) {
+            return Object.freeze({
+                ok: false,
+                code: error?.code || "BLOCKS_INVALID_ARGUMENT",
+                message: String(error?.message || error),
+                unknownIds: Object.freeze([]),
+                missingIds: Object.freeze([])
+            });
+        }
+    }
+
+    function restoreLayout(snapshot, options) {
+        drag.stop();
+        const { targetGrid, gridColumns, gridRows, knownEntries, savedIds, unknownIds } = planRestore(snapshot, options);
+        if (unknownIds.length > 0) {
+            report("BLOCKS_UNKNOWN_BLOCK", `restoreLayout() slaat onbekende block-id's over: ${unknownIds.join(", ")}.`, { ids: unknownIds });
         }
         if (targetGrid) {
             const previous = { columns, rows };
@@ -1616,20 +1726,20 @@ export function createBlocksSystem(options = {}) {
         if (layout.column === null || layout.row === null) return;
         for (const [otherId, other] of objectLayouts) {
             if (otherId === id || other.column === null || other.row === null) continue;
-            if (layoutsOverlap(layout, other)) throw new RangeError(`Plaats van ${id} overlapt ${otherId}.`);
+            if (layoutsOverlap(layout, other)) throw coded(new RangeError(`Plaats van ${id} overlapt ${otherId}.`), "BLOCKS_OVERLAP");
         }
     }
 
     function setGrid(x, y) {
         drag.stop();
         if (layoutMode === "free") {
-            throw new TypeError("blocks.system.setGrid() vereist layout: fixed-grid of flow-grid.");
+            throw coded(new TypeError("blocks.system.setGrid() vereist layout: fixed-grid of flow-grid."), "BLOCKS_WRONG_LAYOUT");
         }
         const nextColumns = Number(x);
         const nextRows = Number(y);
         if (!Number.isInteger(nextColumns) || nextColumns < 1 ||
             !Number.isInteger(nextRows) || nextRows < 1) {
-            throw new TypeError("setGrid(x, y) verwacht positieve gehele aantallen kolommen en rijen.");
+            throw coded(new TypeError("setGrid(x, y) verwacht positieve gehele aantallen kolommen en rijen."), "BLOCKS_INVALID_ARGUMENT");
         }
         for (const [id, layout] of objectLayouts) assertLayoutFits(id, layout, nextColumns);
         const previous = { columns, rows };
@@ -1643,7 +1753,7 @@ export function createBlocksSystem(options = {}) {
     function compact() {
         drag.stop();
         if (layoutMode !== "fixed-grid") {
-            throw new TypeError("blocks.system.compact() vereist layout: fixed-grid.");
+            throw coded(new TypeError("blocks.system.compact() vereist layout: fixed-grid."), "BLOCKS_WRONG_LAYOUT");
         }
         const placed = [];
         const movedIds = [];
@@ -1683,17 +1793,17 @@ export function createBlocksSystem(options = {}) {
 
     function fitHeight(ids) {
         if (layoutMode === "free") {
-            throw new TypeError("blocks.system.fitHeight() vereist layout: fixed-grid of flow-grid.");
+            throw coded(new TypeError("blocks.system.fitHeight() vereist layout: fixed-grid of flow-grid."), "BLOCKS_WRONG_LAYOUT");
         }
         let selected = null;
         if (ids !== undefined) {
             if (typeof ids === "string" || ids === null || typeof ids[Symbol.iterator] !== "function") {
-                throw new TypeError("blocks.system.fitHeight(ids) verwacht een iterable met block-id's.");
+                throw coded(new TypeError("blocks.system.fitHeight(ids) verwacht een iterable met block-id's."), "BLOCKS_INVALID_ARGUMENT");
             }
             selected = new Set();
             for (const id of ids) {
                 if (typeof id !== "string") {
-                    throw new TypeError("blocks.system.fitHeight(ids) verwacht alleen block-id's als strings.");
+                    throw coded(new TypeError("blocks.system.fitHeight(ids) verwacht alleen block-id's als strings."), "BLOCKS_INVALID_ARGUMENT");
                 }
                 selected.add(id);
             }
@@ -1717,19 +1827,24 @@ export function createBlocksSystem(options = {}) {
             container.appendChild(resolved);
             return;
         }
-        throw new TypeError("blocks.system.add(content) verwacht HTML als string, een DOM-node of een functie die een van beide teruggeeft.");
+        throw coded(new TypeError("blocks.system.add(content) verwacht HTML als string, een DOM-node of een functie die een van beide teruggeeft."), "BLOCKS_INVALID_ARGUMENT");
     }
 
     function add(content, addOptions = {}) {
         if (Object.hasOwn(addOptions, "resizable")) {
-            throw new TypeError("blocks.system.add() options.resizable is verwijderd; gebruik blocks.resizable in flow-grid.");
+            throw coded(new TypeError("blocks.system.add() options.resizable is verwijderd; gebruik blocks.resizable in flow-grid."), "BLOCKS_RETIRED_OPTION");
+        }
+        for (const option of Object.keys(addOptions)) {
+            if (!ADD_OPTION_NAMES.includes(option)) {
+                report("BLOCKS_UNKNOWN_OPTION", `blocks.system.add() kent de optie ${option} niet en slaat ze over.`, { option });
+            }
         }
         if (!surface) {
             // Nulinstellingen: zonder attach() krijgt het systeem zelf een veld
             // aan het einde van de pagina, zoals Waves.wave(x) zonder opties al
             // een bruikbare waarde geeft.
             const body = typeof document !== "undefined" ? document.body : null;
-            if (!body) throw new Error("Roep eerst blocks.system.attach(target) aan.");
+            if (!body) throw coded(new Error("Roep eerst blocks.system.attach(target) aan."), "BLOCKS_NO_FIELD");
             const field = document.createElement("div");
             field.className = "blocks-system-field";
             body.appendChild(field);
@@ -1738,15 +1853,15 @@ export function createBlocksSystem(options = {}) {
         drag.stop();
         let id;
         if (addOptions.id !== undefined) {
-            if (typeof addOptions.id !== "string") throw new TypeError(`Ongeldig block-id: ${addOptions.id}`);
+            if (typeof addOptions.id !== "string") throw coded(new TypeError(`Ongeldig block-id: ${addOptions.id}`), "BLOCKS_INVALID_ID");
             id = addOptions.id;
         } else {
             do {
                 id = `block-${++objectIndex}`;
             } while (objects.has(id));
         }
-        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new TypeError(`Ongeldig block-id: ${id}`);
-        if (objects.has(id)) throw new Error(`Block bestaat al: ${id}`);
+        if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw coded(new TypeError(`Ongeldig block-id: ${id}`), "BLOCKS_INVALID_ID");
+        if (objects.has(id)) throw coded(new Error(`Block bestaat al: ${id}`), "BLOCKS_DUPLICATE_ID");
         const automaticMenu = normalizeAutomaticMenu(
             addOptions.menu,
             blockDefaults.menu,
@@ -1766,7 +1881,30 @@ export function createBlocksSystem(options = {}) {
             pinned: false
         }));
         syncRows();
+        emitChange({ type: "add", id });
         return block;
+    }
+
+    // De levende blocks zelf; get() en list() geven definities uit de catalogus.
+    function block(id) {
+        return objects.get(String(id)) || null;
+    }
+
+    function blocks() {
+        return orderedObjectElements().map((element) => objects.get(element.getAttribute("data-block-object")));
+    }
+
+    // Van een element in of op een block naar zijn controller.
+    function blockOf(target) {
+        let shell = target instanceof Element ? target.closest(".blocks-system-object") : null;
+        // Een block van een ander systeem kan in een block van dit systeem
+        // zitten; dan zoekt het verder naar buiten.
+        while (shell) {
+            const found = objects.get(shell.getAttribute("data-block-object") || "");
+            if (found && found.element === shell) return found;
+            shell = shell.parentElement ? shell.parentElement.closest(".blocks-system-object") : null;
+        }
+        return null;
     }
 
     function saveBaseline() {
@@ -1828,7 +1966,7 @@ export function createBlocksSystem(options = {}) {
             try {
                 appendContent(next, value);
             } catch {
-                throw new TypeError("block.summary(content) verwacht HTML als string, een DOM-node, een functie of null.");
+                throw coded(new TypeError("block.summary(content) verwacht HTML als string, een DOM-node, een functie of null."), "BLOCKS_INVALID_ARGUMENT");
             }
             shell.insertBefore(next, contentNode);
             summaryNode?.remove();
@@ -1929,7 +2067,10 @@ export function createBlocksSystem(options = {}) {
             const nextValue = Boolean(value);
             if (dockedValue === nextValue) return;
             // Regel 1: een favoriet blijft altijd zichtbaar.
-            if (nextValue && pinnedValue) return;
+            if (nextValue && pinnedValue) {
+                report("BLOCKS_PINNED_STAYS_VISIBLE", `${id} is een favoriet en gaat niet naar de dock.`, { id });
+                return;
+            }
             drag.stop();
             stopResize();
             if (nextValue) {
@@ -1975,7 +2116,10 @@ export function createBlocksSystem(options = {}) {
             const nextValue = Boolean(value);
             if (pinnedValue === nextValue) return;
             // Regel 2: een weggezet block heeft geen ster; eerst terugzetten.
-            if (nextValue && dockedValue) return;
+            if (nextValue && dockedValue) {
+                report("BLOCKS_DOCKED_HAS_NO_PIN", `${id} staat in de dock en kan geen favoriet worden.`, { id });
+                return;
+            }
             drag.stop();
             const ordered = orderedObjectElements();
             const fromOrdered = ordered.indexOf(shell);
@@ -2207,7 +2351,7 @@ export function createBlocksSystem(options = {}) {
         }
 
         function assertActive() {
-            if (objects.get(id) !== block) throw new Error(`Block is verwijderd: ${id}`);
+            if (objects.get(id) !== block) throw coded(new Error(`Block is verwijderd: ${id}`), "BLOCKS_REMOVED");
         }
 
         function describe(describeOptions = {}) {
@@ -2274,13 +2418,13 @@ export function createBlocksSystem(options = {}) {
             assertActive();
             drag.stop();
             if (layoutMode === "free") {
-                throw new TypeError("block.span() vereist layout: fixed-grid of flow-grid.");
+                throw coded(new TypeError("block.span() vereist layout: fixed-grid of flow-grid."), "BLOCKS_WRONG_LAYOUT");
             }
             const nextColumns = Number(x);
             const nextRows = Number(y);
             if (!Number.isInteger(nextColumns) || nextColumns < 1 ||
                 !Number.isInteger(nextRows) || nextRows < 1) {
-                throw new TypeError("block.span(x, y) verwacht positieve gehele rastereenheden.");
+                throw coded(new TypeError("block.span(x, y) verwacht positieve gehele rastereenheden."), "BLOCKS_INVALID_ARGUMENT");
             }
             const nextLayout = {
                 columns: nextColumns,
@@ -2329,7 +2473,7 @@ export function createBlocksSystem(options = {}) {
         function fitHeight() {
             assertActive();
             if (layoutMode === "free") {
-                throw new TypeError("block.fitHeight() vereist layout: fixed-grid of flow-grid.");
+                throw coded(new TypeError("block.fitHeight() vereist layout: fixed-grid of flow-grid."), "BLOCKS_WRONG_LAYOUT");
             }
             if (minimizedValue || dockedValue || shell.hidden || surface?.hasAttribute("data-dragging")) {
                 return Object.freeze({ columns: spanColumns, rows: spanRows, changed: false });
@@ -2338,7 +2482,7 @@ export function createBlocksSystem(options = {}) {
             const rowGap = Number.parseFloat(style.rowGap) || 0;
             const rowStep = gridMetrics().rowStep;
             if (!(rowStep > rowGap)) {
-                throw new RangeError("block.fitHeight() kan de rijhoogte van het gekoppelde raster niet meten.");
+                throw coded(new RangeError("block.fitHeight() kan de rijhoogte van het gekoppelde raster niet meten."), "BLOCKS_NOT_MEASURABLE");
             }
             const nextRows = Math.max(1, Math.ceil((intrinsicHeight() + rowGap) / rowStep));
             const changed = nextRows !== spanRows;
@@ -2361,13 +2505,13 @@ export function createBlocksSystem(options = {}) {
             assertActive();
             drag.stop();
             if (layoutMode !== "fixed-grid") {
-                throw new TypeError("block.place() vereist layout: fixed-grid.");
+                throw coded(new TypeError("block.place() vereist layout: fixed-grid."), "BLOCKS_WRONG_LAYOUT");
             }
             const nextColumn = Number(x);
             const nextRow = Number(y);
             if (!Number.isInteger(nextColumn) || nextColumn < 1 ||
                 !Number.isInteger(nextRow) || nextRow < 1) {
-                throw new TypeError("block.place(x, y) verwacht positieve gehele rastercoördinaten.");
+                throw coded(new TypeError("block.place(x, y) verwacht positieve gehele rastercoördinaten."), "BLOCKS_INVALID_ARGUMENT");
             }
             const nextLayout = {
                 columns: spanColumns,
@@ -2478,6 +2622,35 @@ export function createBlocksSystem(options = {}) {
             describe,
             remove
         };
+        Object.defineProperty(controller, "title", {
+            enumerable: true,
+            get: () => String(titleNode?.textContent ?? ""),
+            // Wijzigt alleen de tekst; de knoppen blijven zoals ze zijn. Zonder
+            // titelbalk komt er een met het standaardmenu, zoals menu(naam).
+            set(value) {
+                assertActive();
+                const nextTitle = String(value ?? "");
+                if (!menuNode) {
+                    menu(nextTitle);
+                } else {
+                    if (titleNode.textContent === nextTitle) return;
+                    titleNode.textContent = nextTitle;
+                    syncMinimizedState();
+                    syncDockedState();
+                    syncPinnedState();
+                    syncMenuInteractionState();
+                    syncResizeInteractionState();
+                }
+                emitChange({ type: "title", id });
+            }
+        });
+        Object.defineProperty(controller, "layout", {
+            enumerable: true,
+            get: () => Object.freeze({
+                span: Object.freeze([spanColumns, spanRows]),
+                place: placeColumn === null || placeRow === null ? null : Object.freeze([placeColumn, placeRow])
+            })
+        });
         Object.defineProperty(controller, "color", {
             enumerable: true,
             get: () => colorValue,
@@ -2602,7 +2775,10 @@ export function createBlocksSystem(options = {}) {
         if (typeof document === "undefined" || typeof window === "undefined") return false;
         const root = searchOptions.root || document;
         const input = resolveElement(inputTarget, root);
-        if (!input || !input.parentElement) return false;
+        if (!input || !input.parentElement) {
+            report("BLOCKS_SEARCH_NO_INPUT", "blocks.system.bindSearch() doet niets: het zoekveld is niet gevonden.");
+            return false;
+        }
         if (input.dataset.blocksSearch === "true") return true;
 
         const tiles = Array.from(root.querySelectorAll(searchOptions.items || "[data-search-item]")).map((element) => ({
@@ -2612,7 +2788,10 @@ export function createBlocksSystem(options = {}) {
             display: normalizeSearchText(element.querySelector("a")?.textContent || ""),
             text: normalizeSearchText(element.dataset.search || element.textContent)
         }));
-        if (tiles.length === 0) return false;
+        if (tiles.length === 0) {
+            report("BLOCKS_SEARCH_NO_ITEMS", "blocks.system.bindSearch() doet niets: er zijn geen items om in te zoeken.");
+            return false;
+        }
         input.dataset.blocksSearch = "true";
 
         // Tijdens het zoeken wijken de blocks met items voor de trefferlijst;
@@ -2663,7 +2842,7 @@ export function createBlocksSystem(options = {}) {
         };
 
         input.addEventListener("input", filter);
-        input.addEventListener("keydown", (event) => {
+        const onInputKeydown = (event) => {
             if (event.key === "Escape" && input.value) {
                 event.preventDefault();
                 input.value = "";
@@ -2679,18 +2858,27 @@ export function createBlocksSystem(options = {}) {
                 event.preventDefault();
                 link.click();
             }
-        });
+        };
+        input.addEventListener("keydown", onInputKeydown);
 
         const shortcut = searchOptions.shortcut === undefined ? "/" : searchOptions.shortcut;
-        if (shortcut) {
-            document.addEventListener("keydown", (event) => {
-                if (event.key !== shortcut || event.metaKey || event.ctrlKey || event.altKey) return;
-                if (event.target === input || event.target?.matches?.("input, textarea, select, [contenteditable]")) return;
-                event.preventDefault();
-                input.focus();
-                input.select?.();
-            });
-        }
+        const onShortcut = (event) => {
+            if (event.key !== shortcut || event.metaKey || event.ctrlKey || event.altKey) return;
+            if (event.target === input || event.target?.matches?.("input, textarea, select, [contenteditable]")) return;
+            event.preventDefault();
+            input.focus();
+            input.select?.();
+        };
+        if (shortcut) document.addEventListener("keydown", onShortcut);
+        teardowns.add(() => {
+            input.removeEventListener("input", filter);
+            input.removeEventListener("keydown", onInputKeydown);
+            if (shortcut) document.removeEventListener("keydown", onShortcut);
+            tiles.forEach(({ element }) => { element.hidden = false; });
+            groups.forEach((element) => { element.hidden = false; });
+            results.remove();
+            delete input.dataset.blocksSearch;
+        });
 
         filter();
 
@@ -2707,16 +2895,26 @@ export function createBlocksSystem(options = {}) {
             target = "[data-content-page]";
         }
         const wrapper = typeof target === "string" ? document.querySelector(target) : target;
-        if (!(wrapper instanceof Element) || wrapper.dataset.blocksReady === "true") return null;
+        // hydrate() geeft null terug als er niets te doen is; onIssue zegt waarom.
+        const skip = (code, message) => {
+            report(code, `blocks.system.hydrate() doet niets: ${message}`);
+            return null;
+        };
+        if (!(wrapper instanceof Element)) return skip("BLOCKS_HYDRATE_NO_TARGET", "het doel is geen element op de pagina.");
+        if (wrapper.dataset.blocksReady === "true") return skip("BLOCKS_HYDRATE_ALREADY_DONE", "dit doel is al omgezet.");
         const source = wrapper.matches("[data-content-page]")
             ? wrapper
             : wrapper.querySelector(":scope > [data-content-page]");
-        if (!source || source.dataset.blocksReady === "true") return null;
+        if (!source) return skip("BLOCKS_HYDRATE_NO_PAGE", "er is geen [data-content-page] in het doel.");
+        if (source.dataset.blocksReady === "true") return skip("BLOCKS_HYDRATE_ALREADY_DONE", "deze pagina is al omgezet.");
         // Wanneer het doel de bron zelf is, draagt de ouder het veld, de voetnoten en de meting.
         const host = wrapper === source ? (source.parentElement || source) : wrapper;
-        if (host.dataset?.blocksReady === "true") return null;
+        if (host.dataset?.blocksReady === "true") return skip("BLOCKS_HYDRATE_ALREADY_DONE", "het omliggende element is al omgezet.");
         const nodes = Array.from(source.querySelectorAll(":scope > [data-content-block]"));
-        if (nodes.length === 0) return null;
+        if (nodes.length === 0) return skip("BLOCKS_HYDRATE_NO_BLOCKS", "de pagina heeft geen directe [data-content-block]-kinderen.");
+        // De bron zoals ze was, zodat destroy() haar kan terugzetten.
+        const originalChildNodes = Array.from(source.childNodes);
+        const hiddenHeadings = [];
 
         const pagePath = typeof window !== "undefined" ? window.location.pathname : "";
         // storage: false bewaart niets; een string is het voorvoegsel van de
@@ -2778,7 +2976,10 @@ export function createBlocksSystem(options = {}) {
                 medium: "html"
             }, { replace: true });
 
-            if (heading) heading.classList.add("blocks-system-heading-hidden");
+            if (heading) {
+                heading.classList.add("blocks-system-heading-hidden");
+                hiddenHeadings.push(heading);
+            }
             return controller;
         });
 
@@ -2821,8 +3022,9 @@ export function createBlocksSystem(options = {}) {
             return id === directionLeadId ? [span[0], directionLeadRows] : span;
         };
 
+        let footer = null;
         if (footnotes.length > 0) {
-            const footer = document.createElement("footer");
+            footer = document.createElement("footer");
             footer.className = "blocks-system-footnotes";
             footer.append(...footnotes);
             host.append(footer);
@@ -2889,8 +3091,10 @@ export function createBlocksSystem(options = {}) {
             if (typeof requestAnimationFrame === "function") frame = requestAnimationFrame(fitHeightAll);
             else fitHeightAll();
         };
+        let observer = null;
+        let mutations = null;
         if (typeof ResizeObserver === "function") {
-            const observer = new ResizeObserver(() => {
+            observer = new ResizeObserver(() => {
                 if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(frame);
                 if (typeof requestAnimationFrame === "function") frame = requestAnimationFrame(() => layout());
                 else layout();
@@ -2898,7 +3102,7 @@ export function createBlocksSystem(options = {}) {
             observer.observe(host);
         }
         if (typeof MutationObserver === "function") {
-            const mutations = new MutationObserver(scheduleFit);
+            mutations = new MutationObserver(scheduleFit);
             mutations.observe(field, {
                 childList: true,
                 characterData: true,
@@ -2954,9 +3158,34 @@ export function createBlocksSystem(options = {}) {
                 /* Geen toegang tot localStorage. */
             }
         }
-        field.addEventListener("blocks:reorder", savePersonalPositions);
-        field.addEventListener("blocks:change", (event) => {
+        const savePersonalChange = (event) => {
             if (["dock", "undock", "pin", "unpin"].includes(event.detail?.type)) savePersonalPositions();
+        };
+        field.addEventListener("blocks:reorder", savePersonalPositions);
+        field.addEventListener("blocks:change", savePersonalChange);
+        // destroy() zet de pagina terug zoals ze was. Wat de bezoeker bewaarde
+        // in localStorage blijft staan.
+        teardowns.add(() => {
+            if (typeof cancelAnimationFrame === "function") cancelAnimationFrame(frame);
+            observer?.disconnect();
+            mutations?.disconnect();
+            field.removeEventListener("load", fitHeightAll, true);
+            field.removeEventListener("blocks:content-resize", fitHeightAll);
+            field.removeEventListener("blocks:reorder", savePersonalPositions);
+            field.removeEventListener("blocks:change", savePersonalChange);
+            removeResetButton();
+            footer?.remove();
+            const dropClass = (element, name) => {
+                element.classList.remove(name);
+                if (element.classList.length === 0) element.removeAttribute("class");
+            };
+            nodes.forEach((node) => dropClass(node, "blocks-system-page-block"));
+            hiddenHeadings.forEach((heading) => dropClass(heading, "blocks-system-heading-hidden"));
+            source.replaceChildren(...originalChildNodes);
+            if (field.parentNode) field.replaceWith(source);
+            delete wrapper.dataset.blocksReady;
+            delete host.dataset.blocksReady;
+            delete source.dataset.blocksReady;
         });
 
         Object.defineProperty(field, "blocksPage", {
@@ -2995,6 +3224,12 @@ export function createBlocksSystem(options = {}) {
         listAdapters,
         list,
         get,
+        block,
+        blocks,
+        blockOf,
+        batch,
+        checkLayout,
+        destroy,
         attach,
         hydrate,
         setGrid,
@@ -3036,7 +3271,7 @@ export function createBlocksSystem(options = {}) {
             set(value) {
                 const nextValue = normalizeRowHeight(value);
                 if (nextValue !== null && layoutMode === "free") {
-                    throw new TypeError("blocks.system.rowHeight vereist layout: fixed-grid of flow-grid.");
+                    throw coded(new TypeError("blocks.system.rowHeight vereist layout: fixed-grid of flow-grid."), "BLOCKS_WRONG_LAYOUT");
                 }
                 rowHeightState = nextValue;
                 applySurfaceState();
@@ -3061,7 +3296,7 @@ export function createBlocksSystem(options = {}) {
             set(value) {
                 const nextValue = Boolean(value);
                 if (nextValue && layoutMode !== "flow-grid") {
-                    throw new TypeError("blocks.system.resizable kan alleen true zijn bij layout: flow-grid.");
+                    throw coded(new TypeError("blocks.system.resizable kan alleen true zijn bij layout: flow-grid."), "BLOCKS_WRONG_LAYOUT");
                 }
                 resizableEnabled = nextValue;
                 applySurfaceState();

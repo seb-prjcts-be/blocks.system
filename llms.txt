@@ -1,0 +1,114 @@
+# blocks.system
+
+> A small browser library without dependencies. It puts separate pieces of content (HTML, a DOM element, canvas, SVG) each in its own framed block with a titlebar, and lays those blocks out in one field with CSS Grid. One ESM module and one stylesheet.
+
+This file is the short entry for an agent that has to write a page with blocks.system. The complete API as data is in [docs/api.json](docs/api.json); it is generated from the type declarations, the source and the stylesheet, so it cannot drift.
+
+## Which version
+
+- The latest tag is `v0.6.1`. Pages on the web load it from jsDelivr:
+  `https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.6.1/blocks.system.mjs` and `.../blocks.system.css`.
+- `main` has more than that tag. What is on `main` and not in the tag is listed in [docs/releases/unreleased.md](docs/releases/unreleased.md). That includes `hydrate()`, `resolveAddress()`, `bindSearch()`, `block()`, `blocks()`, `blockOf()`, `checkLayout()`, `batch()`, `destroy()`, error codes and `onIssue`.
+- To use those, load the module from a commit of `main` instead of from the tag.
+
+## The smallest page
+
+```html
+<link rel="stylesheet" href="blocks.system.css">
+<div id="field"></div>
+<script type="module">
+  import { createBlocksSystem } from "./blocks.system.mjs";
+
+  const blocks = createBlocksSystem({ layout: "fixed-grid", onIssue: console.warn });
+  blocks.attach("#field").setGrid(6, 4);
+
+  const blockNotes = blocks.add("<p>Hello.</p>", { id: "notes", title: "Notes", span: [3, 2], place: [1, 1] });
+</script>
+```
+
+- `add(content, options)` takes trusted HTML as a string, a DOM element, or a function that returns either. For untrusted text, create an element and set `textContent`.
+- An `id` is lowercase letters, digits and single hyphens. Without `id` the block is called `block-1`, `block-2`, and so on.
+- Name a returned controller `block…` (`blockNotes`); the documentation does the same.
+
+## Three layouts, chosen once
+
+| layout | what it does | allowed |
+|---|---|---|
+| `free` (default) | flex, blocks next to each other in DOM order | no `setGrid`, `span`, `place`, `fitHeight` |
+| `fixed-grid` | every block can have a fixed address | `span(columns, rows)`, `place(column, row)`, `compact()` |
+| `flow-grid` | no addresses, the browser places in DOM order | `span()`, and `resizable: true`; no `place()` |
+
+The layout cannot change after `createBlocksSystem()`. Calling something the layout does not allow throws with `error.code === "BLOCKS_WRONG_LAYOUT"`.
+
+## Blocks that are already in the HTML
+
+When the content is in the page, do not rebuild it with `add()`. Mark it and call `hydrate()`:
+
+```html
+<section id="page" data-content-page="contact.html"
+         data-grid-wide-columns="12" data-grid-wide-rows="4"
+         data-grid-medium-columns="6" data-grid-medium-rows="4"
+         data-grid-compact-columns="1" data-grid-compact-rows="4">
+  <article data-content-block data-block-id="contact" data-block-title="Contact"
+           data-block-span-wide="6 2" data-block-span-medium="6 2" data-block-span-compact="1 2"
+           data-block-copy>
+    <h2>Contact</h2>
+    <p>info@example.test</p>
+  </article>
+  <footer data-content-footnote><p>Updated in October.</p></footer>
+</section>
+```
+
+```js
+const field = blocks.hydrate("#page");
+```
+
+- `[data-content-page]` is the page; each direct `[data-content-block]` child becomes one block.
+- Width modes: `wide` from 1080px, `medium` from 680px, `compact` below. Grid: `data-grid-{mode}-columns` and `-rows`. Span: `data-block-span-{mode}="columns rows"`. Rows are fitted to the content afterwards.
+- `data-block-title` is the titlebar text. The first heading in the block gets the class `blocks-system-heading-hidden`; the stylesheet of the library does not hide it, so hide it in your own CSS.
+- The page works without JavaScript, because the content is ordinary HTML.
+- `hydrate()` returns `null` when there is nothing to do. With `onIssue` you get the reason, for example `BLOCKS_HYDRATE_NO_BLOCKS`.
+
+## Working with live blocks
+
+```js
+blocks.block("notes");            // the live block or null; get() returns a catalog definition
+blocks.blocks();                  // all live blocks in order
+blocks.blockOf(event.target);     // the block around an element
+
+blockNotes.title;                 // read or set the titlebar text
+blockNotes.layout;                // { span: [columns, rows], place: [column, row] | null }
+blockNotes.span(2, 2).place(1, 3);
+blockNotes.docked = true;         // also minimized, pinned, draggable, color, variant
+blockNotes.remove();              // never call element.remove() yourself
+```
+
+## Saving and restoring a layout
+
+```js
+const saved = blocks.exportLayout();   // { version: 1, layout, grid, blocks: [{ id, span, place, minimized, docked, pinned }] }
+const check = blocks.checkLayout(saved, { grid: saved.grid });
+if (check.ok) blocks.restoreLayout(saved, { grid: saved.grid });
+```
+
+A snapshot holds layout only, never content. The core stores nothing by itself; listen to the events and choose where it goes. Only `hydrate()` writes the visitor's order, docked and pinned blocks to `localStorage`.
+
+## Events
+
+All three fire on the attached field and do not bubble: `blocks:change` (`{ type, id, ids }`), `blocks:reorder` and `blocks:resize`. Check `event.detail.type`; the list is `changeTypes` in `docs/api.json`. `blocks.batch(fn)` turns everything `fn` changes into one `blocks:change` of type `batch`.
+
+## Errors
+
+Every thrown error has a stable `error.code` (`errorCodes` in `docs/api.json`). Messages are in Dutch and may change; switch on the code. What is refused without an error reaches `onIssue` (`issueCodes`).
+
+## Cleaning up
+
+`blocks.destroy()` removes the blocks, releases the field and undoes `hydrate()` and `bindSearch()`. A hydrated page gets its original HTML back.
+
+## More
+
+- [docs/api.json](docs/api.json): every member, option, event, code, attribute, class and CSS variable
+- [blocks.system.d.ts](blocks.system.d.ts): the type declarations
+- [README.md](README.md): the full guide, in English; [README_NL.md](README_NL.md) in Dutch
+- [docs/WERKING.md](docs/WERKING.md): how the parts fit together (Dutch)
+- [AGENTS.md](AGENTS.md): for work inside this repository

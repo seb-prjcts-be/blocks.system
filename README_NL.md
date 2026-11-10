@@ -359,14 +359,62 @@ blocks.register({
 });
 ```
 
+### Levende blocks, controleren en opruimen
+
+`get()` en `list()` geven definities uit de catalogus terug. De blocks die op
+de pagina staan, krijg je met `block()`, `blocks()` en `blockOf()`:
+
+```js
+const blockNotities = blocks.block("notities");      // het levende block, of null
+blocks.blocks().forEach((block) => console.log(block.id, block.title, block.layout));
+blocks.blockOf(event.target)?.dock();                // vanuit elk element in een block
+
+blockNotities.title = "Notities, herzien";           // wijzigt de tekst, houdt de knoppen
+
+const bewaard = blocks.exportLayout();               // draagt het raster waarvoor het gemaakt is
+const controle = blocks.checkLayout(bewaard, { grid: bewaard.grid });
+if (controle.ok) blocks.restoreLayout(bewaard, { grid: bewaard.grid });
+
+blocks.batch(() => {                                 // één blocks:change van het type "batch"
+  blockNotities.span(2, 2);
+  blockNotities.minimized = false;
+});
+
+blocks.destroy();                                    // blocks, veld, hydrate() en bindSearch() ongedaan
+```
+
+- `block.layout` leest de huidige `{ span, place }` van één block.
+- `checkLayout()` wijzigt niets. Het zegt of `restoreLayout()` de opname
+  aanneemt, welke `unknownIds` het overslaat en welke `missingIds` het
+  achteraan toevoegt.
+- `batch(fn)` voert elke wijziging meteen uit en houdt alleen de events tegen.
+  Daarna volgt één `blocks:change`, met `ids` en de tegengehouden events in
+  `changes`.
+- `destroy()` verwijdert elk block, laat het veld los en stopt de observers
+  en luisteraars van `hydrate()` en `bindSearch()`. Een gehydrateerde pagina
+  krijgt haar oorspronkelijke HTML terug. Er gaan geen events uit, en hetzelfde
+  systeem kan daarna opnieuw beginnen.
+
+Elke fout die blocks.system gooit, draagt een vaste `error.code`, zoals
+`BLOCKS_GRID_TOO_SMALL`, `BLOCKS_OVERLAP` of `BLOCKS_DUPLICATE_ID`. De zin mag
+veranderen, de code niet. Sommige dingen worden geweigerd zonder fout: een
+onbekende optie in `add()`, `dock()` op een vastgezet block, een `hydrate()`
+die niets vindt. Geef `onIssue` mee om ze te horen:
+
+```js
+const blocks = createBlocksSystem({ onIssue: console.warn });
+```
+
+De module exporteert ook `version`.
+
 ## API-overzicht
 
-- Aanmaak: `createBlocksSystem({ catalogUrl, random, layout, draggable, resizable, rowHeight, dockPosition, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` op het gedeelde systeem.
-- Gedeeld systeem: `attach`, `hydrate`, `setGrid`, `compact`, `fitHeight`, `saveBaseline`, `reset`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `rowHeight`, `dockPosition`, `layout`, `draggable`, `resizable`, `font`, `labels`, `variant`,
+- Aanmaak: `createBlocksSystem({ catalogUrl, random, onIssue, layout, draggable, resizable, rowHeight, dockPosition, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` op het gedeelde systeem.
+- Gedeeld systeem: `attach`, `hydrate`, `setGrid`, `compact`, `fitHeight`, `saveBaseline`, `reset`, `exportLayout`, `restoreLayout`, `checkLayout`, `batch`, `destroy`, `block`, `blocks`, `blockOf`, `columns`, `rows`, `rowHeight`, `dockPosition`, `layout`, `draggable`, `resizable`, `font`, `labels`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definities: `register`, `registerAdapter`, `list`, `get`, `listAdapters`, `bindSearch`.
 - Levenscyclus: `mount`, `unmount`, `remount`, `snippet`, `address`, `resolveAddress`.
-- Eén block: `menu`, `docked`, `dock`, `pinned`, `pin`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `summary`, `describe`, `variant`, `color`, `remove`.
+- Eén block: `title`, `layout`, `menu`, `docked`, `dock`, `pinned`, `pin`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `summary`, `describe`, `variant`, `color`, `remove`.
 
 Toegankelijke menulabels volgen de documenttaal (`nl` of Engels) en zijn
 overschrijfbaar via `createBlocksSystem({ labels: { move, resize, minimize, dock, undock,
@@ -414,10 +462,12 @@ in `flow-grid` behoudt het één titelbalkrij en schuiven latere blocks omhoog.
 Bij `remove()` veranderen de adressen van andere fixed-grid-blocks nooit; het
 gat blijft bewust bestaan totdat de toepassing `compact()` aanroept. In
 flow-grid herschikt verwijdering vanzelf door de DOM-volgorde. Het veld vuurt
-`blocks:change` voor `compact`, `dock`, `undock`, `pin`, `unpin`, `minimize`,
-`restore`, `remove` en `reset`, plus `layout` wanneer de span, plaats of
-gemeten hoogte van één block verandert en `grid` wanneer de kolommen of rijen
-veranderen. Samen dekken ze alles wat `exportLayout()` vastlegt.
+`blocks:change` voor `add`, `compact`, `dock`, `undock`, `pin`, `unpin`,
+`minimize`, `restore`, `remove` en `reset`, plus `layout` wanneer de span,
+plaats of gemeten hoogte van één block verandert, `grid` wanneer de kolommen
+of rijen veranderen, `title` wanneer de tekst van een titelbalk verandert en
+`batch` na `blocks.batch(fn)`. Samen dekken ze alles wat `exportLayout()`
+vastlegt.
 Gebruik `block.fitHeight()` na een inhoudswijziging om de werkelijk gerenderde
 hoogte op de huidige breedte te meten en de kleinste volledige rijspan toe te
 passen. Zolang een block actief met de pointer wordt versleept

@@ -567,6 +567,7 @@
         "  colorVariation: 0,",
         "  inversionVariation: 1 / 3,",
         "  blockDefaults: { menu: { dock: true, minimize: false, close: false, copy: false } },",
+        "  onIssue: null,",
         "  blocks: []",
         "});"
       ],
@@ -578,7 +579,9 @@
         { "cells": ["option · catalogUrl", "string | URL | null · null", "Base URL used by address() when a block has no url of its own."] },
         { "cells": ["option · font", "{ family, href? } | null · null", "Set a family and optional stylesheet URL; blocks.font remains writable."] },
         { "cells": ["option · labels", "Partial<BlocksLabels>", "Override move, resize, restore, minimize, dock, undock, pin, unpin, pinnedStaysVisible, close, copy, copied, copyFailed, reset, resetTitle, searchCount, searchHits or searchNone; blocks.labels is readonly."] },
-        { "cells": ["option · blocks", "BlockDefinition[] · []", "Register definitions during creation."] }
+        { "cells": ["option · onIssue", "(issue) => void | null · null", "Called with { code, message } and, when they apply, id, ids or option, whenever the system refuses or skips something without throwing: an unknown add() option, dock() on a pinned block, a hydrate() that finds nothing. Try onIssue: console.warn while building."] },
+        { "cells": ["option · blocks", "BlockDefinition[] · []", "Register definitions during creation."] },
+        { "id": "api-version", "cells": ["property · version", "string", "Module export with the version of this source, equal to package.json."] }
       ]
     },
     "reference-container": {
@@ -599,7 +602,8 @@
         { "cells": ["option · breakpoints", "readonly { name, minWidth }[]", "Responsive modes matched by width (defaults: wide 1080, medium 680, compact 0) for data-grid-{name}-columns/rows and data-block-span-{name}."] },
         { "cells": ["option · fixedMediaSelector · viewportLead", "string · boolean | fn", "Skip fitHeight() on blocks matching fixedMediaSelector (\"[data-block-fixed-height]\") and size a [data-block-role=\"lead\"] block to the viewport when viewportLead is true."] },
         { "cells": ["option · address", "boolean · true", "Call resolveAddress() after hydration; false leaves the URL alone."] },
-        { "cells": ["hook · blocks-system-reset · blocks-system-heading-hidden", "button · heading", "The reset button shown while a visitor layout is stored (text from labels.reset), and the hook on each block's first heading; hide that heading visually in your own CSS."] }
+        { "cells": ["hook · blocks-system-reset · blocks-system-heading-hidden", "button · heading", "The reset button shown while a visitor layout is stored (text from labels.reset), and the hook on each block's first heading; hide that heading visually in your own CSS."] },
+        { "id": "api-destroy", "cells": ["method · destroy()", "blocks", "Remove every block, release the field and undo hydrate() and bindSearch(): observers and listeners stop and a hydrated page gets its original HTML back. Publishes no events; the same system can start again."] }
       ]
     },
     "reference-grid": {
@@ -670,8 +674,9 @@
         { "id": "api-fit-height-block", "cells": ["method · block.fitHeight()", "{ columns, rows, changed }", "Measure one content-driven block at its current width; application-owned fixed media spans remain untouched when not called."] },
         { "id": "api-fit-height-system", "cells": ["method · blocks.fitHeight(ids?)", "measurement[]", "Fit every live block, or only the live IDs in an iterable; fixed media omitted by the consumer keeps its application-owned span."] },
         { "id": "api-place", "cells": ["method · place(column, row)", "block", "Set one-based coordinates in fixed-grid; other modes reject the call."] },
-        { "cells": ["method · exportLayout()", "{ version, layout, blocks }", "Export the mode, content-free DOM order and each block's span, place, minimized, docked and pinned state."] },
+        { "cells": ["method · exportLayout()", "{ version, layout, grid, blocks }", "Export the mode, the grid, content-free DOM order and each block's span, place, minimized, docked and pinned state. grid is { columns, rows } with the setGrid() minimum, or null in free layout; pass it back as restoreLayout(layout, { grid: layout.grid })."] },
         { "cells": ["method · restoreLayout(layout, options?)", "blocks", "Restore a matching version 1 layout; another mode is rejected, unknown ids are ignored and unsaved blocks follow the saved ones. Entries may omit span and place to keep their current spans. options.grid { columns, rows } switches the grid in the same step; a grid that is too small or an overlapping place changes nothing."] },
+        { "id": "api-check-layout", "cells": ["method · checkLayout(layout, options?)", "{ ok, code, message, unknownIds, missingIds }", "Tell whether restoreLayout() would accept the snapshot, without changing anything. restoreLayout() skips unknownIds and appends missingIds."] },
         { "cells": ["method · saveBaseline()", "blocks", "Make the current order, spans, places, minimized, docked and pinned state the target of reset(); blocks added later join at the end."] },
         { "cells": ["method · reset()", "blocks", "Return every block to the saved baseline, by default its add() order, span, place and initial minimized state, undocked and unpinned; publishes one reset change naming every block."] },
         { "cells": ["property · resize size", "{ columns, rows }", "Resize event sizes use positive whole grid units."] }
@@ -790,7 +795,12 @@
         { "cells": ["property · id", "readonly string", "Stable lowercase kebab-case id."] },
         { "cells": ["property · element", "readonly HTMLElement", "The outer block element. Do not call element.remove(); use remove() so the system releases its layout."] },
         { "cells": ["property · content", "readonly HTMLDivElement", "The content host inside the block."] },
+        { "cells": ["property · title", "string", "Read or change the titlebar text. Setting it keeps the buttons; on a block without a titlebar it adds one with the default menu."] },
+        { "cells": ["property · layout", "readonly { span, place }", "The current span [columns, rows] and place [column, row] or null, as exportLayout() writes them."] },
         { "cells": ["property · draggable", "boolean", "Read or change whether this block can move."] },
+        { "id": "api-block", "cells": ["method · blocks.block(id)", "BlockController | null", "The live block with this id. get() and list() return catalog definitions instead."] },
+        { "cells": ["method · blocks.blocks()", "BlockController[]", "Every live block in its current order; a docked block sits where it returns to."] },
+        { "cells": ["method · blocks.blockOf(element)", "BlockController | null", "The live block that contains this element."] },
         { "cells": ["method · describe(options?)", "definition", "Serialize this live block for the built-in html adapter."] },
         { "cells": ["option · options.url", "string | URL", "Name the page in the serialized definition."] },
         { "id": "api-address", "cells": ["method · address(id)", "string", "Build ?block=id from definition.url or the system catalogUrl."] },
@@ -877,10 +887,11 @@
         "  const { type, id, ids } = event.detail;",
         "});"
       ],
-      "details": "For blocks:change, type is compact, dock, undock, pin, unpin, minimize, restore, remove, reset (ids lists every block), layout (one block's span, place or fitHeight changed) or grid (columns or rows changed); id is one block or null, and ids lists affected blocks.",
+      "details": "For blocks:change, type is add (a block joined the field), compact, dock, undock, pin, unpin, minimize, restore, remove, reset (ids lists every block), layout (one block's span, place or fitHeight changed), grid (columns or rows changed), title (a titlebar text changed) or batch; id is one block or null, and ids lists affected blocks. A batch change also carries changes: the held events in order, each as { event, detail }.",
       "headers": ["kind + hook", "purpose"],
       "rows": [
-        { "cells": ["event · blocks:change", "Fires after a compact, dock, undock, pin, unpin, minimize, restore, remove or reset state change, after a layout change of one block and when the grid changes."] },
+        { "cells": ["event · blocks:change", "Fires after an add, compact, dock, undock, pin, unpin, minimize, restore, remove or reset state change, after a layout or title change of one block and when the grid changes."] },
+        { "id": "api-batch", "cells": ["method · blocks.batch(fn)", "Run fn and publish everything it changes as one blocks:change of type batch. The changes themselves apply at once; batch() returns what fn returns."] },
         { "cells": ["event · blocks:resize", "Fires after pointer or keyboard resizing with id, input, axis, from and to."] },
         { "cells": ["hook · .blocks-system-surface", "The attached field and its layout tokens."] },
         { "cells": ["hook · .blocks-system-object", "One outer block."] },
@@ -907,7 +918,7 @@
       "title": "failures + boundaries",
       "eyebrow": "fail early",
       "statement": "Invalid input throws.",
-      "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. A span, place, grid or restored layout that does not fit throws a RangeError with code BLOCKS_GRID_TOO_SMALL. Catch only errors your interface can recover from."
+      "details": "Expect errors for invalid or duplicate ids, missing fields, impossible grid positions, overlaps, unknown definitions, incomplete adapters and colorVariation without colors. Every thrown error carries a stable code on error.code; the message may change, the code does not. A span, place, grid or restored layout that does not fit throws a RangeError with code BLOCKS_GRID_TOO_SMALL. The other codes are BLOCKS_INVALID_ARGUMENT, BLOCKS_INVALID_ID, BLOCKS_DUPLICATE_ID, BLOCKS_UNKNOWN_BLOCK, BLOCKS_UNKNOWN_ADAPTER, BLOCKS_ADAPTER_RESULT, BLOCKS_RETIRED_OPTION, BLOCKS_REMOVED, BLOCKS_WRONG_LAYOUT, BLOCKS_OVERLAP, BLOCKS_NO_FIELD, BLOCKS_FIELD_IN_USE, BLOCKS_LAYOUT_VERSION, BLOCKS_NO_CATALOG_URL and BLOCKS_NOT_MEASURABLE. What is refused without throwing reaches onIssue with its own code. Catch only errors your interface can recover from."
     }
   }
 }

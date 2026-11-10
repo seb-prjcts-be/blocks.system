@@ -4,6 +4,13 @@
 
 - `blocks.system.mjs` is de canonieke dependency-free ESM-bron.
 - `blocks.system.min.mjs` wordt uitsluitend door `npm run build:min` gemaakt.
+- `docs/api.json` wordt uitsluitend door `npm run build:api` gemaakt, uit
+  `blocks.system.d.ts`, de bron en de CSS. Het beschrijft de publieke API als
+  data voor agents en gereedschap. `npm test` weigert een verouderde versie, en
+  ook foutcodes die in de bron en de declaraties uiteenlopen.
+- `llms.txt` in de root is de korte ingang voor een agent die een pagina met
+  blocks.system moet maken. `AGENTS.md` is de ingang voor een agent die in deze
+  repo werkt.
 - `blocks.system.css` is het afzonderlijk gepubliceerde librarycontract en bevat
   alleen herbruikbare surface-, block- en state-CSS.
 - `docs/style.css` is de enige sitecascade voor home, manual en reference.
@@ -51,6 +58,8 @@ Wanneer publiek gedrag verandert, controleer in dezelfde commit:
 1. `README.md` en `README_NL.md`;
 2. de relevante manual- en referenceblocks;
 3. contract-, link- en browsertests;
+4. `docs/api.json` (`npm run build:api`) en, als de markup van `hydrate()` of
+   de eerste stappen veranderen, `llms.txt`;
 
 `npm run test:types` compileert hetzelfde consumentenfixture met Node16- en
 bundler-resolutie. Voeg een publieke API-wijziging daar toe wanneer de
@@ -127,6 +136,11 @@ die jsDelivr voor ESM en CSS kan leveren.
 4. verifieer daarna live home, manual en reference;
 5. maak pas een versie-tag wanneer de publieke API klaar is om via jsDelivr te
    pinnen.
+
+Bij een nieuwe versie verandert `export const version` bovenaan in
+`blocks.system.mjs` mee met `package.json`; `tests/lifecycle.mjs` weigert een
+verschil. Wat een wijziging voor de Lucas Gent-site betekent, hoort in
+`docs/LUCASGENT-CLONE.md`.
 
 `v0.6.1` is de huidige onveranderlijke publieke release. Op de releasecommit
 gebruiken library, types, Pages-manual, reference en

@@ -36,7 +36,8 @@ geen afhankelijkheden.
    `bindSearch()` voor pagina's waar de blocks al in de HTML staan.
 3. **Blockcontroller** (`createBlockController`). Het object dat `add()`
    teruggeeft. Het bezit één block: titelbalk en knoppen, span, plaats,
-   variant, kleur, minimaliseren, docken, pinnen, verwijderen.
+   variant, kleur, minimaliseren, docken, pinnen, verwijderen. Je vraagt het
+   later weer op met `block(id)`, `blocks()` of `blockOf(element)`.
 
 De module exporteert daarnaast één gedeeld systeem zonder configuratie
 (`system`, ook `window.blocks.system`) en `startBlock()` daarop.
@@ -105,11 +106,14 @@ Meer in [`DRAG-BEHAVIOR.md`](DRAG-BEHAVIOR.md).
 ## Events en bewaren
 
 Het veld vuurt drie events: `blocks:reorder` (verplaatst), `blocks:resize`
-(span gewijzigd met de rand) en `blocks:change` (al het andere, zoals docken,
-pinnen en verwijderen).
+(span gewijzigd met de rand) en `blocks:change` (al het andere, zoals
+toevoegen, docken, pinnen en verwijderen). Alle drie vertrekken langs één
+functie, `publish()`. `batch(fn)` houdt ze tegen tot `fn` klaar is en meldt
+ze dan als één `blocks:change` van het type `batch`.
 
-`exportLayout()` geeft alleen layout terug, nooit inhoud: volgorde, spans,
-plaatsen en toestand per id. `restoreLayout()` zet zo'n momentopname terug,
+`exportLayout()` geeft alleen layout terug, nooit inhoud: het raster, de
+volgorde, spans, plaatsen en toestand per id. `checkLayout()` zegt vooraf of
+een opname past, zonder iets te wijzigen. `restoreLayout()` zet zo'n momentopname terug,
 alles of niets: past ze niet in het raster, dan verandert er niets. De kern
 bewaart zelf niets; de toepassing luistert naar de events en kiest waar het
 heen gaat. Alleen `hydrate()` schrijft zelf naar `localStorage`.
@@ -130,6 +134,24 @@ heen gaat. Alleen `hydrate()` schrijft zelf naar `localStorage`.
 
 Wat nog niet in een uitgebrachte versie zit, staat in
 [`releases/unreleased.md`](releases/unreleased.md).
+
+## Fouten, meldingen en opruimen
+
+Elke fout loopt langs `coded()` en draagt een vaste code op `error.code`. Wat
+het systeem stil weigert of overslaat, gaat langs `report()` naar de optie
+`onIssue`; zonder die optie gebeurt er niets extra.
+
+`hydrate()` en `bindSearch()` zetten elk een opruimer klaar. `destroy()`
+roept die aan, verwijdert de blocks en laat het veld los. Een gehydrateerde
+pagina krijgt daarbij haar oorspronkelijke HTML terug.
+
+## Voor machines
+
+[`api.json`](api.json) beschrijft de publieke API als data: leden, opties,
+events, foutcodes, attributen, klassen en CSS-variabelen. Het wordt gemaakt
+door `tools/render-api.mjs` uit de `.d.ts`, de bron en de CSS, en een test
+bewaakt dat het gelijk loopt. `llms.txt` in de root is de korte ingang voor
+een agent.
 
 ## De opslagmodule
 

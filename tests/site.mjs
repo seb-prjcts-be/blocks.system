@@ -580,8 +580,9 @@ assert.match(libraryCss, /\.blocks-system-object\s*\{[^}]*border:\s*1px solid va
 assert.match(libraryCss, /\.blocks-system-menu\s*\{[^}]*border-bottom:\s*1px solid var\(--blocks-ink-color\);[^}]*background:\s*var\(--block-color\);/, "block color must remain inside a black-bounded titlebar");
 assert.match(libraryCss, /\[data-block-variant="inverse"\]\s*\{[^}]*--block-paper-color:\s*var\(--blocks-ink-color\);[^}]*--block-content-color:\s*var\(--blocks-paper-color\);/, "inverse must extend its monochrome treatment through the content surface");
 assert.match(docsContent.manual["manual-colors"].intro, /fills its titlebar[\s\S]*black border[\s\S]*black hover frame[\s\S]*inverse/i, "manual color guidance must match the titlebar-only standard and full inverse content");
-assert.match(librarySource, /new CustomEvent\("blocks:reorder"/, "core must expose reorder events");
-assert.match(librarySource, /new CustomEvent\("blocks:resize"/, "core must expose resize events");
+assert.match(librarySource, /publish\("blocks:reorder"/, "core must expose reorder events");
+assert.match(librarySource, /publish\("blocks:resize"/, "core must expose resize events");
+assert.match(librarySource, /surface\.dispatchEvent\(new CustomEvent\(name, \{ detail \}\)\)/, "every field event must leave through one publish()");
 assert.match(siteCss, /@media \(prefers-reduced-motion:\s*reduce\)[\s\S]*scroll-behavior:\s*auto/, "site motion must respect reduced motion");
 
 const pureBlockColor = /(?:#(?:ff0000|00ff00|0000ff|00ffff|ff00ff|ffff00)|rgb\(\s*(?:255\s*,\s*0\s*,\s*0|0\s*,\s*255\s*,\s*0|0\s*,\s*0\s*,\s*255|0\s*,\s*255\s*,\s*255|255\s*,\s*0\s*,\s*255|255\s*,\s*255\s*,\s*0)\s*\))/i;

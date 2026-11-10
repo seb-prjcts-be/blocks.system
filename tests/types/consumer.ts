@@ -1,9 +1,12 @@
 import {
   createBlocksSystem,
   system,
+  version,
   type BlockController,
   type BlocksAddressOptions,
   type BlocksChangeDetail,
+  type BlocksError,
+  type BlocksErrorCode,
   type BlocksGridTooSmallCode,
   type BlocksHydratedField,
   type BlocksHydrateOptions,
@@ -123,6 +126,44 @@ blocks.field?.addEventListener("blocks:change", (event) => {
   // The runtime emits dock and undock for the default close-to-dock action.
   if (detail.type === "dock" || detail.type === "undock") void detail.id;
 });
+
+// Live blocks, checks, batching and cleanup.
+const reported: string[] = [];
+const watched: BlocksSystem = createBlocksSystem({
+  layout: "fixed-grid",
+  onIssue(issue) {
+    reported.push(`${issue.code}: ${issue.message} ${issue.id ?? ""} ${issue.option ?? ""}`);
+  }
+});
+const found: BlockController | null = watched.block("notes");
+const every: BlockController[] = watched.blocks();
+const around: BlockController | null = watched.blockOf(document.body);
+if (found) {
+  found.title = "Notes";
+  const [spanColumns, spanRows] = found.layout.span;
+  const placed: readonly [number, number] | null = found.layout.place;
+  void [spanColumns, spanRows, placed];
+  // @ts-expect-error The layout of a block is read through span() and place().
+  found.layout = { span: [1, 1], place: null };
+}
+const snapshot = watched.exportLayout();
+const checked = watched.checkLayout(snapshot, snapshot.grid ? { grid: snapshot.grid } : undefined);
+if (!checked.ok && checked.code === "BLOCKS_GRID_TOO_SMALL") void checked.message;
+void [checked.unknownIds, checked.missingIds];
+const batched: number = watched.batch((inside) => inside.blocks().length);
+watched.field?.addEventListener("blocks:change", (event) => {
+  if (event.detail.type === "batch") void event.detail.changes?.map((change) => change.event);
+  if (event.detail.type === "add" || event.detail.type === "title") void event.detail.id;
+});
+try {
+  watched.setGrid(0, 0);
+} catch (error) {
+  const code: BlocksErrorCode | undefined = (error as BlocksError).code;
+  void code;
+}
+const destroyed: BlocksSystem = watched.destroy();
+const moduleVersion: string = version;
+void [every, around, batched, destroyed, moduleVersion, reported];
 
 // @ts-expect-error Grid dimensions are readable state, not writable settings.
 blocks.columns = 9;

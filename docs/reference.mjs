@@ -1,6 +1,6 @@
-import { createBlocksSystem } from "../blocks.system.mjs?v=main-20260819-02";
-import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.20260819.3";
-import { REFERENCE_SECTIONS } from "./reference-sections.mjs?v=0.1.7";
+import { createBlocksSystem } from "../blocks.system.mjs?v=main-20261110-01";
+import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.20261110.1";
+import { REFERENCE_SECTIONS } from "./reference-sections.mjs?v=0.1.8";
 
 const board = document.querySelector("#reference-board");
 const blocks = createBlocksSystem({
@@ -11,7 +11,7 @@ const blocks = createBlocksSystem({
 const content = await loadDocsContent("reference", REFERENCE_SECTIONS.map(({ id }) => id));
 
 blocks.attach(board);
-blocks.setGrid(6, 103);
+blocks.setGrid(6, 105);
 quantizeSurface(board);
 
 function text(name, value, className = "") {

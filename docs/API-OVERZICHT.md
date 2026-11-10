@@ -12,6 +12,7 @@ versie zit, staat in [`releases/unreleased.md`](releases/unreleased.md).
 | `createBlocksSystem(options?)` | Maakt een geconfigureerd systeem: layout, grid-gedrag, kleuren, labels, adapters en definities. |
 | `system` | Het gedeelde zero-config systeem, ook bereikbaar als `window.blocks.system`. |
 | `startBlock(content, options?)` | Voegt één blok toe aan het gedeelde systeem; maakt zelf een veld als er geen is. |
+| `version` | De versie van deze bron, gelijk aan `package.json`. |
 
 ## Systeem (`BlocksSystem`)
 
@@ -24,12 +25,23 @@ versie zit, staat in [`releases/unreleased.md`](releases/unreleased.md).
 | `compact()` | Vult verticale gaten in fixed-grid; in een andere layout gooit het een `TypeError`. |
 | `fitHeight(ids?)` | Past de rijspan van alle of de gegeven blokken aan aan hun gerenderde hoogte. |
 | `add(content, options?)` | Maakt een blok uit HTML, een element of een factory en geeft de controller terug. |
+| `destroy()` | Verwijdert alle blokken, laat het veld los en maakt `hydrate()` en `bindSearch()` ongedaan. Het systeem kan daarna opnieuw beginnen. |
+
+### Levende blokken opvragen
+
+| Functie | Doet |
+|---|---|
+| `block(id)` | Het levende blok met dit id, of `null`. |
+| `blocks()` | Alle levende blokken in hun huidige volgorde. |
+| `blockOf(element)` | Het levende blok waar dit element in zit, of `null`. |
+| `batch(fn)` | Voert `fn` uit en meldt alles wat het wijzigt als één `blocks:change` van het type `batch`. |
 
 ### Layout bewaren en herstellen
 
 | Functie | Doet |
 |---|---|
-| `exportLayout()` | Geeft inhoudsvrije layoutstaat terug: volgorde, spans, plaatsen, minimized, docked, pinned. |
+| `exportLayout()` | Geeft inhoudsvrije layoutstaat terug: raster, volgorde, spans, plaatsen, minimized, docked, pinned. |
+| `checkLayout(layout, options?)` | Zegt zonder iets te wijzigen of `restoreLayout()` de opname aanneemt, en welke id's het overslaat of achteraan toevoegt. |
 | `restoreLayout(layout, options?)` | Zet een bewaarde layout terug, optioneel met een ander grid. |
 | `saveBaseline()` | Maakt de huidige staat het doel van `reset()`. |
 | `reset()` | Zet alle blokken terug naar de baseline en publiceert één `reset`-event. |
@@ -42,7 +54,7 @@ versie zit, staat in [`releases/unreleased.md`](releases/unreleased.md).
 | `registerAdapter(id, adapter, options?)` | Registreert een adapter die definities kan mounten. |
 | `listAdapters()` | Namen van alle adapters. |
 | `list(filters?)` | Definities, filterbaar op `query`, `adapter`, `medium` en `category`. |
-| `get(id)` | Eén definitie of `null`. |
+| `get(id)` | Eén definitie of `null`. Voor het levende blok: `block(id)`. |
 
 ### Lifecycle van definities
 
@@ -87,7 +99,7 @@ Leesbaar en schrijfbaar: `rowHeight`, `dockPosition`, `draggable`,
 | `describe(options?)` | Serialiseert het levende blok tot een registreerbare definitie voor de `html`-adapter. |
 | `remove()` | Verwijdert het blok definitief. |
 
-Leesbaar: `id`, `element`, `content`. Leesbaar en schrijfbaar: `color`,
+Leesbaar: `id`, `element`, `content`, `layout`. Leesbaar en schrijfbaar: `title`, `color`,
 `variant`, `minimized`, `docked`, `pinned`, `draggable`.
 
 ## Adapterinterface (`BlockAdapter`)
@@ -101,7 +113,14 @@ Een adapter levert `mount(context)` en optioneel `ready(context)`,
 |---|---|
 | `blocks:reorder` | Na een verplaatsing met pointer of toetsenbord, met id, modus, indices, posities en richting. |
 | `blocks:resize` | Na een spanwijziging via de resize-lijnen, met as, oude en nieuwe grootte. |
-| `blocks:change` | Bij `compact`, `dock`, `undock`, `pin`, `unpin`, `minimize`, `restore`, `remove`, `reset`, `layout` en `grid`. |
+| `blocks:change` | Bij `add`, `compact`, `dock`, `undock`, `pin`, `unpin`, `minimize`, `restore`, `remove`, `reset`, `layout`, `grid`, `title` en `batch`. |
+
+## Fouten en meldingen
+
+Elke fout draagt een vaste `error.code` (type `BlocksErrorCode`). Wat het
+systeem weigert of overslaat zonder fout, gaat naar de optie `onIssue` van
+`createBlocksSystem()`, met een eigen code (type `BlocksIssueCode`). De
+volledige lijsten staan in `blocks.system.d.ts` en in [`api.json`](api.json).
 
 ## Storage-module (`blocks.storage.mjs`)
 

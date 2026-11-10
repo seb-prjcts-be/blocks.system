@@ -344,14 +344,60 @@ blocks.register({
 });
 ```
 
+### Live blocks, checks and cleanup
+
+`get()` and `list()` return catalog definitions. The blocks that are on the
+page come from `block()`, `blocks()` and `blockOf()`:
+
+```js
+const blockNotes = blocks.block("notes");            // the live block, or null
+blocks.blocks().forEach((block) => console.log(block.id, block.title, block.layout));
+blocks.blockOf(event.target)?.dock();                // from any element inside a block
+
+blockNotes.title = "Notes, revised";                 // changes the text, keeps the buttons
+
+const saved = blocks.exportLayout();                 // carries the grid it was made for
+const check = blocks.checkLayout(saved, { grid: saved.grid });
+if (check.ok) blocks.restoreLayout(saved, { grid: saved.grid });
+
+blocks.batch(() => {                                 // one blocks:change of type "batch"
+  blockNotes.span(2, 2);
+  blockNotes.minimized = false;
+});
+
+blocks.destroy();                                    // blocks, field, hydrate() and bindSearch() undone
+```
+
+- `block.layout` reads the current `{ span, place }` of one block.
+- `checkLayout()` changes nothing. It says whether `restoreLayout()` would
+  accept the snapshot, which `unknownIds` it would skip and which
+  `missingIds` it would append.
+- `batch(fn)` applies every change at once and holds back only the events. One
+  `blocks:change` follows, with `ids` and the held events in `changes`.
+- `destroy()` removes every block, releases the field and stops the observers
+  and listeners of `hydrate()` and `bindSearch()`. A hydrated page gets its
+  original HTML back. No events go out, and the same system can start again.
+
+Every error blocks.system throws carries a stable `error.code`, such as
+`BLOCKS_GRID_TOO_SMALL`, `BLOCKS_OVERLAP` or `BLOCKS_DUPLICATE_ID`. The
+message may change, the code does not. Some things are refused without an
+error: an unknown `add()` option, `dock()` on a pinned block, a `hydrate()`
+that finds nothing. Pass `onIssue` to hear about them:
+
+```js
+const blocks = createBlocksSystem({ onIssue: console.warn });
+```
+
+The module also exports `version`.
+
 ## API map
 
-- Creation: `createBlocksSystem({ catalogUrl, random, layout, draggable, resizable, rowHeight, dockPosition, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` on the shared system.
-- Shared system: `attach`, `hydrate`, `setGrid`, `compact`, `fitHeight`, `saveBaseline`, `reset`, `exportLayout`, `restoreLayout`, `columns`, `rows`, `rowHeight`, `dockPosition`, `layout`, `draggable`, `resizable`, `font`, `labels`, `variant`,
+- Creation: `createBlocksSystem({ catalogUrl, random, onIssue, layout, draggable, resizable, rowHeight, dockPosition, font, labels, variant, colorArray, colorVariation, inversionVariation, blockDefaults, blocks })`; `startBlock(content, options?)` on the shared system.
+- Shared system: `attach`, `hydrate`, `setGrid`, `compact`, `fitHeight`, `saveBaseline`, `reset`, `exportLayout`, `restoreLayout`, `checkLayout`, `batch`, `destroy`, `block`, `blocks`, `blockOf`, `columns`, `rows`, `rowHeight`, `dockPosition`, `layout`, `draggable`, `resizable`, `font`, `labels`, `variant`,
   `variants`, `colorArray`, `colorVariation`, `inversionVariation`, `add`.
 - Definitions: `register`, `registerAdapter`, `list`, `get`, `listAdapters`, `bindSearch`.
 - Lifecycle: `mount`, `unmount`, `remount`, `snippet`, `address`, `resolveAddress`.
-- One block: `menu`, `docked`, `dock`, `pinned`, `pin`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `summary`, `describe`, `variant`, `color`, `remove`.
+- One block: `title`, `layout`, `menu`, `docked`, `dock`, `pinned`, `pin`, `minimized`, `draggable`, `span`, `fitHeight`, `place`, `summary`, `describe`, `variant`, `color`, `remove`.
 
 Accessible menu labels follow the document language (`nl` or English) and can
 be overridden with `createBlocksSystem({ labels: { move, resize, minimize, dock, undock,
@@ -396,10 +442,11 @@ and lets later blocks reflow upward.
 Removing a placed block never changes another fixed address; the gap remains
 intentional until the application calls `compact()`. Removing a flow-grid block
 reflows naturally because DOM order is the layout.
-The field emits `blocks:change` for `compact`, `dock`, `undock`, `pin`,
+The field emits `blocks:change` for `add`, `compact`, `dock`, `undock`, `pin`,
 `unpin`, `minimize`, `restore`, `remove` and `reset`, plus `layout` when one
-block's span, place or measured height changes and `grid` when the columns or
-rows change. Together they cover everything `exportLayout()` records.
+block's span, place or measured height changes, `grid` when the columns or
+rows change, `title` when a titlebar text changes and `batch` after
+`blocks.batch(fn)`. Together they cover everything `exportLayout()` records.
 Use `block.fitHeight()` after content changes to measure its real rendered
 height at the current width and apply the smallest whole-row span. While a
 block is actively being dragged (`[data-dragging]`), `block.fitHeight()`

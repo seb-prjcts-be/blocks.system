@@ -368,6 +368,7 @@ const savedFlowLayout = flowing.exportLayout();
 assert.deepEqual(savedFlowLayout, {
   version: 1,
   layout: "flow-grid",
+  grid: { columns: 4, rows: 6 },
   blocks: [
     { id: "flow-bravo", span: [2, 2], place: null, minimized: false, docked: false, pinned: false },
     { id: "flow-alpha", span: [1, 3], place: null, minimized: true, docked: false, pinned: false }
@@ -414,6 +415,7 @@ responsiveFixed.setGrid(1, 8);
 assert.deepEqual(responsiveFixed.exportLayout(), {
   version: 1,
   layout: "fixed-grid",
+  grid: { columns: 1, rows: 8 },
   blocks: [
     { id: "responsive-lead", span: [1, 4], place: null, minimized: false, docked: false, pinned: false },
     { id: "responsive-detail", span: [1, 2], place: null, minimized: true, docked: false, pinned: false }
@@ -442,7 +444,7 @@ assert.deepEqual(compactChanges.pop(), {
   ids: ["compact-second", "compact-third"]
 }, "compact must publish the moved block ids");
 compacting.compact();
-assert.equal(compactChanges.filter((change) => !["grid", "layout"].includes(change.type)).length, 0, "a no-op compact must not publish a change event");
+assert.equal(compactChanges.filter((change) => !["add", "grid", "layout"].includes(change.type)).length, 0, "a no-op compact must not publish a change event");
 
 const closingCollapse = createBlocksSystem({ layout: "fixed-grid", variant: "regular" });
 const closingCollapseField = new TestElement();
@@ -490,7 +492,7 @@ compactSecond.minimized = true;
 compactSecond.minimized = false;
 compactThird.remove();
 assert.throws(function () { compactThird.remove(); }, /verwijderd/, "removed blocks must not publish duplicate remove events");
-const compactStateChanges = compactChanges.filter((change) => !["grid", "layout"].includes(change.type));
+const compactStateChanges = compactChanges.filter((change) => !["add", "grid", "layout"].includes(change.type));
 assert.deepEqual(compactStateChanges.map((change) => change.type), ["minimize", "restore", "remove"], "state changes must publish one stable change event");
 assert.deepEqual(compactStateChanges.map((change) => change.id), ["compact-second", "compact-second", "compact-third"], "state change events must identify their block");
 
@@ -505,8 +507,8 @@ signalled.span(1, 3);
 signalled.place(2, 1);
 signalling.setGrid(3, 1);
 signalling.setGrid(3, 1);
-assert.deepEqual(signals, [["grid", null], ["layout", "signal"], ["layout", "signal"], ["grid", null]],
-  "span, place and grid changes must publish one stable change event per real change");
+assert.deepEqual(signals, [["add", "signal"], ["grid", null], ["layout", "signal"], ["layout", "signal"], ["grid", null]],
+  "add, span, place and grid changes must publish one stable change event per real change");
 
 const inheriting = createBlocksSystem({ variant: "regular", blockDefaults: { menu: { copy: true, dock: false } } });
 inheriting.attach(new TestElement());

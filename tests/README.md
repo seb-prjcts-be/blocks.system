@@ -37,5 +37,10 @@ bewust niet meer.
 runtime-exceptions en `console.error` de gate werkelijk rood maken. De gedeelde
 harness bewaakt die fouten vervolgens tijdens de volledige browserproef.
 
+`lifecycle.mjs` controleert in een echte browser de functies om met levende
+blocks te werken: `block()`, `blocks()`, `blockOf()`, `title`, `layout`,
+foutcodes, `onIssue`, de momentopname met raster, `checkLayout()`, `batch()`
+en `destroy()`, ook na `hydrate()` en `bindSearch()`.
+
 `menu-copy.mjs` controleert in een echte browser de optionele kopieerknop, de
 gedecodeerde zichtbare blockinhoud en de zichtbare succesfeedback.

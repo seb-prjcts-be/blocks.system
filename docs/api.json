@@ -1,0 +1,1223 @@
+{
+  "schema": "blocks.system/api@1",
+  "name": "blocks.system",
+  "version": "0.6.1",
+  "description": "A small, dependency-free browser system for individually addressable HTML, canvas and custom objects.",
+  "describes": "main (after v0.6.1, not released yet)",
+  "install": {
+    "stable": {
+      "module": "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.6.1/blocks.system.mjs",
+      "style": "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.6.1/blocks.system.css"
+    },
+    "types": "blocks.system.d.ts",
+    "dependencies": "none"
+  },
+  "docs": {
+    "humans": "https://seb-prjcts-be.github.io/blocks.system/",
+    "agents": "llms.txt",
+    "howItWorks": "docs/WERKING.md",
+    "unreleased": "docs/releases/unreleased.md"
+  },
+  "exports": [
+    {
+      "name": "version",
+      "kind": "const"
+    },
+    {
+      "name": "createBlocksSystem",
+      "kind": "function"
+    },
+    {
+      "name": "system",
+      "kind": "const"
+    },
+    {
+      "name": "startBlock",
+      "kind": "function"
+    }
+  ],
+  "layouts": [
+    "free",
+    "fixed-grid",
+    "flow-grid"
+  ],
+  "system": {
+    "create": "createBlocksSystem(options?)",
+    "options": [
+      {
+        "name": "catalogUrl",
+        "kind": "property",
+        "signature": "catalogUrl?: string | URL | null",
+        "optional": true
+      },
+      {
+        "name": "random",
+        "kind": "property",
+        "signature": "random?: () => number",
+        "optional": true
+      },
+      {
+        "name": "onIssue",
+        "kind": "property",
+        "signature": "onIssue?: ((issue: Readonly<BlocksIssue>) => void) | null",
+        "optional": true,
+        "doc": "Called with a code and a message whenever blocks.system refuses or skips something without throwing: an unknown add() option, dock() on a pinned block, a hydrate() that finds nothing. Without it nothing is reported. Try onIssue: console.warn while building."
+      },
+      {
+        "name": "layout",
+        "kind": "property",
+        "signature": "layout?: BlocksLayoutMode",
+        "optional": true,
+        "doc": "Choose one complete layout model. Defaults to free."
+      },
+      {
+        "name": "draggable",
+        "kind": "property",
+        "signature": "draggable?: boolean",
+        "optional": true
+      },
+      {
+        "name": "resizable",
+        "kind": "property",
+        "signature": "resizable?: boolean",
+        "optional": true,
+        "doc": "Show resize lines in flow-grid. Defaults to false and is rejected in other layouts."
+      },
+      {
+        "name": "rowHeight",
+        "kind": "property",
+        "signature": "rowHeight?: number | null",
+        "optional": true,
+        "doc": "Fixed row height in pixels; the field then follows its rows. Defaults to null: rows share the field height. Rejected in free layout."
+      },
+      {
+        "name": "dockPosition",
+        "kind": "property",
+        "signature": "dockPosition?: \"top\" | \"bottom\"",
+        "optional": true,
+        "doc": "Where a filled dock rail lives: above (default) or below the grid."
+      },
+      {
+        "name": "font",
+        "kind": "property",
+        "signature": "font?: BlocksFont | null",
+        "optional": true
+      },
+      {
+        "name": "labels",
+        "kind": "property",
+        "signature": "labels?: Partial<BlocksLabels>",
+        "optional": true
+      },
+      {
+        "name": "variant",
+        "kind": "property",
+        "signature": "variant?: string",
+        "optional": true,
+        "doc": "Appearance for new blocks. Defaults to \"regular\"; \"random\" draws from the chance settings."
+      },
+      {
+        "name": "colorArray",
+        "kind": "property",
+        "signature": "colorArray?: readonly string[]",
+        "optional": true,
+        "doc": "User-owned CSS colors available to future random blocks. Defaults to an empty array."
+      },
+      {
+        "name": "colorVariation",
+        "kind": "property",
+        "signature": "colorVariation?: number",
+        "optional": true,
+        "doc": "Share of random blocks using colorArray. A positive value requires at least one color."
+      },
+      {
+        "name": "inversionVariation",
+        "kind": "property",
+        "signature": "inversionVariation?: number",
+        "optional": true
+      },
+      {
+        "name": "blockDefaults",
+        "kind": "property",
+        "signature": "blockDefaults?: BlockDefaults",
+        "optional": true
+      },
+      {
+        "name": "blocks",
+        "kind": "property",
+        "signature": "blocks?: BlockDefinition[]",
+        "optional": true
+      }
+    ],
+    "members": [
+      {
+        "name": "columns",
+        "kind": "property",
+        "signature": "readonly columns: number",
+        "readonly": true
+      },
+      {
+        "name": "rows",
+        "kind": "property",
+        "signature": "readonly rows: number",
+        "readonly": true,
+        "doc": "Current row count: the setGrid() minimum or more when the content needs it."
+      },
+      {
+        "name": "rowHeight",
+        "kind": "property",
+        "signature": "rowHeight: number | null",
+        "doc": "Fixed row height in pixels, or null when rows share the field height."
+      },
+      {
+        "name": "dockPosition",
+        "kind": "property",
+        "signature": "dockPosition: \"top\" | \"bottom\"",
+        "doc": "Read or move the dock rail: \"top\" (default) or \"bottom\"."
+      },
+      {
+        "name": "layout",
+        "kind": "property",
+        "signature": "readonly layout: BlocksLayoutMode",
+        "readonly": true
+      },
+      {
+        "name": "draggable",
+        "kind": "property",
+        "signature": "draggable: boolean"
+      },
+      {
+        "name": "resizable",
+        "kind": "property",
+        "signature": "resizable: boolean"
+      },
+      {
+        "name": "font",
+        "kind": "property",
+        "signature": "font: Readonly<BlocksFont> | null"
+      },
+      {
+        "name": "variant",
+        "kind": "property",
+        "signature": "variant: string"
+      },
+      {
+        "name": "variants",
+        "kind": "property",
+        "signature": "readonly variants: readonly string[]",
+        "readonly": true
+      },
+      {
+        "name": "colorArray",
+        "kind": "property",
+        "signature": "colorArray: readonly string[]",
+        "doc": "User-owned CSS colors available to future random blocks."
+      },
+      {
+        "name": "colorVariation",
+        "kind": "property",
+        "signature": "colorVariation: number",
+        "doc": "Share of random blocks using colorArray. A positive value requires at least one color."
+      },
+      {
+        "name": "inversionVariation",
+        "kind": "property",
+        "signature": "inversionVariation: number"
+      },
+      {
+        "name": "labels",
+        "kind": "property",
+        "signature": "readonly labels: Readonly<BlocksLabels>",
+        "readonly": true
+      },
+      {
+        "name": "field",
+        "kind": "property",
+        "signature": "readonly field: Element | null",
+        "readonly": true
+      },
+      {
+        "name": "register",
+        "kind": "method",
+        "signature": "register(definition: BlockDefinition, options?: RegisterOptions): BlocksSystem"
+      },
+      {
+        "name": "registerAdapter",
+        "kind": "method",
+        "signature": "registerAdapter(id: string, adapter: BlockAdapter, options?: RegisterOptions): BlocksSystem"
+      },
+      {
+        "name": "listAdapters",
+        "kind": "method",
+        "signature": "listAdapters(): string[]"
+      },
+      {
+        "name": "list",
+        "kind": "method",
+        "signature": "list(filters?: { query?: string; adapter?: string; medium?: string; category?: string }): Readonly<BlockDefinition>[]"
+      },
+      {
+        "name": "get",
+        "kind": "method",
+        "signature": "get(id: string): Readonly<BlockDefinition> | null"
+      },
+      {
+        "name": "block",
+        "kind": "method",
+        "signature": "block(id: string): BlockController | null",
+        "doc": "The live block with this id, or null. get() and list() return catalog definitions instead."
+      },
+      {
+        "name": "blocks",
+        "kind": "method",
+        "signature": "blocks(): BlockController[]",
+        "doc": "Every live block in its current order, docked blocks at the place they return to."
+      },
+      {
+        "name": "blockOf",
+        "kind": "method",
+        "signature": "blockOf(target: Element | null): BlockController | null",
+        "doc": "The live block that contains this element, or null."
+      },
+      {
+        "name": "batch",
+        "kind": "method",
+        "signature": "batch<T>(fn: (blocks: BlocksSystem) => T): T",
+        "doc": "Run fn and publish everything it changes as one blocks:change of type \"batch\". The changes themselves happen at once. Returns what fn returns."
+      },
+      {
+        "name": "checkLayout",
+        "kind": "method",
+        "signature": "checkLayout(layout: unknown, options?: BlocksRestoreOptions): Readonly<BlocksLayoutCheck>",
+        "doc": "Tell whether restoreLayout() would accept this snapshot, and which ids it would skip or append, without changing anything."
+      },
+      {
+        "name": "destroy",
+        "kind": "method",
+        "signature": "destroy(): BlocksSystem",
+        "doc": "Remove every block, release the field and undo hydrate() and bindSearch(): observers and listeners stop and a hydrated page gets its original HTML back. Publishes no events. The system can start again afterwards."
+      },
+      {
+        "name": "attach",
+        "kind": "method",
+        "signature": "attach(target: string | Element): BlocksSystem"
+      },
+      {
+        "name": "hydrate",
+        "kind": "method",
+        "signature": "hydrate(target?: string | Element | BlocksHydrateOptions, options?: BlocksHydrateOptions): BlocksHydratedField | null",
+        "doc": "Hydrate declarative HTML blocks in a field with responsive spans, auto-fit, deep-link resolution and optional visitor persistence. Without a target, the first [data-content-page] on the page is hydrated; an options object may take the place of the target."
+      },
+      {
+        "name": "resolveAddress",
+        "kind": "method",
+        "signature": "resolveAddress(url?: string | URL, options?: BlocksAddressOptions): HTMLElement | null",
+        "doc": "Undock, scroll to and mark the block named by ?block= or #hash in url (defaults to the current location)."
+      },
+      {
+        "name": "bindSearch",
+        "kind": "method",
+        "signature": "bindSearch(input: string | Element, options?: BlocksSearchOptions): boolean",
+        "doc": "Bind diacritic-insensitive live filtering and relevance ranking to a search input and its items."
+      },
+      {
+        "name": "setGrid",
+        "kind": "method",
+        "signature": "setGrid(columns: number, minRows: number): BlocksSystem",
+        "doc": "Fix the columns and set the minimum rows; rows grow and shrink with the content."
+      },
+      {
+        "name": "compact",
+        "kind": "method",
+        "signature": "compact(): BlocksSystem"
+      },
+      {
+        "name": "fitHeight",
+        "kind": "method",
+        "signature": "fitHeight(ids?: Iterable<string>): ReadonlyArray<Readonly<{ id: string; columns: number; rows: number; changed: boolean }>>",
+        "doc": "Fit every live block's row span to its rendered content at the current widths."
+      },
+      {
+        "name": "add",
+        "kind": "method",
+        "signature": "add(content: BlockContent, options?: AddBlockOptions): BlockController"
+      },
+      {
+        "name": "exportLayout",
+        "kind": "method",
+        "signature": "exportLayout(): BlocksLayout",
+        "doc": "Export content-free layout state in current DOM order."
+      },
+      {
+        "name": "restoreLayout",
+        "kind": "method",
+        "signature": "restoreLayout(layout: BlocksLayout | { version: 1; layout: BlocksLayoutMode; blocks: ReadonlyArray<{ id: string } & Partial<BlocksLayoutEntry>> }, options?: BlocksRestoreOptions): BlocksSystem",
+        "doc": "Restore known block order, spans (or keep current spans when omitted), optional fixed positions, minimized, docked and pinned state."
+      },
+      {
+        "name": "saveBaseline",
+        "kind": "method",
+        "signature": "saveBaseline(): BlocksSystem",
+        "doc": "Make the current order, spans, places, minimized, docked and pinned state the target of reset(); blocks added later join at the end."
+      },
+      {
+        "name": "reset",
+        "kind": "method",
+        "signature": "reset(): BlocksSystem",
+        "doc": "Return every block to the saved baseline (by default its add() order, span, place and initial minimized state, undocked and unpinned); publishes one \"reset\" change."
+      },
+      {
+        "name": "mount",
+        "kind": "method",
+        "signature": "mount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>"
+      },
+      {
+        "name": "unmount",
+        "kind": "method",
+        "signature": "unmount(target: string | Element): boolean"
+      },
+      {
+        "name": "remount",
+        "kind": "method",
+        "signature": "remount(id: string, target: string | Element, overrides?: Record<string, unknown>): Promise<Element>"
+      },
+      {
+        "name": "snippet",
+        "kind": "method",
+        "signature": "snippet(id: string, overrides?: Record<string, unknown>): string"
+      },
+      {
+        "name": "address",
+        "kind": "method",
+        "signature": "address(id: string): string"
+      }
+    ]
+  },
+  "block": {
+    "create": "blocks.add(content, options?)",
+    "content": "trusted HTML string, a DOM node, or a function returning either",
+    "options": [
+      {
+        "name": "id",
+        "kind": "property",
+        "signature": "id?: string",
+        "optional": true
+      },
+      {
+        "name": "title",
+        "kind": "property",
+        "signature": "title?: string",
+        "optional": true,
+        "doc": "Optional visible menu title. When omitted, id remains an accessible fallback but is not rendered."
+      },
+      {
+        "name": "menu",
+        "kind": "property",
+        "signature": "menu?: boolean | BlockMenuOptions",
+        "optional": true
+      },
+      {
+        "name": "variant",
+        "kind": "property",
+        "signature": "variant?: string",
+        "optional": true
+      },
+      {
+        "name": "minimized",
+        "kind": "property",
+        "signature": "minimized?: boolean",
+        "optional": true
+      },
+      {
+        "name": "draggable",
+        "kind": "property",
+        "signature": "draggable?: boolean",
+        "optional": true,
+        "doc": "Allow this block to move while the system remains draggable. Defaults to true."
+      },
+      {
+        "name": "span",
+        "kind": "property",
+        "signature": "span?: readonly [columns: number, rows: number]",
+        "optional": true,
+        "doc": "Initial span in whole grid units, applied like span(); rejected in free layout."
+      },
+      {
+        "name": "place",
+        "kind": "property",
+        "signature": "place?: readonly [column: number, row: number]",
+        "optional": true,
+        "doc": "Initial fixed-grid coordinates, applied like place()."
+      },
+      {
+        "name": "summary",
+        "kind": "property",
+        "signature": "summary?: BlockContent | null",
+        "optional": true,
+        "doc": "Short content shown by the docked chip instead of the title alone; same trust boundary as content."
+      }
+    ],
+    "menu": [
+      {
+        "name": "dock",
+        "kind": "property",
+        "signature": "dock?: boolean",
+        "optional": true,
+        "doc": "Show the reversible close-to-dock action. Defaults to true."
+      },
+      {
+        "name": "close",
+        "kind": "property",
+        "signature": "close?: boolean",
+        "optional": true
+      },
+      {
+        "name": "minimize",
+        "kind": "property",
+        "signature": "minimize?: boolean",
+        "optional": true
+      },
+      {
+        "name": "copy",
+        "kind": "property",
+        "signature": "copy?: boolean",
+        "optional": true,
+        "doc": "Show a button that copies the block's decoded visible text. Defaults to false."
+      },
+      {
+        "name": "pin",
+        "kind": "property",
+        "signature": "pin?: boolean",
+        "optional": true,
+        "doc": "Show the favorite toggle. A pinned block moves in front of the unpinned blocks and ignores dock(). Defaults to false."
+      }
+    ],
+    "members": [
+      {
+        "name": "id",
+        "kind": "property",
+        "signature": "readonly id: string",
+        "readonly": true
+      },
+      {
+        "name": "element",
+        "kind": "property",
+        "signature": "readonly element: HTMLElement",
+        "readonly": true
+      },
+      {
+        "name": "content",
+        "kind": "property",
+        "signature": "readonly content: HTMLDivElement",
+        "readonly": true
+      },
+      {
+        "name": "title",
+        "kind": "property",
+        "signature": "title: string",
+        "doc": "Read or change the titlebar text. Setting it keeps the buttons as they are; on a block without a titlebar it adds one with the default menu."
+      },
+      {
+        "name": "layout",
+        "kind": "property",
+        "signature": "readonly layout: Readonly<{ span: readonly [columns: number, rows: number]; place: readonly [column: number, row: number] | null }>",
+        "readonly": true,
+        "doc": "The current span and place of this block, as exportLayout() writes them."
+      },
+      {
+        "name": "color",
+        "kind": "property",
+        "signature": "color: string"
+      },
+      {
+        "name": "variant",
+        "kind": "property",
+        "signature": "variant: string"
+      },
+      {
+        "name": "minimized",
+        "kind": "property",
+        "signature": "minimized: boolean"
+      },
+      {
+        "name": "docked",
+        "kind": "property",
+        "signature": "docked: boolean"
+      },
+      {
+        "name": "pinned",
+        "kind": "property",
+        "signature": "pinned: boolean",
+        "doc": "A pinned block moves in front of the unpinned blocks and ignores dock(); a docked block ignores pin()."
+      },
+      {
+        "name": "draggable",
+        "kind": "property",
+        "signature": "draggable: boolean"
+      },
+      {
+        "name": "menu",
+        "kind": "method",
+        "signature": "menu(name: string, options?: boolean | BlockMenuOptions): BlockController"
+      },
+      {
+        "name": "dock",
+        "kind": "method",
+        "signature": "dock(value?: boolean): void",
+        "doc": "Move the block to or from the compact dock without deleting it."
+      },
+      {
+        "name": "pin",
+        "kind": "method",
+        "signature": "pin(value?: boolean): void",
+        "doc": "Pin the block as a favorite, moving it in front of the unpinned blocks."
+      },
+      {
+        "name": "summary",
+        "kind": "method",
+        "signature": "summary(content: BlockContent | null): BlockController",
+        "doc": "Set or remove (null) the short content the docked chip shows."
+      },
+      {
+        "name": "span",
+        "kind": "method",
+        "signature": "span(columns: number, rows: number): BlockController"
+      },
+      {
+        "name": "fitHeight",
+        "kind": "method",
+        "signature": "fitHeight(): Readonly<{ columns: number; rows: number; changed: boolean }>",
+        "doc": "Fit the row span to the block's rendered content at its current width."
+      },
+      {
+        "name": "place",
+        "kind": "method",
+        "signature": "place(column: number, row: number): BlockController"
+      },
+      {
+        "name": "describe",
+        "kind": "method",
+        "signature": "describe(options?: BlockDescribeOptions): BlockDefinition",
+        "doc": "Serialize this live block into a registerable definition for the built-in \"html\" adapter."
+      },
+      {
+        "name": "remove",
+        "kind": "method",
+        "signature": "remove(): true"
+      }
+    ]
+  },
+  "layoutSnapshot": {
+    "shape": [
+      {
+        "name": "version",
+        "kind": "property",
+        "signature": "version: 1"
+      },
+      {
+        "name": "layout",
+        "kind": "property",
+        "signature": "layout: BlocksLayoutMode"
+      },
+      {
+        "name": "grid",
+        "kind": "property",
+        "signature": "grid?: { columns: number; rows: number } | null",
+        "optional": true,
+        "doc": "The grid the snapshot was made for; rows is the setGrid() minimum. null in free layout. Pass it on as restoreLayout(layout, { grid: layout.grid }) to switch the grid together with the blocks. Optional when you build a snapshot by hand."
+      },
+      {
+        "name": "blocks",
+        "kind": "property",
+        "signature": "blocks: readonly BlocksLayoutEntry[]"
+      }
+    ],
+    "entry": [
+      {
+        "name": "id",
+        "kind": "property",
+        "signature": "id: string"
+      },
+      {
+        "name": "span",
+        "kind": "property",
+        "signature": "span: readonly [columns: number, rows: number]"
+      },
+      {
+        "name": "place",
+        "kind": "property",
+        "signature": "place: readonly [column: number, row: number] | null"
+      },
+      {
+        "name": "minimized",
+        "kind": "property",
+        "signature": "minimized: boolean"
+      },
+      {
+        "name": "docked",
+        "kind": "property",
+        "signature": "docked: boolean"
+      },
+      {
+        "name": "pinned",
+        "kind": "property",
+        "signature": "pinned: boolean"
+      }
+    ],
+    "restoreOptions": [
+      {
+        "name": "grid",
+        "kind": "property",
+        "signature": "grid?: { columns: number; rows: number }",
+        "optional": true,
+        "doc": "Switch the grid together with the saved spans, e.g. at a responsive breakpoint. Nothing changes when the target grid has too few columns or a saved place overlaps a fixed block."
+      }
+    ],
+    "check": [
+      {
+        "name": "ok",
+        "kind": "property",
+        "signature": "ok: boolean",
+        "doc": "true when restoreLayout() would accept the snapshot."
+      },
+      {
+        "name": "code",
+        "kind": "property",
+        "signature": "code: BlocksErrorCode | null",
+        "doc": "Error code of the refusal, or null."
+      },
+      {
+        "name": "message",
+        "kind": "property",
+        "signature": "message: string | null"
+      },
+      {
+        "name": "unknownIds",
+        "kind": "property",
+        "signature": "unknownIds: readonly string[]",
+        "doc": "Ids in the snapshot that are not in the field; restoreLayout() skips them."
+      },
+      {
+        "name": "missingIds",
+        "kind": "property",
+        "signature": "missingIds: readonly string[]",
+        "doc": "Ids in the field that are not in the snapshot; restoreLayout() appends them."
+      }
+    ]
+  },
+  "hydrate": {
+    "options": [
+      {
+        "name": "storage",
+        "kind": "property",
+        "signature": "storage?: string | false",
+        "optional": true,
+        "doc": "localStorage key prefix for the visitor's order, docked and pinned blocks; the page name follows it. false stores nothing. Defaults to \"blocks.system:layout\"."
+      },
+      {
+        "name": "breakpoints",
+        "kind": "property",
+        "signature": "breakpoints?: readonly BlocksHydrateBreakpoint[]",
+        "optional": true,
+        "doc": "Width modes for data-grid-{name}-columns/rows and data-block-span-{name}. Defaults to wide 1080, medium 680, compact 0."
+      },
+      {
+        "name": "fixedMediaSelector",
+        "kind": "property",
+        "signature": "fixedMediaSelector?: string",
+        "optional": true,
+        "doc": "Blocks containing a match keep their span instead of fitting their content. Defaults to \"[data-block-fixed-height]\"."
+      },
+      {
+        "name": "viewportLead",
+        "kind": "property",
+        "signature": "viewportLead?: boolean | ((field: Element, source: Element) => boolean)",
+        "optional": true,
+        "doc": "Let the [data-block-role=\"lead\"] block fill the viewport height."
+      },
+      {
+        "name": "address",
+        "kind": "property",
+        "signature": "address?: boolean",
+        "optional": true,
+        "doc": "Call resolveAddress() after hydration. Defaults to true."
+      }
+    ],
+    "page": [
+      {
+        "name": "blocks",
+        "kind": "property",
+        "signature": "readonly blocks: BlocksSystem",
+        "readonly": true
+      },
+      {
+        "name": "controllers",
+        "kind": "property",
+        "signature": "readonly controllers: readonly BlockController[]",
+        "readonly": true
+      },
+      {
+        "name": "currentLayout",
+        "kind": "method",
+        "signature": "currentLayout(): { mode: string; grid: { columns: number; rows: number }; blocks: readonly BlocksLayoutEntry[]; }"
+      },
+      {
+        "name": "applyComposition",
+        "kind": "method",
+        "signature": "applyComposition(pageLayout: { grid?: Record<string, { columns: number; rows: number }>; blocks?: Record<string, { span?: Record<string, readonly [number, number]> }>; } | null): void"
+      },
+      {
+        "name": "fitContent",
+        "kind": "method",
+        "signature": "fitContent(): void"
+      }
+    ],
+    "addressOptions": [
+      {
+        "name": "queryKey",
+        "kind": "property",
+        "signature": "queryKey?: string",
+        "optional": true,
+        "doc": "Query parameter that names the block. Defaults to \"block\"."
+      },
+      {
+        "name": "highlightDuration",
+        "kind": "property",
+        "signature": "highlightDuration?: number",
+        "optional": true,
+        "doc": "Milliseconds data-block-addressed stays on the block. Defaults to 2600."
+      }
+    ],
+    "searchOptions": [
+      {
+        "name": "root",
+        "kind": "property",
+        "signature": "root?: Document | Element",
+        "optional": true,
+        "doc": "Where the input selector, items and status are looked up. Defaults to document."
+      },
+      {
+        "name": "items",
+        "kind": "property",
+        "signature": "items?: string",
+        "optional": true,
+        "doc": "Items to search. Defaults to \"[data-search-item]\"."
+      },
+      {
+        "name": "status",
+        "kind": "property",
+        "signature": "status?: string | Element | null",
+        "optional": true,
+        "doc": "Element or selector that shows the hit count."
+      },
+      {
+        "name": "shortcut",
+        "kind": "property",
+        "signature": "shortcut?: string | false",
+        "optional": true,
+        "doc": "Key that focuses the input from anywhere on the page; false turns it off. Defaults to \"/\"."
+      },
+      {
+        "name": "focus",
+        "kind": "property",
+        "signature": "focus?: string",
+        "optional": true,
+        "doc": "Value of ?focus= that focuses the input on load. Defaults to \"search\"."
+      }
+    ]
+  },
+  "catalog": {
+    "definition": [
+      {
+        "name": "id",
+        "kind": "property",
+        "signature": "id: string"
+      },
+      {
+        "name": "adapter",
+        "kind": "property",
+        "signature": "adapter: string"
+      },
+      {
+        "name": "url",
+        "kind": "property",
+        "signature": "url?: string",
+        "optional": true,
+        "doc": "Page the block lives on; address() prefers it over the system catalogUrl. Relative urls resolve against catalogUrl or the current page."
+      },
+      {
+        "name": "markup",
+        "kind": "property",
+        "signature": "markup?: string",
+        "optional": true,
+        "doc": "Trusted HTML for the built-in \"html\" adapter — the same trust boundary as add(content)."
+      },
+      {
+        "name": "label",
+        "kind": "property",
+        "signature": "label?: string",
+        "optional": true
+      },
+      {
+        "name": "medium",
+        "kind": "property",
+        "signature": "medium?: string",
+        "optional": true
+      },
+      {
+        "name": "category",
+        "kind": "property",
+        "signature": "category?: string",
+        "optional": true
+      },
+      {
+        "name": "description",
+        "kind": "property",
+        "signature": "description?: string",
+        "optional": true
+      },
+      {
+        "name": "defaults",
+        "kind": "property",
+        "signature": "defaults?: Record<string, unknown>",
+        "optional": true
+      },
+      {
+        "name": "attributes",
+        "kind": "property",
+        "signature": "attributes?: readonly string[]",
+        "optional": true
+      },
+      {
+        "name": "requires",
+        "kind": "property",
+        "signature": "requires?: readonly string[]",
+        "optional": true
+      }
+    ],
+    "adapter": [
+      {
+        "name": "ready",
+        "kind": "method",
+        "signature": "ready?(context: BlockAdapterContext<TSettings>): void | Promise<void>",
+        "optional": true
+      },
+      {
+        "name": "mount",
+        "kind": "method",
+        "signature": "mount(context: BlockAdapterContext<TSettings>): Element | { node: Element } | Promise<Element | { node: Element }>"
+      },
+      {
+        "name": "unmount",
+        "kind": "method",
+        "signature": "unmount?(mounted: MountedBlock<TSettings>): void",
+        "optional": true
+      },
+      {
+        "name": "snippet",
+        "kind": "method",
+        "signature": "snippet?(context: Omit<BlockAdapterContext<TSettings>, \"host\" | \"adapter\">): string",
+        "optional": true
+      }
+    ]
+  },
+  "events": [
+    {
+      "name": "blocks:change",
+      "target": "the attached field",
+      "bubbles": false,
+      "detail": [
+        {
+          "name": "type",
+          "kind": "property",
+          "signature": "type: BlocksChangeType"
+        },
+        {
+          "name": "id",
+          "kind": "property",
+          "signature": "id: string | null"
+        },
+        {
+          "name": "ids",
+          "kind": "property",
+          "signature": "ids: readonly string[]"
+        },
+        {
+          "name": "changes",
+          "kind": "property",
+          "signature": "changes?: readonly BlocksBatchedEvent[]",
+          "optional": true,
+          "doc": "Only on type \"batch\": the events batch() held back."
+        }
+      ]
+    },
+    {
+      "name": "blocks:reorder",
+      "target": "the attached field",
+      "bubbles": false,
+      "detail": [
+        {
+          "name": "id",
+          "kind": "property",
+          "signature": "id: string"
+        },
+        {
+          "name": "input",
+          "kind": "property",
+          "signature": "input: \"pointer\" | \"keyboard\""
+        },
+        {
+          "name": "mode",
+          "kind": "property",
+          "signature": "mode: \"grid\" | \"flow\""
+        },
+        {
+          "name": "key",
+          "kind": "property",
+          "signature": "key: string | null"
+        },
+        {
+          "name": "fromIndex",
+          "kind": "property",
+          "signature": "fromIndex: number | null"
+        },
+        {
+          "name": "toIndex",
+          "kind": "property",
+          "signature": "toIndex: number | null"
+        },
+        {
+          "name": "from",
+          "kind": "property",
+          "signature": "from: BlocksReorderPosition | null"
+        },
+        {
+          "name": "to",
+          "kind": "property",
+          "signature": "to: BlocksReorderPosition | null"
+        },
+        {
+          "name": "direction",
+          "kind": "property",
+          "signature": "direction: \"up\" | \"right\" | \"down\" | \"left\" | \"still\""
+        }
+      ]
+    },
+    {
+      "name": "blocks:resize",
+      "target": "the attached field",
+      "bubbles": false,
+      "detail": [
+        {
+          "name": "id",
+          "kind": "property",
+          "signature": "id: string"
+        },
+        {
+          "name": "input",
+          "kind": "property",
+          "signature": "input: \"pointer\" | \"keyboard\""
+        },
+        {
+          "name": "axis",
+          "kind": "property",
+          "signature": "axis: \"inline\" | \"block\""
+        },
+        {
+          "name": "from",
+          "kind": "property",
+          "signature": "from: BlocksResizeSize"
+        },
+        {
+          "name": "to",
+          "kind": "property",
+          "signature": "to: BlocksResizeSize"
+        }
+      ]
+    }
+  ],
+  "changeTypes": [
+    "add",
+    "compact",
+    "dock",
+    "undock",
+    "pin",
+    "unpin",
+    "minimize",
+    "restore",
+    "remove",
+    "reset",
+    "layout",
+    "grid",
+    "title",
+    "batch"
+  ],
+  "errorCodes": [
+    "BLOCKS_GRID_TOO_SMALL",
+    "BLOCKS_INVALID_ARGUMENT",
+    "BLOCKS_INVALID_ID",
+    "BLOCKS_DUPLICATE_ID",
+    "BLOCKS_UNKNOWN_BLOCK",
+    "BLOCKS_UNKNOWN_ADAPTER",
+    "BLOCKS_ADAPTER_RESULT",
+    "BLOCKS_RETIRED_OPTION",
+    "BLOCKS_REMOVED",
+    "BLOCKS_WRONG_LAYOUT",
+    "BLOCKS_OVERLAP",
+    "BLOCKS_NO_FIELD",
+    "BLOCKS_FIELD_IN_USE",
+    "BLOCKS_LAYOUT_VERSION",
+    "BLOCKS_NO_CATALOG_URL",
+    "BLOCKS_NOT_MEASURABLE"
+  ],
+  "issueCodes": [
+    "BLOCKS_UNKNOWN_OPTION",
+    "BLOCKS_UNKNOWN_BLOCK",
+    "BLOCKS_PINNED_STAYS_VISIBLE",
+    "BLOCKS_DOCKED_HAS_NO_PIN",
+    "BLOCKS_HYDRATE_NO_TARGET",
+    "BLOCKS_HYDRATE_NO_PAGE",
+    "BLOCKS_HYDRATE_NO_BLOCKS",
+    "BLOCKS_HYDRATE_ALREADY_DONE",
+    "BLOCKS_SEARCH_NO_INPUT",
+    "BLOCKS_SEARCH_NO_ITEMS"
+  ],
+  "labels": [
+    "move",
+    "resize",
+    "restore",
+    "minimize",
+    "dock",
+    "undock",
+    "pin",
+    "unpin",
+    "pinnedStaysVisible",
+    "close",
+    "copy",
+    "copied",
+    "copyFailed",
+    "reset",
+    "resetTitle",
+    "searchCount",
+    "searchHits",
+    "searchNone"
+  ],
+  "dom": {
+    "attributesWritten": [
+      "data-block-addressed",
+      "data-block-color",
+      "data-block-docked",
+      "data-block-draggable",
+      "data-block-minimized",
+      "data-block-mounted",
+      "data-block-object",
+      "data-block-pinned",
+      "data-block-resizable",
+      "data-block-resizing",
+      "data-block-role",
+      "data-block-summary",
+      "data-block-title",
+      "data-block-variant",
+      "data-blocks-dock",
+      "data-blocks-dock-position",
+      "data-blocks-ready",
+      "data-blocks-search",
+      "data-blocks-system",
+      "data-blocks-system-font",
+      "data-draggable",
+      "data-dragging",
+      "data-drop-direction",
+      "data-drop-state",
+      "data-grid-mode",
+      "data-icon",
+      "data-layout",
+      "data-page",
+      "data-resizable",
+      "data-row-height",
+      "data-section",
+      "data-section-label",
+      "data-state"
+    ],
+    "attributesRead": [
+      "data-block-copy",
+      "data-block-fixed-height",
+      "data-block-id",
+      "data-block-role",
+      "data-block-span",
+      "data-block-span-{mode}",
+      "data-block-title",
+      "data-block-variant",
+      "data-blocks-ready",
+      "data-content-block",
+      "data-content-footnote",
+      "data-content-page",
+      "data-grid-columns",
+      "data-grid-rows",
+      "data-grid-{mode}-columns",
+      "data-grid-{mode}-rows",
+      "data-page",
+      "data-page-section",
+      "data-page-section-label",
+      "data-search",
+      "data-search-item",
+      "data-span-columns",
+      "data-span-rows",
+      "data-title"
+    ],
+    "classes": [
+      "blocks-system-actions",
+      "blocks-system-close",
+      "blocks-system-content",
+      "blocks-system-copy",
+      "blocks-system-dock",
+      "blocks-system-dock-toggle",
+      "blocks-system-drop-preview",
+      "blocks-system-field",
+      "blocks-system-footnotes",
+      "blocks-system-heading-hidden",
+      "blocks-system-menu",
+      "blocks-system-minimize",
+      "blocks-system-object",
+      "blocks-system-page",
+      "blocks-system-page-block",
+      "blocks-system-pin",
+      "blocks-system-reset",
+      "blocks-system-resize",
+      "blocks-system-resize--block",
+      "blocks-system-resize--inline",
+      "blocks-system-search-results",
+      "blocks-system-summary",
+      "blocks-system-surface",
+      "blocks-system-title"
+    ],
+    "cssVariables": [
+      "--block-array-color",
+      "--block-color",
+      "--block-column",
+      "--block-content-color",
+      "--block-menu-color",
+      "--block-paper-color",
+      "--block-row",
+      "--block-span-columns",
+      "--block-span-rows",
+      "--blocks-block-min-width",
+      "--blocks-columns",
+      "--blocks-content-padding",
+      "--blocks-dock-height",
+      "--blocks-drag-height",
+      "--blocks-drag-left",
+      "--blocks-drag-top",
+      "--blocks-drag-width",
+      "--blocks-field-color",
+      "--blocks-font-family",
+      "--blocks-gap",
+      "--blocks-ink-color",
+      "--blocks-paper-color",
+      "--blocks-preview-x",
+      "--blocks-preview-y",
+      "--blocks-row-height",
+      "--blocks-rows",
+      "--blocks-text-color"
+    ]
+  }
+}
