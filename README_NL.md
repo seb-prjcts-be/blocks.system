@@ -454,8 +454,9 @@ een `saveBaseline()`-doel,
 reference. De eerste echte consument, de Lucas Gent-site, draait erop zonder
 rasteromwegen.
 
-`hydrate()`, `resolveAddress()`, `bindSearch()` en de gerangschikte zoekvraag
-van `list()` staan op `main` en zitten nog niet in `v0.6.1`.
+Deze README beschrijft `main`. Wat `main` heeft en `v0.6.1` niet, zoals
+`hydrate()`, `resolveAddress()` en `bindSearch()`, staat in
+[`docs/releases/unreleased.md`](docs/releases/unreleased.md).
 
 Lokaal geslaagd:
 

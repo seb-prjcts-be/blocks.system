@@ -2,8 +2,8 @@
 
 Dit is de volledige publieke API zoals `blocks.system.d.ts` en
 `blocks.storage.d.ts` ze beschrijven. De exacte argumenten, foutcodes en
-CSS-haken staan in de [reference](api.html). De drie functies onder
-"Declaratieve pagina's" zitten nog niet in een uitgebrachte versie.
+CSS-haken staan in de [reference](api.html). Wat nog niet in een uitgebrachte
+versie zit, staat in [`releases/unreleased.md`](releases/unreleased.md).
 
 ## Module-exports (`blocks.system.mjs`)
 

@@ -124,6 +124,31 @@ assert.deepEqual(DOCS_RELEASE, {
   stableCdnBase: "https://cdn.jsdelivr.net/gh/seb-prjcts-be/blocks.system@v0.6.1"
 }, "docs release metadata must identify the unreleased main source while v0.6.1 remains the latest stable tag");
 assert.equal(DOCS_RELEASE.packageVersion, packageData.version, "docs metadata must reflect the current package version");
+// Eén bestand zegt wat main heeft en de stabiele tag niet; de README's, het
+// API-overzicht en WERKING.md verwijzen ernaar in plaats van het te herhalen.
+const unreleasedNotesPath = "docs/releases/unreleased.md";
+const unreleasedNotes = await read(unreleasedNotesPath).catch(() => null);
+const unreleasedReaders = [
+  ["README.md", readme],
+  ["README_NL.md", readmeNl],
+  ["docs/API-OVERZICHT.md", await read("docs/API-OVERZICHT.md")],
+  ["docs/WERKING.md", await read("docs/WERKING.md")]
+];
+if (DOCS_RELEASE.releaseStatus === "unreleased") {
+  assert.ok(unreleasedNotes, `${unreleasedNotesPath} must list what main has and ${DOCS_RELEASE.stableRef} does not`);
+  assert.ok(unreleasedNotes.includes(`\`${DOCS_RELEASE.stableRef}\``), `${unreleasedNotesPath} must name the stable tag it compares with`);
+  for (const apiName of ["hydrate", "resolveAddress", "bindSearch"]) {
+    assert.ok(unreleasedNotes.includes(`${apiName}(`), `${unreleasedNotesPath} misses ${apiName}()`);
+  }
+  for (const [file, content] of unreleasedReaders) {
+    assert.ok(content.includes("releases/unreleased.md"), `${file} must point to ${unreleasedNotesPath}`);
+  }
+} else {
+  assert.equal(unreleasedNotes, null, `${unreleasedNotesPath} must become the release note once main is released`);
+  for (const [file, content] of unreleasedReaders) {
+    assert.ok(!content.includes("releases/unreleased.md"), `${file} still points to ${unreleasedNotesPath} after the release`);
+  }
+}
 assert.equal(packageLockData.version, packageData.version, "package lock must use the release version");
 assert.equal(packageLockData.packages[""].version, packageData.version, "root lock package must use the release version");
 for (const contractChange of ["layout", "snap", "placement", "flow-grid", "resizable", "exportLayout()", "localStorage", "Instrument Sans"]) {
@@ -331,7 +356,7 @@ assert.match(manualHtml, /vendor\/vanilla\.waves-0\.3\.1\.min\.js[\s\S]*manual\.
 assert.deepEqual(docsContent.manual["manual-menu"].layout, { place: [1, 21], span: [2, 2] }, "manual 03 explanation must be 2×2");
 assert.deepEqual(docsContent.manual["manual-menu-code"].layout, { place: [3, 21], span: [4, 2] }, "manual 03 code must be 4×2");
 assert.equal(docsContent.manual["manual-menu"].title, "03 / titlebar controls", "manual 03 must use the human-facing titlebar term");
-assert.match(docsContent.manual["manual-menu"].intro, /dock rail[\s\S]*API[\s\S]*menu/, "manual 03 must locate the dock and bridge to the real menu API term");
+assert.match(docsContent.manual["manual-menu"].intro, /dock rail above the grid[\s\S]*API[\s\S]*menu/, "manual 03 must locate the dock and bridge to the real menu API term");
 for (const id of ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-link"]) {
   assert.equal("eyebrow" in docsContent.manual[id], false, `${id} must not repeat the titlebar label inside its compact result`);
   assert.equal("statement" in docsContent.manual[id], false, `${id} must not repeat its title inside its compact result`);

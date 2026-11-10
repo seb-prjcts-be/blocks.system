@@ -1,7 +1,6 @@
 # Hoe blocks.system werkt
 
-Een korte kaart van de werking, gelezen uit de bron op 2026-11-10 (`main`,
-package `0.6.1`). De functies zelf staan in
+Een korte kaart van de werking. De functies zelf staan in
 [`API-OVERZICHT.md`](API-OVERZICHT.md); hier staat hoe ze samenhangen.
 
 ## In één alinea
@@ -17,7 +16,7 @@ geen afhankelijkheden.
 
 | Bestand | Rol |
 |---|---|
-| `blocks.system.mjs` | De kern, ongeveer 3100 regels, één ESM-module. |
+| `blocks.system.mjs` | De kern, één ESM-module. |
 | `blocks.system.css` | Veld, block, titelbalk, dock en alle toestanden. |
 | `blocks.storage.mjs` | Los, optioneel: inhoud bewaren in JSON-bestanden of via HTTP. |
 | `*.min.mjs` | Gemaakt door `npm run build:min`, nooit met de hand. |
@@ -106,8 +105,8 @@ Meer in [`DRAG-BEHAVIOR.md`](DRAG-BEHAVIOR.md).
 ## Events en bewaren
 
 Het veld vuurt drie events: `blocks:reorder` (verplaatst), `blocks:resize`
-(span gewijzigd met de rand) en `blocks:change` (al het andere: dock, pin,
-minimize, remove, reset, layout, grid).
+(span gewijzigd met de rand) en `blocks:change` (al het andere, zoals docken,
+pinnen en verwijderen).
 
 `exportLayout()` geeft alleen layout terug, nooit inhoud: volgorde, spans,
 plaatsen en toestand per id. `restoreLayout()` zet zo'n momentopname terug,
@@ -121,17 +120,16 @@ heen gaat. Alleen `hydrate()` schrijft zelf naar `localStorage`.
 2. Vervangt de bron door een veld met hetzelfde `id` en voegt elk kind toe met
    `add()`. Elk block wordt ook als definitie geregistreerd, zodat zoeken en
    deeplinks werken.
-3. Kiest per breedte een modus (`wide` vanaf 1080px, `medium` vanaf 680px,
-   anders `compact`) en leest raster en spans uit `data-grid-*` en
-   `data-block-span-*`.
+3. Kiest per breedte een modus (`wide`, `medium` of `compact`) en leest
+   raster en spans uit `data-grid-*` en `data-block-span-*`.
 4. Past elk block aan zijn inhoud aan en doet dat opnieuw bij een andere
    breedte, een gewijzigde inhoud of een geladen afbeelding.
 5. Bewaart volgorde, dock en pins van de bezoeker in `localStorage` en toont
    een terugzetknop zolang er iets bewaard is.
 6. Springt naar het block uit `?block=` of `#id`.
 
-`hydrate()`, `resolveAddress()` en `bindSearch()` staan op `main` maar zitten
-nog niet in een uitgebrachte versie (`docs/release.mjs`: `unreleased`).
+Wat nog niet in een uitgebrachte versie zit, staat in
+[`releases/unreleased.md`](releases/unreleased.md).
 
 ## De opslagmodule
 
@@ -145,8 +143,8 @@ validatie blijven bij de toepassing.
 
 ## Uitgeven
 
-Geen npm. Een git-tag op GitHub, geleverd door jsDelivr. De laatste tag is
-`v0.6.1`. De Lucas Gent-site wijst naar een commit via `BLOCKS_SYSTEM_REF`, dus
+Geen npm. Een git-tag op GitHub, geleverd door jsDelivr. De laatste tag en de
+stappen staan in [`development.md`](development.md). De Lucas Gent-site wijst naar een commit via `BLOCKS_SYSTEM_REF`, dus
 een wijziging hier en het verzetten van die verwijzing horen samen.
 
 `npm run check` bouwt de minified modules en draait alle tests.

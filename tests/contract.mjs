@@ -1021,6 +1021,13 @@ assert.equal(dutch.labels.dock, "links bewaren", "consumers must be able to conf
 assert.equal(createBlocksSystem().labels.undock, "return from the dock", "undocking must have its own label; restore belongs to minimize");
 assert.equal(createBlocksSystem().labels.restore, "restore", "restore keeps its minimize meaning");
 assert.equal(dutch.labels.copy, "inhoud meenemen", "consumers must be able to configure copy feedback labels");
+const documentLanguage = document.documentElement.lang;
+document.documentElement.lang = "nl";
+const dutchDefaults = createBlocksSystem().labels;
+document.documentElement.lang = documentLanguage;
+assert.equal(dutchDefaults.dock, "naar de dock sluiten", "the Dutch dock label must name the dock, not a side");
+assert.equal(dutchDefaults.undock, "terug uit de dock", "the Dutch undock label must mirror the dock label");
+assert.deepEqual(Object.keys(dutchDefaults), Object.keys(singleton.labels), "Dutch and English defaults must cover the same labels");
 assert.throws(function () { createBlocksSystem({ labels: { close: "" } }); }, /labels\.close mag niet leeg/, "empty accessible labels must fail early");
 assert.ok(
   ["hydrate", "resolveAddress", "bindSearch"].every((name) => typeof singleton[name] === "function"),

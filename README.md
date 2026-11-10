@@ -433,8 +433,9 @@ target, `compact()`, adapters,
 events, TypeScript declarations, the homepage, manual and reference. The first
 real consumer, the Lucas Gent site, runs on it without grid workarounds.
 
-`hydrate()`, `resolveAddress()`, `bindSearch()` and the ranked `list()` search
-live on `main` and are not part of `v0.6.1` yet.
+This README describes `main`. What `main` has and `v0.6.1` does not, such as
+`hydrate()`, `resolveAddress()` and `bindSearch()`, is listed in
+[`docs/releases/unreleased.md`](docs/releases/unreleased.md).
 
 The following checks passed locally:
 
