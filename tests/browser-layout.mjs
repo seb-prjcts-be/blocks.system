@@ -517,7 +517,7 @@ function assertBlockActions(state, page, expectedBlockCount) {
     minimizeCount: 0,
     closeCount: 0
   }, `${page} toont niet uitsluitend de omkeerbare dockactie`);
-  assert.match(dockLabel, /left dock$/, `${page} benoemt de dockactie niet toegankelijk`);
+  assert.match(dockLabel, /to the dock$/, `${page} benoemt de dockactie niet toegankelijk`);
   assert.deepEqual(state.docked, {
     state: "true",
     contentHidden: "true",

@@ -454,6 +454,9 @@ een `saveBaseline()`-doel,
 reference. De eerste echte consument, de Lucas Gent-site, draait erop zonder
 rasteromwegen.
 
+`hydrate()`, `resolveAddress()`, `bindSearch()` en de gerangschikte zoekvraag
+van `list()` staan op `main` en zitten nog niet in `v0.6.1`.
+
 Lokaal geslaagd:
 
 - Minified ESM, runtimecontracten, TypeScript, docs/API-contracten, presentatie,

@@ -21,7 +21,7 @@ CSS-haken staan in de [reference](api.html). De drie functies onder
 |---|---|
 | `attach(target)` | Koppelt het systeem aan een bestaand element. |
 | `setGrid(columns, minRows)` | Legt kolommen vast en zet het minimum aantal rijen; rijen groeien mee met inhoud. |
-| `compact()` | Vult gaten in fixed-grid, of trekt blokken omhoog in flow-grid. |
+| `compact()` | Vult verticale gaten in fixed-grid; in een andere layout gooit het een `TypeError`. |
 | `fitHeight(ids?)` | Past de rijspan van alle of de gegeven blokken aan aan hun gerenderde hoogte. |
 | `add(content, options?)` | Maakt een blok uit HTML, een element of een factory en geeft de controller terug. |
 

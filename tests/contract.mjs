@@ -33,7 +33,7 @@ assert.deepEqual(singleton.labels, {
   resize: "resize",
   restore: "restore",
   minimize: "minimize",
-  dock: "close to the left dock",
+  dock: "close to the dock",
   undock: "return from the dock",
   pin: "pin as favorite",
   unpin: "remove as favorite",
@@ -589,7 +589,7 @@ assert.equal(exclusiveBlock.docked, false, "dock() on a pinned block must do not
 assert.deepEqual(exclusiveSignals, ["pin"], "a refused dock must not publish a change");
 exclusiveBlock.pin(false);
 assert.equal(exclusiveControl("blocks-system-dock-toggle").disabled, false, "unpinning re-enables the dock button");
-assert.equal(exclusiveControl("blocks-system-dock-toggle").getAttribute("aria-label"), "X close to the left dock", "the dock button gets its normal label back");
+assert.equal(exclusiveControl("blocks-system-dock-toggle").getAttribute("aria-label"), "X close to the dock", "the dock button gets its normal label back");
 exclusiveBlock.dock();
 assert.equal(exclusiveBlock.docked, true);
 exclusiveBlock.pin();
@@ -939,7 +939,7 @@ assert.equal(object.element.children[0].children[0].getAttribute("role"), "butto
 assert.match(object.element.children[0].children[0].getAttribute("aria-label"), /arrow keys/, "a draggable title handle must explain its keyboard control in the configured language");
 assert.equal(object.element.children[0].children[0].getAttribute("aria-keyshortcuts"), "ArrowLeft ArrowUp ArrowRight ArrowDown", "a draggable title handle must publish its supported keys");
 assert.equal(object.element.children[0].getAttribute("role"), null, "the menu header must not wrap action buttons in an interactive role");
-assert.match(object.element.children[0].children[1].children[0].getAttribute("aria-label"), /left dock/, "the dock control must explain its reversible destination");
+assert.match(object.element.children[0].children[1].children[0].getAttribute("aria-label"), /to the dock/, "the dock control must explain its reversible destination");
 local.draggable = false;
 assert.equal(object.element.children[0].children[0].tabIndex, -1, "a locked title handle must leave the keyboard tab order");
 assert.equal(object.element.children[0].children[0].getAttribute("role"), null, "a locked title must not promise a button interaction");

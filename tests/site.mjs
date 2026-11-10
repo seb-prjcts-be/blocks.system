@@ -331,7 +331,7 @@ assert.match(manualHtml, /vendor\/vanilla\.waves-0\.3\.1\.min\.js[\s\S]*manual\.
 assert.deepEqual(docsContent.manual["manual-menu"].layout, { place: [1, 21], span: [2, 2] }, "manual 03 explanation must be 2×2");
 assert.deepEqual(docsContent.manual["manual-menu-code"].layout, { place: [3, 21], span: [4, 2] }, "manual 03 code must be 4×2");
 assert.equal(docsContent.manual["manual-menu"].title, "03 / titlebar controls", "manual 03 must use the human-facing titlebar term");
-assert.match(docsContent.manual["manual-menu"].intro, /left rail[\s\S]*API[\s\S]*menu/, "manual 03 must locate the dock and bridge to the real menu API term");
+assert.match(docsContent.manual["manual-menu"].intro, /dock rail[\s\S]*API[\s\S]*menu/, "manual 03 must locate the dock and bridge to the real menu API term");
 for (const id of ["manual-menu-both", "manual-menu-minimize", "manual-menu-close", "manual-menu-link"]) {
   assert.equal("eyebrow" in docsContent.manual[id], false, `${id} must not repeat the titlebar label inside its compact result`);
   assert.equal("statement" in docsContent.manual[id], false, `${id} must not repeat its title inside its compact result`);

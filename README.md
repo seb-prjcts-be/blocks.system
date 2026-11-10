@@ -433,6 +433,9 @@ target, `compact()`, adapters,
 events, TypeScript declarations, the homepage, manual and reference. The first
 real consumer, the Lucas Gent site, runs on it without grid workarounds.
 
+`hydrate()`, `resolveAddress()`, `bindSearch()` and the ranked `list()` search
+live on `main` and are not part of `v0.6.1` yet.
+
 The following checks passed locally:
 
 - Minified ESM, runtime contracts, TypeScript, docs/API contracts, presentation,

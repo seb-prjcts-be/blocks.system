@@ -248,7 +248,7 @@
     },
     "manual-menu": {
       "title": "03 / titlebar controls",
-      "intro": "Every block starts with one reversible close-to-dock action. The compact left rail keeps only its titlebar and releases all grid space. Copy content, minimize and destructive remove controls are opt-in. The API calls the titlebar configuration menu. A controller can dock, restore, minimize or explicitly remove its own block. Reset restores the full manual.",
+      "intro": "Every block starts with one reversible close-to-dock action. The compact dock rail keeps only its titlebar and releases all grid space. Copy content, minimize and destructive remove controls are opt-in. The API calls the titlebar configuration menu. A controller can dock, restore, minimize or explicitly remove its own block. Reset restores the full manual.",
       "layout": {
         "place": [1, 21],
         "span": [2, 2]
@@ -273,7 +273,7 @@
     },
     "manual-menu-both": {
       "title": "dock",
-      "body": "Use × to close the block reversibly into the left rail."
+      "body": "Use × to close the block reversibly into the dock rail."
     },
     "manual-menu-minimize": {
       "title": "minimize opt-in",
@@ -703,7 +703,7 @@
       "rows": [
         { "cells": ["option · blockDefaults.menu", "boolean | object", "Default titlebar controls for new blocks; reversible dock is enabled initially, while minimize and destructive close are opt-in."] },
         { "cells": ["option · menu", "boolean | object", "Enable, disable or configure controls for one new block."] },
-        { "cells": ["option · menu.dock", "boolean · true", "Show reversible close to and restore from the compact left dock."] },
+        { "cells": ["option · menu.dock", "boolean · true", "Show reversible close to and restore from the compact dock."] },
         { "cells": ["option · menu.minimize", "boolean", "Show minimize and restore."] },
         { "cells": ["option · menu.close", "boolean", "Show remove."] },
         { "cells": ["option · menu.copy", "boolean · false", "Copy decoded visible block text and show brief success or failure feedback."] },
