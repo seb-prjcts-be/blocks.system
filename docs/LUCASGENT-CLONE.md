@@ -13,10 +13,36 @@ pin, schrijf dan de nieuwe commit bovenaan en ruim de afgewerkte lijst op.
 
 | | |
 |---|---|
-| Pin in de clone | `5787bdd` (`index.php`, regel 47) |
-| Lib sinds die pin | de ronde van 2026-11-10 hieronder |
-| Staat van die ronde | geschreven en getest in de lib, **nog niet gecommit** |
-| Getest in de clone | nee, zie "Nog te doen" |
+| Pin in de clone | `73036ee` (`index.php`, regel 47), sinds 2026-11-10 |
+| Vorige pin | `5787bdd` |
+| Clone-commit van de pin | `0fe06c9`, **nog niet gepusht** |
+| Lib sinds de pin | alleen documentatie: dit logboek |
+
+De ronde hieronder zit dus in de pin. Ze blijft staan als naslag tot de
+volgende ronde.
+
+## Uitslag van de test (2026-11-10, PRJCTS01)
+
+Eerst lokaal: met `BLOCKS_SYSTEM_LOCAL = true` laadde de clone de lib van
+schijf op commit `73036ee`. Daarna op de pin zelf, van jsDelivr; de bestanden
+daar zijn byte voor byte gelijk aan die op schijf.
+
+- **Poort, lokaal:** `node scripts/check.mjs` met Node 24.16: alle 9
+  controles groen. Daarin zitten 28 pagina's op 4 breedtes, de kaart, een echte
+  blockdrag, de redactietransactie met herstel en een foutloze console.
+- **Poort, op de pin:** de eerste keer 8 van 9. De controle "lopende tekst na
+  een afbeelding" in `scripts/check-navigatie.mjs` (regel 483) wacht hoogstens
+  twee seconden op het bewaren in de editor en haalde dat niet. Die controle
+  slaagde daarna twee keer apart, en de volledige poort erna was 9 van 9. Het
+  is dus een hapering in de tijd, geen fout in de lib; ze staat hier omdat ze
+  kan terugkomen.
+- **In de browser:** de startpagina, `praktisch` en `kaart` laden zonder
+  consolefouten. Een block naar de dock en terug geeft de events `dock` en
+  `undock` en dezelfde indeling als voordien. Zoeken op de kaart geeft
+  treffers. `blocksPage.blocks.block(id)` geeft voor elk block dezelfde
+  controller als `blocksPage.controllers`.
+- **Niet met de hand bekeken:** de editor in beheer (block toevoegen en
+  verslepen). De poort dekt de redactie en de blockdrag wel.
 
 ## Ronde van 2026-11-10: tien verbeteringen, eerste deel
 
@@ -64,22 +90,25 @@ Niet nodig, wel mogelijk zodra de pin verzet is.
 
 ### Nog te doen
 
-1. Seb: de ronde committen en pushen op main van de lib. Zeg het en het
-   gebeurt.
-2. Daarna in de clone `BLOCKS_SYSTEM_LOCAL` in `index.php` tijdelijk op `true`
-   zetten. De site laadt dan `..\blocks.system` van schijf.
-3. `http://localhost/lucasgent_clone_blocks/` openen: een pagina met blocks, de
-   kaart, zoeken, een block naar de dock en terug, en in beheer een block
-   toevoegen en verslepen.
-4. De poort draaien in de clone, met Node 24:
+1. Seb: de clone pushen (commit `0fe06c9`). Zeg het en het gebeurt.
+2. De editor in beheer eens met de hand bekijken: een block toevoegen en
+   verslepen.
+
+### Zo verzet je de pin een volgende keer
+
+1. Main van de lib pushen; jsDelivr leest van GitHub.
+2. In de clone `BLOCKS_SYSTEM_REF` in `index.php` op de nieuwe commit zetten.
+3. De poort draaien in de clone, met Node 24. Ze meet dan de pin zelf:
 
    ```bash
    node scripts/check.mjs
    ```
 
-5. `BLOCKS_SYSTEM_LOCAL` terug op `false`, `BLOCKS_SYSTEM_REF` op de nieuwe
-   commit van de lib, de poort nog eens, en dan de clone committen.
-6. Hier bovenaan de nieuwe pin invullen.
+4. De clone committen, en hier bovenaan de nieuwe pin invullen.
+
+Wil je de lib eerst lokaal proberen: zet `BLOCKS_SYSTEM_LOCAL` in `index.php`
+tijdelijk op `true`. De site laadt dan `..\blocks.system` van schijf. Commit
+die schakelaar nooit op `true`.
 
 ## Wat bewust niet veranderde
 
