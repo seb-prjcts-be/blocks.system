@@ -21,7 +21,7 @@ ze voor de Lucas Gent-site betekent, staat in
 | 5 | deels | Events `add` en `title`, `batch(fn)` | Waarde voor en na in het detail; opborrelen |
 | 6 | gedaan | `destroy()`, ook na `hydrate()` en `bindSearch()` | |
 | 7 | open | Alleen: `hydrate()` zegt waarom het niets doet, en is op te ruimen | `data-block-place`, titel uit de kop, CSS voor de eigen klassen, de site inhoud-eerst |
-| 8 | open | | Spans per breedte in `add()` |
+| 8 | open | Alleen de eigen site: de reference meet haar blockhoogtes zelf met `fitHeight()` in plaats van met de hand getelde rijen | Spans per breedte in `add()`; de handleiding telt haar rijen nog met de hand |
 | 9 | open | | Ankers, `toc()`, zoeken over de catalogus |
 | 10 | gedaan | `docs/api.json` uit de types, de bron en de CSS; `llms.txt`; `AGENTS.md`; export `version` | De test die docs en code vergelijkt, kijkt nog alleen naar namen |
 

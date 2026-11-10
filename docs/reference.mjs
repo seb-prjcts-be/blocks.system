@@ -1,6 +1,6 @@
 import { createBlocksSystem } from "../blocks.system.mjs?v=main-20261110-01";
 import { loadDocsContent, quantizeSurface, scrollToCurrentHash } from "./shell.mjs?v=0.1.20261110.1";
-import { REFERENCE_SECTIONS } from "./reference-sections.mjs?v=0.1.8";
+import { REFERENCE_SECTIONS } from "./reference-sections.mjs?v=0.1.9";
 
 const board = document.querySelector("#reference-board");
 const blocks = createBlocksSystem({
@@ -11,7 +11,8 @@ const blocks = createBlocksSystem({
 const content = await loadDocsContent("reference", REFERENCE_SECTIONS.map(({ id }) => id));
 
 blocks.attach(board);
-blocks.setGrid(6, 105);
+// De rijen zijn een minimum; layoutReference() meet wat de inhoud vraagt.
+blocks.setGrid(6, 1);
 quantizeSurface(board);
 
 function text(name, value, className = "") {
@@ -72,11 +73,47 @@ for (const definition of REFERENCE_SECTIONS) {
     id: definition.id,
     title: entry.title
   });
-  block.span(...definition.span);
-  block.place(...definition.place);
+  block.span(6, 1);
   block.element.id = definition.anchor;
   block.element.classList.add("reference-anchor", "reference-full");
 }
+
+// Onder deze breedte stapelt de CSS de blocks zelf en telt het raster niet mee.
+const stacked = window.matchMedia("(max-width: 1100px)");
+
+// Elk block krijgt de hoogte die zijn inhoud vraagt op deze breedte en met
+// deze lettertypes. Daarna komen ze onder elkaar, met één lege rij ertussen.
+function layoutReference() {
+  if (stacked.matches) return;
+  // De volgorde van nu blijft: wie een block versleepte, houdt zijn volgorde.
+  const unplaced = blocks.exportLayout().blocks.map((entry) => ({ ...entry, place: null }));
+  // Eerst zonder plaats, zodat een block kan groeien zonder zijn buur te raken.
+  blocks.restoreLayout({ version: 1, layout: "fixed-grid", blocks: unplaced });
+  const measured = new Map(blocks.fitHeight().map(({ id, rows }) => [id, rows]));
+  let row = 1;
+  const placed = unplaced.map((entry) => {
+    const rows = measured.get(entry.id) ?? entry.span[1];
+    const next = { ...entry, span: [6, rows], place: [1, row] };
+    row += rows + 1;
+    return next;
+  });
+  blocks.restoreLayout({ version: 1, layout: "fixed-grid", blocks: placed }, { grid: { columns: 6, rows: row - 2 } });
+}
+
+layoutReference();
+// Een lettertype dat later laadt, een andere breedte of de wissel naar de
+// gestapelde weergave verandert de hoogte van de tekst.
+await document.fonts.ready;
+layoutReference();
+let measuredWidth = board.clientWidth;
+let frame = 0;
+new ResizeObserver(() => {
+  if (board.clientWidth === measuredWidth) return;
+  measuredWidth = board.clientWidth;
+  cancelAnimationFrame(frame);
+  frame = requestAnimationFrame(layoutReference);
+}).observe(board);
+stacked.addEventListener("change", layoutReference);
 
 board.dataset.referenceReady = "true";
 scrollToCurrentHash();

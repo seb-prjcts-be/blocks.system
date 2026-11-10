@@ -1,18 +1,20 @@
+// De volgorde en de ankers van de reference. Hoogtes en plaatsen staan hier
+// niet: reference.mjs meet elk block en legt ze onder elkaar.
 export const REFERENCE_SECTIONS = Object.freeze([
-  Object.freeze({ id: "reference-system-create", anchor: "exports", aliases: ["options"], span: [6, 7], place: [1, 1] }),
-  Object.freeze({ id: "reference-container", anchor: "container", aliases: ["system-methods"], span: [6, 7], place: [1, 9] }),
-  Object.freeze({ id: "reference-grid", anchor: "grid", aliases: ["system-state"], span: [6, 4], place: [1, 17] }),
-  Object.freeze({ id: "reference-block-create", anchor: "blocks", aliases: ["add-options"], span: [6, 6], place: [1, 22] }),
-  Object.freeze({ id: "reference-block-layout", anchor: "block-layout", aliases: ["block-methods"], span: [6, 7], place: [1, 29] }),
-  Object.freeze({ id: "reference-content", anchor: "content", aliases: [], span: [6, 3], place: [1, 37] }),
-  Object.freeze({ id: "reference-titlebar", anchor: "titlebar-controls", aliases: [], span: [6, 8], place: [1, 41] }),
-  Object.freeze({ id: "reference-dragging", anchor: "dragging", aliases: ["reorder-event"], span: [6, 5], place: [1, 50] }),
-  Object.freeze({ id: "reference-appearance", anchor: "appearance", aliases: [], span: [6, 4], place: [1, 56] }),
-  Object.freeze({ id: "reference-color", anchor: "colors", aliases: [], span: [6, 2], place: [1, 61] }),
-  Object.freeze({ id: "reference-chance", anchor: "chance", aliases: [], span: [6, 3], place: [1, 64] }),
-  Object.freeze({ id: "reference-block-controller", anchor: "block-controller", aliases: [], span: [6, 6], place: [1, 68] }),
-  Object.freeze({ id: "reference-definition-create", anchor: "adapters", aliases: [], span: [6, 10], place: [1, 75] }),
-  Object.freeze({ id: "reference-adapter-methods", anchor: "adapter-methods", aliases: [], span: [6, 5], place: [1, 86] }),
-  Object.freeze({ id: "reference-field-signals", anchor: "field-dom", aliases: ["css-hooks"], span: [6, 10], place: [1, 92] }),
-  Object.freeze({ id: "reference-system-errors", anchor: "errors", aliases: [], span: [6, 3], place: [1, 103] })
+  Object.freeze({ id: "reference-system-create", anchor: "exports", aliases: ["options"] }),
+  Object.freeze({ id: "reference-container", anchor: "container", aliases: ["system-methods"] }),
+  Object.freeze({ id: "reference-grid", anchor: "grid", aliases: ["system-state"] }),
+  Object.freeze({ id: "reference-block-create", anchor: "blocks", aliases: ["add-options"] }),
+  Object.freeze({ id: "reference-block-layout", anchor: "block-layout", aliases: ["block-methods"] }),
+  Object.freeze({ id: "reference-content", anchor: "content", aliases: [] }),
+  Object.freeze({ id: "reference-titlebar", anchor: "titlebar-controls", aliases: [] }),
+  Object.freeze({ id: "reference-dragging", anchor: "dragging", aliases: ["reorder-event"] }),
+  Object.freeze({ id: "reference-appearance", anchor: "appearance", aliases: [] }),
+  Object.freeze({ id: "reference-color", anchor: "colors", aliases: [] }),
+  Object.freeze({ id: "reference-chance", anchor: "chance", aliases: [] }),
+  Object.freeze({ id: "reference-block-controller", anchor: "block-controller", aliases: [] }),
+  Object.freeze({ id: "reference-definition-create", anchor: "adapters", aliases: [] }),
+  Object.freeze({ id: "reference-adapter-methods", anchor: "adapter-methods", aliases: [] }),
+  Object.freeze({ id: "reference-field-signals", anchor: "field-dom", aliases: ["css-hooks"] }),
+  Object.freeze({ id: "reference-system-errors", anchor: "errors", aliases: [] })
 ]);

@@ -53,6 +53,7 @@ wil maken, leest [`llms.txt`](llms.txt).
 - `tests/contract.mjs` draait op een kleine nep-DOM. Iets dat echte DOM,
   observers of metingen nodig heeft, hoort in een browsertest zoals
   `tests/lifecycle.mjs`.
-- De reference (`docs/api.html`) heeft vaste plaatsen per block in
-  `docs/reference-sections.mjs`. Voeg je rijen toe aan `docs/content.json`, meet
-  dan of de blocks nog passen en schuif de plaatsen op.
+- De reference (`docs/api.html`) meet zelf hoe hoog elk block moet zijn
+  (`layoutReference()` in `docs/reference.mjs`). Rijen toevoegen aan
+  `docs/content.json` vraagt dus geen telwerk. De handleiding heeft wel nog
+  vaste plaatsen, in `docs/content.json` en `docs/manual.mjs`.
